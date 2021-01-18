@@ -16,19 +16,43 @@ namespace ScriptRenamer
     {
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
-            throw new NotImplementedException();
+            AntlrInputStream inputStream = new(new StreamReader(args.Script.Script, Encoding.UTF8));
+            var context = SetupContext(inputStream);
+            var visitor = new ScriptRenamerVisitor
+            {
+                AvailableFolders = args.AvailableFolders,
+                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
+                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
+                FileInfo = args.FileInfo,
+                GroupInfo = args.GroupInfo.FirstOrDefault(),
+                Script = args.Script
+            };
+            visitor.Visit(context);
+            return (null, null);
         }
 
         public string GetFilename(RenameEventArgs args)
         {
             AntlrInputStream inputStream = new(new StreamReader(args.Script.Script, Encoding.UTF8));
+            var context = SetupContext(inputStream);
+            var visitor = new ScriptRenamerVisitor
+            {
+                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
+                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
+                FileInfo = args.FileInfo,
+                GroupInfo = args.GroupInfo.FirstOrDefault(),
+                Script = args.Script
+            };
+            visitor.Visit(context);
+            return null;
+        }
+
+        private ParserRuleContext SetupContext(AntlrInputStream inputStream)
+        {
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
-            ScriptRenamerParser.StartContext context = parser.start();
-            ScriptRenamerVisitor visitor = new();
-            visitor.Visit(context);
-            return string.Empty;
+            return parser.start();
         }
     }
 }
