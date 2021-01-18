@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptRenamer", "ScriptRenamer\ScriptRenamer.csproj", "{9BA452A6-1131-4E08-96BF-39B89F9D5A07}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptRenamerTests", "ScriptRenamerTests\ScriptRenamerTests.csproj", "{B208D612-0247-4766-93CB-ABB0010F436C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9BA452A6-1131-4E08-96BF-39B89F9D5A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BA452A6-1131-4E08-96BF-39B89F9D5A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BA452A6-1131-4E08-96BF-39B89F9D5A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BA452A6-1131-4E08-96BF-39B89F9D5A07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B208D612-0247-4766-93CB-ABB0010F436C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B208D612-0247-4766-93CB-ABB0010F436C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B208D612-0247-4766-93CB-ABB0010F436C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B208D612-0247-4766-93CB-ABB0010F436C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {390E5102-9233-48BA-A089-06FAD9F501A2}
+	EndGlobalSection
+EndGlobal

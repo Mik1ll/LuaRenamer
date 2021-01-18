@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.1" />
+    <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="GeneratedCode/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_GeneratedFiles Include="$(ProjectDir)GeneratedCode/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" />
+  </Target>
+  <Target Name="PostClean" AfterTargets="CoreClean">
+    <Delete Files="@(_GeneratedFiles)" />
+  </Target>
+
+</Project>
