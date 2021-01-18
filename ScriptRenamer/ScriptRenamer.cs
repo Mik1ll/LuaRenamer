@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
+using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamer
 {
+    [Renamer("ScriptRenamer")]
     class ScriptRenamer : IRenamer
     {
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
@@ -23,7 +25,7 @@ namespace ScriptRenamer
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
-            ScriptRenamerParser.RContext context = parser.r();
+            ScriptRenamerParser.StartContext context = parser.start();
             ScriptRenamerVisitor visitor = new();
             visitor.Visit(context);
             return string.Empty;

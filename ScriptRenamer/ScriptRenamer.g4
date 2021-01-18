@@ -1,43 +1,115 @@
 // Define a grammar called Hello
 grammar ScriptRenamer;
-r : stmt* EOF;
+start : stmt* EOF;
 
 stmt
     :   if_stmt
-    |   add_stmt
+    |   non_if_stmt
+    ;
+
+if_stmt
+    :   IF bool_expr (non_if_stmt ELSE stmt | stmt)
+    ;
+
+non_if_stmt
+    :   add_stmt
     |   replace_stmt
     |   block
     ;
 
-if_stmt
-    :   'if' bool_expr block ('else' block)?
-    ;
-
 bool_expr
-    :   bool_expr and='and' bool_expr
-    |   bool_expr or='or' bool_expr
-    |   '(' bool_expr ')'
+    :   bool_expr op=AND bool_expr
+    |   bool_expr op=OR bool_expr
+    |   op=NOT bool_expr
+    |   LPAREN bool_expr RPAREN
     |   bool_atom
     ;
 
 bool_atom
     :   BOOLEAN
+    |   bool_labels
+    ;
+
+bool_labels
+    :   string_labels
     ;
 
 add_stmt
-    : 'add'
+    :   ADD string_atom+
+    ;
+
+string_atom
+    :   STRING
+    |   string_labels
+    ;
+
+string_labels   
+    :   ANIMENAMEROMAJI
+    |   ANIMENAMEENGLISH
+    |   ANIMENAMEJAPANESE
     ;
 
 replace_stmt
-    : 'replace'
+    : REPLACE
     ;
 
 block
-    :   '{' stmt* '}'
+    :   LBRACK stmt* RBRACK
     ;
 
 
+// Control Tokens
+IF : 'if';
+ELSE : 'else';
+LBRACK : '{';
+RBRACK : '}';
+
+// Statement Tokens
+ADD : 'add';
+REPLACE : 'replace';
+
+// Operators
+AND : 'and';
+OR : 'or';
+NOT : 'not';
+LPAREN : '(';
+RPAREN : ')';
+
 // Tags
+    // Strings
+ANIMENAMEROMAJI : 'AnimeNameRomaji';
+ANIMENAMEENGLISH : 'AnimeNameEnglish';
+ANIMENAMEJAPANESE : 'AnimeNameJapanese';
+EPISODENAMEROMAJI : 'EpisodeNameRomaji';
+EPISODENAMEENGLISH : 'EpisodeNameEnglish';
+EPISODENAMEJAPANESE : 'EpisodeNameJapanese';
+GROUPSHORT : 'GroupShort';
+GROUPLONG : 'GroupLong';
+CRCLOWER : 'CRCLower';
+CRCUPPER : 'CRCUpper';
+SOURCESHORT : 'SourceShort';
+SOURCELONG : 'SourceLong';
+RESOLUTION : 'Resolution';
+ANIMETYPE : 'AnimeType';
+VIDEOCODEC : 'VideoCodec';
+
+    // Numbers
+EPISODENUMBER : 'EpisodeNumber';
+FILEVERSION : 'FileVersion';
+WIDTH : 'Width';
+HEIGHT : 'Height';
+YEAR : 'Year';
+EPISODECOUNT : 'EpisodeCount';
+BITDEPTH : 'BitDepth';
+
+    // Collections
+AUDIOCODECS : 'AudioCodecs';
+DUBLANGUAGES : 'DubLanguages';
+SUBLANGUAGES : 'SubLanguages';
+
+
+
+
 
 
 
@@ -60,7 +132,7 @@ fragment FLOAT
     ;
 
 BOOLEAN
-    :   ([tT] 'rue' | [fF] 'alse')
+    :   ('true' | 'false')
     ;
 
 STRING

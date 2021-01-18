@@ -23,8 +23,8 @@ namespace ScriptRenamerTests
             var context = parser.if_stmt();
             var visitor = new ScriptRenamerVisitor();
             visitor.Visit(context);
-            var andnull = context.bool_expr().and;
-            var orexists = context.bool_expr().or;
+            var op = context.bool_expr().op;
+            var ch1 = context.bool_expr().Payload;
         }
     }
 }

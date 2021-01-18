@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Debug ANTLR4 grammar",
+            "type": "antlr-debug",
+            "request": "launch",
+            "input": "input.txt",
+            "grammar": "ScriptRenamer.g4",
+            "startRule": "start",
+            "printParseTree": true,
+            "visualParseTree": true
+        }
+    ]
+}
