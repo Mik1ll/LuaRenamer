@@ -19,7 +19,7 @@ non_if_stmt
     ;
 
 set_stmt
-    : TARGET SET string_atom+
+    : target SET string_atom+
     ;
 
 bool_expr
@@ -36,8 +36,9 @@ bool_expr
     ;
 
 collection_expr
-    :   AUDIOCODECS HAS codec_enum 
+    :   AUDIOCODECS HAS codec_enum
     |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
+    |   IMPORTFOLDERS HAS STRING
     |   title_collection_expr
     ;
 
@@ -45,7 +46,7 @@ title_collection_expr
     :   title_collection_expr HAS language_enum
     |   title_collection_expr HAS titleType_enum
     |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
-    ; 
+    ;
 
 animeType_enum
     :   MOVIE
@@ -53,13 +54,13 @@ animeType_enum
     |   TVSERIES
     |   TVSPECIAL
     |   WEB
-    |   OTHER 
+    |   OTHER
     ;
 
 titleType_enum
     :   MAIN
     |   NONE
-    |   OFFICIAL 
+    |   OFFICIAL
     |   SHORT
     |   SYNONYM
     ;
@@ -149,13 +150,23 @@ number_labels
     ;
 
 add_stmt
-    :   TARGET ADD string_atom+
+    :   target ADD string_atom+
     ;
 
 string_atom
     :   STRING
     |   string_labels
     |   number_labels
+    |   collection_labels
+    ;
+
+collection_labels
+    :   AUDIOCODECS
+    |   DUBLANGUAGES
+    |   SUBLANGUAGES
+    |   ANIMETITLES
+    |   EPISODETITLES
+    |   IMPORTFOLDERS
     ;
 
 string_labels
@@ -182,11 +193,15 @@ string_labels
     ;
 
 replace_stmt
-    : TARGET REPLACE
+    : target REPLACE STRING STRING
     ;
 
 block
     :   LBRACK stmt* RBRACK
+    ;
+
+target
+    :   tar=(FILENAME | DESTINATION | SUBFOLDER)
     ;
 
 
@@ -200,10 +215,9 @@ block
     ADD : 'add';
     REPLACE : 'replace';
     SET : 'set';
-    fragment FILENAME : 'filename';
-    fragment DESTINATION : 'destination';
-    fragment SUBFOLDER : 'subfolder';
-    TARGET : (FILENAME | DESTINATION | SUBFOLDER);
+    FILENAME : 'filename';
+    DESTINATION : 'destination';
+    SUBFOLDER : 'subfolder';
 
 // Operators
     AND : 'and';
@@ -222,7 +236,7 @@ block
 
 // Tags
     // Strings
-        ANIMETITLEPREFERRED : 'AnimeTitlePreferred';
+        ANIMETITLEPREFERRED : 'AnimeTitlePreferred' | 'AnimeTitle';
         ANIMETITLEROMAJI : 'AnimeTitleRomaji';
         ANIMETITLEENGLISH : 'AnimeTitleEnglish';
         ANIMETITLEJAPANESE : 'AnimeTitleJapanese';
@@ -264,6 +278,7 @@ block
         SUBLANGUAGES : 'SubLanguages';
         ANIMETITLES : 'AnimeTitles';
         EPISODETITLES : 'EpisodeTitles';
+        IMPORTFOLDERS : 'ImportFolders';
 
     // Enums
         // Languages

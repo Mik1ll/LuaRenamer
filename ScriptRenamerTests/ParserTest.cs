@@ -102,7 +102,50 @@ namespace ScriptRenamerTests
             var parser = Setup("if (AnimeTitles has English has Main) filename add 'test'");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
+            visitor.AnimeInfo = new MockAnimeInfo
+            {
+                Titles = new List<AnimeTitle>
+                {
+                    new AnimeTitle
+                    {
+                        Title = "test",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Main
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "test2",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Official
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "test3",
+                        Language = TitleLanguage.Romaji,
+                        Type = TitleType.Main
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "test4",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Main
+                    }
+                }
+            };
+            var result = visitor.Visit(context);
+        }
 
+        [TestMethod]
+        public void TestSetStmt()
+        {
+            var parser = Setup("filename set 'test' 'testing' 'testing' AnimeTitlePreferred");
+            var context = parser.start();
+            var visitor = new ScriptRenamerVisitor();
+            visitor.AnimeInfo = new MockAnimeInfo
+            {
+                PreferredTitle = "wioewoihwoiehwoihweohwiowj"
+            };
+            visitor.Visit(context);
         }
 
     }
