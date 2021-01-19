@@ -8,7 +8,7 @@ stmt
     ;
 
 if_stmt
-    :   IF bool_expr (non_if_stmt ELSE stmt | stmt)
+    :   IF LPAREN bool_expr RPAREN (non_if_stmt ELSE false_branch=stmt | true_branch=stmt)
     ;
 
 non_if_stmt
@@ -25,10 +25,10 @@ set_stmt
 bool_expr
     :   op=NOT bool_expr
     |   collection_expr
+    |   ANIMETYPE op=IS animeType_enum
     |   number_atom op=(GT | GE | LT | LE) number_atom
     |   number_atom op=(EQ | NE) number_atom
     |   string_atom op=(EQ | NE) string_atom
-    |   ANIMETYPE op=(EQ | NE) animeType_enum
     |   bool_expr op=AND bool_expr
     |   bool_expr op=OR bool_expr
     |   LPAREN bool_expr RPAREN
@@ -36,15 +36,15 @@ bool_expr
     ;
 
 collection_expr
-    :   AUDIOCODECS op=HAS codec_enum 
-    |   (DUBLANGUAGES | SUBLANGUAGES) op=HAS language_enum
+    :   AUDIOCODECS HAS codec_enum 
+    |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
     |   title_collection_expr
     ;
 
 title_collection_expr
-    :   title_collection_expr op=HAS language_enum
-    |   title_collection_expr op=HAS titleType_enum
-    |   (ANIMETITLES | EPISODETITLES) op=HAS (language_enum | titleType_enum)
+    :   title_collection_expr HAS language_enum
+    |   title_collection_expr HAS titleType_enum
+    |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
     ; 
 
 animeType_enum
@@ -129,7 +129,6 @@ bool_labels
     :   string_labels
     |   RESTRICTED
     |   CENSORED
-    |   HARDSUBBED
     |   CHAPTERED
     ;
 
@@ -219,6 +218,7 @@ block
     GE : '>=';
     EQ : '==';
     NE : '!=';
+    IS : 'is';
 
 // Tags
     // Strings
@@ -256,7 +256,6 @@ block
     // Bools
         RESTRICTED : 'Restricted';
         CENSORED : 'Censored';
-        HARDSUBBED : 'Hardsubbed';
         CHAPTERED : 'Chaptered';
 
     // Collections
