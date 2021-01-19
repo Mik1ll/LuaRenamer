@@ -25,6 +25,10 @@ set_stmt
 bool_expr
     :   op=NOT bool_expr
     |   collection_expr
+    |   number_atom op=(GT | GE | LT | LE) number_atom
+    |   number_atom op=(EQ | NE) number_atom
+    |   string_atom op=(EQ | NE) string_atom
+    |   ANIMETYPE op=(EQ | NE) animeType_enum
     |   bool_expr op=AND bool_expr
     |   bool_expr op=OR bool_expr
     |   LPAREN bool_expr RPAREN
@@ -43,6 +47,15 @@ title_collection_expr
     |   (ANIMETITLES | EPISODETITLES) op=HAS (language_enum | titleType_enum)
     ; 
 
+animeType_enum
+    :   MOVIE
+    |   OVA
+    |   TVSERIES
+    |   TVSPECIAL
+    |   WEB
+    |   OTHER 
+    ;
+
 titleType_enum
     :   MAIN
     |   NONE
@@ -52,7 +65,7 @@ titleType_enum
     ;
 
 codec_enum
-    :
+    : STRING
     ;
 
 language_enum
@@ -116,6 +129,24 @@ bool_labels
     :   string_labels
     |   RESTRICTED
     |   CENSORED
+    |   HARDSUBBED
+    |   CHAPTERED
+    ;
+
+number_atom
+    :   NUMBER
+    |   number_labels
+    ;
+
+number_labels
+    :   EPISODENUMBER
+    |   FILEVERSION
+    |   WIDTH
+    |   HEIGHT
+    |   YEAR
+    |   EPISODECOUNT
+    |   BITDEPTH
+    |   AUDIOCHANNELS
     ;
 
 add_stmt
@@ -125,6 +156,7 @@ add_stmt
 string_atom
     :   STRING
     |   string_labels
+    |   number_labels
     ;
 
 string_labels
@@ -132,6 +164,22 @@ string_labels
     |   ANIMETITLEROMAJI
     |   ANIMETITLEENGLISH
     |   ANIMETITLEJAPANESE
+    |   EPISODETITLEROMAJI
+    |   EPISODETITLEENGLISH
+    |   EPISODETITLEJAPANESE
+    |   GROUPSHORT
+    |   GROUPLONG
+    |   CRCLOWER
+    |   CRCUPPER
+    |   SOURCESHORT
+    |   SOURCELONG
+    |   RESOLUTION
+    |   ANIMETYPE
+    |   VIDEOCODECLONG
+    |   VIDEOCODECSHORT
+    |   DURATION
+    |   GROUPNAME
+    |   OLDFILENAME
     ;
 
 replace_stmt
