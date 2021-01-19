@@ -170,8 +170,7 @@ string_labels
     |   GROUPLONG
     |   CRCLOWER
     |   CRCUPPER
-    |   SOURCESHORT
-    |   SOURCELONG
+    |   SOURCE
     |   RESOLUTION
     |   ANIMETYPE
     |   VIDEOCODECLONG
@@ -179,6 +178,7 @@ string_labels
     |   DURATION
     |   GROUPNAME
     |   OLDFILENAME
+    |   ORIGINALFILENAME
     ;
 
 replace_stmt
@@ -233,8 +233,7 @@ block
         GROUPLONG : 'GroupLong';
         CRCLOWER : 'CRCLower';
         CRCUPPER : 'CRCUpper';
-        SOURCESHORT : 'SourceShort';
-        SOURCELONG : 'SourceLong';
+        SOURCE : 'Source';
         RESOLUTION : 'Resolution';
         ANIMETYPE : 'AnimeType';
         VIDEOCODECLONG : 'VideoCodecLong';
@@ -242,6 +241,7 @@ block
         DURATION : 'Duration';
         GROUPNAME : 'GroupName';
         OLDFILENAME : 'OldFilename';
+        ORIGINALFILENAME : 'OriginalFilename';
 
     // Numbers
         EPISODENUMBER : 'EpisodeNumber';

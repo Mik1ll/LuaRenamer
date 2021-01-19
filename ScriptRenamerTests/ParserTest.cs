@@ -42,7 +42,17 @@ namespace ScriptRenamerTests
         }
 
         [TestMethod]
-        public void TestIfStatementAnimeType()
+        public void TestDanglingElse()
+        {
+            var parser = Setup("if (true) if (false) {} else {}");
+            var context = parser.if_stmt();
+            var visitor = new ScriptRenamerVisitor();
+            visitor.Visit(context);
+            Assert.IsFalse((context.false_branch?.GetText().Length ?? 0) > 0);
+        }
+
+        [TestMethod]
+        public void TestAnimeTypeIs()
         {
             var parser = Setup("if (AnimeType is Movie) {        }");
             var context = parser.if_stmt();
@@ -56,7 +66,7 @@ namespace ScriptRenamerTests
         }
 
         [TestMethod]
-        public void TestIfStatmentNumberAtom()
+        public void TestNumberAtomCompare()
         {
             var parser = Setup("if (22.22412 < EpisodeCount) filename add 'testing' ");
             var context = parser.if_stmt();
@@ -73,7 +83,7 @@ namespace ScriptRenamerTests
         }
 
         [TestMethod]
-        public void TestIfStatementStringAtom()
+        public void TestStringAtomCompare()
         {
             var parser = Setup("if ('testing' == AnimeTitlePreferred) {}");
             var context = parser.if_stmt().bool_expr();
@@ -85,5 +95,15 @@ namespace ScriptRenamerTests
             var result = (bool)visitor.Visit(context);
             Assert.IsTrue(result);
         }
+
+        [TestMethod]
+        public void TestHasOperator()
+        {
+            var parser = Setup("if (AnimeTitles has English has Main) filename add 'test'");
+            var context = parser.start();
+            var visitor = new ScriptRenamerVisitor();
+
+        }
+
     }
 }

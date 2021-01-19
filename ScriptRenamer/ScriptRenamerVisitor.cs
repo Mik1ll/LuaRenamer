@@ -49,14 +49,14 @@ namespace ScriptRenamer
         public override object VisitBool_expr([NotNull] ScriptRenamerParser.Bool_exprContext context)
         {
             var op = context.op;
-            switch (op.Type)
+            switch (op?.Type)
             {
                 case ScriptRenamerLexer.NOT:
                     return Visit(context.bool_expr(0));
                 case ScriptRenamerLexer.IS:
                     if (context.ANIMETYPE() is not null)
                     {
-                        return (AnimeType)Enum.Parse(typeof(AnimeType), context.animeType_enum().GetText());
+                        return AnimeInfo.Type == (AnimeType)Enum.Parse(typeof(AnimeType), context.animeType_enum().GetText());
                         //switch (AnimeInfo.Type)
                         //{
                         //    case AnimeType.Movie:
@@ -270,42 +270,55 @@ namespace ScriptRenamer
             }
             else if (context.GROUPSHORT() is not null)
             {
+                return FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName;
             }
             else if (context.GROUPLONG() is not null)
             {
+                return FileInfo.AniDBFileInfo?.ReleaseGroup?.Name;
             }
             else if (context.CRCLOWER() is not null)
             {
+                return FileInfo.Hashes.CRC.ToLower();
             }
             else if (context.CRCUPPER() is not null)
             {
+                return FileInfo.Hashes.CRC.ToUpper();
             }
-            else if (context.SOURCESHORT() is not null)
+            else if (context.SOURCE() is not null)
             {
-            }
-            else if (context.SOURCELONG() is not null)
-            {
+                return FileInfo.AniDBFileInfo?.Source;
             }
             else if (context.RESOLUTION() is not null)
             {
+                return FileInfo.MediaInfo?.Video?.StandardizedResolution;
             }
             else if (context.ANIMETYPE() is not null)
             {
+                return AnimeInfo.Type.ToString();
             }
             else if (context.VIDEOCODECLONG() is not null)
             {
+                return FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec ?? FileInfo.MediaInfo?.Video?.Codec;
             }
             else if (context.VIDEOCODECSHORT() is not null)
             {
+                return FileInfo.MediaInfo?.Video?.SimplifiedCodec;
             }
             else if (context.DURATION() is not null)
             {
+                return FileInfo.MediaInfo?.General?.Duration;
             }
             else if (context.GROUPNAME() is not null)
             {
+                return GroupInfo?.Name;
             }
             else if (context.OLDFILENAME() is not null)
             {
+                return FileInfo.Filename;
+            }
+            else if (context.ORIGINALFILENAME() is not null)
+            {
+                return FileInfo.AniDBFileInfo?.OriginalFilename;
             }
             return new ParseCanceledException("Could not parse string_labels", context.exception);
         }
@@ -348,7 +361,7 @@ namespace ScriptRenamer
             }
             else if (context.STRING() is not null)
             {
-                return context.STRING().GetText();
+                return context.STRING().GetText().Trim(new char[] { '\'', '"' });
             }
             return new ParseCanceledException("Could not parse string_atom", context.exception);
         }
