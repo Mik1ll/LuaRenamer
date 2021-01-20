@@ -60,18 +60,18 @@ namespace ScriptRenamer
                     }
                     throw new ParseCanceledException("Could not find matching operands for bool_expr IS", context.exception);
                 case ScriptRenamerLexer.GT:
-                    return (double)Visit(context.number_atom(0)) > (double)Visit(context.number_atom(1));
+                    return Convert.ToDouble(Visit(context.number_atom(0))) > Convert.ToDouble(Visit(context.number_atom(1)));
                 case ScriptRenamerLexer.GE:
-                    return (double)Visit(context.number_atom(0)) >= (double)Visit(context.number_atom(1));
+                    return Convert.ToDouble(Visit(context.number_atom(0))) >= Convert.ToDouble(Visit(context.number_atom(1)));
                 case ScriptRenamerLexer.LT:
-                    return (double)Visit(context.number_atom(0)) < (double)Visit(context.number_atom(1));
+                    return Convert.ToDouble(Visit(context.number_atom(0))) < Convert.ToDouble(Visit(context.number_atom(1)));
                 case ScriptRenamerLexer.LE:
-                    return (double)Visit(context.number_atom(0)) <= (double)Visit(context.number_atom(1));
+                    return Convert.ToDouble(Visit(context.number_atom(0))) <= Convert.ToDouble(Visit(context.number_atom(1)));
                 case ScriptRenamerLexer.EQ:
                     if (context.number_atom(0) is not null && context.number_atom(1) is not null)
                     {
-                        var expr1 = Visit(context.number_atom(0));
-                        var expr2 = Visit(context.number_atom(1));
+                        var expr1 = Convert.ToDouble(Visit(context.number_atom(0)));
+                        var expr2 = Convert.ToDouble(Visit(context.number_atom(1)));
                         return expr1 == expr2;
                     }
                     else if (context.string_atom(0) is not null && context.string_atom(1) is not null)
@@ -84,8 +84,8 @@ namespace ScriptRenamer
                 case ScriptRenamerLexer.NE:
                     if (context.number_atom(0) is not null && context.number_atom(1) is not null)
                     {
-                        var expr1 = Visit(context.number_atom(0));
-                        var expr2 = Visit(context.number_atom(1));
+                        var expr1 = Convert.ToDouble(Visit(context.number_atom(0)));
+                        var expr2 = Convert.ToDouble(Visit(context.number_atom(1)));
                         return expr1 != expr2;
                     }
                     else if (context.string_atom(0) is not null && context.string_atom(1) is not null)
@@ -122,21 +122,25 @@ namespace ScriptRenamer
             if (context.AUDIOCODECS() is not null)
             {
                 return ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
-                       .Where(c => c.Contains(context.codec_enum().STRING().GetText())) as ICollection<string>;
+                       .Where(c => c.Contains(context.codec_enum().STRING().GetText())).ToList();
             }
             else if (context.langs is not null)
             {
                 return ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
-                       .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)) as ICollection<TitleLanguage>;
+                       .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
             }
             else if (context.IMPORTFOLDERS() is not null)
             {
                 return ((ICollection<IImportFolder>)GetCollection(context.langs.Type))
-                       .Where(f => f.Name == context.STRING().GetText()) as ICollection<IImportFolder>;
+                       .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(context.STRING().GetText())).ToList();
             }
             else if (context.title_collection_expr() is not null)
             {
                 return (ICollection<(TitleLanguage, TitleType)>)Visit(context.title_collection_expr());
+            }
+            else if (context.collection_labels() is not null)
+            {
+                return (ICollection)Visit(context.collection_labels());
             }
             throw new ParseCanceledException("Could not parse collection_expr", context.exception);
         }
@@ -190,7 +194,7 @@ namespace ScriptRenamer
             }
             else if (context.number_atom() is not null)
             {
-                return (double)Visit(context.number_atom()) <= 0;
+                return Convert.ToDouble(Visit(context.number_atom())) <= 0.0;
             }
             else if (context.BOOLEAN() is not null)
             {
@@ -354,11 +358,46 @@ namespace ScriptRenamer
             }
             else if (context.collection_labels() is not null)
             {
-                return (string)Visit(context.collection_labels());
+                if (context.collection_labels().AUDIOCODECS() is not null)
+                {
+                    return ((ICollection<string>)GetCollection(context.collection_labels().AUDIOCODECS().Symbol.Type)).Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                else if (context.collection_labels().DUBLANGUAGES() is not null)
+                {
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                else if (context.collection_labels().SUBLANGUAGES() is not null)
+                {
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                else if (context.collection_labels().ANIMETITLES() is not null)
+                {
+                    return ((ICollection<AnimeTitle>)GetCollection(context.collection_labels().ANIMETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                else if (context.collection_labels().EPISODETITLES() is not null)
+                {
+                    return ((ICollection<AnimeTitle>)GetCollection(context.collection_labels().EPISODETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                else if (context.collection_labels().IMPORTFOLDERS() is not null)
+                {
+                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type)).Select(a => a.Name).Aggregate((s1, s2) => $"{s1}, {s2}");
+                }
+                throw new ParseCanceledException("Could not parse collection labels in string_atom", context.exception);
             }
             else if (context.STRING() is not null)
             {
                 return context.STRING().GetText().Trim(new char[] { '\'', '"' });
+            }
+            else if (context.collection_expr() is not null)
+            {
+                dynamic result = ((ICollection<object>)Visit(context.collection_expr())).FirstOrDefault();
+                return ((dynamic)result.GetType()) switch
+                {
+                    AnimeTitle a => a.Title,
+                    TitleLanguage t => t.ToString(),
+                    IImportFolder f => f.Name,
+                    _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception),
+                };
             }
             throw new ParseCanceledException("Could not parse string_atom", context.exception);
         }
@@ -367,27 +406,27 @@ namespace ScriptRenamer
         {
             if (context.AUDIOCODECS() is not null)
             {
-                return ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type)).Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type));
             }
             else if (context.DUBLANGUAGES() is not null)
             {
-                return ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type));
             }
             else if (context.SUBLANGUAGES() is not null)
             {
-                return ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type));
             }
             else if (context.ANIMETITLES() is not null)
             {
-                return ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type));
             }
             else if (context.EPISODETITLES() is not null)
             {
-                return ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type));
             }
             else if (context.IMPORTFOLDERS() is not null)
             {
-                return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Select(a => a.Name).Aggregate((s1, s2) => $"{s1}, {s2}");
+                return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type));
             }
             throw new ParseCanceledException("Could not parse collection labels", context.exception);
         }
@@ -396,14 +435,17 @@ namespace ScriptRenamer
         {
             return tokenType switch
             {
-                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs
-                                        ?? FileInfo.MediaInfo?.Audio.Select(a => a.Codec),
-                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages
-                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)),
-                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages
-                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)),
-                ScriptRenamerLexer.ANIMETITLES => AnimeInfo.Titles,
-                ScriptRenamerLexer.EPISODETITLES => EpisodeInfo.Titles,
+                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.ToList()
+                                               ?? FileInfo.MediaInfo?.Audio.Select(a => a.Codec).ToList()
+                                               ?? new List<string>(),
+                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.ToList()
+                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).ToList()
+                                                ?? new List<TitleLanguage>(),
+                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.ToList()
+                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).ToList()
+                                                ?? new List<TitleLanguage>(),
+                ScriptRenamerLexer.ANIMETITLES => AnimeInfo.Titles.ToList(),
+                ScriptRenamerLexer.EPISODETITLES => EpisodeInfo.Titles.ToList(),
                 ScriptRenamerLexer.IMPORTFOLDERS => AvailableFolders,
                 _ => throw new KeyNotFoundException("Could not find token type for collection"),
             };

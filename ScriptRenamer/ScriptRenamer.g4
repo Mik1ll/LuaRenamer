@@ -41,6 +41,7 @@ grammar ScriptRenamer;
         |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
         |   IMPORTFOLDERS HAS STRING
         |   title_collection_expr
+        |   collection_labels
         ;
 
     title_collection_expr
@@ -161,6 +162,7 @@ grammar ScriptRenamer;
         |   string_labels
         |   number_atom
         |   collection_labels
+        |   FIRST LPAREN collection_expr RPAREN
         ;
 
     collection_labels
@@ -240,6 +242,7 @@ grammar ScriptRenamer;
     NE : '!=';
     IS : 'is';
     LENGTH : 'len';
+    FIRST : 'first';
 
 // Tags
     // Strings
