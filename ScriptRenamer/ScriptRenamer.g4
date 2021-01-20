@@ -39,7 +39,7 @@ grammar ScriptRenamer;
     collection_expr
         :   AUDIOCODECS HAS codec_enum
         |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
-        |   IMPORTFOLDERS HAS STRING
+        |   IMPORTFOLDERS HAS string_atom
         |   title_collection_expr
         |   collection_labels
         ;
@@ -68,7 +68,7 @@ grammar ScriptRenamer;
         ;
 
     codec_enum
-        : STRING
+        : string_atom
         ;
 
     language_enum
@@ -198,7 +198,7 @@ grammar ScriptRenamer;
         ;
 
     replace_stmt
-        : target REPLACE STRING STRING
+        : target REPLACE string_atom string_atom
         ;
 
     block

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -78,7 +79,7 @@ namespace ScriptRenamer
             ScriptRenamerParser parser = new(tokenStream);
             return (parser.start(), new ScriptRenamerVisitor
             {
-                AvailableFolders = args.AvailableFolders,
+                AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
                 AnimeInfo = args.AnimeInfo.FirstOrDefault(),
                 EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
                 FileInfo = args.FileInfo,

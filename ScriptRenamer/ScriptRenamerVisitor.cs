@@ -14,7 +14,7 @@ namespace ScriptRenamer
         public string Destination { get; set; }
         public string Subfolder { get; set; }
 
-        public List<IImportFolder> AvailableFolders { get; set; }
+        public List<IImportFolder> AvailableFolders { get; set; } = new List<IImportFolder>();
         public IVideoFile FileInfo { get; set; }
         public IAnime AnimeInfo { get; set; }
         public IGroup GroupInfo { get; set; }
@@ -122,21 +122,21 @@ namespace ScriptRenamer
             if (context.AUDIOCODECS() is not null)
             {
                 return ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
-                       .Where(c => c.Contains(context.codec_enum().STRING().GetText())).ToList();
+                       .Where(c => c.Contains((string)Visit(context.codec_enum().string_atom()))).ToList();
             }
             else if (context.langs is not null)
             {
                 return ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
-                       .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
+                       .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).Select(t => (object)t).ToList();
             }
             else if (context.IMPORTFOLDERS() is not null)
             {
-                return ((ICollection<IImportFolder>)GetCollection(context.langs.Type))
-                       .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(context.STRING().GetText())).ToList();
+                return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
+                       .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).ToList();
             }
             else if (context.title_collection_expr() is not null)
             {
-                return (ICollection<(TitleLanguage, TitleType)>)Visit(context.title_collection_expr());
+                return ((ICollection<(TitleLanguage, TitleType)>)Visit(context.title_collection_expr())).Select((t) => (object)t.Item1).ToList();
             }
             else if (context.collection_labels() is not null)
             {
@@ -364,11 +364,11 @@ namespace ScriptRenamer
                 }
                 else if (context.collection_labels().DUBLANGUAGES() is not null)
                 {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 else if (context.collection_labels().SUBLANGUAGES() is not null)
                 {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Cast<string>().Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 else if (context.collection_labels().ANIMETITLES() is not null)
                 {
@@ -380,7 +380,7 @@ namespace ScriptRenamer
                 }
                 else if (context.collection_labels().IMPORTFOLDERS() is not null)
                 {
-                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type)).Select(a => a.Name).Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type))?.Select(a => a.Name).Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 throw new ParseCanceledException("Could not parse collection labels in string_atom", context.exception);
             }
@@ -391,7 +391,11 @@ namespace ScriptRenamer
             else if (context.collection_expr() is not null)
             {
                 dynamic result = ((ICollection<object>)Visit(context.collection_expr())).FirstOrDefault();
-                return ((dynamic)result.GetType()) switch
+                if (result is null)
+                {
+                    return string.Empty;
+                }
+                return ((dynamic)result) switch
                 {
                     AnimeTitle a => a.Title,
                     TitleLanguage t => t.ToString(),
@@ -547,8 +551,8 @@ namespace ScriptRenamer
 
         public override object VisitReplace_stmt([NotNull] ScriptRenamerParser.Replace_stmtContext context)
         {
-            var oldstr = (string)Visit(context.STRING(0));
-            var newstr = (string)Visit(context.STRING(1));
+            var oldstr = (string)Visit(context.string_atom(0));
+            var newstr = (string)Visit(context.string_atom(1));
             switch (context.target().tar.Type)
             {
                 case ScriptRenamerLexer.FILENAME:
