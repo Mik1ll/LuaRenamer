@@ -392,9 +392,9 @@ namespace ScriptRenamer
 
         public override object VisitNumber_labels([NotNull] ScriptRenamerParser.Number_labelsContext context)
         {
-            if (context.EPISODECOUNT() is not null)
+            if (context.EPISODENUMBER() is not null)
             {
-                return AnimeInfo.EpisodeCounts.Episodes;
+                return EpisodeInfo.Number;
             }
             else if (context.FILEVERSION() is not null)
             {
