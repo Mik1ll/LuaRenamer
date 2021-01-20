@@ -394,7 +394,35 @@ namespace ScriptRenamer
         {
             if (context.EPISODECOUNT() is not null)
             {
-                return (double)AnimeInfo.EpisodeCounts.Episodes;
+                return AnimeInfo.EpisodeCounts.Episodes;
+            }
+            else if (context.FILEVERSION() is not null)
+            {
+                return FileInfo.AniDBFileInfo?.Version;
+            }
+            else if (context.WIDTH() is not null)
+            {
+                return FileInfo.MediaInfo?.Video?.Width;
+            }
+            else if (context.HEIGHT() is not null)
+            {
+                return FileInfo.MediaInfo?.Video.Height;
+            }
+            else if (context.YEAR() is not null)
+            {
+                return AnimeInfo.AirDate?.Year;
+            }
+            else if (context.EPISODECOUNT() is not null)
+            {
+                return AnimeInfo.EpisodeCounts.Episodes;
+            }
+            else if (context.BITDEPTH() is not null)
+            {
+                return FileInfo.MediaInfo?.Video?.BitDepth;
+            }
+            else if (context.AUDIOCHANNELS() is not null)
+            {
+                return FileInfo.MediaInfo?.Audio.Select(a => a.Channels).Max();
             }
             throw new ParseCanceledException("Could not parse number_labels", context.exception);
         }
