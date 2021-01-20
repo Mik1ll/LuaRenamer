@@ -394,7 +394,17 @@ namespace ScriptRenamer
         {
             if (context.EPISODENUMBER() is not null)
             {
-                return EpisodeInfo.Number;
+                var prefix = EpisodeInfo.Type switch
+                {
+                    EpisodeType.Episode => "",
+                    EpisodeType.Special => "S",
+                    EpisodeType.Credits => "C",
+                    EpisodeType.Trailer => "T",
+                    EpisodeType.Parody => "P",
+                    EpisodeType.Other => "O",
+                    _ => ""
+                };
+                return prefix + EpisodeInfo.Number;
             }
             else if (context.FILEVERSION() is not null)
             {
