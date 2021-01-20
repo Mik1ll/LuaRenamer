@@ -52,11 +52,14 @@ namespace ScriptRenamer
             switch (op?.Type)
             {
                 case ScriptRenamerLexer.NOT:
-                    return (bool)Visit(context.bool_expr(0));
+                    return !(bool)Visit(context.bool_expr(0));
                 case ScriptRenamerLexer.IS:
                     if (context.ANIMETYPE() is not null)
                     {
                         return AnimeInfo.Type == (AnimeType)Enum.Parse(typeof(AnimeType), context.animeType_enum().GetText());
+                    } else if (context.EPISODETYPE() is not null)
+                    {
+                        return EpisodeInfo.Type == (EpisodeType)Enum.Parse(typeof(EpisodeType), context.episodeType_enum().GetText());
                     }
                     throw new ParseCanceledException("Could not find matching operands for bool_expr IS", context.exception);
                 case ScriptRenamerLexer.GT:
@@ -277,6 +280,10 @@ namespace ScriptRenamer
             else if (context.ANIMETYPE() is not null)
             {
                 return AnimeInfo.Type.ToString();
+            }
+            else if (context.EPISODETYPE() is not null)
+            {
+                return EpisodeInfo.Type.ToString();
             }
             else if (context.VIDEOCODECLONG() is not null)
             {

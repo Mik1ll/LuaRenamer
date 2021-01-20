@@ -27,6 +27,7 @@ grammar ScriptRenamer;
         :   op=NOT bool_expr
         |   collection_expr
         |   ANIMETYPE op=IS animeType_enum
+        |   EPISODETYPE op=IS episodeType_enum
         |   number_atom op=(GT | GE | LT | LE) number_atom
         |   number_atom op=(EQ | NE) number_atom
         |   string_atom op=(EQ | NE) string_atom
@@ -48,6 +49,15 @@ grammar ScriptRenamer;
         :   title_collection_expr HAS language_enum
         |   title_collection_expr HAS titleType_enum
         |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
+        ;
+
+    episodeType_enum
+        :   EPISODE
+        |   CREDITS
+        |   SPECIAL
+        |   TRAILER
+        |   PARODY 
+        |   OTHER
         ;
 
     animeType_enum
@@ -189,6 +199,7 @@ grammar ScriptRenamer;
         |   SOURCE
         |   RESOLUTION
         |   ANIMETYPE
+        |   EPISODETYPE
         |   VIDEOCODECLONG
         |   VIDEOCODECSHORT
         |   DURATION
@@ -260,6 +271,7 @@ grammar ScriptRenamer;
         SOURCE : 'Source';
         RESOLUTION : 'Resolution';
         ANIMETYPE : 'AnimeType';
+        EPISODETYPE : 'EpisodeType';
         VIDEOCODECLONG : 'VideoCodecLong';
         VIDEOCODECSHORT : 'VideoCodecShort';
         DURATION : 'Duration';
