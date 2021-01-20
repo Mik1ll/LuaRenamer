@@ -327,7 +327,22 @@ namespace ScriptRenamer
         {
             if (context.number_labels() is not null)
             {
-                return Visit(context.number_labels()).ToString();
+                string result = Visit(context.number_labels()).ToString();
+                if (context.number_labels().EPISODENUMBER() is not null)
+                {
+                    var prefix = EpisodeInfo.Type switch
+                    {
+                        EpisodeType.Episode => "",
+                        EpisodeType.Special => "S",
+                        EpisodeType.Credits => "C",
+                        EpisodeType.Trailer => "T",
+                        EpisodeType.Parody => "P",
+                        EpisodeType.Other => "O",
+                        _ => ""
+                    };
+                    result = prefix + result;
+                }
+                return result;
             }
             else if (context.string_labels() is not null)
             {
@@ -394,17 +409,7 @@ namespace ScriptRenamer
         {
             if (context.EPISODENUMBER() is not null)
             {
-                var prefix = EpisodeInfo.Type switch
-                {
-                    EpisodeType.Episode => "",
-                    EpisodeType.Special => "S",
-                    EpisodeType.Credits => "C",
-                    EpisodeType.Trailer => "T",
-                    EpisodeType.Parody => "P",
-                    EpisodeType.Other => "O",
-                    _ => ""
-                };
-                return prefix + EpisodeInfo.Number;
+                return EpisodeInfo.Number;
             }
             else if (context.FILEVERSION() is not null)
             {
