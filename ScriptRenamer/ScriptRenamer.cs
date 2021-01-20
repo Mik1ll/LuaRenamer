@@ -25,6 +25,7 @@ namespace ScriptRenamer
             }
             var (context, visitor) = GetContext(new MoveEventArgs
             {
+                AvailableFolders = args.AvailableFolders,
                 AnimeInfo = args.AnimeInfo,
                 EpisodeInfo = args.EpisodeInfo,
                 FileInfo = args.FileInfo,
@@ -32,7 +33,7 @@ namespace ScriptRenamer
                 Script = args.Script
             });
             _ = visitor.Visit(context);
-            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder : null);
+            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
         }
 
 
@@ -51,7 +52,7 @@ namespace ScriptRenamer
                 Script = args.Script
             });
             _ = visitor.Visit(context);
-            return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename + Path.GetExtension(args.FileInfo.Filename) : null;
+            return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename.ReplaceInvalidPathCharacters() + Path.GetExtension(args.FileInfo.Filename) : null;
         }
 
         private static void EmbedDll()
