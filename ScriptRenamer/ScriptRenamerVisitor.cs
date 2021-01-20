@@ -28,11 +28,11 @@ namespace ScriptRenamer
             {
                 if (context.non_if_stmt() is not null)
                 {
-                    Visit(context.non_if_stmt());
+                    _ = Visit(context.non_if_stmt());
                 }
                 else if (context.true_branch is not null)
                 {
-                    Visit(context.true_branch);
+                    _ = Visit(context.true_branch);
                 }
                 else
                 {
@@ -41,7 +41,7 @@ namespace ScriptRenamer
             }
             else if (context.ELSE() is not null)
             {
-                Visit(context.false_branch);
+                _ = Visit(context.false_branch);
             }
             return null;
         }
@@ -375,25 +375,19 @@ namespace ScriptRenamer
 
         private IEnumerable GetCollection(int tokenType)
         {
-            switch (tokenType)
+            return tokenType switch
             {
-                case ScriptRenamerLexer.AUDIOCODECS:
-                    return FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs
-                         ?? FileInfo.MediaInfo?.Audio.Select(a => a.Codec);
-                case ScriptRenamerLexer.DUBLANGUAGES:
-                    return FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages
-                             ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName));
-                case ScriptRenamerLexer.SUBLANGUAGES:
-                    return FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages
-                             ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName));
-                case ScriptRenamerLexer.ANIMETITLES:
-                    return AnimeInfo.Titles;
-                case ScriptRenamerLexer.EPISODETITLES:
-                    return EpisodeInfo.Titles;
-                case ScriptRenamerLexer.IMPORTFOLDERS:
-                    return AvailableFolders;
-            }
-            throw new KeyNotFoundException("Could not find token type for collection");
+                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs
+                                        ?? FileInfo.MediaInfo?.Audio.Select(a => a.Codec),
+                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages
+                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)),
+                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages
+                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)),
+                ScriptRenamerLexer.ANIMETITLES => AnimeInfo.Titles,
+                ScriptRenamerLexer.EPISODETITLES => EpisodeInfo.Titles,
+                ScriptRenamerLexer.IMPORTFOLDERS => AvailableFolders,
+                _ => throw new KeyNotFoundException("Could not find token type for collection"),
+            };
         }
 
         public override object VisitNumber_labels([NotNull] ScriptRenamerParser.Number_labelsContext context)
@@ -464,13 +458,13 @@ namespace ScriptRenamer
             switch (context.target().tar.Type)
             {
                 case ScriptRenamerLexer.FILENAME:
-                    Filename.Replace(oldstr, newstr);
+                    Filename = Filename.Replace(oldstr, newstr);
                     break;
                 case ScriptRenamerLexer.DESTINATION:
-                    Destination.Replace(oldstr, newstr);
+                    Destination = Destination.Replace(oldstr, newstr);
                     break;
                 case ScriptRenamerLexer.SUBFOLDER:
-                    Subfolder.Replace(oldstr, newstr);
+                    Subfolder = Subfolder.Replace(oldstr, newstr);
                     break;
                 default:
                     throw new ParseCanceledException("Could not parse replace_stmt", context.exception);

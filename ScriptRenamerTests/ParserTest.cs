@@ -32,7 +32,7 @@ namespace ScriptRenamerTests
     [TestClass]
     public class ParserTest
     {
-        private ScriptRenamerParser Setup(string text)
+        private static ScriptRenamerParser Setup(string text)
         {
             AntlrInputStream inputStream = new(text);
             ScriptRenamerLexer lexer = new(inputStream);
@@ -47,7 +47,7 @@ namespace ScriptRenamerTests
             var parser = Setup("if (true) if (false) {} else {}");
             var context = parser.if_stmt();
             var visitor = new ScriptRenamerVisitor();
-            visitor.Visit(context);
+            _ = visitor.Visit(context);
             Assert.IsFalse((context.false_branch?.GetText().Length ?? 0) > 0);
         }
 
@@ -56,10 +56,12 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (AnimeType is Movie) {        }");
             var context = parser.if_stmt();
-            var visitor = new ScriptRenamerVisitor();
-            visitor.AnimeInfo = new MockAnimeInfo
+            var visitor = new ScriptRenamerVisitor
             {
-                Type = AnimeType.Movie
+                AnimeInfo = new MockAnimeInfo
+                {
+                    Type = AnimeType.Movie
+                }
             };
             var result = visitor.Visit(context);
             Assert.IsNull(result);
@@ -70,12 +72,14 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (22.22412 < EpisodeCount) filename add 'testing' ");
             var context = parser.if_stmt();
-            var visitor = new ScriptRenamerVisitor();
-            visitor.AnimeInfo = new MockAnimeInfo
+            var visitor = new ScriptRenamerVisitor
             {
-                EpisodeCounts = new EpisodeCounts
+                AnimeInfo = new MockAnimeInfo
                 {
-                    Episodes = 25
+                    EpisodeCounts = new EpisodeCounts
+                    {
+                        Episodes = 25
+                    }
                 }
             };
             var result = visitor.Visit(context);
@@ -87,10 +91,12 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if ('testing' == AnimeTitlePreferred) {}");
             var context = parser.if_stmt().bool_expr();
-            var visitor = new ScriptRenamerVisitor();
-            visitor.AnimeInfo = new MockAnimeInfo
+            var visitor = new ScriptRenamerVisitor
             {
-                PreferredTitle = "testing"
+                AnimeInfo = new MockAnimeInfo
+                {
+                    PreferredTitle = "testing"
+                }
             };
             var result = (bool)visitor.Visit(context);
             Assert.IsTrue(result);
@@ -101,10 +107,11 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (AnimeTitles has English has Main) filename add 'test'");
             var context = parser.start();
-            var visitor = new ScriptRenamerVisitor();
-            visitor.AnimeInfo = new MockAnimeInfo
+            var visitor = new ScriptRenamerVisitor
             {
-                Titles = new List<AnimeTitle>
+                AnimeInfo = new MockAnimeInfo
+                {
+                    Titles = new List<AnimeTitle>
                 {
                     new AnimeTitle
                     {
@@ -131,8 +138,9 @@ namespace ScriptRenamerTests
                         Type = TitleType.Main
                     }
                 }
+                }
             };
-            var result = visitor.Visit(context);
+            _ = visitor.Visit(context);
         }
 
         [TestMethod]
@@ -140,12 +148,14 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("filename set 'test' 'testing' 'testing' AnimeTitlePreferred");
             var context = parser.start();
-            var visitor = new ScriptRenamerVisitor();
-            visitor.AnimeInfo = new MockAnimeInfo
+            var visitor = new ScriptRenamerVisitor
             {
-                PreferredTitle = "wioewoihwoiehwoihweohwiowj"
+                AnimeInfo = new MockAnimeInfo
+                {
+                    PreferredTitle = "wioewoihwoiehwoihweohwiowj"
+                }
             };
-            visitor.Visit(context);
+            _ = visitor.Visit(context);
         }
 
     }

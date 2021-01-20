@@ -24,8 +24,8 @@ namespace ScriptRenamer
                 GroupInfo = args.GroupInfo.FirstOrDefault(),
                 Script = args.Script
             };
-            visitor.Visit(context);
-            return (null, null);
+            _ = visitor.Visit(context);
+            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), visitor.Subfolder);
         }
 
         public string GetFilename(RenameEventArgs args)
@@ -40,11 +40,11 @@ namespace ScriptRenamer
                 GroupInfo = args.GroupInfo.FirstOrDefault(),
                 Script = args.Script
             };
-            visitor.Visit(context);
-            return null;
+            _ = visitor.Visit(context);
+            return visitor.Filename;
         }
 
-        private ParserRuleContext SetupContext(AntlrInputStream inputStream)
+        private static ParserRuleContext SetupContext(AntlrInputStream inputStream)
         {
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
