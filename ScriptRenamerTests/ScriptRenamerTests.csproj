@@ -17,4 +17,10 @@
     <ProjectReference Include="..\ScriptRenamer\ScriptRenamer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Antlr4.Runtime.Standard">
+      <HintPath>..\ScriptRenamer\Antlr4.Runtime.Standard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

@@ -339,3 +339,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /ScriptRenamer/Properties/launchSettings.json
+/ScriptRenamer/Antlr4.Runtime.Standard.dll
