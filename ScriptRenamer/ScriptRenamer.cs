@@ -32,7 +32,7 @@ namespace ScriptRenamer
                 Script = args.Script
             });
             _ = visitor.Visit(context);
-            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), visitor.Subfolder);
+            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder : null);
         }
 
 
@@ -51,7 +51,7 @@ namespace ScriptRenamer
                 Script = args.Script
             });
             _ = visitor.Visit(context);
-            return visitor.Filename + Path.GetExtension(args.FileInfo.Filename);
+            return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename + Path.GetExtension(args.FileInfo.Filename) : null;
         }
 
         private static void EmbedDll()

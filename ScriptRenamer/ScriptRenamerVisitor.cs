@@ -132,11 +132,11 @@ namespace ScriptRenamer
             else if (context.IMPORTFOLDERS() is not null)
             {
                 return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
-                       .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).ToList();
+                       .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).Select(f => (object)f).ToList();
             }
             else if (context.title_collection_expr() is not null)
             {
-                return ((ICollection<(TitleLanguage, TitleType)>)Visit(context.title_collection_expr())).Select((t) => (object)t.Item1).ToList();
+                return ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).Select(at => (object)at).ToList();
             }
             else if (context.collection_labels() is not null)
             {
@@ -149,34 +149,34 @@ namespace ScriptRenamer
         {
             if (context.title_collection_expr() is not null)
             {
-                var result = (List<(TitleLanguage lang, TitleType type)>)Visit(context.title_collection_expr());
+                var result = (List<AnimeTitle>)Visit(context.title_collection_expr());
                 if (context.title_collection_expr() is not null && context.language_enum() is not null)
                 {
-                    return result.Where(lt => lt.lang == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
+                    return result.Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
                 }
                 else if (context.title_collection_expr() is not null && context.titleType_enum() is not null)
                 {
-                    return result.Where(lt => lt.type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
+                    return result.Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
                 }
             }
             else if (context.titles is not null)
             {
-                List<(TitleLanguage lang, TitleType type)> result = null;
+                List<AnimeTitle> result = null;
                 if (context.ANIMETITLES() is not null)
                 {
-                    result = ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).Select(t => (t.Language, t.Type)).ToList();
+                    result = ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).ToList();
                 }
                 else if (context.EPISODETITLES() is not null)
                 {
-                    result = ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).Select(t => (t.Language, t.Type)).ToList();
+                    result = ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).ToList();
                 }
                 if (context.language_enum() is not null)
                 {
-                    return result.Where(lt => lt.lang == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
+                    return result.Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
                 }
                 else if (context.titleType_enum() is not null)
                 {
-                    return result.Where(lt => lt.type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
+                    return result.Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
                 }
             }
             throw new ParseCanceledException("Could not parse title_collection_expr", context.exception);
@@ -360,15 +360,15 @@ namespace ScriptRenamer
             {
                 if (context.collection_labels().AUDIOCODECS() is not null)
                 {
-                    return ((ICollection<string>)GetCollection(context.collection_labels().AUDIOCODECS().Symbol.Type)).Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<string>)GetCollection(context.collection_labels().AUDIOCODECS().Symbol.Type)).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 else if (context.collection_labels().DUBLANGUAGES() is not null)
                 {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 else if (context.collection_labels().SUBLANGUAGES() is not null)
                 {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 else if (context.collection_labels().ANIMETITLES() is not null)
                 {
@@ -380,7 +380,7 @@ namespace ScriptRenamer
                 }
                 else if (context.collection_labels().IMPORTFOLDERS() is not null)
                 {
-                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type))?.Select(a => a.Name).Aggregate((s1, s2) => $"{s1}, {s2}");
+                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type)).Select(a => a.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
                 }
                 throw new ParseCanceledException("Could not parse collection labels in string_atom", context.exception);
             }
@@ -414,23 +414,23 @@ namespace ScriptRenamer
             }
             else if (context.DUBLANGUAGES() is not null)
             {
-                return ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type));
+                return ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type)).Select(t => (object)t);
             }
             else if (context.SUBLANGUAGES() is not null)
             {
-                return ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type));
+                return ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type)).Select(t => (object)t);
             }
             else if (context.ANIMETITLES() is not null)
             {
-                return ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type));
+                return ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).Select(t => (object)t);
             }
             else if (context.EPISODETITLES() is not null)
             {
-                return ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type));
+                return ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).Select(t => (object)t);
             }
             else if (context.IMPORTFOLDERS() is not null)
             {
-                return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type));
+                return ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Select(t => (object)t);
             }
             throw new ParseCanceledException("Could not parse collection labels", context.exception);
         }
@@ -439,14 +439,14 @@ namespace ScriptRenamer
         {
             return tokenType switch
             {
-                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.ToList()
-                                               ?? FileInfo.MediaInfo?.Audio.Select(a => a.Codec).ToList()
+                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.Distinct().ToList()
+                                               ?? FileInfo.MediaInfo?.Audio.Select(a => a.SimplifiedCodec).Distinct().ToList()
                                                ?? new List<string>(),
-                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.ToList()
-                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).ToList()
+                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.Distinct().ToList()
+                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
                                                 ?? new List<TitleLanguage>(),
-                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.ToList()
-                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).ToList()
+                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.Distinct().ToList()
+                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
                                                 ?? new List<TitleLanguage>(),
                 ScriptRenamerLexer.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 ScriptRenamerLexer.EPISODETITLES => EpisodeInfo.Titles.ToList(),
