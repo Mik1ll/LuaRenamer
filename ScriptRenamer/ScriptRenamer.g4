@@ -125,11 +125,12 @@ grammar ScriptRenamer;
     bool_atom
         :   BOOLEAN
         |   bool_labels
+        |   string_atom
+        |   number_atom
         ;
 
     bool_labels
-        :   string_labels
-        |   RESTRICTED
+        :   RESTRICTED
         |   CENSORED
         |   CHAPTERED
         ;
@@ -137,6 +138,7 @@ grammar ScriptRenamer;
     number_atom
         :   NUMBER
         |   number_labels
+        |   LENGTH LPAREN string_atom RPAREN
         ;
 
     number_labels
@@ -157,7 +159,7 @@ grammar ScriptRenamer;
     string_atom
         :   STRING
         |   string_labels
-        |   number_labels
+        |   number_atom
         |   collection_labels
         ;
 
@@ -205,6 +207,9 @@ grammar ScriptRenamer;
         :   tar=(FILENAME | DESTINATION | SUBFOLDER)
         ;
 
+    length
+        :   string_atom LENGTH
+        ;
 
 // Control Tokens
     IF : 'if';
@@ -234,6 +239,7 @@ grammar ScriptRenamer;
     EQ : '==';
     NE : '!=';
     IS : 'is';
+    LENGTH : 'len';
 
 // Tags
     // Strings

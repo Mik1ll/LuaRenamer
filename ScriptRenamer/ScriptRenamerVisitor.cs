@@ -180,9 +180,17 @@ namespace ScriptRenamer
 
         public override object VisitBool_atom([NotNull] ScriptRenamerParser.Bool_atomContext context)
         {
-            if (context.bool_labels() is not null)
+            if (context.string_atom() is not null)
+            {
+                return !string.IsNullOrEmpty((string)Visit(context.string_atom()));
+            }
+            else if (context.bool_labels() is not null)
             {
                 return Visit(context.bool_labels());
+            }
+            else if (context.number_atom() is not null)
+            {
+                return (double)Visit(context.number_atom()) <= 0;
             }
             else if (context.BOOLEAN() is not null)
             {
@@ -193,11 +201,7 @@ namespace ScriptRenamer
 
         public override object VisitBool_labels([NotNull] ScriptRenamerParser.Bool_labelsContext context)
         {
-            if (context.string_labels() is not null)
-            {
-                return !string.IsNullOrEmpty((string)Visit(context.string_labels()));
-            }
-            else if (context.RESTRICTED() is not null)
+            if (context.RESTRICTED() is not null)
             {
                 return AnimeInfo.Restricted;
             }
@@ -325,10 +329,10 @@ namespace ScriptRenamer
 
         public override object VisitString_atom([NotNull] ScriptRenamerParser.String_atomContext context)
         {
-            if (context.number_labels() is not null)
+            if (context.number_atom() is not null)
             {
-                string result = Visit(context.number_labels()).ToString();
-                if (context.number_labels().EPISODENUMBER() is not null)
+                string result = Visit(context.number_atom()).ToString();
+                if (context.number_atom()?.number_labels()?.EPISODENUMBER() is not null)
                 {
                     var prefix = EpisodeInfo.Type switch
                     {
@@ -448,10 +452,15 @@ namespace ScriptRenamer
             {
                 return Visit(context.number_labels());
             }
-            else
+            else if (context.string_atom() is not null)
+            {
+                return ((string)Visit(context.string_atom())).Length;
+            }
+            else if (context.NUMBER() is not null)
             {
                 return double.Parse(context.NUMBER().GetText());
             }
+            throw new ParseCanceledException("Could not parse number_atom", context.exception);
         }
 
         public override object VisitSet_stmt([NotNull] ScriptRenamerParser.Set_stmtContext context)
