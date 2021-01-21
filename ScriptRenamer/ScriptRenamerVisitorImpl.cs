@@ -8,7 +8,7 @@ using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamer
 {
-    public class ScriptRenamerVisitor : ScriptRenamerBaseVisitor<object>
+    public class ScriptRenamerVisitorImpl : ScriptRenamerBaseVisitor<object>
     {
         public string Filename { get; set; }
         public string Destination { get; set; }

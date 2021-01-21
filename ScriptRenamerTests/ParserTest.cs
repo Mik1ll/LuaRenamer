@@ -46,7 +46,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (true) if (false) {} else {}");
             var context = parser.if_stmt();
-            var visitor = new ScriptRenamerVisitor();
+            var visitor = new ScriptRenamerVisitorImpl();
             _ = visitor.Visit(context);
             Assert.IsFalse((context.false_branch?.GetText().Length ?? 0) > 0);
         }
@@ -56,7 +56,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (AnimeType is Movie) {        }");
             var context = parser.if_stmt();
-            var visitor = new ScriptRenamerVisitor
+            var visitor = new ScriptRenamerVisitorImpl
             {
                 AnimeInfo = new MockAnimeInfo
                 {
@@ -72,7 +72,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (22.22412 < EpisodeCount) filename add 'testing' ");
             var context = parser.if_stmt();
-            var visitor = new ScriptRenamerVisitor
+            var visitor = new ScriptRenamerVisitorImpl
             {
                 AnimeInfo = new MockAnimeInfo
                 {
@@ -91,7 +91,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if ('testing' == AnimeTitlePreferred) {}");
             var context = parser.if_stmt().bool_expr();
-            var visitor = new ScriptRenamerVisitor
+            var visitor = new ScriptRenamerVisitorImpl
             {
                 AnimeInfo = new MockAnimeInfo
                 {
@@ -107,7 +107,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (AnimeTitles has English has Main) filename add 'test'");
             var context = parser.start();
-            var visitor = new ScriptRenamerVisitor
+            var visitor = new ScriptRenamerVisitorImpl
             {
                 AnimeInfo = new MockAnimeInfo
                 {
@@ -148,7 +148,7 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("filename set 'test' 'testing' 'testing' AnimeTitlePreferred");
             var context = parser.start();
-            var visitor = new ScriptRenamerVisitor
+            var visitor = new ScriptRenamerVisitorImpl
             {
                 AnimeInfo = new MockAnimeInfo
                 {

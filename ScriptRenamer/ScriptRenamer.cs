@@ -72,13 +72,13 @@ namespace ScriptRenamer
         }
 
 
-        private static (ParserRuleContext context, ScriptRenamerVisitor visitor) GetContext(MoveEventArgs args)
+        private static (ParserRuleContext context, ScriptRenamerVisitorImpl visitor) GetContext(MoveEventArgs args)
         {
             AntlrInputStream inputStream = new(new StringReader(args.Script.Script));
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
-            return (parser.start(), new ScriptRenamerVisitor
+            return (parser.start(), new ScriptRenamerVisitorImpl
             {
                 AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
                 AnimeInfo = args.AnimeInfo.FirstOrDefault(),

@@ -10,23 +10,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="GeneratedCode/" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_GeneratedFiles Include="$(ProjectDir)GeneratedCode/*" />
+    <_GeneratedFiles Include="$(ProjectDir)GeneratedCode\*" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove=".gitignore" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <EmbeddedResource Include="$(PkgAntlr4_Runtime_Standard)/lib/netstandard2.1/Antlr4.Runtime.Standard.dll" />
+    <EmbeddedResource Include="$(PkgAntlr4_Runtime_Standard)\lib\netstandard2.1\Antlr4.Runtime.Standard.dll" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" />
+    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" Condition=" '$(CI)' != 'true' " />
   </Target>
   <Target Name="PostClean" AfterTargets="CoreClean">
     <Delete Files="@(_GeneratedFiles)" />
