@@ -39,14 +39,14 @@ grammar ScriptRenamer;
         bool_expr
             :   op=NOT bool_expr
             |   collection_expr
-            |   ANIMETYPE op=IS animeType_enum
-            |   EPISODETYPE op=IS episodeType_enum
+            |   is_left=ANIMETYPE op=IS animeType_enum
+            |   is_left=EPISODETYPE op=IS episodeType_enum
             |   number_atom op=(GT | GE | LT | LE) number_atom
             |   number_atom op=(EQ | NE) number_atom
             |   string_atom op=(EQ | NE) string_atom
             |   bool_expr op=AND bool_expr
             |   bool_expr op=OR bool_expr
-            |   LPAREN bool_expr RPAREN
+            |   op=LPAREN bool_expr RPAREN
             |   bool_atom
             ;
 
@@ -59,8 +59,7 @@ grammar ScriptRenamer;
             ;
 
         title_collection_expr
-            :   title_collection_expr HAS language_enum
-            |   title_collection_expr HAS titleType_enum
+            :   title_collection_expr HAS (language_enum | titleType_enum)
             |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
             ;
 

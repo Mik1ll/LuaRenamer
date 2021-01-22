@@ -159,6 +159,15 @@ namespace ScriptRenamerTests
         }
 
         [TestMethod]
+        public void TestDynamicEquality()
+        {
+            var parser = Setup("265252 == 234232 or 'abc' == 'abc'");
+            var context = parser.bool_expr();
+            new ScriptRenamerVisitor().Visit(context);
+        }
+
+
+        [TestMethod]
         public void TestLexerError()
         {
             var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' ' ");
