@@ -17,25 +17,26 @@ namespace ScriptRenamer
         {
             EmbedDll();
         }
+
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             if (string.IsNullOrWhiteSpace(args.Script?.Script))
             {
                 return (null, null);
             }
-            var (context, visitor) = GetContext(new MoveEventArgs
+            var context = GetContext(args.Script?.Script);
+            var visitor = new ScriptRenamerVisitor
             {
-                AvailableFolders = args.AvailableFolders,
-                AnimeInfo = args.AnimeInfo,
-                EpisodeInfo = args.EpisodeInfo,
+                AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
+                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
+                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
                 FileInfo = args.FileInfo,
-                GroupInfo = args.GroupInfo,
-                Script = args.Script
-            });
+                GroupInfo = args.GroupInfo.FirstOrDefault()
+            };
             _ = visitor.Visit(context);
-            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination), !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
+            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination),
+                    !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
         }
-
 
         public string GetFilename(RenameEventArgs args)
         {
@@ -43,14 +44,15 @@ namespace ScriptRenamer
             {
                 return null;
             }
-            var (context, visitor) = GetContext(new MoveEventArgs
+            var context= GetContext(args.Script.Script);
+            var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = args.AnimeInfo,
-                EpisodeInfo = args.EpisodeInfo,
+                AvailableFolders = new List<IImportFolder>(),
+                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
+                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
                 FileInfo = args.FileInfo,
-                GroupInfo = args.GroupInfo,
-                Script = args.Script
-            });
+                GroupInfo = args.GroupInfo.FirstOrDefault()
+            };
             _ = visitor.Visit(context);
             return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename.ReplaceInvalidPathCharacters() + Path.GetExtension(args.FileInfo.Filename) : null;
         }
@@ -65,28 +67,19 @@ namespace ScriptRenamer
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
                 {
                     byte[] assemblyData = new byte[stream.Length];
-                    stream.Read(assemblyData, 0, assemblyData.Length);
+                    _ = stream.Read(assemblyData, 0, assemblyData.Length);
                     return Assembly.Load(assemblyData);
                 }
             };
         }
 
-
-        private static (ParserRuleContext context, ScriptRenamerVisitorImpl visitor) GetContext(MoveEventArgs args)
+        private static ParserRuleContext GetContext(string script)
         {
-            AntlrInputStream inputStream = new(new StringReader(args.Script.Script));
+            AntlrInputStream inputStream = new(new StringReader(script));
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
-            return (parser.start(), new ScriptRenamerVisitorImpl
-            {
-                AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
-                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
-                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
-                FileInfo = args.FileInfo,
-                GroupInfo = args.GroupInfo.FirstOrDefault(),
-                Script = args.Script
-            });
+            return parser.start();
         }
     }
 }

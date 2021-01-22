@@ -2,227 +2,226 @@
 grammar ScriptRenamer;
 // Rules
     start : stmt* EOF;
+    // Statements
+        stmt
+            :   if_stmt
+            |   non_if_stmt
+            ;
 
-    stmt
-        :   if_stmt
-        |   non_if_stmt
-        ;
+        if_stmt
+            :   IF LPAREN bool_expr RPAREN (true_branch=stmt ELSE false_branch=stmt | non_if_stmt)
+            ;
 
-    if_stmt
-        :   IF LPAREN bool_expr RPAREN (non_if_stmt ELSE false_branch=stmt | true_branch=stmt)
-        ;
+        non_if_stmt
+            :   add_stmt
+            |   replace_stmt
+            |   set_stmt
+            |   block
+            ;
 
-    non_if_stmt
-        :   add_stmt
-        |   replace_stmt
-        |   set_stmt
-        |   block
-        ;
+        add_stmt
+            :   target_labels? ADD string_atom+
+            ;
 
-    set_stmt
-        : target SET string_atom+
-        ;
+        set_stmt
+            :   target_labels? SET string_atom+
+            ;
 
-    bool_expr
-        :   op=NOT bool_expr
-        |   collection_expr
-        |   ANIMETYPE op=IS animeType_enum
-        |   EPISODETYPE op=IS episodeType_enum
-        |   number_atom op=(GT | GE | LT | LE) number_atom
-        |   number_atom op=(EQ | NE) number_atom
-        |   string_atom op=(EQ | NE) string_atom
-        |   bool_expr op=AND bool_expr
-        |   bool_expr op=OR bool_expr
-        |   LPAREN bool_expr RPAREN
-        |   bool_atom
-        ;
+        replace_stmt
+            :   target_labels? REPLACE string_atom string_atom
+            ;
 
-    collection_expr
-        :   AUDIOCODECS HAS codec_enum
-        |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
-        |   IMPORTFOLDERS HAS string_atom
-        |   title_collection_expr
-        |   collection_labels
-        ;
+        block
+            :   LBRACK stmt* RBRACK
+            ;
 
-    title_collection_expr
-        :   title_collection_expr HAS language_enum
-        |   title_collection_expr HAS titleType_enum
-        |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
-        ;
+    // Expressions
+        bool_expr
+            :   op=NOT bool_expr
+            |   collection_expr
+            |   ANIMETYPE op=IS animeType_enum
+            |   EPISODETYPE op=IS episodeType_enum
+            |   number_atom op=(GT | GE | LT | LE) number_atom
+            |   number_atom op=(EQ | NE) number_atom
+            |   string_atom op=(EQ | NE) string_atom
+            |   bool_expr op=AND bool_expr
+            |   bool_expr op=OR bool_expr
+            |   LPAREN bool_expr RPAREN
+            |   bool_atom
+            ;
 
-    episodeType_enum
-        :   EPISODE
-        |   CREDITS
-        |   SPECIAL
-        |   TRAILER
-        |   PARODY 
-        |   OTHER
-        ;
+        collection_expr
+            :   AUDIOCODECS HAS string_atom
+            |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
+            |   IMPORTFOLDERS HAS string_atom
+            |   title_collection_expr
+            |   collection_labels
+            ;
 
-    animeType_enum
-        :   MOVIE
-        |   OVA
-        |   TVSERIES
-        |   TVSPECIAL
-        |   WEB
-        |   OTHER
-        ;
+        title_collection_expr
+            :   title_collection_expr HAS language_enum
+            |   title_collection_expr HAS titleType_enum
+            |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
+            ;
 
-    titleType_enum
-        :   MAIN
-        |   NONE
-        |   OFFICIAL
-        |   SHORT
-        |   SYNONYM
-        ;
+    // Enums
+        episodeType_enum
+            :   EPISODE
+            |   CREDITS
+            |   SPECIAL
+            |   TRAILER
+            |   PARODY
+            |   OTHER
+            ;
 
-    codec_enum
-        : string_atom
-        ;
+        animeType_enum
+            :   MOVIE
+            |   OVA
+            |   TVSERIES
+            |   TVSPECIAL
+            |   WEB
+            |   OTHER
+            ;
 
-    language_enum
-        :   lang=(UNKNOWN
-        |   ENGLISH
-        |   ROMAJI
-        |   JAPANESE
-        |   AFRIKAANS
-        |   ARABIC
-        |   BANGLADESHI
-        |   BULGARIAN
-        |   FRENCHCANADIAN
-        |   CZECH
-        |   DANISH
-        |   GERMAN
-        |   GREEK
-        |   SPANISH
-        |   ESTONIAN
-        |   FINNISH
-        |   FRENCH
-        |   GALICIAN
-        |   HEBREW
-        |   HUNGARIAN
-        |   ITALIAN
-        |   KOREAN
-        |   LITHUANIA
-        |   MONGOLIAN
-        |   MALAYSIAN
-        |   DUTCH
-        |   NORWEGIAN
-        |   POLISH
-        |   PORTUGUESE
-        |   BRAZILIANPORTUGUESE
-        |   ROMANIAN
-        |   RUSSIAN
-        |   SLOVAK
-        |   SLOVENIAN
-        |   SERBIAN
-        |   SWEDISH
-        |   THAI
-        |   TURKISH
-        |   UKRAINIAN
-        |   VIETNAMESE
-        |   CHINESE
-        |   CHINESESIMPLIFIED
-        |   CHINESETRADITIONAL
-        |   PINYIN
-        |   LATIN
-        |   ALBANIAN
-        |   BASQUE
-        |   BENGALI
-        |   BOSNIAN)
-        ;
+        titleType_enum
+            :   MAIN
+            |   NONE
+            |   OFFICIAL
+            |   SHORT
+            |   SYNONYM
+            ;
 
-    bool_atom
-        :   BOOLEAN
-        |   bool_labels
-        |   string_atom
-        |   number_atom
-        ;
+        language_enum
+            :   lang=(UNKNOWN
+            |   ENGLISH
+            |   ROMAJI
+            |   JAPANESE
+            |   AFRIKAANS
+            |   ARABIC
+            |   BANGLADESHI
+            |   BULGARIAN
+            |   FRENCHCANADIAN
+            |   CZECH
+            |   DANISH
+            |   GERMAN
+            |   GREEK
+            |   SPANISH
+            |   ESTONIAN
+            |   FINNISH
+            |   FRENCH
+            |   GALICIAN
+            |   HEBREW
+            |   HUNGARIAN
+            |   ITALIAN
+            |   KOREAN
+            |   LITHUANIA
+            |   MONGOLIAN
+            |   MALAYSIAN
+            |   DUTCH
+            |   NORWEGIAN
+            |   POLISH
+            |   PORTUGUESE
+            |   BRAZILIANPORTUGUESE
+            |   ROMANIAN
+            |   RUSSIAN
+            |   SLOVAK
+            |   SLOVENIAN
+            |   SERBIAN
+            |   SWEDISH
+            |   THAI
+            |   TURKISH
+            |   UKRAINIAN
+            |   VIETNAMESE
+            |   CHINESE
+            |   CHINESESIMPLIFIED
+            |   CHINESETRADITIONAL
+            |   PINYIN
+            |   LATIN
+            |   ALBANIAN
+            |   BASQUE
+            |   BENGALI
+            |   BOSNIAN)
+            ;
 
-    bool_labels
-        :   RESTRICTED
-        |   CENSORED
-        |   CHAPTERED
-        ;
+    // Atoms
+        bool_atom
+            :   BOOLEAN
+            |   bool_labels
+            |   number_atom
+            |   string_atom
+            ;
 
-    number_atom
-        :   NUMBER
-        |   number_labels
-        |   LENGTH LPAREN string_atom RPAREN
-        ;
+        number_atom
+            :   NUMBER
+            |   number_labels
+            |   LENGTH LPAREN string_atom RPAREN
+            ;
 
-    number_labels
-        :   EPISODENUMBER
-        |   FILEVERSION
-        |   WIDTH
-        |   HEIGHT
-        |   YEAR
-        |   EPISODECOUNT
-        |   BITDEPTH
-        |   AUDIOCHANNELS
-        ;
+        string_atom
+            :   STRING
+            |   string_labels
+            |   collection_labels
+            |   number_atom
+            |   FIRST LPAREN collection_expr RPAREN
+            ;
 
-    add_stmt
-        :   target ADD string_atom+
-        ;
+    // Labels
+        number_labels
+            :   label=(EPISODENUMBER
+            |   FILEVERSION
+            |   WIDTH
+            |   HEIGHT
+            |   YEAR
+            |   EPISODECOUNT
+            |   BITDEPTH
+            |   AUDIOCHANNELS)
+            ;
 
-    string_atom
-        :   STRING
-        |   string_labels
-        |   number_atom
-        |   collection_labels
-        |   FIRST LPAREN collection_expr RPAREN
-        ;
+        bool_labels
+            :   label=(RESTRICTED
+            |   CENSORED
+            |   CHAPTERED)
+            ;
 
-    collection_labels
-        :   AUDIOCODECS
-        |   DUBLANGUAGES
-        |   SUBLANGUAGES
-        |   ANIMETITLES
-        |   EPISODETITLES
-        |   IMPORTFOLDERS
-        ;
+        collection_labels
+            :   label=(AUDIOCODECS
+            |   DUBLANGUAGES
+            |   SUBLANGUAGES
+            |   ANIMETITLES
+            |   EPISODETITLES
+            |   IMPORTFOLDERS)
+            ;
 
-    string_labels
-        :   ANIMETITLEPREFERRED
-        |   ANIMETITLEROMAJI
-        |   ANIMETITLEENGLISH
-        |   ANIMETITLEJAPANESE
-        |   EPISODETITLEROMAJI
-        |   EPISODETITLEENGLISH
-        |   EPISODETITLEJAPANESE
-        |   GROUPSHORT
-        |   GROUPLONG
-        |   CRCLOWER
-        |   CRCUPPER
-        |   SOURCE
-        |   RESOLUTION
-        |   ANIMETYPE
-        |   EPISODETYPE
-        |   VIDEOCODECLONG
-        |   VIDEOCODECSHORT
-        |   DURATION
-        |   GROUPNAME
-        |   OLDFILENAME
-        |   ORIGINALFILENAME
-        ;
+        string_labels
+            :   label=(ANIMETITLEPREFERRED
+            |   ANIMETITLEROMAJI
+            |   ANIMETITLEENGLISH
+            |   ANIMETITLEJAPANESE
+            |   EPISODETITLEROMAJI
+            |   EPISODETITLEENGLISH
+            |   EPISODETITLEJAPANESE
+            |   GROUPSHORT
+            |   GROUPLONG
+            |   CRCLOWER
+            |   CRCUPPER
+            |   SOURCE
+            |   RESOLUTION
+            |   ANIMETYPE
+            |   EPISODETYPE
+            |   EPISODEPREFIX
+            |   VIDEOCODECLONG
+            |   VIDEOCODECSHORT
+            |   DURATION
+            |   GROUPNAME
+            |   OLDFILENAME
+            |   ORIGINALFILENAME)
+            ;
 
-    replace_stmt
-        : target REPLACE string_atom string_atom
-        ;
-
-    block
-        :   LBRACK stmt* RBRACK
-        ;
-
-    target
-        :   tar=(FILENAME | DESTINATION | SUBFOLDER)
-        ;
-
-    length
-        :   string_atom LENGTH
-        ;
+        target_labels
+            :   label=(FILENAME
+            |   DESTINATION
+            |   SUBFOLDER)
+            ;
 
 // Control Tokens
     IF : 'if';
@@ -272,6 +271,7 @@ grammar ScriptRenamer;
         RESOLUTION : 'Resolution';
         ANIMETYPE : 'AnimeType';
         EPISODETYPE : 'EpisodeType';
+        EPISODEPREFIX : 'EpisodePrefix';
         VIDEOCODECLONG : 'VideoCodecLong';
         VIDEOCODECSHORT : 'VideoCodecShort';
         DURATION : 'Duration';
@@ -406,16 +406,15 @@ grammar ScriptRenamer;
         ;
 
 //Whitespace
-    WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
-    UNICODE_WS : [\p{White_Space}] -> skip; // match all Unicode whitespace
+    UNICODE_WS
+        :   [\p{White_Space}] -> skip
+        ;
 
 // Comments
     BlockComment
-        :   '/*' .*? '*/'
-            -> skip
+        :   '/*' .*? '*/' -> skip
         ;
 
     LineComment
-        :   '//' ~[\r\n]*
-            -> skip
+        :   '//' ~[\r\n]* -> skip
         ;
