@@ -5,18 +5,14 @@ grammar ScriptRenamer;
     // Statements
         stmt
             :   if_stmt
-            |   non_if_stmt
-            ;
-
-        if_stmt
-            :   IF LPAREN bool_expr RPAREN (true_branch=stmt ELSE false_branch=stmt | non_if_stmt)
-            ;
-
-        non_if_stmt
-            :   add_stmt
+            |   add_stmt
             |   replace_stmt
             |   set_stmt
             |   block
+            ;
+
+        if_stmt
+            :   IF LPAREN bool_expr RPAREN (true_branch=stmt | true_branch=stmt ELSE false_branch=stmt)
             ;
 
         add_stmt
@@ -153,13 +149,13 @@ grammar ScriptRenamer;
         number_atom
             :   NUMBER
             |   number_labels
-            |   LENGTH LPAREN string_atom RPAREN
+            |   LENGTH LPAREN (collection_expr | string_atom) RPAREN
             ;
 
         string_atom
             :   STRING
             |   string_labels
-            |   collection_labels
+            |   collection_expr
             |   number_atom
             |   FIRST LPAREN collection_expr RPAREN
             ;

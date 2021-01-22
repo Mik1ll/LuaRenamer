@@ -2,9 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
+using SRP = ScriptRenamerParser;
+using SRL = ScriptRenamerLexer;
 
 namespace ScriptRenamer
 {
@@ -14,7 +17,7 @@ namespace ScriptRenamer
         public string Destination { get; set; }
         public string Subfolder { get; set; }
 
-        public bool Renaming { get; set; }
+        public bool Renaming { get; set; } = true;
 
         public List<IImportFolder> AvailableFolders { get; set; } = new List<IImportFolder>();
         public IVideoFile FileInfo { get; set; }
@@ -23,67 +26,67 @@ namespace ScriptRenamer
         public IEpisode EpisodeInfo { get; set; }
 
         #region expressions
-        public override object VisitBool_expr([NotNull] ScriptRenamerParser.Bool_exprContext context)
+        public override object VisitBool_expr([NotNull] SRP.Bool_exprContext context)
         {
             return (context.op?.Type) switch
             {
-                ScriptRenamerLexer.NOT => !(bool)Visit(context.bool_expr(0)),
-                ScriptRenamerLexer.IS => context.is_left.Type switch
+                SRL.NOT => !(bool)Visit(context.bool_expr(0)),
+                SRL.IS => context.is_left.Type switch
                 {
-                    ScriptRenamerLexer.ANIMETYPE => AnimeInfo.Type == (AnimeType)Enum.Parse(typeof(AnimeType), context.animeType_enum().GetText()),
-                    ScriptRenamerLexer.EPISODETYPE => EpisodeInfo.Type == (EpisodeType)Enum.Parse(typeof(EpisodeType), context.episodeType_enum().GetText()),
+                    SRL.ANIMETYPE => AnimeInfo.Type == (AnimeType)Enum.Parse(typeof(AnimeType), context.animeType_enum().GetText()),
+                    SRL.EPISODETYPE => EpisodeInfo.Type == (EpisodeType)Enum.Parse(typeof(EpisodeType), context.episodeType_enum().GetText()),
                     _ => throw new ParseCanceledException("Could not find matching operands for bool_expr IS", context.exception),
                 },
-                ScriptRenamerLexer.GT => (int)Visit(context.number_atom(0)) > (int)Visit(context.number_atom(1)),
-                ScriptRenamerLexer.GE => (int)Visit(context.number_atom(0)) >= (int)Visit(context.number_atom(1)),
-                ScriptRenamerLexer.LT => (int)Visit(context.number_atom(0)) < (int)Visit(context.number_atom(1)),
-                ScriptRenamerLexer.LE => (int)Visit(context.number_atom(0)) <= (int)Visit(context.number_atom(1)),
-                ScriptRenamerLexer.EQ => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
+                SRL.GT => (int)Visit(context.number_atom(0)) > (int)Visit(context.number_atom(1)),
+                SRL.GE => (int)Visit(context.number_atom(0)) >= (int)Visit(context.number_atom(1)),
+                SRL.LT => (int)Visit(context.number_atom(0)) < (int)Visit(context.number_atom(1)),
+                SRL.LE => (int)Visit(context.number_atom(0)) <= (int)Visit(context.number_atom(1)),
+                SRL.EQ => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
                 {
-                    ScriptRenamerParser.Number_atomContext => Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
-                    ScriptRenamerParser.String_atomContext => Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
+                    SRP.Number_atomContext => Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
+                    SRP.String_atomContext => Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
                     _ => throw new ParseCanceledException("Could not parse strings or numbers in bool_expr EQ", context.exception),
                 },
-                ScriptRenamerLexer.NE => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
+                SRL.NE => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
                 {
-                    ScriptRenamerParser.Number_atomContext => !Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
-                    ScriptRenamerParser.String_atomContext => !Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
+                    SRP.Number_atomContext => !Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
+                    SRP.String_atomContext => !Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
                     _ => throw new ParseCanceledException("Could not parse strings or numbers in bool_expr NE", context.exception),
                 },
-                ScriptRenamerLexer.AND => (bool)Visit(context.bool_expr(0)) && (bool)Visit(context.bool_expr(1)),
-                ScriptRenamerLexer.OR => (bool)Visit(context.bool_expr(0)) || (bool)Visit(context.bool_expr(1)),
-                ScriptRenamerLexer.LPAREN => (bool)Visit(context.bool_expr(0)),
+                SRL.AND => (bool)Visit(context.bool_expr(0)) && (bool)Visit(context.bool_expr(1)),
+                SRL.OR => (bool)Visit(context.bool_expr(0)) || (bool)Visit(context.bool_expr(1)),
+                SRL.LPAREN => (bool)Visit(context.bool_expr(0)),
                 null => (context.bool_atom() ?? (object)context.collection_expr()) switch
                 {
-                    ScriptRenamerParser.Bool_atomContext => (bool)Visit(context.bool_atom()),
-                    ScriptRenamerParser.Collection_exprContext => ((ICollection)Visit(context.collection_expr())).Count > 0,
+                    SRP.Bool_atomContext => (bool)Visit(context.bool_atom()),
+                    SRP.Collection_exprContext => ((ICollection)Visit(context.collection_expr())).Count > 0,
                     _ => throw new ParseCanceledException("Could not parse collection_expr in bool_expr NE", context.exception),
                 },
                 _ => throw new ParseCanceledException("Could not parse bool_expr", context.exception),
             };
         }
 
-        public override object VisitCollection_expr([NotNull] ScriptRenamerParser.Collection_exprContext context)
+        public override object VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
-            return (context.AUDIOCODECS().Symbol ?? context.langs ?? context.IMPORTFOLDERS().Symbol ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
+            return (context.AUDIOCODECS()?.Symbol ?? context.langs ?? context.IMPORTFOLDERS()?.Symbol ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
             {
-                Antlr4.Runtime.IToken t => t.Type switch
+                IToken t => t.Type switch
                 {
-                    ScriptRenamerLexer.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
+                    SRL.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
                         .Where(c => c.Contains((string)Visit(context.string_atom()))).ToList(),
-                    ScriptRenamerLexer.DUBLANGUAGES or ScriptRenamerLexer.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
+                    SRL.DUBLANGUAGES or SRL.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
                         .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).Select(t => (object)t).ToList(),
-                    ScriptRenamerLexer.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
+                    SRL.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
                         .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).Select(f => (object)f).ToList(),
                     _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
                 },
-                ScriptRenamerParser.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).Select(at => (object)at).ToList(),
-                ScriptRenamerParser.Collection_labelsContext => (ICollection)Visit(context.collection_labels()),
+                SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).Select(at => (object)at).ToList(),
+                SRP.Collection_labelsContext => (ICollection)Visit(context.collection_labels()),
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
             };
         }
 
-        public override object VisitTitle_collection_expr([NotNull] ScriptRenamerParser.Title_collection_exprContext context)
+        public override object VisitTitle_collection_expr([NotNull] SRP.Title_collection_exprContext context)
         {
             if (context.title_collection_expr() is not null)
             {
@@ -122,37 +125,37 @@ namespace ScriptRenamer
         #endregion expressions
 
         #region labels
-        public override object VisitBool_labels([NotNull] ScriptRenamerParser.Bool_labelsContext context)
+        public override object VisitBool_labels([NotNull] SRP.Bool_labelsContext context)
         {
             return context.label.Type switch
             {
-                ScriptRenamerLexer.RESTRICTED => AnimeInfo.Restricted,
-                ScriptRenamerLexer.CENSORED => FileInfo.AniDBFileInfo?.Censored ?? false,
-                ScriptRenamerLexer.CHAPTERED => FileInfo.MediaInfo?.Chaptered ?? false,
+                SRL.RESTRICTED => AnimeInfo.Restricted,
+                SRL.CENSORED => FileInfo.AniDBFileInfo?.Censored ?? false,
+                SRL.CHAPTERED => FileInfo.MediaInfo?.Chaptered ?? false,
                 _ => throw new ParseCanceledException("Could not parse bool_labels", context.exception),
             };
         }
 
-        public override object VisitString_labels([NotNull] ScriptRenamerParser.String_labelsContext context)
+        public override object VisitString_labels([NotNull] SRP.String_labelsContext context)
         {
             return context.label.Type switch
             {
-                ScriptRenamerLexer.ANIMETITLEPREFERRED => AnimeInfo.PreferredTitle,
-                ScriptRenamerLexer.ANIMETITLEROMAJI => AnimeTitleLanguage(TitleLanguage.Romaji),
-                ScriptRenamerLexer.ANIMETITLEENGLISH => AnimeTitleLanguage(TitleLanguage.English),
-                ScriptRenamerLexer.ANIMETITLEJAPANESE => AnimeTitleLanguage(TitleLanguage.Japanese),
-                ScriptRenamerLexer.EPISODETITLEROMAJI => EpisodeTitleLanguage(TitleLanguage.Romaji),
-                ScriptRenamerLexer.EPISODETITLEENGLISH => EpisodeTitleLanguage(TitleLanguage.English),
-                ScriptRenamerLexer.EPISODETITLEJAPANESE => EpisodeTitleLanguage(TitleLanguage.Japanese),
-                ScriptRenamerLexer.GROUPSHORT => FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName,
-                ScriptRenamerLexer.GROUPLONG => FileInfo.AniDBFileInfo?.ReleaseGroup?.Name,
-                ScriptRenamerLexer.CRCLOWER => FileInfo.Hashes.CRC.ToLower(),
-                ScriptRenamerLexer.CRCUPPER => FileInfo.Hashes.CRC.ToUpper(),
-                ScriptRenamerLexer.SOURCE => FileInfo.AniDBFileInfo?.Source,
-                ScriptRenamerLexer.RESOLUTION => FileInfo.MediaInfo?.Video?.StandardizedResolution,
-                ScriptRenamerLexer.ANIMETYPE => AnimeInfo.Type.ToString(),
-                ScriptRenamerLexer.EPISODETYPE => EpisodeInfo.Type.ToString(),
-                ScriptRenamerLexer.EPISODEPREFIX => EpisodeInfo.Type switch
+                SRL.ANIMETITLEPREFERRED => AnimeInfo.PreferredTitle,
+                SRL.ANIMETITLEROMAJI => AnimeTitleLanguage(TitleLanguage.Romaji),
+                SRL.ANIMETITLEENGLISH => AnimeTitleLanguage(TitleLanguage.English),
+                SRL.ANIMETITLEJAPANESE => AnimeTitleLanguage(TitleLanguage.Japanese),
+                SRL.EPISODETITLEROMAJI => EpisodeTitleLanguage(TitleLanguage.Romaji),
+                SRL.EPISODETITLEENGLISH => EpisodeTitleLanguage(TitleLanguage.English),
+                SRL.EPISODETITLEJAPANESE => EpisodeTitleLanguage(TitleLanguage.Japanese),
+                SRL.GROUPSHORT => FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName,
+                SRL.GROUPLONG => FileInfo.AniDBFileInfo?.ReleaseGroup?.Name,
+                SRL.CRCLOWER => FileInfo.Hashes.CRC.ToLower(),
+                SRL.CRCUPPER => FileInfo.Hashes.CRC.ToUpper(),
+                SRL.SOURCE => FileInfo.AniDBFileInfo?.Source,
+                SRL.RESOLUTION => FileInfo.MediaInfo?.Video?.StandardizedResolution,
+                SRL.ANIMETYPE => AnimeInfo.Type.ToString(),
+                SRL.EPISODETYPE => EpisodeInfo.Type.ToString(),
+                SRL.EPISODEPREFIX => EpisodeInfo.Type switch
                 {
                     EpisodeType.Episode => "",
                     EpisodeType.Special => "S",
@@ -162,49 +165,49 @@ namespace ScriptRenamer
                     EpisodeType.Other => "O",
                     _ => ""
                 },
-                ScriptRenamerLexer.VIDEOCODECLONG => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec ?? FileInfo.MediaInfo?.Video?.Codec,
-                ScriptRenamerLexer.VIDEOCODECSHORT => FileInfo.MediaInfo?.Video?.SimplifiedCodec,
-                ScriptRenamerLexer.DURATION => FileInfo.MediaInfo?.General?.Duration,
-                ScriptRenamerLexer.GROUPNAME => GroupInfo?.Name,
-                ScriptRenamerLexer.OLDFILENAME => FileInfo.Filename,
-                ScriptRenamerLexer.ORIGINALFILENAME => FileInfo.AniDBFileInfo?.OriginalFilename,
+                SRL.VIDEOCODECLONG => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec ?? FileInfo.MediaInfo?.Video?.Codec,
+                SRL.VIDEOCODECSHORT => FileInfo.MediaInfo?.Video?.SimplifiedCodec,
+                SRL.DURATION => FileInfo.MediaInfo?.General?.Duration,
+                SRL.GROUPNAME => GroupInfo?.Name,
+                SRL.OLDFILENAME => FileInfo.Filename,
+                SRL.ORIGINALFILENAME => FileInfo.AniDBFileInfo?.OriginalFilename,
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception),
             };
         }
 
-        public override object VisitCollection_labels([NotNull] ScriptRenamerParser.Collection_labelsContext context)
+        public override object VisitCollection_labels([NotNull] SRP.Collection_labelsContext context)
         {
             return context.label.Type switch
             {
-                ScriptRenamerLexer.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type)),
-                ScriptRenamerLexer.DUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type)).Select(t => (object)t),
-                ScriptRenamerLexer.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type)).Select(t => (object)t),
-                ScriptRenamerLexer.ANIMETITLES => ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).Select(t => (object)t),
-                ScriptRenamerLexer.EPISODETITLES => ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).Select(t => (object)t),
-                ScriptRenamerLexer.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Select(t => (object)t),
+                SRL.AUDIOCODECS => (ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type),
+                SRL.DUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type)),
+                SRL.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type)),
+                SRL.ANIMETITLES => ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)),
+                SRL.EPISODETITLES => ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)),
+                SRL.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)),
                 _ => throw new ParseCanceledException("Could not parse collection labels", context.exception),
             };
         }
 
-        public override object VisitNumber_labels([NotNull] ScriptRenamerParser.Number_labelsContext context)
+        public override object VisitNumber_labels([NotNull] SRP.Number_labelsContext context)
         {
             return context.label.Type switch
             {
-                ScriptRenamerLexer.EPISODENUMBER => EpisodeInfo.Number,
-                ScriptRenamerLexer.FILEVERSION => FileInfo.AniDBFileInfo?.Version,
-                ScriptRenamerLexer.WIDTH => FileInfo.MediaInfo?.Video?.Width,
-                ScriptRenamerLexer.HEIGHT => FileInfo.MediaInfo?.Video.Height,
-                ScriptRenamerLexer.YEAR => AnimeInfo.AirDate?.Year,
-                ScriptRenamerLexer.EPISODECOUNT => AnimeInfo.EpisodeCounts.Episodes,
-                ScriptRenamerLexer.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth,
-                ScriptRenamerLexer.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio.Select(a => a.Channels).Max(),
+                SRL.EPISODENUMBER => EpisodeInfo.Number,
+                SRL.FILEVERSION => FileInfo.AniDBFileInfo?.Version,
+                SRL.WIDTH => FileInfo.MediaInfo?.Video?.Width,
+                SRL.HEIGHT => FileInfo.MediaInfo?.Video.Height,
+                SRL.YEAR => AnimeInfo.AirDate?.Year,
+                SRL.EPISODECOUNT => AnimeInfo.EpisodeCounts.Episodes,
+                SRL.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth,
+                SRL.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio.Select(a => a.Channels).Max(),
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }
         #endregion labels
 
         #region atoms
-        public override object VisitBool_atom([NotNull] ScriptRenamerParser.Bool_atomContext context)
+        public override object VisitBool_atom([NotNull] SRP.Bool_atomContext context)
         {
             if (context.string_atom() is not null)
             {
@@ -225,7 +228,7 @@ namespace ScriptRenamer
             throw new ParseCanceledException("Could not parse bool_atom", context.exception);
         }
 
-        public override object VisitString_atom([NotNull] ScriptRenamerParser.String_atomContext context)
+        public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
             if (context.number_atom() is not null)
             {
@@ -235,61 +238,38 @@ namespace ScriptRenamer
             {
                 return Visit(context.string_labels());
             }
-            else if (context.collection_labels() is not null)
-            {
-                if (context.collection_labels().AUDIOCODECS() is not null)
-                {
-                    return ((ICollection<string>)GetCollection(context.collection_labels().AUDIOCODECS().Symbol.Type)).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                else if (context.collection_labels().DUBLANGUAGES() is not null)
-                {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().DUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                else if (context.collection_labels().SUBLANGUAGES() is not null)
-                {
-                    return ((ICollection<TitleLanguage>)GetCollection(context.collection_labels().SUBLANGUAGES().Symbol.Type)).Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                else if (context.collection_labels().ANIMETITLES() is not null)
-                {
-                    return ((ICollection<AnimeTitle>)GetCollection(context.collection_labels().ANIMETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                else if (context.collection_labels().EPISODETITLES() is not null)
-                {
-                    return ((ICollection<AnimeTitle>)GetCollection(context.collection_labels().EPISODETITLES().Symbol.Type)).Select(a => a.Title).Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                else if (context.collection_labels().IMPORTFOLDERS() is not null)
-                {
-                    return ((ICollection<IImportFolder>)GetCollection(context.collection_labels().IMPORTFOLDERS().Symbol.Type)).Select(a => a.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}");
-                }
-                throw new ParseCanceledException("Could not parse collection labels in string_atom", context.exception);
-            }
             else if (context.STRING() is not null)
             {
                 return context.STRING().GetText().Trim(new char[] { '\'', '"' });
             }
             else if (context.collection_expr() is not null)
             {
-                dynamic result = ((ICollection<object>)Visit(context.collection_expr())).FirstOrDefault();
-                if (result is null)
+                ICollection<object> result = ((ICollection<object>)Visit(context.collection_expr()));
+                object firstResult = result.FirstOrDefault();
+                return (firstResult, context.FIRST()) switch
                 {
-                    return string.Empty;
-                }
-                return result switch
-                {
-                    AnimeTitle a => a.Title,
-                    TitleLanguage t => t.ToString(),
-                    IImportFolder f => f.Name,
+                    (AnimeTitle a, not null) => a.Title,
+                    (AnimeTitle, null) => result.Cast<AnimeTitle>().Select(a => a.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    (TitleLanguage t, not null) => t.ToString(),
+                    (TitleLanguage, null) => result.Cast<TitleLanguage>().Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    (IImportFolder f, not null) => f.Name,
+                    (IImportFolder, null) => result.Cast<IImportFolder>().Select(f => f.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    (null, _) => string.Empty,
                     _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception),
                 };
             }
             throw new ParseCanceledException("Could not parse string_atom", context.exception);
         }
 
-        public override object VisitNumber_atom([NotNull] ScriptRenamerParser.Number_atomContext context)
+        public override object VisitNumber_atom([NotNull] SRP.Number_atomContext context)
         {
             if (context.number_labels() is not null)
             {
                 return Visit(context.number_labels());
+            }
+            else if (context.collection_expr() is not null)
+            {
+                return ((ICollection)Visit(context.collection_expr())).Count;
             }
             else if (context.string_atom() is not null)
             {
@@ -304,19 +284,12 @@ namespace ScriptRenamer
         #endregion atoms
 
         #region statements
-        public override object VisitIf_stmt([NotNull] ScriptRenamerParser.If_stmtContext context)
+        public override object VisitIf_stmt([NotNull] SRP.If_stmtContext context)
         {
             bool result = (bool)Visit(context.bool_expr());
             if (result)
             {
-                if (context.non_if_stmt() is not null)
-                {
-                    _ = Visit(context.non_if_stmt());
-                }
-                else if (context.true_branch is not null)
-                {
-                    _ = Visit(context.true_branch);
-                }
+                _ = Visit(context.true_branch);
             }
             else if (context.false_branch is not null)
             {
@@ -325,21 +298,21 @@ namespace ScriptRenamer
             return null;
         }
 
-        public override object VisitSet_stmt([NotNull] ScriptRenamerParser.Set_stmtContext context)
+        public override object VisitSet_stmt([NotNull] SRP.Set_stmtContext context)
         {
             var target = context.target_labels()?.label.Type;
-            if ((target == ScriptRenamerLexer.DESTINATION || target == ScriptRenamerLexer.SUBFOLDER) ^ Renaming)
+            if ((target == SRL.DESTINATION || target == SRL.SUBFOLDER) ^ Renaming)
             {
                 var setstring = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
                 switch (target)
                 {
-                    case ScriptRenamerLexer.FILENAME:
+                    case SRL.FILENAME:
                         Filename = setstring;
                         break;
-                    case ScriptRenamerLexer.DESTINATION:
+                    case SRL.DESTINATION:
                         Destination = setstring;
                         break;
-                    case ScriptRenamerLexer.SUBFOLDER:
+                    case SRL.SUBFOLDER:
                         Subfolder = setstring;
                         break;
                     default:
@@ -350,21 +323,21 @@ namespace ScriptRenamer
             return null;
         }
 
-        public override object VisitAdd_stmt([NotNull] ScriptRenamerParser.Add_stmtContext context)
+        public override object VisitAdd_stmt([NotNull] SRP.Add_stmtContext context)
         {
             var target = context.target_labels()?.label.Type;
-            if ((target == ScriptRenamerLexer.DESTINATION || target == ScriptRenamerLexer.SUBFOLDER) ^ Renaming)
+            if ((target == SRL.DESTINATION || target == SRL.SUBFOLDER) ^ Renaming)
             {
                 var addString = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
                 switch (target)
                 {
-                    case ScriptRenamerLexer.FILENAME:
+                    case SRL.FILENAME:
                         Filename += addString;
                         break;
-                    case ScriptRenamerLexer.DESTINATION:
+                    case SRL.DESTINATION:
                         Destination += addString;
                         break;
-                    case ScriptRenamerLexer.SUBFOLDER:
+                    case SRL.SUBFOLDER:
                         Subfolder += addString;
                         break;
                     default:
@@ -375,22 +348,22 @@ namespace ScriptRenamer
             return null;
         }
 
-        public override object VisitReplace_stmt([NotNull] ScriptRenamerParser.Replace_stmtContext context)
+        public override object VisitReplace_stmt([NotNull] SRP.Replace_stmtContext context)
         {
             var target = context.target_labels()?.label.Type;
-            if ((target == ScriptRenamerLexer.DESTINATION || target == ScriptRenamerLexer.SUBFOLDER) ^ Renaming)
+            if ((target == SRL.DESTINATION || target == SRL.SUBFOLDER) ^ Renaming)
             {
                 var oldstr = (string)Visit(context.string_atom(0));
                 var newstr = (string)Visit(context.string_atom(1));
                 switch (target)
                 {
-                    case ScriptRenamerLexer.FILENAME:
+                    case SRL.FILENAME:
                         Filename = Filename.Replace(oldstr, newstr);
                         break;
-                    case ScriptRenamerLexer.DESTINATION:
+                    case SRL.DESTINATION:
                         Destination = Destination.Replace(oldstr, newstr);
                         break;
-                    case ScriptRenamerLexer.SUBFOLDER:
+                    case SRL.SUBFOLDER:
                         Subfolder = Subfolder.Replace(oldstr, newstr);
                         break;
                     default:
@@ -425,18 +398,18 @@ namespace ScriptRenamer
         {
             return tokenType switch
             {
-                ScriptRenamerLexer.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.Distinct().ToList()
+                SRL.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.Distinct().ToList()
                                                ?? FileInfo.MediaInfo?.Audio.Select(a => a.SimplifiedCodec).Distinct().ToList()
                                                ?? new List<string>(),
-                ScriptRenamerLexer.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.Distinct().ToList()
+                SRL.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.Distinct().ToList()
                                                 ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
                                                 ?? new List<TitleLanguage>(),
-                ScriptRenamerLexer.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.Distinct().ToList()
+                SRL.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.Distinct().ToList()
                                                 ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
                                                 ?? new List<TitleLanguage>(),
-                ScriptRenamerLexer.ANIMETITLES => AnimeInfo.Titles.ToList(),
-                ScriptRenamerLexer.EPISODETITLES => EpisodeInfo.Titles.ToList(),
-                ScriptRenamerLexer.IMPORTFOLDERS => AvailableFolders,
+                SRL.ANIMETITLES => AnimeInfo.Titles.ToList(),
+                SRL.EPISODETITLES => EpisodeInfo.Titles.ToList(),
+                SRL.IMPORTFOLDERS => AvailableFolders,
                 _ => throw new KeyNotFoundException("Could not find token type for collection"),
             };
         }

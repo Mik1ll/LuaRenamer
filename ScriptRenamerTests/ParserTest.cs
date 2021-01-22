@@ -7,28 +7,6 @@ using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamerTests
 {
-    public class MockAnimeInfo : IAnime
-    {
-        public int AnimeID { get; set; }
-
-        public EpisodeCounts EpisodeCounts { get; set; }
-
-        public DateTime? AirDate { get; set; }
-
-        public DateTime? EndDate { get; set; }
-
-        public AnimeType Type { get; set; }
-
-        public IReadOnlyList<AnimeTitle> Titles { get; set; }
-
-        public double Rating { get; set; }
-
-        public bool Restricted { get; set; }
-
-        public string PreferredTitle { get; set; }
-    }
-
-
     [TestClass]
     public class ParserTest
     {
@@ -44,11 +22,15 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestDanglingElse()
         {
-            var parser = Setup("if (true) if (false) {} else {}");
-            var context = parser.if_stmt();
+            var parser = Setup(
+           @"if (true)
+                    if (false) {
+                    } else {
+                    }");
+            var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
             _ = visitor.Visit(context);
-            Assert.IsTrue(context.ELSE() is null);
+            Assert.IsTrue(context.stmt(0).if_stmt().ELSE() is null && context.stmt(0).if_stmt().true_branch.if_stmt().ELSE() is not null);
         }
 
         [TestMethod]
@@ -70,7 +52,7 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestNumberAtomCompare()
         {
-            var parser = Setup("if (22.22412 < EpisodeCount) filename add 'testing' ");
+            var parser = Setup("if (22 < EpisodeCount) filename add 'testing' ");
             var context = parser.if_stmt();
             var visitor = new ScriptRenamerVisitor
             {
@@ -105,10 +87,13 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestHasOperator()
         {
-            var parser = Setup("if (AnimeTitles has English has Main) filename add 'test'");
+            var parser = Setup("if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main"
+                             + "if (len(ImportFolders) == 0) add ' empty import folder'"
+                             + "if (");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
+                FileInfo = new MockVideoFile(),
                 AnimeInfo = new MockAnimeInfo
                 {
                     Titles = new List<AnimeTitle>
@@ -141,6 +126,7 @@ namespace ScriptRenamerTests
                 }
             };
             _ = visitor.Visit(context);
+            Assert.IsTrue(visitor.Filename == "test, test4 empty import folder");
         }
 
         [TestMethod]
@@ -156,14 +142,15 @@ namespace ScriptRenamerTests
                 }
             };
             _ = visitor.Visit(context);
+            Assert.IsTrue(visitor.Filename == "testtestingtestingwioewoihwoiehwoihweohwiowj");
         }
 
         [TestMethod]
         public void TestDynamicEquality()
         {
-            var parser = Setup("265252 == 234232 or 'abc' == 'abc'");
+            var parser = Setup("265252 != 234232 and 'abc' == 'abc' and 1231 == 1231 and 'abd' != 'abdd'");
             var context = parser.bool_expr();
-            new ScriptRenamerVisitor().Visit(context);
+            Assert.IsTrue((bool)new ScriptRenamerVisitor().Visit(context));
         }
 
 
