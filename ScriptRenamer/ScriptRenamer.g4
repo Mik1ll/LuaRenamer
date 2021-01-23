@@ -35,8 +35,8 @@ grammar ScriptRenamer;
         bool_expr
             :   op=NOT bool_expr
             |   collection_expr
-            |   is_left=ANIMETYPE op=IS animeType_enum
-            |   is_left=EPISODETYPE op=IS episodeType_enum
+            |   is_left=ANIMETYPE op=IS ANIMETYPE_ENUM
+            |   is_left=EPISODETYPE op=IS EPISODETYPE_ENUM
             |   number_atom op=(GT | GE | LT | LE) number_atom
             |   number_atom op=(EQ | NE) number_atom
             |   string_atom op=(EQ | NE) string_atom
@@ -48,94 +48,15 @@ grammar ScriptRenamer;
 
         collection_expr
             :   AUDIOCODECS HAS string_atom
-            |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS language_enum
+            |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS LANGUAGE_ENUM
             |   IMPORTFOLDERS HAS string_atom
             |   title_collection_expr
             |   collection_labels
             ;
 
         title_collection_expr
-            :   title_collection_expr HAS (language_enum | titleType_enum)
-            |   titles=(ANIMETITLES | EPISODETITLES) HAS (language_enum | titleType_enum)
-            ;
-
-    // Enums
-        episodeType_enum
-            :   EPISODE
-            |   CREDITS
-            |   SPECIAL
-            |   TRAILER
-            |   PARODY
-            |   OTHER
-            ;
-
-        animeType_enum
-            :   MOVIE
-            |   OVA
-            |   TVSERIES
-            |   TVSPECIAL
-            |   WEB
-            |   OTHER
-            ;
-
-        titleType_enum
-            :   MAIN
-            |   NONE
-            |   OFFICIAL
-            |   SHORT
-            |   SYNONYM
-            ;
-
-        language_enum
-            :   lang=(UNKNOWN
-            |   ENGLISH
-            |   ROMAJI
-            |   JAPANESE
-            |   AFRIKAANS
-            |   ARABIC
-            |   BANGLADESHI
-            |   BULGARIAN
-            |   FRENCHCANADIAN
-            |   CZECH
-            |   DANISH
-            |   GERMAN
-            |   GREEK
-            |   SPANISH
-            |   ESTONIAN
-            |   FINNISH
-            |   FRENCH
-            |   GALICIAN
-            |   HEBREW
-            |   HUNGARIAN
-            |   ITALIAN
-            |   KOREAN
-            |   LITHUANIA
-            |   MONGOLIAN
-            |   MALAYSIAN
-            |   DUTCH
-            |   NORWEGIAN
-            |   POLISH
-            |   PORTUGUESE
-            |   BRAZILIANPORTUGUESE
-            |   ROMANIAN
-            |   RUSSIAN
-            |   SLOVAK
-            |   SLOVENIAN
-            |   SERBIAN
-            |   SWEDISH
-            |   THAI
-            |   TURKISH
-            |   UKRAINIAN
-            |   VIETNAMESE
-            |   CHINESE
-            |   CHINESESIMPLIFIED
-            |   CHINESETRADITIONAL
-            |   PINYIN
-            |   LATIN
-            |   ALBANIAN
-            |   BASQUE
-            |   BENGALI
-            |   BOSNIAN)
+            :   title_collection_expr HAS rhs=(LANGUAGE_ENUM | TITLETYPE_ENUM)
+            |   lhs=(ANIMETITLES | EPISODETITLES) HAS rhs=(LANGUAGE_ENUM | TITLETYPE_ENUM)
             ;
 
     // Atoms
@@ -299,78 +220,91 @@ grammar ScriptRenamer;
 
     // Enums
         // Languages
-            UNKNOWN : 'Unknown';
-            ENGLISH : 'English';
-            ROMAJI : 'Romaji';
-            JAPANESE : 'Japanese';
-            AFRIKAANS : 'Afrikaans';
-            ARABIC : 'Arabic';
-            BANGLADESHI : 'Bangladeshi';
-            BULGARIAN : 'Bulgarian';
-            FRENCHCANADIAN : 'FrenchCanadian';
-            CZECH : 'Czech';
-            DANISH : 'Danish';
-            GERMAN : 'German';
-            GREEK : 'Greek';
-            SPANISH : 'Spanish';
-            ESTONIAN : 'Estonian';
-            FINNISH : 'Finnish';
-            FRENCH : 'French';
-            GALICIAN : 'Galician';
-            HEBREW : 'Hebrew';
-            HUNGARIAN : 'Hungarian';
-            ITALIAN : 'Italian';
-            KOREAN : 'Korean';
-            LITHUANIA : 'Lithuania';
-            MONGOLIAN : 'Mongolian';
-            MALAYSIAN : 'Malaysian';
-            DUTCH : 'Dutch';
-            NORWEGIAN : 'Norwegian';
-            POLISH : 'Polish';
-            PORTUGUESE : 'Portuguese';
-            BRAZILIANPORTUGUESE : 'BrazilianPortuguese';
-            ROMANIAN : 'Romanian';
-            RUSSIAN : 'Russian';
-            SLOVAK : 'Slovak';
-            SLOVENIAN : 'Slovenian';
-            SERBIAN : 'Serbian';
-            SWEDISH : 'Swedish';
-            THAI : 'Thai';
-            TURKISH : 'Turkish';
-            UKRAINIAN : 'Ukrainian';
-            VIETNAMESE : 'Vietnamese';
-            CHINESE : 'Chinese';
-            CHINESESIMPLIFIED : 'ChineseSimplified';
-            CHINESETRADITIONAL : 'ChineseTraditional';
-            PINYIN : 'Pinyin';
-            LATIN : 'Latin';
-            ALBANIAN : 'Albanian';
-            BASQUE : 'Basque';
-            BENGALI : 'Bengali';
-            BOSNIAN : 'Bosnian';
+        
+            LANGUAGE_ENUM
+                :   'Unknown'
+                |   'English'
+                |   'Romaji'
+                |   'Japanese'
+                |   'Afrikaans'
+                |   'Arabic'
+                |   'Bangladeshi'
+                |   'Bulgarian'
+                |   'FrenchCanadian'
+                |   'Czech'
+                |   'Danish'
+                |   'German'
+                |   'Greek'
+                |   'Spanish'
+                |   'Estonian'
+                |   'Finnish'
+                |   'French'
+                |   'Galician'
+                |   'Hebrew'
+                |   'Hungarian'
+                |   'Italian'
+                |   'Korean'
+                |   'Lithuania'
+                |   'Mongolian'
+                |   'Malaysian'
+                |   'Dutch'
+                |   'Norwegian'
+                |   'Polish'
+                |   'Portuguese'
+                |   'BrazilianPortuguese'
+                |   'Romanian'
+                |   'Russian'
+                |   'Slovak'
+                |   'Slovenian'
+                |   'Serbian'
+                |   'Swedish'
+                |   'Thai'
+                |   'Turkish'
+                |   'Ukrainian'
+                |   'Vietnamese'
+                |   'Chinese'
+                |   'ChineseSimplified'
+                |   'ChineseTraditional'
+                |   'Pinyin'
+                |   'Latin'
+                |   'Albanian'
+                |   'Basque'
+                |   'Bengali'
+                |   'Bosnian'
+                ;
 
         // TitleType
-            MAIN : 'Main';
-            NONE : 'None';
-            OFFICIAL : 'Official';
-            SHORT : 'Short';
-            SYNONYM : 'Synonym';
+            TITLETYPE_ENUM
+                :   'Main'
+                |   'None'
+                |   'Official'
+                |   'Short'
+                |   'Synonym'
+                ;
 
         // EpisodeType
-            EPISODE : 'Episode';
-            CREDITS : 'Credits';
-            SPECIAL : 'Special';
-            TRAILER : 'Trailer';
-            PARODY : 'Parody';
-            OTHER : 'Other';
+            EPISODETYPE_ENUM
+                :	'Episode'
+                |	'Credits'
+                |	'Special'
+                |	'Trailer'
+                |	'Parody'
+                |	OTHER
+                ;
+
 
         //AnimeType
-            MOVIE : 'Movie';
-            OVA : 'OVA';
-            TVSERIES : 'TVSeries';
-            TVSPECIAL : 'TVSpecial';
-            WEB : 'Web';
-            // OTHER : 'Other'; (Shared with EpisodeType)
+            ANIMETYPE_ENUM
+                :	'Movie'
+                |	'OVA'
+                |	'TVSeries'
+                |	'TVSpecial'
+                |	'Web'
+                |   OTHER
+                ;
+        
+        //Shared between Episode and anime types
+        OTHER : 'Other';
 
 
 // Literals
