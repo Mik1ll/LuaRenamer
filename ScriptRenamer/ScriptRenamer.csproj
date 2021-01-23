@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,10 +14,6 @@
 
   <ItemGroup>
     <_GeneratedFiles Include="$(ProjectDir)GeneratedCode\*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="$(PkgAntlr4_Runtime_Standard)\lib\netstandard2.1\Antlr4.Runtime.Standard.dll" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

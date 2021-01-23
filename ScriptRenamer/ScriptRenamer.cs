@@ -13,11 +13,6 @@ namespace ScriptRenamer
     [Renamer("ScriptRenamer")]
     class ScriptRenamer : IRenamer
     {
-        static ScriptRenamer()
-        {
-            EmbedDll();
-        }
-
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             if (string.IsNullOrWhiteSpace(args.Script?.Script))
@@ -45,7 +40,7 @@ namespace ScriptRenamer
             {
                 return null;
             }
-            var context= GetContext(args.Script.Script);
+            var context = GetContext(args.Script.Script);
             var visitor = new ScriptRenamerVisitor
             {
                 AvailableFolders = new List<IImportFolder>(),
@@ -58,22 +53,6 @@ namespace ScriptRenamer
             return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename.ReplaceInvalidPathCharacters() + Path.GetExtension(args.FileInfo.Filename) : null;
         }
 
-        private static void EmbedDll()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-            {
-                if (new AssemblyName(args.Name).Name != "Antlr4.Runtime.Standard")
-                    return null;
-                string resourceName = Assembly.GetExecutingAssembly().GetName().Name + ".Antlr4.Runtime.Standard.dll";
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-                {
-                    byte[] assemblyData = new byte[stream.Length];
-                    _ = stream.Read(assemblyData, 0, assemblyData.Length);
-                    return Assembly.Load(assemblyData);
-                }
-            };
-        }
-
         private static ParserRuleContext GetContext(string script)
         {
             AntlrInputStream inputStream = new(new StringReader(script));
@@ -82,5 +61,25 @@ namespace ScriptRenamer
             ScriptRenamerParser parser = new(tokenStream);
             return parser.start();
         }
+
+        //static ScriptRenamer()
+        //{
+        //    EmbedDll();
+        //}
+        //private static void EmbedDll()
+        //{
+        //    AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+        //    {
+        //        if (new AssemblyName(args.Name).Name != "Antlr4.Runtime.Standard")
+        //            return null;
+        //        string resourceName = Assembly.GetExecutingAssembly().GetName().Name + ".Antlr4.Runtime.Standard.dll";
+        //        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+        //        {
+        //            byte[] assemblyData = new byte[stream.Length];
+        //            _ = stream.Read(assemblyData, 0, assemblyData.Length);
+        //            return Assembly.Load(assemblyData);
+        //        }
+        //    };
+        //}
     }
 }

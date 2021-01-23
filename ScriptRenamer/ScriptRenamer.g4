@@ -376,7 +376,6 @@ grammar ScriptRenamer;
 // Literals
     NUMBER
         :   [+-]? INTEGER
-        |   [+-]? FLOAT
         ;
 
     fragment INTEGER
@@ -385,10 +384,6 @@ grammar ScriptRenamer;
 
     fragment DIGIT
         :   [0-9]
-        ;
-
-    fragment FLOAT
-        :   DIGIT+ '.' DIGIT*
         ;
 
     BOOLEAN

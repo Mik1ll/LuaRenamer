@@ -57,7 +57,7 @@ namespace ScriptRenamerTests
         //              else
         //                  add '[UNC] '
         //          add CRCUpper
-                  
+
         //          // Import folders:
         //          if (Restricted and ImportFolders has 'h-anime')
         //              destination set 'h-anime'
@@ -138,17 +138,25 @@ namespace ScriptRenamerTests
             Assert.IsTrue(result);
         }
 
-        [TestMethod]
+        [DataTestMethod]
+        //[DataRow("if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '")]
+        //[DataRow("if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main")]
+        //[DataRow("if (len(ImportFolders) == 0) add ' empty import folder'")]
+        //[DataRow("if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'")]
+        //[DataRow("if (first(AnimeTitles)) add ' ' first(AnimeTitles)")]
         public void TestHasOperator()
         {
-            var parser = Setup("if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main"
-                             + "if (len(ImportFolders) == 0) add ' empty import folder'"
-                             + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
-                             + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)");
+            var input = "if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '"
+                        + "if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main"
+                        + "if (len(ImportFolders) == 0) add ' empty import folder'"
+                        + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
+                        + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)";
+            var parser = Setup(input);
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
-                FileInfo = Mock.Of<IVideoFile>(v => v.AniDBFileInfo == Mock.Of<IAniDBFile>(m => m.MediaInfo == Mock.Of<AniDBMediaData>(md => md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" }))),
+                FileInfo = Mock.Of<IVideoFile>(v => v.AniDBFileInfo == Mock.Of<IAniDBFile>(m => m.MediaInfo == Mock.Of<AniDBMediaData>(md => md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } && md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.Afrikaans, TitleLanguage.Japanese } && md.SubLanguages == new List<TitleLanguage> { TitleLanguage.Hebrew, TitleLanguage.Galician }
+                ))),
                 AnimeInfo = Mock.Of<IAnime>(a => a.Titles == new List<AnimeTitle>
                 {
                     new AnimeTitle
@@ -160,7 +168,7 @@ namespace ScriptRenamerTests
                     new AnimeTitle
                     {
                         Title = "test2",
-                        Language = TitleLanguage.English,
+                        Language = TitleLanguage.Japanese,
                         Type = TitleType.Official
                     },
                     new AnimeTitle
@@ -178,7 +186,7 @@ namespace ScriptRenamerTests
                 })
             };
             _ = visitor.Visit(context);
-            Assert.IsTrue(visitor.Filename == "test, test4 empty import folder has mp3 test");
+            Assert.IsTrue(visitor.Filename == "[raw] test, test4 empty import folder has mp3 test");
         }
 
         [TestMethod]
@@ -209,7 +217,13 @@ namespace ScriptRenamerTests
             var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' ' ");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
-            _ = visitor.Visit(context);
+            try
+            {
+                _ = visitor.Visit(context);
+                Assert.Fail();
+            } catch
+            {
+            }
         }
     }
 }
