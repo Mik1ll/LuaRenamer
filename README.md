@@ -1,6 +1,6 @@
 # ScriptRenamer
-Renamer Plugin for Shoko
-Requires Antlr4 and Java Runtime to compile
+Renamer Plugin for Shoko  
+Requires Antlr4 and Java Runtime to compile  
 antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
 
 See .g4 file for syntax (in EBNF)
