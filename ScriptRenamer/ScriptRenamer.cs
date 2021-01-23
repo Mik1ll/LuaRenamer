@@ -27,6 +27,7 @@ namespace ScriptRenamer
             var context = GetContext(args.Script?.Script);
             var visitor = new ScriptRenamerVisitor
             {
+                Renaming = false,
                 AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
                 AnimeInfo = args.AnimeInfo.FirstOrDefault(),
                 EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),

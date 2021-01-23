@@ -68,59 +68,55 @@ namespace ScriptRenamer
 
         public override object VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
-            return (context.AUDIOCODECS()?.Symbol ?? context.langs ?? context.IMPORTFOLDERS()?.Symbol ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
+            return (context.AUDIOCODECS()?.Symbol.Type ?? context.langs ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
             {
-                IToken t => t.Type switch
-                {
-                    SRL.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
+                SRL.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
                         .Where(c => c.Contains((string)Visit(context.string_atom()))).ToList(),
-                    SRL.DUBLANGUAGES or SRL.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
-                        .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).Select(t => (object)t).ToList(),
-                    SRL.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
-                        .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).Select(f => (object)f).ToList(),
-                    _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
-                },
-                SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).Select(at => (object)at).ToList(),
+
+                SRL.DUBLANGUAGES or SRL.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
+                        .Where(l => l == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList(),
+
+                SRL.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
+                        .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).ToList(),
+
+                SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).ToList(),
+
                 SRP.Collection_labelsContext => (ICollection)Visit(context.collection_labels()),
+
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
             };
         }
 
         public override object VisitTitle_collection_expr([NotNull] SRP.Title_collection_exprContext context)
         {
-            if (context.title_collection_expr() is not null)
+            return (context.title_collection_expr() ?? (object)context?.titles.Type) switch
             {
-                var result = (List<AnimeTitle>)Visit(context.title_collection_expr());
-                if (context.title_collection_expr() is not null && context.language_enum() is not null)
-                {
-                    return result.Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
-                }
-                else if (context.title_collection_expr() is not null && context.titleType_enum() is not null)
-                {
-                    return result.Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
-                }
-            }
-            else if (context.titles is not null)
-            {
-                List<AnimeTitle> result = null;
-                if (context.ANIMETITLES() is not null)
-                {
-                    result = ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)).ToList();
-                }
-                else if (context.EPISODETITLES() is not null)
-                {
-                    result = ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)).ToList();
-                }
-                if (context.language_enum() is not null)
-                {
-                    return result.Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().lang.Text)).ToList();
-                }
-                else if (context.titleType_enum() is not null)
-                {
-                    return result.Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList();
-                }
-            }
-            throw new ParseCanceledException("Could not parse title_collection_expr", context.exception);
+                SRP.Title_collection_exprContext when context.language_enum() is not null => 
+                        ((List<AnimeTitle>)Visit(context.title_collection_expr()))
+                        .Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().GetText())).ToList(),
+
+                SRP.Title_collection_exprContext when context.titleType_enum() is not null =>
+                        ((List<AnimeTitle>)Visit(context.title_collection_expr()))
+                        .Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList(),
+
+                SRL.ANIMETITLES when context.language_enum() is not null =>
+                        ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type))
+                        .Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().GetText())).ToList(),
+
+                SRL.ANIMETITLES when context.titleType_enum() is not null =>
+                        ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type))
+                        .Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList(),
+
+                SRL.EPISODETITLES when context.language_enum() is not null =>
+                        ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type))
+                        .Where(at => at.Language == (TitleLanguage)Enum.Parse(typeof(TitleLanguage), context.language_enum().GetText())).ToList(),
+
+                SRL.EPISODETITLES when context.titleType_enum() is not null =>
+                        ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type))
+                        .Where(at => at.Type == (TitleType)Enum.Parse(typeof(TitleType), context.titleType_enum().GetText())).ToList(),
+
+                _ => throw new ParseCanceledException("Could not parse title_collection_expr", context.exception),
+            };
         }
         #endregion expressions
 
@@ -180,11 +176,11 @@ namespace ScriptRenamer
             return context.label.Type switch
             {
                 SRL.AUDIOCODECS => (ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type),
-                SRL.DUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type)),
-                SRL.SUBLANGUAGES => ((ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type)),
-                SRL.ANIMETITLES => ((ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type)),
-                SRL.EPISODETITLES => ((ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type)),
-                SRL.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)),
+                SRL.DUBLANGUAGES => (ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type),
+                SRL.SUBLANGUAGES => (ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type),
+                SRL.ANIMETITLES => (ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type),
+                SRL.EPISODETITLES => (ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type),
+                SRL.IMPORTFOLDERS => (ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type),
                 _ => throw new ParseCanceledException("Could not parse collection labels", context.exception),
             };
         }
@@ -209,77 +205,55 @@ namespace ScriptRenamer
         #region atoms
         public override object VisitBool_atom([NotNull] SRP.Bool_atomContext context)
         {
-            if (context.string_atom() is not null)
+            return (context.string_atom() ?? context.bool_labels() ?? context.number_atom() ?? (object)context.BOOLEAN()?.Symbol.Type) switch
             {
-                return !string.IsNullOrEmpty((string)Visit(context.string_atom()));
-            }
-            else if (context.bool_labels() is not null)
-            {
-                return Visit(context.bool_labels());
-            }
-            else if (context.number_atom() is not null)
-            {
-                return Convert.ToDouble(Visit(context.number_atom())) <= 0.0;
-            }
-            else if (context.BOOLEAN() is not null)
-            {
-                return bool.Parse(context.BOOLEAN().GetText());
-            }
-            throw new ParseCanceledException("Could not parse bool_atom", context.exception);
+                SRP.String_atomContext => !string.IsNullOrEmpty((string)Visit(context.string_atom())),
+                SRP.Bool_labelsContext => Visit(context.bool_labels()),
+                SRP.Number_atomContext => (int)Visit(context.number_atom()) == 0,
+                SRL.BOOLEAN => bool.Parse(context.BOOLEAN().GetText()),
+                _ => throw new ParseCanceledException("Could not parse bool_atom", context.exception),
+            };
         }
 
         public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
-            if (context.number_atom() is not null)
+            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.FIRST()?.Symbol.Type ?? (object)context.collection_expr()) switch
             {
-                return Visit(context.number_atom()).ToString();
-            }
-            else if (context.string_labels() is not null)
-            {
-                return Visit(context.string_labels());
-            }
-            else if (context.STRING() is not null)
-            {
-                return context.STRING().GetText().Trim(new char[] { '\'', '"' });
-            }
-            else if (context.collection_expr() is not null)
-            {
-                ICollection<object> result = ((ICollection<object>)Visit(context.collection_expr()));
-                object firstResult = result.FirstOrDefault();
-                return (firstResult, context.FIRST()) switch
+                SRP.Number_atomContext => Visit(context.number_atom()).ToString(),
+
+                SRP.String_labelsContext => Visit(context.string_labels()),
+                SRL.STRING => context.STRING().GetText().Trim(new char[] { '\'', '"' }),
+                SRP.Collection_exprContext when context.FIRST() is null => ((IEnumerable)Visit(context.collection_expr())).Cast<object>() switch
                 {
-                    (AnimeTitle a, not null) => a.Title,
-                    (AnimeTitle, null) => result.Cast<AnimeTitle>().Select(a => a.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                    (TitleLanguage t, not null) => t.ToString(),
-                    (TitleLanguage, null) => result.Cast<TitleLanguage>().Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                    (IImportFolder f, not null) => f.Name,
-                    (IImportFolder, null) => result.Cast<IImportFolder>().Select(f => f.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                    (null, _) => string.Empty,
-                    _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception),
-                };
-            }
-            throw new ParseCanceledException("Could not parse string_atom", context.exception);
+                    IEnumerable<string> s => s.DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    IEnumerable<AnimeTitle> t => t.Select(t => t.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    IEnumerable<TitleLanguage> t => t.Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    IEnumerable<IImportFolder> i => i.Select(f => f.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception)
+                },
+                SRL.FIRST => ((ICollection)Visit(context.collection_expr())).Cast<object>().FirstOrDefault() switch
+                {
+                    string s => s,
+                    AnimeTitle t => t.Title,
+                    TitleLanguage t => t.ToString(),
+                    IImportFolder i => i.Name,
+                    null => string.Empty,
+                    _ => throw new ParseCanceledException("Could not parse first_collection_expr in string_atom"),
+                },
+                _ => throw new ParseCanceledException("Could not parse string_atom", context.exception),
+            };
         }
 
         public override object VisitNumber_atom([NotNull] SRP.Number_atomContext context)
         {
-            if (context.number_labels() is not null)
+            return (context.number_labels() ?? context.collection_expr() ?? context.string_atom() ?? (object)context.NUMBER()?.Symbol.Type) switch
             {
-                return Visit(context.number_labels());
-            }
-            else if (context.collection_expr() is not null)
-            {
-                return ((ICollection)Visit(context.collection_expr())).Count;
-            }
-            else if (context.string_atom() is not null)
-            {
-                return ((string)Visit(context.string_atom())).Length;
-            }
-            else if (context.NUMBER() is not null)
-            {
-                return int.Parse(context.NUMBER().GetText());
-            }
-            throw new ParseCanceledException("Could not parse number_atom", context.exception);
+                SRP.Number_labelsContext => Visit(context.number_labels()),
+                SRP.Collection_exprContext => ((ICollection)Visit(context.collection_expr())).Count,
+                SRP.String_atomContext => ((string)Visit(context.string_atom())).Length,
+                SRL.NUMBER => int.Parse(context.NUMBER().GetText()),
+                _ => throw new ParseCanceledException("Could not parse number_atom", context.exception),
+            };
         }
         #endregion atoms
 
@@ -399,14 +373,14 @@ namespace ScriptRenamer
             return tokenType switch
             {
                 SRL.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs.Distinct().ToList()
-                                               ?? FileInfo.MediaInfo?.Audio.Select(a => a.SimplifiedCodec).Distinct().ToList()
-                                               ?? new List<string>(),
+                                ?? FileInfo.MediaInfo?.Audio.Select(a => a.SimplifiedCodec).Distinct().ToList()
+                                ?? new List<string>(),
                 SRL.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages.Distinct().ToList()
-                                                ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
-                                                ?? new List<TitleLanguage>(),
+                                 ?? FileInfo.MediaInfo?.Audio.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
+                                 ?? new List<TitleLanguage>(),
                 SRL.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages.Distinct().ToList()
-                                                ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
-                                                ?? new List<TitleLanguage>(),
+                                 ?? FileInfo.MediaInfo?.Subs.Select(a => (TitleLanguage)Enum.Parse(typeof(TitleLanguage), a.LanguageName)).Distinct().ToList()
+                                 ?? new List<TitleLanguage>(),
                 SRL.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 SRL.EPISODETITLES => EpisodeInfo.Titles.ToList(),
                 SRL.IMPORTFOLDERS => AvailableFolders,

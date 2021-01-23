@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using ScriptRenamer;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -19,14 +20,75 @@ namespace ScriptRenamerTests
             return parser;
         }
 
+
+        //[TestMethod]
+        //public void BigTest()
+        //{
+        //    var parser = Setup(
+        //        @"if (GroupShort)
+        //              add '[' GroupShort '] '
+        //          else if (GroupLong) 
+        //              add '[' GroupLong '] '
+        //          if (AnimeTitleEnglish) 
+        //              add AnimeTitleEnglish ' '
+        //          else 
+        //              add AnimeTitle ' '
+        //          if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9) 
+        //              add '0'
+        //          add EpisodePrefix EpisodeNumber ' '
+        //          if (EpisodeTitleEnglish)
+        //              add EpisodeTitleEnglish ' '
+        //          else
+        //              add first(EpisodeTitles has Main) ' '
+        //          add Resolution ' ' VideoCodecShort ' '
+        //          if (BitDepth)
+        //              add BitDepth 'bit '
+        //          add Source ' '
+        //          if (DubLanguages has English)
+        //              if (DubLanguages has Japanese)
+        //                  add '[DUAL-AUDIO] '
+        //              else
+        //                  add '[DUB] '
+        //          if (DubLanguages has Japanese and not SubLanguages has English)
+        //              add '[raw] '
+        //          if (Restricted)
+        //              if (Censored)
+        //                  add '[CEN] '
+        //              else
+        //                  add '[UNC] '
+        //          add CRCUpper
+                  
+        //          // Import folders:
+        //          if (Restricted and ImportFolders has 'h-anime')
+        //              destination set 'h-anime'
+        //          else if (AnimeType is Movie)
+        //              destination set 'Movies'
+        //          else
+        //              destination set 'Anime'
+        //          if (AnimeTitles has English)
+        //              if (AnimeTitles has English has Main)
+        //                  subfolder set first(AnimeTitles has English has Main)
+        //              else if (AnimeTitles has English has Official)
+        //                  subfolder set first(AnimeTitles has English has Official)
+        //              else
+        //                  subfolder set first(AnimeTitles has English)
+        //          else
+        //              subfolder set first(AnimeTitles has Main)
+        //         ");
+        //    var context = parser.start();
+
+        //    // TODO: moq everything....
+
+        //    var visitor = new ScriptRenamerVisitor();
+        //    _ = visitor.Visit(context);
+
+        //}
+
         [TestMethod]
         public void TestDanglingElse()
         {
             var parser = Setup(
-           @"if (true)
-                    if (false) {
-                    } else {
-                    }");
+           @"if (true) if (false) {} else {}");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
             _ = visitor.Visit(context);
@@ -40,10 +102,7 @@ namespace ScriptRenamerTests
             var context = parser.if_stmt();
             var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = new MockAnimeInfo
-                {
-                    Type = AnimeType.Movie
-                }
+                AnimeInfo = Mock.Of<IAnime>(a => a.Type == AnimeType.Movie)
             };
             var result = visitor.Visit(context);
             Assert.IsNull(result);
@@ -53,16 +112,14 @@ namespace ScriptRenamerTests
         public void TestNumberAtomCompare()
         {
             var parser = Setup("if (22 < EpisodeCount) filename add 'testing' ");
-            var context = parser.if_stmt();
+            var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = new MockAnimeInfo
-                {
-                    EpisodeCounts = new EpisodeCounts
+                AnimeInfo = Mock.Of<IAnime>(x =>
+                    x.EpisodeCounts == new EpisodeCounts
                     {
                         Episodes = 25
-                    }
-                }
+                    })
             };
             var result = visitor.Visit(context);
             Assert.IsNull(result);
@@ -75,10 +132,7 @@ namespace ScriptRenamerTests
             var context = parser.if_stmt().bool_expr();
             var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = new MockAnimeInfo
-                {
-                    PreferredTitle = "testing"
-                }
+                AnimeInfo = Mock.Of<IAnime>(a => a.PreferredTitle == "testing")
             };
             var result = (bool)visitor.Visit(context);
             Assert.IsTrue(result);
@@ -89,14 +143,13 @@ namespace ScriptRenamerTests
         {
             var parser = Setup("if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main"
                              + "if (len(ImportFolders) == 0) add ' empty import folder'"
-                             + "if (");
+                             + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
+                             + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
-                FileInfo = new MockVideoFile(),
-                AnimeInfo = new MockAnimeInfo
-                {
-                    Titles = new List<AnimeTitle>
+                FileInfo = Mock.Of<IVideoFile>(v => v.AniDBFileInfo == Mock.Of<IAniDBFile>(m => m.MediaInfo == Mock.Of<AniDBMediaData>(md => md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" }))),
+                AnimeInfo = Mock.Of<IAnime>(a => a.Titles == new List<AnimeTitle>
                 {
                     new AnimeTitle
                     {
@@ -122,11 +175,10 @@ namespace ScriptRenamerTests
                         Language = TitleLanguage.English,
                         Type = TitleType.Main
                     }
-                }
-                }
+                })
             };
             _ = visitor.Visit(context);
-            Assert.IsTrue(visitor.Filename == "test, test4 empty import folder");
+            Assert.IsTrue(visitor.Filename == "test, test4 empty import folder has mp3 test");
         }
 
         [TestMethod]
@@ -136,10 +188,7 @@ namespace ScriptRenamerTests
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = new MockAnimeInfo
-                {
-                    PreferredTitle = "wioewoihwoiehwoihweohwiowj"
-                }
+                AnimeInfo = Mock.Of<IAnime>(a => a.PreferredTitle == "wioewoihwoiehwoihweohwiowj")
             };
             _ = visitor.Visit(context);
             Assert.IsTrue(visitor.Filename == "testtestingtestingwioewoihwoiehwoihweohwiowj");
