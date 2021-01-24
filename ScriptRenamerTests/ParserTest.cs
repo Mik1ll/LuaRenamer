@@ -147,10 +147,11 @@ namespace ScriptRenamerTests
         public void TestHasOperator()
         {
             var input = "if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '"
-                        + "if (AnimeTitles has English has Main and len(AnimeTitles has English has Main) == 2) filename add AnimeTitles has English has Main"
+                        + "if (AnimeTitles has English has Main and len(AnimeTitles has Main has English) == 2) filename add AnimeTitles has English has Main"
                         + "if (len(ImportFolders) == 0) add ' empty import folder'"
                         + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
-                        + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)";
+                        + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
+                        + "if (EpisodeTitles has English has Main) add ' ' EpisodeTitles has Main has English";
             var parser = Setup(input);
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
@@ -183,10 +184,37 @@ namespace ScriptRenamerTests
                         Language = TitleLanguage.English,
                         Type = TitleType.Main
                     }
+                }),
+                EpisodeInfo = Mock.Of<IEpisode>(e => e.Titles == new List<AnimeTitle>
+                {
+                    new AnimeTitle
+                    {
+                        Title = "etest",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Main
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "etest2",
+                        Language = TitleLanguage.Japanese,
+                        Type = TitleType.Official
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "etest3",
+                        Language = TitleLanguage.Romaji,
+                        Type = TitleType.Main
+                    },
+                    new AnimeTitle
+                    {
+                        Title = "etest4",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Main
+                    }
                 })
             };
             _ = visitor.Visit(context);
-            Assert.IsTrue(visitor.Filename == "[raw] test, test4 empty import folder has mp3 test");
+            Assert.IsTrue(visitor.Filename == "[raw] test, test4 empty import folder has mp3 test etest, etest4");
         }
 
         [TestMethod]
@@ -221,7 +249,8 @@ namespace ScriptRenamerTests
             {
                 _ = visitor.Visit(context);
                 Assert.Fail();
-            } catch
+            }
+            catch
             {
             }
         }
