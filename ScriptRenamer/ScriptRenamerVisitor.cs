@@ -38,16 +38,18 @@ namespace ScriptRenamer
                 SRP.GE => (int)Visit(context.number_atom(0)) >= (int)Visit(context.number_atom(1)),
                 SRP.LT => (int)Visit(context.number_atom(0)) < (int)Visit(context.number_atom(1)),
                 SRP.LE => (int)Visit(context.number_atom(0)) <= (int)Visit(context.number_atom(1)),
-                SRP.EQ => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
+                SRP.EQ => (context.bool_expr(0) ?? context.number_atom(0) ?? (object)context.string_atom(0)) switch
                 {
                     SRP.Number_atomContext => Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
                     SRP.String_atomContext => Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
+                    SRP.Bool_exprContext => (bool)Visit(context.bool_expr(0)) == (bool)Visit(context.bool_expr(1)),
                     _ => throw new ParseCanceledException("Could not parse strings or numbers in bool_expr EQ", context.exception),
                 },
-                SRP.NE => (context.number_atom(1) ?? (object)context.string_atom(1)) switch
+                SRP.NE => (context.bool_expr(0) ?? context.number_atom(0) ?? (object)context.string_atom(0)) switch
                 {
                     SRP.Number_atomContext => !Equals(Visit(context.number_atom(0)), Visit(context.number_atom(1))),
                     SRP.String_atomContext => !Equals(Visit(context.string_atom(0)), Visit(context.string_atom(1))),
+                    SRP.Bool_exprContext => (bool)Visit(context.bool_expr(0)) != (bool)Visit(context.bool_expr(1)),
                     _ => throw new ParseCanceledException("Could not parse strings or numbers in bool_expr NE", context.exception),
                 },
                 SRP.AND => (bool)Visit(context.bool_expr(0)) && (bool)Visit(context.bool_expr(1)),
