@@ -5,26 +5,14 @@ grammar ScriptRenamer;
     // Statements
         stmt
             :   if_stmt
-            |   add_stmt
-            |   replace_stmt
-            |   set_stmt
+            |   target_labels? op=ADD string_atom+
+            |   target_labels? op=SET string_atom+
+            |   target_labels? op=REPLACE string_atom string_atom
             |   block
             ;
 
         if_stmt
             :   IF LPAREN bool_expr RPAREN (true_branch=stmt | true_branch=stmt ELSE false_branch=stmt)
-            ;
-
-        add_stmt
-            :   target_labels? ADD string_atom+
-            ;
-
-        set_stmt
-            :   target_labels? SET string_atom+
-            ;
-
-        replace_stmt
-            :   target_labels? REPLACE string_atom string_atom
             ;
 
         block

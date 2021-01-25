@@ -10,9 +10,9 @@ namespace ScriptRenamer
 {
     public class ScriptRenamerVisitor : ScriptRenamerBaseVisitor<object>
     {
-        public string Filename { get; set; }
-        public string Destination { get; set; }
-        public string Subfolder { get; set; }
+        public string Filename;
+        public string Destination;
+        public string Subfolder;
 
         public bool Renaming { get; set; } = true;
 
@@ -251,81 +251,52 @@ namespace ScriptRenamer
             return null;
         }
 
-        public override object VisitSet_stmt([NotNull] SRP.Set_stmtContext context)
+        public override object VisitStmt([NotNull] SRP.StmtContext context)
         {
+            if (context.if_stmt() is not null)
+                return Visit(context.if_stmt());
+            else if (context.block() is not null)
+                return Visit(context.block());
             var target = context.target_labels()?.label.Type;
             if ((target == SRP.DESTINATION || target == SRP.SUBFOLDER) ^ Renaming)
             {
-                var setstring = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
                 switch (target)
                 {
                     case SRP.FILENAME:
-                        Filename = setstring;
+                        DoAction(ref Filename, context);
                         break;
                     case SRP.DESTINATION:
-                        Destination = setstring;
+                        DoAction(ref Destination, context);
                         break;
                     case SRP.SUBFOLDER:
-                        Subfolder = setstring;
+                        DoAction(ref Subfolder, context);
                         break;
                     default:
-                        Filename = setstring;
+                        DoAction(ref Filename, context);
                         break;
                 }
             }
             return null;
         }
 
-        public override object VisitAdd_stmt([NotNull] SRP.Add_stmtContext context)
+        public void DoAction(ref string tar, SRP.StmtContext context)
         {
-            var target = context.target_labels()?.label.Type;
-            if ((target == SRP.DESTINATION || target == SRP.SUBFOLDER) ^ Renaming)
+            switch (context.op.Type)
             {
-                var addString = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
-                switch (target)
-                {
-                    case SRP.FILENAME:
-                        Filename += addString;
-                        break;
-                    case SRP.DESTINATION:
-                        Destination += addString;
-                        break;
-                    case SRP.SUBFOLDER:
-                        Subfolder += addString;
-                        break;
-                    default:
-                        Filename += addString;
-                        break;
-                }
+                case SRP.SET:
+                    tar = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
+                    break;
+                case SRP.ADD:
+                    tar += context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
+                    break;
+                case SRP.REPLACE:
+                    tar = tar.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)));
+                    break;
+                default:
+                    throw new ParseCanceledException("Could not parse action statement", context.exception);
             }
-            return null;
         }
 
-        public override object VisitReplace_stmt([NotNull] SRP.Replace_stmtContext context)
-        {
-            var target = context.target_labels()?.label.Type;
-            if ((target == SRP.DESTINATION || target == SRP.SUBFOLDER) ^ Renaming)
-            {
-                var oldstr = (string)Visit(context.string_atom(0));
-                var newstr = (string)Visit(context.string_atom(1));
-                switch (target)
-                {
-                    case SRP.FILENAME:
-                        Filename = Filename.Replace(oldstr, newstr);
-                        break;
-                    case SRP.DESTINATION:
-                        Destination = Destination.Replace(oldstr, newstr);
-                        break;
-                    case SRP.SUBFOLDER:
-                        Subfolder = Subfolder.Replace(oldstr, newstr);
-                        break;
-                    default:
-                        Filename = Filename.Replace(oldstr, newstr);
-                        break;
-                }
-            }
-            return null;
-        }
         #endregion statements
 
         #region utility
