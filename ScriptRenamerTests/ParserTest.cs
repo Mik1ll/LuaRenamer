@@ -337,6 +337,18 @@ namespace ScriptRenamerTests
             Assert.IsTrue((bool)new ScriptRenamerVisitor().Visit(context));
         }
 
+        [DataTestMethod]
+        [DataRow("if (1 == '1' and 2 <= 2 and true == true and 'true' and 1 and (false and true or true)) add 'true'", "true")]
+        public void TestExpression(string input, string expected)
+        {
+            var parser = Setup(input);
+            var context = parser.start();
+            var visitor = new ScriptRenamerVisitor();
+            _ = visitor.Visit(context);
+
+            Assert.AreEqual(visitor.Filename, expected);
+        }
+
         [TestMethod]
         public void TestLexerError()
         {
