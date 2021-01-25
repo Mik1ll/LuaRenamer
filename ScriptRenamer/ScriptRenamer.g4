@@ -73,7 +73,7 @@ grammar ScriptRenamer;
     // Labels
         number_labels
             :   label=(EPISODENUMBER
-            |   FILEVERSION
+            |   VERSION
             |   WIDTH
             |   HEIGHT
             |   YEAR
@@ -186,7 +186,7 @@ grammar ScriptRenamer;
 
     // Numbers
         EPISODENUMBER : 'EpisodeNumber';
-        FILEVERSION : 'FileVersion';
+        VERSION : 'Version';
         WIDTH : 'Width';
         HEIGHT : 'Height';
         YEAR : 'Year';

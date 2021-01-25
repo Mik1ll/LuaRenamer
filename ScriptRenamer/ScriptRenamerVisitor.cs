@@ -67,16 +67,19 @@ namespace ScriptRenamer
 
         public override object VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
+            string rhsString = string.Empty;
+            if (context.string_atom() is not null)
+                rhsString = (string)Visit(context.string_atom());
             return (context.AUDIOCODECS()?.Symbol.Type ?? context.LANGUAGE_ENUM()?.Symbol.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
             {
                 SRP.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
-                        .Where(c => c.Contains((string)Visit(context.string_atom()))).ToList(),
+                        .Where(c => c.Contains(rhsString)).ToList(),
 
                 SRP.LANGUAGE_ENUM => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
                         .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
 
                 SRP.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
-                        .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals((string)Visit(context.string_atom()))).ToList(),
+                        .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(rhsString)).ToList(),
 
                 SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).ToList(),
 
@@ -173,7 +176,7 @@ namespace ScriptRenamer
             return context.label.Type switch
             {
                 SRP.EPISODENUMBER => EpisodeInfo.Number,
-                SRP.FILEVERSION => FileInfo.AniDBFileInfo?.Version,
+                SRP.VERSION => FileInfo.AniDBFileInfo?.Version,
                 SRP.WIDTH => FileInfo.MediaInfo?.Video?.Width,
                 SRP.HEIGHT => FileInfo.MediaInfo?.Video?.Height,
                 SRP.YEAR => AnimeInfo.AirDate?.Year,
