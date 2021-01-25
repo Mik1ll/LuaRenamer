@@ -8,33 +8,33 @@ Sample Script:
 ```
 if (GroupShort)
     add '[' GroupShort '] '
-else if (GroupLong) 
+else if (GroupLong)
     add '[' GroupLong '] '
-if (AnimeTitleEnglish) 
+if (AnimeTitleEnglish)
     add AnimeTitleEnglish ' '
-else 
+else
     add AnimeTitle ' '
-if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9) 
+add EpisodePrefix
+if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
     add '0'
-add EpisodePrefix EpisodeNumber ' '
+add EpisodeNumber
+if (Version > 1)
+    add 'v' Version
+add ' '
 if (EpisodeTitleEnglish)
     add EpisodeTitleEnglish ' '
 else
     add first(EpisodeTitles has Main) ' '
-add '('
-if (Width and Height)
-    add Width 'x' Height ' '
-if (VideoCodecShort)
-    add VideoCodecShort ' '
+add Resolution ' ' VideoCodecShort ' '
 if (BitDepth)
     add BitDepth 'bit '
-add Source ') '
+add Source ' '
 if (DubLanguages has English)
     if (DubLanguages has Japanese)
         add '[DUAL-AUDIO] '
     else
         add '[DUB] '
-if (DubLanguages has Japanese and not SubLanguages has English)
+else if (DubLanguages has Japanese and not SubLanguages has English)
     add '[raw] '
 if (Restricted)
     if (Censored)
@@ -58,5 +58,5 @@ if (AnimeTitles has English)
     else
         subfolder set first(AnimeTitles has English)
 else
-    subfolder set first(AnimeTitles has Main)
+    subfolder set first(AnimeTitles has Main)"
 ```
