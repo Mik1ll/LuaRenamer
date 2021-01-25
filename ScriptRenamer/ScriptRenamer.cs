@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
@@ -11,7 +9,7 @@ using Shoko.Plugin.Abstractions.DataModels;
 namespace ScriptRenamer
 {
     [Renamer("ScriptRenamer")]
-    class ScriptRenamer : IRenamer
+    public class ScriptRenamer : IRenamer
     {
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {

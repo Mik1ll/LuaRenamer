@@ -23,6 +23,7 @@ namespace ScriptRenamer
         public IEpisode EpisodeInfo { get; set; }
 
         #region expressions
+
         public override object VisitBool_expr([NotNull] SRP.Bool_exprContext context)
         {
             return (context.op?.Type) switch
@@ -104,9 +105,11 @@ namespace ScriptRenamer
                 _ => throw new ParseCanceledException("Could not parse title_collection_expr", context.exception),
             };
         }
+
         #endregion expressions
 
         #region labels
+
         public override object VisitBool_labels([NotNull] SRP.Bool_labelsContext context)
         {
             return context.label.Type switch
@@ -186,9 +189,11 @@ namespace ScriptRenamer
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }
+
         #endregion labels
 
         #region atoms
+
         public override object VisitBool_atom([NotNull] SRP.Bool_atomContext context)
         {
             return (context.string_atom() ?? context.bool_labels() ?? context.number_atom() ?? (object)context.BOOLEAN()?.Symbol.Type) switch
@@ -241,9 +246,11 @@ namespace ScriptRenamer
                 _ => throw new ParseCanceledException("Could not parse number_atom", context.exception),
             };
         }
+
         #endregion atoms
 
         #region statements
+
         public override object VisitIf_stmt([NotNull] SRP.If_stmtContext context)
         {
             bool result = (bool)Visit(context.bool_expr());
@@ -303,6 +310,7 @@ namespace ScriptRenamer
         #endregion statements
 
         #region utility
+
         private string AnimeTitleLanguage(TitleLanguage language)
         {
             var titles = AnimeInfo.Titles.Where(t => t.Language == language);
