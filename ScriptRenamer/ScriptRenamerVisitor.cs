@@ -69,28 +69,24 @@ namespace ScriptRenamer
         public override object VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
             string rhsString = string.Empty;
-            ICollection collectionexp = null;
             if (context.string_atom() is not null)
                 rhsString = (string)Visit(context.string_atom());
-            else if (context.collection_expr() is not null)
-                collectionexp = (ICollection)Visit(context.collection_expr());
-
             return (context.AUDIOCODECS()?.Symbol.Type ?? context.LANGUAGE_ENUM()?.Symbol.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? context.collection_labels() ?? (object)context.FIRST().Symbol.Type) switch
             {
-                SRP.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
+                SRP.AUDIOCODECS => ((IEnumerable<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
                         .Where(c => c.Contains(rhsString)).ToList(),
 
-                SRP.LANGUAGE_ENUM => ((ICollection<TitleLanguage>)GetCollection(context.langs.Type))
+                SRP.LANGUAGE_ENUM => ((IEnumerable<TitleLanguage>)GetCollection(context.langs.Type))
                         .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
 
-                SRP.IMPORTFOLDERS => ((ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
+                SRP.IMPORTFOLDERS => ((IEnumerable<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
                         .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(rhsString)).ToList(),
 
-                SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).ToList(),
+                SRP.Title_collection_exprContext => Visit(context.title_collection_expr()),
 
-                SRP.Collection_labelsContext => (ICollection)Visit(context.collection_labels()),
+                SRP.Collection_labelsContext => Visit(context.collection_labels()),
 
-                SRP.FIRST => collectionexp switch
+                SRP.FIRST => Visit(context.collection_expr()) switch
                 {
                     IEnumerable<string> c => c.Take(1).ToList(),
                     IEnumerable<AnimeTitle> c => c.Take(1).ToList(),
@@ -113,8 +109,8 @@ namespace ScriptRenamer
             };
             return (context.title_collection_expr() ?? (object)context.lhs?.Type) switch
             {
-                SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).Where(wherePred).ToList(),
-                SRP.ANIMETITLES or SRP.EPISODETITLES => ((ICollection<AnimeTitle>)GetCollection(context.lhs.Type)).Where(wherePred).ToList(),
+                SRP.Title_collection_exprContext => ((IEnumerable<AnimeTitle>)Visit(context.title_collection_expr())).Where(wherePred).ToList(),
+                SRP.ANIMETITLES or SRP.EPISODETITLES => ((IEnumerable<AnimeTitle>)GetCollection(context.lhs.Type)).Where(wherePred).ToList(),
                 _ => throw new ParseCanceledException("Could not parse title_collection_expr", context.exception),
             };
         }
@@ -177,12 +173,12 @@ namespace ScriptRenamer
         {
             return context.label.Type switch
             {
-                SRP.AUDIOCODECS => (ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type),
-                SRP.DUBLANGUAGES => (ICollection<TitleLanguage>)GetCollection(context.DUBLANGUAGES().Symbol.Type),
-                SRP.SUBLANGUAGES => (ICollection<TitleLanguage>)GetCollection(context.SUBLANGUAGES().Symbol.Type),
-                SRP.ANIMETITLES => (ICollection<AnimeTitle>)GetCollection(context.ANIMETITLES().Symbol.Type),
-                SRP.EPISODETITLES => (ICollection<AnimeTitle>)GetCollection(context.EPISODETITLES().Symbol.Type),
-                SRP.IMPORTFOLDERS => (ICollection<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type),
+                SRP.AUDIOCODECS => GetCollection(context.AUDIOCODECS().Symbol.Type),
+                SRP.DUBLANGUAGES => GetCollection(context.DUBLANGUAGES().Symbol.Type),
+                SRP.SUBLANGUAGES => GetCollection(context.SUBLANGUAGES().Symbol.Type),
+                SRP.ANIMETITLES => GetCollection(context.ANIMETITLES().Symbol.Type),
+                SRP.EPISODETITLES => GetCollection(context.EPISODETITLES().Symbol.Type),
+                SRP.IMPORTFOLDERS => GetCollection(context.IMPORTFOLDERS().Symbol.Type),
                 _ => throw new ParseCanceledException("Could not parse collection labels", context.exception),
             };
         }
@@ -227,7 +223,7 @@ namespace ScriptRenamer
 
                 SRP.String_labelsContext => Visit(context.string_labels()),
                 SRP.STRING => context.STRING().GetText().Trim(new char[] { '\'', '"' }),
-                SRP.Collection_exprContext => ((IEnumerable)Visit(context.collection_expr())).Cast<object>() switch
+                SRP.Collection_exprContext => ((IEnumerable)Visit(context.collection_expr())) switch
                 {
                     IEnumerable<string> s => s.DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                     IEnumerable<TitleLanguage> t => t.Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
@@ -333,7 +329,7 @@ namespace ScriptRenamer
                    )?.Title;
         }
 
-        private ICollection GetCollection(int tokenType)
+        private object GetCollection(int tokenType)
         {
             return tokenType switch
             {
