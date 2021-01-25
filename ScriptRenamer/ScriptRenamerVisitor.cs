@@ -69,9 +69,13 @@ namespace ScriptRenamer
         public override object VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
             string rhsString = string.Empty;
+            ICollection collectionexp = null;
             if (context.string_atom() is not null)
                 rhsString = (string)Visit(context.string_atom());
-            return (context.AUDIOCODECS()?.Symbol.Type ?? context.LANGUAGE_ENUM()?.Symbol.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? (object)context.collection_labels()) switch
+            else if (context.collection_expr() is not null)
+                collectionexp = (ICollection)Visit(context.collection_expr());
+
+            return (context.AUDIOCODECS()?.Symbol.Type ?? context.LANGUAGE_ENUM()?.Symbol.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? context.collection_labels() ?? (object)context.FIRST().Symbol.Type) switch
             {
                 SRP.AUDIOCODECS => ((ICollection<string>)GetCollection(context.AUDIOCODECS().Symbol.Type))
                         .Where(c => c.Contains(rhsString)).ToList(),
@@ -85,6 +89,15 @@ namespace ScriptRenamer
                 SRP.Title_collection_exprContext => ((ICollection<AnimeTitle>)Visit(context.title_collection_expr())).ToList(),
 
                 SRP.Collection_labelsContext => (ICollection)Visit(context.collection_labels()),
+
+                SRP.FIRST => collectionexp switch
+                {
+                    IEnumerable<string> c => c.Take(1).ToList(),
+                    IEnumerable<AnimeTitle> c => c.Take(1).ToList(),
+                    IEnumerable<TitleLanguage> c => c.Take(1).ToList(),
+                    IEnumerable<IImportFolder> c => c.Take(1).ToList(),
+                    _ => throw new ParseCanceledException("Could not parse collection_expr first", context.exception),
+                },
 
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
             };
@@ -208,28 +221,19 @@ namespace ScriptRenamer
 
         public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
-            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.FIRST()?.Symbol.Type ?? (object)context.collection_expr()) switch
+            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? (object)context.collection_expr()) switch
             {
                 SRP.Number_atomContext => Visit(context.number_atom()).ToString(),
 
                 SRP.String_labelsContext => Visit(context.string_labels()),
                 SRP.STRING => context.STRING().GetText().Trim(new char[] { '\'', '"' }),
-                SRP.Collection_exprContext when context.FIRST() is null => ((IEnumerable)Visit(context.collection_expr())).Cast<object>() switch
+                SRP.Collection_exprContext => ((IEnumerable)Visit(context.collection_expr())).Cast<object>() switch
                 {
                     IEnumerable<string> s => s.DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                    IEnumerable<AnimeTitle> t => t.Select(t => t.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                     IEnumerable<TitleLanguage> t => t.Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                     IEnumerable<IImportFolder> i => i.Select(f => f.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                    _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception)
-                },
-                SRP.FIRST => ((ICollection)Visit(context.collection_expr())).Cast<object>().FirstOrDefault() switch
-                {
-                    string s => s,
-                    AnimeTitle t => t.Title,
-                    TitleLanguage t => t.ToString(),
-                    IImportFolder i => i.Name,
-                    null => string.Empty,
-                    _ => throw new ParseCanceledException("Could not parse first_collection_expr in string_atom"),
+                    IEnumerable<AnimeTitle> t => t.Select(t => t.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                    _ => throw new ParseCanceledException("Could not parse collection_expr in string_atom", context.exception),
                 },
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception),
             };

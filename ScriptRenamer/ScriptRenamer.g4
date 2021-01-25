@@ -39,6 +39,7 @@ grammar ScriptRenamer;
             :   AUDIOCODECS HAS string_atom
             |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS LANGUAGE_ENUM
             |   IMPORTFOLDERS HAS string_atom
+            |   FIRST LPAREN collection_expr RPAREN
             |   title_collection_expr
             |   collection_labels
             ;
@@ -67,7 +68,6 @@ grammar ScriptRenamer;
             |   string_labels
             |   collection_expr
             |   number_atom
-            |   FIRST LPAREN collection_expr RPAREN
             ;
 
     // Labels
