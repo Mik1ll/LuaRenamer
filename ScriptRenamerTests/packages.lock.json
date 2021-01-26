@@ -4,9 +4,9 @@
     ".NETCoreApp,Version=v5.0": {
       "coverlet.collector": {
         "type": "Direct",
-        "requested": "[3.0.1, )",
-        "resolved": "3.0.1",
-        "contentHash": "m1dU0pjft5b1PrJ4ddKLsRZ1+kM8F0Ig2aKnh++tVHvn8UNW1z7rxCYnQaYaFJ7SjFBBw5FHf9TCz7sDHXPmPg=="
+        "requested": "[3.0.2, )",
+        "resolved": "3.0.2",
+        "contentHash": "iBvPAIDaI7j/iMx/DzCGCJ3rdiOmel9VINEfaTiBv/NKIGHOP4X3hqc6Q1wgMtArEshlhXexQknP17SK4vXb1w=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",

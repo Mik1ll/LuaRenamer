@@ -339,6 +339,9 @@ namespace ScriptRenamerTests
 
         [DataTestMethod]
         [DataRow("if (1 == '1' and 2 <= 2 and true == true and 'true' and 1 and (false and true or true)) add 'true'", "true")]
+        [DataRow("if (not (1 and 2 and 0)) add 'true'", "true")]
+        [DataRow("if (not(not true or (not true and true and true))) add 'true'", "true")]
+        [DataRow("if (not ('test' and 'testing' and '')) add 'true'", "true")]
         public void TestExpression(string input, string expected)
         {
             var parser = Setup(input);

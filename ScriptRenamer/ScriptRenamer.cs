@@ -11,13 +11,16 @@ namespace ScriptRenamer
     [Renamer("ScriptRenamer")]
     public class ScriptRenamer : IRenamer
     {
+        private static string _script = string.Empty;
+        private static ParserRuleContext _context;
+
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             if (string.IsNullOrWhiteSpace(args.Script?.Script))
             {
                 return (null, null);
             }
-            var context = GetContext(args.Script?.Script);
+            var context = GetContext(args.Script.Script);
             var visitor = new ScriptRenamerVisitor
             {
                 Renaming = false,
@@ -41,6 +44,7 @@ namespace ScriptRenamer
             var context = GetContext(args.Script.Script);
             var visitor = new ScriptRenamerVisitor
             {
+                Renaming = true,
                 AvailableFolders = new List<IImportFolder>(),
                 AnimeInfo = args.AnimeInfo.FirstOrDefault(),
                 EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
@@ -53,31 +57,16 @@ namespace ScriptRenamer
 
         private static ParserRuleContext GetContext(string script)
         {
+            if (script == _script && _context is not null)
+                return _context;
+            else
+                _script = script;
             AntlrInputStream inputStream = new(new StringReader(script));
             ScriptRenamerLexer lexer = new(inputStream);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
-            return parser.start();
+            _context = parser.start();
+            return _context;
         }
-
-        //static ScriptRenamer()
-        //{
-        //    EmbedDll();
-        //}
-        //private static void EmbedDll()
-        //{
-        //    AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-        //    {
-        //        if (new AssemblyName(args.Name).Name != "Antlr4.Runtime.Standard")
-        //            return null;
-        //        string resourceName = Assembly.GetExecutingAssembly().GetName().Name + ".Antlr4.Runtime.Standard.dll";
-        //        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-        //        {
-        //            byte[] assemblyData = new byte[stream.Length];
-        //            _ = stream.Read(assemblyData, 0, assemblyData.Length);
-        //            return Assembly.Load(assemblyData);
-        //        }
-        //    };
-        //}
     }
 }
