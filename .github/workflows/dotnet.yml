@@ -22,10 +22,10 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-    - name: Download & run antlr4
+    - name: Download antlr4
       run: |
         test -f antlr-4.9-complete.jar || curl -O https://www.antlr.org/download/antlr-4.9-complete.jar
-        java -cp "antlr-4.9-complete.jar" org.antlr.v4.Tool -Dlanguage=CSharp -visitor -no-listener $GITHUB_WORKSPACE/ScriptRenamer/ScriptRenamer.g4 -o $GITHUB_WORKSPACE/ScriptRenamer/GeneratedCode
+        alias antlr4='java -Xmx500M -cp "antlr-4.9-complete.jar" org.antlr.v4.Tool'
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:

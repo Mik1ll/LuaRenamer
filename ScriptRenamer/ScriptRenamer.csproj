@@ -17,7 +17,10 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" Condition="'$(CI)' != 'true'" />
+    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" />
+    <ItemGroup>
+      <Compile Include="$(ProjectDir)/GeneratedCode/*.cs" />
+    </ItemGroup>
   </Target>
   <Target Name="PostClean" AfterTargets="CoreClean">
     <Delete Files="@(_GeneratedFiles)" />
