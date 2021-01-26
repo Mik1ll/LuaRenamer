@@ -1,0 +1,3690 @@
+{
+  "ScriptRenamer.dll": {
+    "C:\\Users\\Mike\\Projects\\ScriptRenamer\\ScriptRenamer\\CollectionExtensions.cs": {
+      "ScriptRenamer.CollectionExtensions": {
+        "System.String ScriptRenamer.CollectionExtensions::CollectionString(System.Collections.IEnumerable)": {
+          "Lines": {
+            "11": 5,
+            "12": 5,
+            "13": 5,
+            "14": 1,
+            "15": 0,
+            "16": 0,
+            "17": 12,
+            "18": 0,
+            "19": 5,
+            "20": 5
+          },
+          "Branches": [
+            {
+              "Line": 12,
+              "Offset": 13,
+              "EndOffset": 15,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 4
+            },
+            {
+              "Line": 12,
+              "Offset": 23,
+              "EndOffset": 25,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 4
+            },
+            {
+              "Line": 12,
+              "Offset": 33,
+              "EndOffset": 38,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 4
+            },
+            {
+              "Line": 12,
+              "Offset": 13,
+              "EndOffset": 58,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 1
+            },
+            {
+              "Line": 12,
+              "Offset": 23,
+              "EndOffset": 109,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 12,
+              "Offset": 33,
+              "EndOffset": 196,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 12,
+              "Offset": 46,
+              "EndOffset": 280,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 4
+            },
+            {
+              "Line": 12,
+              "Offset": 46,
+              "EndOffset": 362,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Collections.IEnumerable ScriptRenamer.CollectionExtensions::Take(System.Collections.IEnumerable,System.Int32)": {
+          "Lines": {
+            "23": 3,
+            "24": 3,
+            "25": 3,
+            "26": 0,
+            "27": 3,
+            "28": 0,
+            "29": 0,
+            "30": 0,
+            "31": 3,
+            "32": 3
+          },
+          "Branches": [
+            {
+              "Line": 24,
+              "Offset": 13,
+              "EndOffset": 15,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 3
+            },
+            {
+              "Line": 24,
+              "Offset": 23,
+              "EndOffset": 25,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 33,
+              "EndOffset": 35,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 13,
+              "EndOffset": 49,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 23,
+              "EndOffset": 62,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 24,
+              "Offset": 33,
+              "EndOffset": 75,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 43,
+              "EndOffset": 88,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 43,
+              "EndOffset": 99,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Collections.IList ScriptRenamer.CollectionExtensions::ToList(System.Collections.IEnumerable)": {
+          "Lines": {
+            "35": 51,
+            "36": 51,
+            "37": 51,
+            "38": 4,
+            "39": 33,
+            "40": 12,
+            "41": 2,
+            "42": 0,
+            "43": 51,
+            "44": 51
+          },
+          "Branches": [
+            {
+              "Line": 36,
+              "Offset": 13,
+              "EndOffset": 15,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 47
+            },
+            {
+              "Line": 36,
+              "Offset": 23,
+              "EndOffset": 25,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 14
+            },
+            {
+              "Line": 36,
+              "Offset": 33,
+              "EndOffset": 35,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 2
+            },
+            {
+              "Line": 36,
+              "Offset": 13,
+              "EndOffset": 49,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 4
+            },
+            {
+              "Line": 36,
+              "Offset": 23,
+              "EndOffset": 61,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 33
+            },
+            {
+              "Line": 36,
+              "Offset": 33,
+              "EndOffset": 73,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 12
+            },
+            {
+              "Line": 36,
+              "Offset": 43,
+              "EndOffset": 85,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 2
+            },
+            {
+              "Line": 36,
+              "Offset": 43,
+              "EndOffset": 95,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            }
+          ]
+        }
+      }
+    },
+    "C:\\Users\\Mike\\Projects\\ScriptRenamer\\ScriptRenamer\\ScriptRenamer.cs": {
+      "ScriptRenamer.ScriptRenamer": {
+        "System.ValueTuple`2<Shoko.Plugin.Abstractions.DataModels.IImportFolder,System.String> ScriptRenamer.ScriptRenamer::GetDestination(Shoko.Plugin.Abstractions.MoveEventArgs)": {
+          "Lines": {
+            "18": 0,
+            "19": 0,
+            "20": 0,
+            "21": 0,
+            "23": 0,
+            "24": 0,
+            "25": 0,
+            "26": 0,
+            "27": 0,
+            "28": 0,
+            "29": 0,
+            "30": 0,
+            "31": 0,
+            "32": 0,
+            "33": 0,
+            "34": 0,
+            "35": 0,
+            "36": 0
+          },
+          "Branches": [
+            {
+              "Line": 19,
+              "Offset": 14,
+              "EndOffset": 16,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 19,
+              "Offset": 14,
+              "EndOffset": 20,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            },
+            {
+              "Line": 19,
+              "Offset": 32,
+              "EndOffset": 34,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 19,
+              "Offset": 32,
+              "EndOffset": 48,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 87,
+              "EndOffset": 89,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 24,
+              "Offset": 87,
+              "EndOffset": 95,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 34,
+              "Offset": 225,
+              "EndOffset": 227,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            },
+            {
+              "Line": 34,
+              "Offset": 225,
+              "EndOffset": 230,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.String ScriptRenamer.ScriptRenamer::GetFilename(Shoko.Plugin.Abstractions.RenameEventArgs)": {
+          "Lines": {
+            "39": 0,
+            "40": 0,
+            "41": 0,
+            "42": 0,
+            "44": 0,
+            "45": 0,
+            "46": 0,
+            "47": 0,
+            "48": 0,
+            "49": 0,
+            "50": 0,
+            "51": 0,
+            "52": 0,
+            "53": 0,
+            "54": 0,
+            "55": 0,
+            "56": 0
+          },
+          "Branches": [
+            {
+              "Line": 40,
+              "Offset": 8,
+              "EndOffset": 10,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 40,
+              "Offset": 8,
+              "EndOffset": 14,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            },
+            {
+              "Line": 40,
+              "Offset": 26,
+              "EndOffset": 28,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 40,
+              "Offset": 26,
+              "EndOffset": 36,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 55,
+              "Offset": 165,
+              "EndOffset": 167,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 55,
+              "Offset": 165,
+              "EndOffset": 170,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 0
+            }
+          ]
+        },
+        "Antlr4.Runtime.ParserRuleContext ScriptRenamer.ScriptRenamer::GetContext(System.String)": {
+          "Lines": {
+            "59": 0,
+            "60": 0,
+            "61": 0,
+            "63": 0,
+            "64": 0,
+            "65": 0,
+            "66": 0,
+            "67": 0,
+            "68": 0,
+            "69": 0,
+            "70": 0
+          },
+          "Branches": [
+            {
+              "Line": 60,
+              "Offset": 12,
+              "EndOffset": 14,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 60,
+              "Offset": 12,
+              "EndOffset": 24,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            },
+            {
+              "Line": 60,
+              "Offset": 29,
+              "EndOffset": 31,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 60,
+              "Offset": 29,
+              "EndOffset": 40,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Void ScriptRenamer.ScriptRenamer::.cctor()": {
+          "Lines": {
+            "14": 0
+          },
+          "Branches": []
+        }
+      }
+    },
+    "C:\\Users\\Mike\\Projects\\ScriptRenamer\\ScriptRenamer\\ScriptRenamerVisitor.cs": {
+      "ScriptRenamer.ScriptRenamerVisitor": {
+        "System.Boolean ScriptRenamer.ScriptRenamerVisitor::get_Renaming()": {
+          "Lines": {
+            "17": 58
+          },
+          "Branches": []
+        },
+        "System.Collections.Generic.List`1<Shoko.Plugin.Abstractions.DataModels.IImportFolder> ScriptRenamer.ScriptRenamerVisitor::get_AvailableFolders()": {
+          "Lines": {
+            "19": 17
+          },
+          "Branches": []
+        },
+        "Shoko.Plugin.Abstractions.DataModels.IVideoFile ScriptRenamer.ScriptRenamerVisitor::get_FileInfo()": {
+          "Lines": {
+            "20": 25
+          },
+          "Branches": []
+        },
+        "Shoko.Plugin.Abstractions.DataModels.IAnime ScriptRenamer.ScriptRenamerVisitor::get_AnimeInfo()": {
+          "Lines": {
+            "21": 29
+          },
+          "Branches": []
+        },
+        "Shoko.Plugin.Abstractions.DataModels.IGroup ScriptRenamer.ScriptRenamerVisitor::get_GroupInfo()": {
+          "Lines": {
+            "22": 0
+          },
+          "Branches": []
+        },
+        "Shoko.Plugin.Abstractions.DataModels.IEpisode ScriptRenamer.ScriptRenamerVisitor::get_EpisodeInfo()": {
+          "Lines": {
+            "23": 13
+          },
+          "Branches": []
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitBool_expr(ScriptRenamerParser/Bool_exprContext)": {
+          "Lines": {
+            "28": 104,
+            "29": 104,
+            "30": 104,
+            "31": 6,
+            "32": 3,
+            "33": 3,
+            "34": 1,
+            "35": 2,
+            "36": 0,
+            "37": 3,
+            "38": 2,
+            "39": 2,
+            "40": 1,
+            "41": 3,
+            "42": 7,
+            "43": 7,
+            "44": 3,
+            "45": 3,
+            "46": 1,
+            "47": 0,
+            "48": 7,
+            "49": 2,
+            "50": 2,
+            "51": 1,
+            "52": 1,
+            "53": 0,
+            "54": 0,
+            "55": 2,
+            "56": 23,
+            "57": 3,
+            "58": 5,
+            "59": 47,
+            "60": 47,
+            "61": 31,
+            "62": 16,
+            "63": 0,
+            "64": 47,
+            "65": 0,
+            "66": 104,
+            "67": 104
+          },
+          "Branches": [
+            {
+              "Line": 29,
+              "Offset": 8,
+              "EndOffset": 10,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 47
+            },
+            {
+              "Line": 29,
+              "Offset": 8,
+              "EndOffset": 22,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 57
+            },
+            {
+              "Line": 29,
+              "Offset": 44,
+              "EndOffset": 49,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 57
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 123,
+              "Path": 3,
+              "Ordinal": 7,
+              "Hits": 6
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 150,
+              "Path": 13,
+              "Ordinal": 17,
+              "Hits": 3
+            },
+            {
+              "Line": 32,
+              "Offset": 171,
+              "EndOffset": 175,
+              "Path": 0,
+              "Ordinal": 18,
+              "Hits": 2
+            },
+            {
+              "Line": 32,
+              "Offset": 171,
+              "EndOffset": 183,
+              "Path": 1,
+              "Ordinal": 19,
+              "Hits": 1
+            },
+            {
+              "Line": 32,
+              "Offset": 179,
+              "EndOffset": 216,
+              "Path": 1,
+              "Ordinal": 21,
+              "Hits": 2
+            },
+            {
+              "Line": 32,
+              "Offset": 179,
+              "EndOffset": 249,
+              "Path": 0,
+              "Ordinal": 20,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 278,
+              "Path": 8,
+              "Ordinal": 12,
+              "Hits": 2
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 322,
+              "Path": 10,
+              "Ordinal": 14,
+              "Hits": 2
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 369,
+              "Path": 7,
+              "Ordinal": 11,
+              "Hits": 1
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 413,
+              "Path": 9,
+              "Ordinal": 13,
+              "Hits": 3
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 460,
+              "Path": 11,
+              "Ordinal": 15,
+              "Hits": 7
+            },
+            {
+              "Line": 41,
+              "Offset": 468,
+              "EndOffset": 470,
+              "Path": 0,
+              "Ordinal": 22,
+              "Hits": 6
+            },
+            {
+              "Line": 41,
+              "Offset": 479,
+              "EndOffset": 481,
+              "Path": 0,
+              "Ordinal": 24,
+              "Hits": 3
+            },
+            {
+              "Line": 41,
+              "Offset": 468,
+              "EndOffset": 489,
+              "Path": 1,
+              "Ordinal": 23,
+              "Hits": 7
+            },
+            {
+              "Line": 41,
+              "Offset": 479,
+              "EndOffset": 489,
+              "Path": 1,
+              "Ordinal": 25,
+              "Hits": 7
+            },
+            {
+              "Line": 42,
+              "Offset": 502,
+              "EndOffset": 504,
+              "Path": 0,
+              "Ordinal": 26,
+              "Hits": 4
+            },
+            {
+              "Line": 42,
+              "Offset": 511,
+              "EndOffset": 513,
+              "Path": 0,
+              "Ordinal": 28,
+              "Hits": 1
+            },
+            {
+              "Line": 42,
+              "Offset": 502,
+              "EndOffset": 524,
+              "Path": 1,
+              "Ordinal": 27,
+              "Hits": 3
+            },
+            {
+              "Line": 42,
+              "Offset": 511,
+              "EndOffset": 559,
+              "Path": 1,
+              "Ordinal": 29,
+              "Hits": 3
+            },
+            {
+              "Line": 42,
+              "Offset": 520,
+              "EndOffset": 594,
+              "Path": 1,
+              "Ordinal": 31,
+              "Hits": 1
+            },
+            {
+              "Line": 42,
+              "Offset": 520,
+              "EndOffset": 636,
+              "Path": 0,
+              "Ordinal": 30,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 665,
+              "Path": 12,
+              "Ordinal": 16,
+              "Hits": 2
+            },
+            {
+              "Line": 42,
+              "Offset": 673,
+              "EndOffset": 675,
+              "Path": 0,
+              "Ordinal": 32,
+              "Hits": 2
+            },
+            {
+              "Line": 42,
+              "Offset": 684,
+              "EndOffset": 686,
+              "Path": 0,
+              "Ordinal": 34,
+              "Hits": 1
+            },
+            {
+              "Line": 42,
+              "Offset": 673,
+              "EndOffset": 694,
+              "Path": 1,
+              "Ordinal": 33,
+              "Hits": 2
+            },
+            {
+              "Line": 42,
+              "Offset": 684,
+              "EndOffset": 694,
+              "Path": 1,
+              "Ordinal": 35,
+              "Hits": 2
+            },
+            {
+              "Line": 49,
+              "Offset": 707,
+              "EndOffset": 709,
+              "Path": 0,
+              "Ordinal": 36,
+              "Hits": 1
+            },
+            {
+              "Line": 49,
+              "Offset": 716,
+              "EndOffset": 718,
+              "Path": 0,
+              "Ordinal": 38,
+              "Hits": 0
+            },
+            {
+              "Line": 49,
+              "Offset": 707,
+              "EndOffset": 729,
+              "Path": 1,
+              "Ordinal": 37,
+              "Hits": 1
+            },
+            {
+              "Line": 49,
+              "Offset": 716,
+              "EndOffset": 767,
+              "Path": 1,
+              "Ordinal": 39,
+              "Hits": 1
+            },
+            {
+              "Line": 49,
+              "Offset": 725,
+              "EndOffset": 805,
+              "Path": 1,
+              "Ordinal": 41,
+              "Hits": 0
+            },
+            {
+              "Line": 49,
+              "Offset": 725,
+              "EndOffset": 850,
+              "Path": 0,
+              "Ordinal": 40,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 879,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 23
+            },
+            {
+              "Line": 56,
+              "Offset": 897,
+              "EndOffset": 899,
+              "Path": 0,
+              "Ordinal": 42,
+              "Hits": 20
+            },
+            {
+              "Line": 56,
+              "Offset": 897,
+              "EndOffset": 919,
+              "Path": 1,
+              "Ordinal": 43,
+              "Hits": 3
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 926,
+              "Path": 2,
+              "Ordinal": 6,
+              "Hits": 3
+            },
+            {
+              "Line": 57,
+              "Offset": 944,
+              "EndOffset": 946,
+              "Path": 0,
+              "Ordinal": 44,
+              "Hits": 2
+            },
+            {
+              "Line": 57,
+              "Offset": 944,
+              "EndOffset": 966,
+              "Path": 1,
+              "Ordinal": 45,
+              "Hits": 1
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 973,
+              "Path": 4,
+              "Ordinal": 8,
+              "Hits": 5
+            },
+            {
+              "Line": 29,
+              "Offset": 44,
+              "EndOffset": 997,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 47
+            },
+            {
+              "Line": 58,
+              "Offset": 1004,
+              "EndOffset": 1006,
+              "Path": 0,
+              "Ordinal": 46,
+              "Hits": 16
+            },
+            {
+              "Line": 58,
+              "Offset": 1004,
+              "EndOffset": 1013,
+              "Path": 1,
+              "Ordinal": 47,
+              "Hits": 47
+            },
+            {
+              "Line": 59,
+              "Offset": 1026,
+              "EndOffset": 1028,
+              "Path": 0,
+              "Ordinal": 48,
+              "Hits": 16
+            },
+            {
+              "Line": 59,
+              "Offset": 1026,
+              "EndOffset": 1039,
+              "Path": 1,
+              "Ordinal": 49,
+              "Hits": 31
+            },
+            {
+              "Line": 59,
+              "Offset": 1035,
+              "EndOffset": 1060,
+              "Path": 1,
+              "Ordinal": 51,
+              "Hits": 16
+            },
+            {
+              "Line": 59,
+              "Offset": 1035,
+              "EndOffset": 1089,
+              "Path": 0,
+              "Ordinal": 50,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 1115,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 1115,
+              "Path": 5,
+              "Ordinal": 9,
+              "Hits": 0
+            },
+            {
+              "Line": 29,
+              "Offset": 61,
+              "EndOffset": 1115,
+              "Path": 6,
+              "Ordinal": 10,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Collections.IList ScriptRenamer.ScriptRenamerVisitor::VisitCollection_expr(ScriptRenamerParser/Collection_exprContext)": {
+          "Lines": {
+            "70": 26,
+            "71": 26,
+            "72": 26,
+            "73": 26,
+            "74": 8,
+            "75": 6,
+            "76": 18,
+            "77": 2,
+            "78": 10,
+            "79": 10,
+            "80": 3,
+            "81": 3,
+            "82": 0,
+            "83": 26,
+            "84": 26
+          },
+          "Branches": [
+            {
+              "Line": 71,
+              "Offset": 26,
+              "EndOffset": 28,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 22
+            },
+            {
+              "Line": 71,
+              "Offset": 26,
+              "EndOffset": 35,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 4
+            },
+            {
+              "Line": 72,
+              "Offset": 74,
+              "EndOffset": 76,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 24
+            },
+            {
+              "Line": 72,
+              "Offset": 74,
+              "EndOffset": 89,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 113,
+              "EndOffset": 118,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 24
+            },
+            {
+              "Line": 72,
+              "Offset": 130,
+              "EndOffset": 132,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 18
+            },
+            {
+              "Line": 72,
+              "Offset": 130,
+              "EndOffset": 145,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 6
+            },
+            {
+              "Line": 72,
+              "Offset": 169,
+              "EndOffset": 171,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 18
+            },
+            {
+              "Line": 72,
+              "Offset": 183,
+              "EndOffset": 185,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 16
+            },
+            {
+              "Line": 72,
+              "Offset": 183,
+              "EndOffset": 198,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 222,
+              "EndOffset": 224,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 16
+            },
+            {
+              "Line": 72,
+              "Offset": 236,
+              "EndOffset": 238,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 6
+            },
+            {
+              "Line": 72,
+              "Offset": 251,
+              "EndOffset": 253,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 3
+            },
+            {
+              "Line": 72,
+              "Offset": 222,
+              "EndOffset": 282,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 169,
+              "EndOffset": 296,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 6
+            },
+            {
+              "Line": 72,
+              "Offset": 113,
+              "EndOffset": 310,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 236,
+              "EndOffset": 322,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 26
+            },
+            {
+              "Line": 72,
+              "Offset": 251,
+              "EndOffset": 322,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 26
+            },
+            {
+              "Line": 72,
+              "Offset": 333,
+              "EndOffset": 335,
+              "Path": 0,
+              "Ordinal": 18,
+              "Hits": 13
+            },
+            {
+              "Line": 72,
+              "Offset": 345,
+              "EndOffset": 347,
+              "Path": 0,
+              "Ordinal": 20,
+              "Hits": 5
+            },
+            {
+              "Line": 72,
+              "Offset": 350,
+              "EndOffset": 357,
+              "Path": 0,
+              "Ordinal": 22,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 345,
+              "EndOffset": 367,
+              "Path": 1,
+              "Ordinal": 21,
+              "Hits": 8
+            },
+            {
+              "Line": 72,
+              "Offset": 370,
+              "EndOffset": 377,
+              "Path": 0,
+              "Ordinal": 26,
+              "Hits": 6
+            },
+            {
+              "Line": 72,
+              "Offset": 333,
+              "EndOffset": 387,
+              "Path": 1,
+              "Ordinal": 19,
+              "Hits": 13
+            },
+            {
+              "Line": 72,
+              "Offset": 393,
+              "EndOffset": 398,
+              "Path": 0,
+              "Ordinal": 30,
+              "Hits": 3
+            },
+            {
+              "Line": 72,
+              "Offset": 360,
+              "EndOffset": 414,
+              "Path": 1,
+              "Ordinal": 25,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 380,
+              "EndOffset": 474,
+              "Path": 1,
+              "Ordinal": 29,
+              "Hits": 6
+            },
+            {
+              "Line": 72,
+              "Offset": 370,
+              "EndOffset": 529,
+              "Path": 1,
+              "Ordinal": 27,
+              "Hits": 2
+            },
+            {
+              "Line": 72,
+              "Offset": 393,
+              "EndOffset": 586,
+              "Path": 1,
+              "Ordinal": 31,
+              "Hits": 10
+            },
+            {
+              "Line": 72,
+              "Offset": 404,
+              "EndOffset": 611,
+              "Path": 1,
+              "Ordinal": 33,
+              "Hits": 3
+            },
+            {
+              "Line": 72,
+              "Offset": 350,
+              "EndOffset": 636,
+              "Path": 1,
+              "Ordinal": 23,
+              "Hits": 3
+            },
+            {
+              "Line": 72,
+              "Offset": 360,
+              "EndOffset": 672,
+              "Path": 0,
+              "Ordinal": 24,
+              "Hits": 0
+            },
+            {
+              "Line": 72,
+              "Offset": 380,
+              "EndOffset": 672,
+              "Path": 0,
+              "Ordinal": 28,
+              "Hits": 0
+            },
+            {
+              "Line": 72,
+              "Offset": 404,
+              "EndOffset": 672,
+              "Path": 0,
+              "Ordinal": 32,
+              "Hits": 0
+            },
+            {
+              "Line": 78,
+              "Offset": 7,
+              "EndOffset": 9,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 6
+            },
+            {
+              "Line": 78,
+              "Offset": 7,
+              "EndOffset": 28,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 2
+            }
+          ]
+        },
+        "System.Collections.IList ScriptRenamer.ScriptRenamerVisitor::VisitTitle_collection_expr(ScriptRenamerParser/Title_collection_exprContext)": {
+          "Lines": {
+            "87": 18,
+            "88": 18,
+            "89": 18,
+            "90": 28,
+            "91": 48,
+            "92": 0,
+            "93": 18,
+            "94": 18,
+            "95": 18,
+            "96": 8,
+            "97": 10,
+            "98": 0,
+            "99": 18,
+            "100": 18
+          },
+          "Branches": [
+            {
+              "Line": 88,
+              "Offset": 26,
+              "EndOffset": 28,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 88,
+              "Offset": 26,
+              "EndOffset": 41,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 18
+            },
+            {
+              "Line": 88,
+              "Offset": 63,
+              "EndOffset": 65,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 18
+            },
+            {
+              "Line": 88,
+              "Offset": 78,
+              "EndOffset": 82,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 8
+            },
+            {
+              "Line": 88,
+              "Offset": 86,
+              "EndOffset": 90,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 8
+            },
+            {
+              "Line": 88,
+              "Offset": 78,
+              "EndOffset": 105,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 10
+            },
+            {
+              "Line": 88,
+              "Offset": 63,
+              "EndOffset": 120,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 88,
+              "Offset": 86,
+              "EndOffset": 120,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            },
+            {
+              "Line": 94,
+              "Offset": 160,
+              "EndOffset": 162,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 10
+            },
+            {
+              "Line": 94,
+              "Offset": 175,
+              "EndOffset": 177,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 0
+            },
+            {
+              "Line": 94,
+              "Offset": 175,
+              "EndOffset": 190,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 10
+            },
+            {
+              "Line": 94,
+              "Offset": 160,
+              "EndOffset": 205,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 18
+            },
+            {
+              "Line": 94,
+              "Offset": 218,
+              "EndOffset": 220,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 10
+            },
+            {
+              "Line": 94,
+              "Offset": 227,
+              "EndOffset": 229,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 10
+            },
+            {
+              "Line": 94,
+              "Offset": 218,
+              "EndOffset": 248,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 8
+            },
+            {
+              "Line": 94,
+              "Offset": 244,
+              "EndOffset": 285,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 10
+            },
+            {
+              "Line": 94,
+              "Offset": 227,
+              "EndOffset": 327,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 94,
+              "Offset": 244,
+              "EndOffset": 327,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitBool_labels(ScriptRenamerParser/Bool_labelsContext)": {
+          "Lines": {
+            "107": 6,
+            "108": 6,
+            "109": 6,
+            "110": 4,
+            "111": 2,
+            "112": 0,
+            "113": 0,
+            "114": 6,
+            "115": 6
+          },
+          "Branches": [
+            {
+              "Line": 108,
+              "Offset": 21,
+              "EndOffset": 40,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 4
+            },
+            {
+              "Line": 108,
+              "Offset": 21,
+              "EndOffset": 54,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 2
+            },
+            {
+              "Line": 111,
+              "Offset": 66,
+              "EndOffset": 68,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 111,
+              "Offset": 66,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 2
+            },
+            {
+              "Line": 108,
+              "Offset": 21,
+              "EndOffset": 80,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 112,
+              "Offset": 92,
+              "EndOffset": 94,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            },
+            {
+              "Line": 112,
+              "Offset": 92,
+              "EndOffset": 98,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 0
+            },
+            {
+              "Line": 108,
+              "Offset": 21,
+              "EndOffset": 106,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitString_labels(ScriptRenamerParser/String_labelsContext)": {
+          "Lines": {
+            "118": 16,
+            "119": 16,
+            "120": 16,
+            "121": 2,
+            "122": 0,
+            "123": 3,
+            "124": 0,
+            "125": 0,
+            "126": 3,
+            "127": 0,
+            "128": 3,
+            "129": 0,
+            "130": 0,
+            "131": 1,
+            "132": 1,
+            "133": 1,
+            "134": 0,
+            "135": 0,
+            "136": 1,
+            "137": 1,
+            "138": 1,
+            "139": 0,
+            "140": 0,
+            "141": 0,
+            "142": 0,
+            "143": 0,
+            "144": 0,
+            "145": 1,
+            "146": 0,
+            "147": 1,
+            "148": 0,
+            "149": 0,
+            "150": 0,
+            "151": 0,
+            "152": 0,
+            "153": 16,
+            "154": 16
+          },
+          "Branches": [
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 119,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 2
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 136,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 149,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 162,
+              "Path": 4,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 175,
+              "Path": 5,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 188,
+              "Path": 6,
+              "Ordinal": 6,
+              "Hits": 3
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 201,
+              "Path": 7,
+              "Ordinal": 7,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 214,
+              "Path": 8,
+              "Ordinal": 8,
+              "Hits": 3
+            },
+            {
+              "Line": 128,
+              "Offset": 226,
+              "EndOffset": 228,
+              "Path": 0,
+              "Ordinal": 23,
+              "Hits": 0
+            },
+            {
+              "Line": 128,
+              "Offset": 226,
+              "EndOffset": 232,
+              "Path": 1,
+              "Ordinal": 24,
+              "Hits": 3
+            },
+            {
+              "Line": 128,
+              "Offset": 238,
+              "EndOffset": 240,
+              "Path": 0,
+              "Ordinal": 25,
+              "Hits": 0
+            },
+            {
+              "Line": 128,
+              "Offset": 238,
+              "EndOffset": 244,
+              "Path": 1,
+              "Ordinal": 26,
+              "Hits": 3
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 255,
+              "Path": 9,
+              "Ordinal": 9,
+              "Hits": 0
+            },
+            {
+              "Line": 129,
+              "Offset": 267,
+              "EndOffset": 269,
+              "Path": 0,
+              "Ordinal": 27,
+              "Hits": 0
+            },
+            {
+              "Line": 129,
+              "Offset": 267,
+              "EndOffset": 273,
+              "Path": 1,
+              "Ordinal": 28,
+              "Hits": 0
+            },
+            {
+              "Line": 129,
+              "Offset": 279,
+              "EndOffset": 281,
+              "Path": 0,
+              "Ordinal": 29,
+              "Hits": 0
+            },
+            {
+              "Line": 129,
+              "Offset": 279,
+              "EndOffset": 285,
+              "Path": 1,
+              "Ordinal": 30,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 296,
+              "Path": 10,
+              "Ordinal": 10,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 323,
+              "Path": 11,
+              "Ordinal": 11,
+              "Hits": 1
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 350,
+              "Path": 12,
+              "Ordinal": 12,
+              "Hits": 1
+            },
+            {
+              "Line": 132,
+              "Offset": 362,
+              "EndOffset": 364,
+              "Path": 0,
+              "Ordinal": 31,
+              "Hits": 0
+            },
+            {
+              "Line": 132,
+              "Offset": 362,
+              "EndOffset": 368,
+              "Path": 1,
+              "Ordinal": 32,
+              "Hits": 1
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 379,
+              "Path": 13,
+              "Ordinal": 13,
+              "Hits": 1
+            },
+            {
+              "Line": 133,
+              "Offset": 391,
+              "EndOffset": 393,
+              "Path": 0,
+              "Ordinal": 33,
+              "Hits": 0
+            },
+            {
+              "Line": 133,
+              "Offset": 391,
+              "EndOffset": 397,
+              "Path": 1,
+              "Ordinal": 34,
+              "Hits": 1
+            },
+            {
+              "Line": 133,
+              "Offset": 403,
+              "EndOffset": 405,
+              "Path": 0,
+              "Ordinal": 35,
+              "Hits": 0
+            },
+            {
+              "Line": 133,
+              "Offset": 403,
+              "EndOffset": 409,
+              "Path": 1,
+              "Ordinal": 36,
+              "Hits": 1
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 420,
+              "Path": 14,
+              "Ordinal": 14,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 451,
+              "Path": 15,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 482,
+              "Path": 16,
+              "Ordinal": 16,
+              "Hits": 1
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 534,
+              "Path": 1,
+              "Ordinal": 38,
+              "Hits": 1
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 543,
+              "Path": 3,
+              "Ordinal": 40,
+              "Hits": 0
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 552,
+              "Path": 2,
+              "Ordinal": 39,
+              "Hits": 0
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 561,
+              "Path": 4,
+              "Ordinal": 41,
+              "Hits": 0
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 570,
+              "Path": 5,
+              "Ordinal": 42,
+              "Hits": 0
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 579,
+              "Path": 6,
+              "Ordinal": 43,
+              "Hits": 0
+            },
+            {
+              "Line": 136,
+              "Offset": 503,
+              "EndOffset": 588,
+              "Path": 0,
+              "Ordinal": 37,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 609,
+              "Path": 17,
+              "Ordinal": 17,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 621,
+              "EndOffset": 623,
+              "Path": 0,
+              "Ordinal": 44,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 621,
+              "EndOffset": 627,
+              "Path": 1,
+              "Ordinal": 45,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 633,
+              "EndOffset": 635,
+              "Path": 0,
+              "Ordinal": 46,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 633,
+              "EndOffset": 639,
+              "Path": 1,
+              "Ordinal": 47,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 645,
+              "EndOffset": 647,
+              "Path": 0,
+              "Ordinal": 48,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 660,
+              "EndOffset": 662,
+              "Path": 0,
+              "Ordinal": 50,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 660,
+              "EndOffset": 666,
+              "Path": 1,
+              "Ordinal": 51,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 672,
+              "EndOffset": 674,
+              "Path": 0,
+              "Ordinal": 52,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 672,
+              "EndOffset": 678,
+              "Path": 1,
+              "Ordinal": 53,
+              "Hits": 0
+            },
+            {
+              "Line": 146,
+              "Offset": 645,
+              "EndOffset": 683,
+              "Path": 1,
+              "Ordinal": 49,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 689,
+              "Path": 18,
+              "Ordinal": 18,
+              "Hits": 1
+            },
+            {
+              "Line": 147,
+              "Offset": 701,
+              "EndOffset": 703,
+              "Path": 0,
+              "Ordinal": 54,
+              "Hits": 0
+            },
+            {
+              "Line": 147,
+              "Offset": 701,
+              "EndOffset": 707,
+              "Path": 1,
+              "Ordinal": 55,
+              "Hits": 1
+            },
+            {
+              "Line": 147,
+              "Offset": 713,
+              "EndOffset": 715,
+              "Path": 0,
+              "Ordinal": 56,
+              "Hits": 0
+            },
+            {
+              "Line": 147,
+              "Offset": 713,
+              "EndOffset": 719,
+              "Path": 1,
+              "Ordinal": 57,
+              "Hits": 1
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 730,
+              "Path": 19,
+              "Ordinal": 19,
+              "Hits": 0
+            },
+            {
+              "Line": 148,
+              "Offset": 742,
+              "EndOffset": 744,
+              "Path": 0,
+              "Ordinal": 58,
+              "Hits": 0
+            },
+            {
+              "Line": 148,
+              "Offset": 742,
+              "EndOffset": 757,
+              "Path": 1,
+              "Ordinal": 59,
+              "Hits": 0
+            },
+            {
+              "Line": 148,
+              "Offset": 763,
+              "EndOffset": 765,
+              "Path": 0,
+              "Ordinal": 60,
+              "Hits": 0
+            },
+            {
+              "Line": 148,
+              "Offset": 763,
+              "EndOffset": 778,
+              "Path": 1,
+              "Ordinal": 61,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 796,
+              "Path": 20,
+              "Ordinal": 20,
+              "Hits": 0
+            },
+            {
+              "Line": 149,
+              "Offset": 803,
+              "EndOffset": 805,
+              "Path": 0,
+              "Ordinal": 62,
+              "Hits": 0
+            },
+            {
+              "Line": 149,
+              "Offset": 803,
+              "EndOffset": 809,
+              "Path": 1,
+              "Ordinal": 63,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 817,
+              "Path": 21,
+              "Ordinal": 21,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 831,
+              "Path": 22,
+              "Ordinal": 22,
+              "Hits": 0
+            },
+            {
+              "Line": 151,
+              "Offset": 843,
+              "EndOffset": 845,
+              "Path": 0,
+              "Ordinal": 64,
+              "Hits": 0
+            },
+            {
+              "Line": 151,
+              "Offset": 843,
+              "EndOffset": 849,
+              "Path": 1,
+              "Ordinal": 65,
+              "Hits": 0
+            },
+            {
+              "Line": 119,
+              "Offset": 21,
+              "EndOffset": 857,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitCollection_labels(ScriptRenamerParser/Collection_labelsContext)": {
+          "Lines": {
+            "157": 3,
+            "158": 3,
+            "159": 3,
+            "160": 0,
+            "161": 0,
+            "162": 0,
+            "163": 2,
+            "164": 0,
+            "165": 1,
+            "166": 0,
+            "167": 3,
+            "168": 3
+          },
+          "Branches": [
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 55,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 83,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 108,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 133,
+              "Path": 4,
+              "Ordinal": 4,
+              "Hits": 2
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 158,
+              "Path": 5,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 183,
+              "Path": 6,
+              "Ordinal": 6,
+              "Hits": 1
+            },
+            {
+              "Line": 158,
+              "Offset": 21,
+              "EndOffset": 208,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitNumber_labels(ScriptRenamerParser/Number_labelsContext)": {
+          "Lines": {
+            "171": 12,
+            "172": 12,
+            "173": 12,
+            "174": 3,
+            "175": 3,
+            "176": 0,
+            "177": 0,
+            "178": 0,
+            "179": 3,
+            "180": 3,
+            "181": 0,
+            "182": 0,
+            "183": 12,
+            "184": 12
+          },
+          "Branches": [
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 63,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 3
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 85,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 3
+            },
+            {
+              "Line": 175,
+              "Offset": 97,
+              "EndOffset": 99,
+              "Path": 0,
+              "Ordinal": 9,
+              "Hits": 0
+            },
+            {
+              "Line": 175,
+              "Offset": 97,
+              "EndOffset": 111,
+              "Path": 1,
+              "Ordinal": 10,
+              "Hits": 3
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 127,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 0
+            },
+            {
+              "Line": 176,
+              "Offset": 139,
+              "EndOffset": 141,
+              "Path": 0,
+              "Ordinal": 11,
+              "Hits": 0
+            },
+            {
+              "Line": 176,
+              "Offset": 139,
+              "EndOffset": 153,
+              "Path": 1,
+              "Ordinal": 12,
+              "Hits": 0
+            },
+            {
+              "Line": 176,
+              "Offset": 159,
+              "EndOffset": 161,
+              "Path": 0,
+              "Ordinal": 13,
+              "Hits": 0
+            },
+            {
+              "Line": 176,
+              "Offset": 159,
+              "EndOffset": 173,
+              "Path": 1,
+              "Ordinal": 14,
+              "Hits": 0
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 189,
+              "Path": 4,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 177,
+              "Offset": 201,
+              "EndOffset": 203,
+              "Path": 0,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 177,
+              "Offset": 201,
+              "EndOffset": 215,
+              "Path": 1,
+              "Ordinal": 16,
+              "Hits": 0
+            },
+            {
+              "Line": 177,
+              "Offset": 221,
+              "EndOffset": 223,
+              "Path": 0,
+              "Ordinal": 17,
+              "Hits": 0
+            },
+            {
+              "Line": 177,
+              "Offset": 221,
+              "EndOffset": 235,
+              "Path": 1,
+              "Ordinal": 18,
+              "Hits": 0
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 251,
+              "Path": 5,
+              "Ordinal": 5,
+              "Hits": 0
+            },
+            {
+              "Line": 178,
+              "Offset": 271,
+              "EndOffset": 273,
+              "Path": 0,
+              "Ordinal": 19,
+              "Hits": 0
+            },
+            {
+              "Line": 178,
+              "Offset": 271,
+              "EndOffset": 285,
+              "Path": 1,
+              "Ordinal": 20,
+              "Hits": 0
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 310,
+              "Path": 6,
+              "Ordinal": 6,
+              "Hits": 3
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 337,
+              "Path": 7,
+              "Ordinal": 7,
+              "Hits": 3
+            },
+            {
+              "Line": 180,
+              "Offset": 349,
+              "EndOffset": 351,
+              "Path": 0,
+              "Ordinal": 21,
+              "Hits": 0
+            },
+            {
+              "Line": 180,
+              "Offset": 349,
+              "EndOffset": 363,
+              "Path": 1,
+              "Ordinal": 22,
+              "Hits": 3
+            },
+            {
+              "Line": 180,
+              "Offset": 369,
+              "EndOffset": 371,
+              "Path": 0,
+              "Ordinal": 23,
+              "Hits": 0
+            },
+            {
+              "Line": 180,
+              "Offset": 369,
+              "EndOffset": 383,
+              "Path": 1,
+              "Ordinal": 24,
+              "Hits": 3
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 396,
+              "Path": 8,
+              "Ordinal": 8,
+              "Hits": 0
+            },
+            {
+              "Line": 181,
+              "Offset": 408,
+              "EndOffset": 410,
+              "Path": 0,
+              "Ordinal": 25,
+              "Hits": 0
+            },
+            {
+              "Line": 181,
+              "Offset": 408,
+              "EndOffset": 422,
+              "Path": 1,
+              "Ordinal": 26,
+              "Hits": 0
+            },
+            {
+              "Line": 181,
+              "Offset": 428,
+              "EndOffset": 430,
+              "Path": 0,
+              "Ordinal": 27,
+              "Hits": 0
+            },
+            {
+              "Line": 181,
+              "Offset": 428,
+              "EndOffset": 442,
+              "Path": 1,
+              "Ordinal": 28,
+              "Hits": 0
+            },
+            {
+              "Line": 172,
+              "Offset": 21,
+              "EndOffset": 491,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitBool_atom(ScriptRenamerParser/Bool_atomContext)": {
+          "Lines": {
+            "191": 31,
+            "192": 31,
+            "193": 31,
+            "194": 10,
+            "195": 6,
+            "196": 6,
+            "197": 9,
+            "198": 0,
+            "199": 31,
+            "200": 31
+          },
+          "Branches": [
+            {
+              "Line": 192,
+              "Offset": 8,
+              "EndOffset": 10,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 21
+            },
+            {
+              "Line": 192,
+              "Offset": 18,
+              "EndOffset": 20,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 15
+            },
+            {
+              "Line": 192,
+              "Offset": 28,
+              "EndOffset": 30,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 9
+            },
+            {
+              "Line": 192,
+              "Offset": 38,
+              "EndOffset": 40,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            },
+            {
+              "Line": 192,
+              "Offset": 38,
+              "EndOffset": 52,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 9
+            },
+            {
+              "Line": 192,
+              "Offset": 8,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 31
+            },
+            {
+              "Line": 192,
+              "Offset": 18,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 31
+            },
+            {
+              "Line": 192,
+              "Offset": 28,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 31
+            },
+            {
+              "Line": 192,
+              "Offset": 83,
+              "EndOffset": 85,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 21
+            },
+            {
+              "Line": 192,
+              "Offset": 91,
+              "EndOffset": 93,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 15
+            },
+            {
+              "Line": 192,
+              "Offset": 99,
+              "EndOffset": 101,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 9
+            },
+            {
+              "Line": 192,
+              "Offset": 107,
+              "EndOffset": 109,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 9
+            },
+            {
+              "Line": 192,
+              "Offset": 83,
+              "EndOffset": 123,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 10
+            },
+            {
+              "Line": 192,
+              "Offset": 91,
+              "EndOffset": 156,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 6
+            },
+            {
+              "Line": 192,
+              "Offset": 99,
+              "EndOffset": 171,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 6
+            },
+            {
+              "Line": 192,
+              "Offset": 119,
+              "EndOffset": 199,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 9
+            },
+            {
+              "Line": 192,
+              "Offset": 107,
+              "EndOffset": 223,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 192,
+              "Offset": 119,
+              "EndOffset": 223,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitString_atom(ScriptRenamerParser/String_atomContext)": {
+          "Lines": {
+            "203": 70,
+            "204": 70,
+            "205": 70,
+            "206": 6,
+            "207": 70,
+            "208": 16,
+            "209": 43,
+            "210": 5,
+            "211": 0,
+            "212": 70,
+            "213": 70
+          },
+          "Branches": [
+            {
+              "Line": 204,
+              "Offset": 8,
+              "EndOffset": 10,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 64
+            },
+            {
+              "Line": 204,
+              "Offset": 18,
+              "EndOffset": 20,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 48
+            },
+            {
+              "Line": 204,
+              "Offset": 28,
+              "EndOffset": 30,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 5
+            },
+            {
+              "Line": 204,
+              "Offset": 28,
+              "EndOffset": 43,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 43
+            },
+            {
+              "Line": 204,
+              "Offset": 66,
+              "EndOffset": 68,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 5
+            },
+            {
+              "Line": 204,
+              "Offset": 66,
+              "EndOffset": 76,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 43
+            },
+            {
+              "Line": 204,
+              "Offset": 8,
+              "EndOffset": 88,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 70
+            },
+            {
+              "Line": 204,
+              "Offset": 18,
+              "EndOffset": 88,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 70
+            },
+            {
+              "Line": 204,
+              "Offset": 99,
+              "EndOffset": 101,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 64
+            },
+            {
+              "Line": 204,
+              "Offset": 107,
+              "EndOffset": 109,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 48
+            },
+            {
+              "Line": 204,
+              "Offset": 115,
+              "EndOffset": 117,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 43
+            },
+            {
+              "Line": 204,
+              "Offset": 115,
+              "EndOffset": 131,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 5
+            },
+            {
+              "Line": 204,
+              "Offset": 99,
+              "EndOffset": 141,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 6
+            },
+            {
+              "Line": 204,
+              "Offset": 107,
+              "EndOffset": 161,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 16
+            },
+            {
+              "Line": 204,
+              "Offset": 127,
+              "EndOffset": 176,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 43
+            },
+            {
+              "Line": 204,
+              "Offset": 137,
+              "EndOffset": 211,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 5
+            },
+            {
+              "Line": 204,
+              "Offset": 127,
+              "EndOffset": 236,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 0
+            },
+            {
+              "Line": 204,
+              "Offset": 137,
+              "EndOffset": 236,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitNumber_atom(ScriptRenamerParser/Number_atomContext)": {
+          "Lines": {
+            "216": 36,
+            "217": 36,
+            "218": 36,
+            "219": 12,
+            "220": 2,
+            "221": 2,
+            "222": 20,
+            "223": 0,
+            "224": 36,
+            "225": 36
+          },
+          "Branches": [
+            {
+              "Line": 217,
+              "Offset": 8,
+              "EndOffset": 10,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 24
+            },
+            {
+              "Line": 217,
+              "Offset": 18,
+              "EndOffset": 20,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 22
+            },
+            {
+              "Line": 217,
+              "Offset": 28,
+              "EndOffset": 30,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 20
+            },
+            {
+              "Line": 217,
+              "Offset": 38,
+              "EndOffset": 40,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 0
+            },
+            {
+              "Line": 217,
+              "Offset": 38,
+              "EndOffset": 52,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 20
+            },
+            {
+              "Line": 217,
+              "Offset": 8,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 36
+            },
+            {
+              "Line": 217,
+              "Offset": 18,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 36
+            },
+            {
+              "Line": 217,
+              "Offset": 28,
+              "EndOffset": 72,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 36
+            },
+            {
+              "Line": 217,
+              "Offset": 83,
+              "EndOffset": 85,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 24
+            },
+            {
+              "Line": 217,
+              "Offset": 91,
+              "EndOffset": 93,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 22
+            },
+            {
+              "Line": 217,
+              "Offset": 99,
+              "EndOffset": 101,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 20
+            },
+            {
+              "Line": 217,
+              "Offset": 107,
+              "EndOffset": 109,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 20
+            },
+            {
+              "Line": 217,
+              "Offset": 83,
+              "EndOffset": 123,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 12
+            },
+            {
+              "Line": 217,
+              "Offset": 91,
+              "EndOffset": 138,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 2
+            },
+            {
+              "Line": 217,
+              "Offset": 99,
+              "EndOffset": 168,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 2
+            },
+            {
+              "Line": 217,
+              "Offset": 119,
+              "EndOffset": 198,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 20
+            },
+            {
+              "Line": 217,
+              "Offset": 107,
+              "EndOffset": 222,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 217,
+              "Offset": 119,
+              "EndOffset": 222,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitIf_stmt(ScriptRenamerParser/If_stmtContext)": {
+          "Lines": {
+            "232": 41,
+            "233": 41,
+            "234": 41,
+            "235": 40,
+            "236": 1,
+            "237": 1,
+            "238": 40,
+            "239": 40
+          },
+          "Branches": [
+            {
+              "Line": 234,
+              "Offset": 22,
+              "EndOffset": 24,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 40
+            },
+            {
+              "Line": 234,
+              "Offset": 22,
+              "EndOffset": 39,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 1
+            },
+            {
+              "Line": 236,
+              "Offset": 50,
+              "EndOffset": 52,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 236,
+              "Offset": 50,
+              "EndOffset": 65,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 40
+            }
+          ]
+        },
+        "System.Object ScriptRenamer.ScriptRenamerVisitor::VisitStmt(ScriptRenamerParser/StmtContext)": {
+          "Lines": {
+            "242": 86,
+            "243": 86,
+            "244": 40,
+            "245": 46,
+            "246": 2,
+            "247": 44,
+            "248": 44,
+            "249": 28,
+            "250": 28,
+            "253": 3,
+            "254": 3,
+            "256": 1,
+            "257": 1,
+            "259": 1,
+            "260": 1,
+            "262": 23,
+            "263": 23,
+            "265": 28,
+            "266": 44,
+            "267": 85
+          },
+          "Branches": [
+            {
+              "Line": 243,
+              "Offset": 12,
+              "EndOffset": 14,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 40
+            },
+            {
+              "Line": 243,
+              "Offset": 12,
+              "EndOffset": 32,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 46
+            },
+            {
+              "Line": 245,
+              "Offset": 43,
+              "EndOffset": 45,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 2
+            },
+            {
+              "Line": 245,
+              "Offset": 43,
+              "EndOffset": 63,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 44
+            },
+            {
+              "Line": 247,
+              "Offset": 70,
+              "EndOffset": 72,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 37
+            },
+            {
+              "Line": 247,
+              "Offset": 70,
+              "EndOffset": 85,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 7
+            },
+            {
+              "Line": 248,
+              "Offset": 127,
+              "EndOffset": 129,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 42
+            },
+            {
+              "Line": 248,
+              "Offset": 127,
+              "EndOffset": 157,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 2
+            },
+            {
+              "Line": 248,
+              "Offset": 169,
+              "EndOffset": 171,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 28
+            },
+            {
+              "Line": 250,
+              "Offset": 186,
+              "EndOffset": 188,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 5
+            },
+            {
+              "Line": 250,
+              "Offset": 201,
+              "EndOffset": 220,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 3
+            },
+            {
+              "Line": 250,
+              "Offset": 201,
+              "EndOffset": 236,
+              "Path": 2,
+              "Ordinal": 14,
+              "Hits": 1
+            },
+            {
+              "Line": 250,
+              "Offset": 201,
+              "EndOffset": 252,
+              "Path": 3,
+              "Ordinal": 15,
+              "Hits": 1
+            },
+            {
+              "Line": 250,
+              "Offset": 186,
+              "EndOffset": 268,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 23
+            },
+            {
+              "Line": 250,
+              "Offset": 201,
+              "EndOffset": 268,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 23
+            },
+            {
+              "Line": 248,
+              "Offset": 169,
+              "EndOffset": 285,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 44
+            }
+          ]
+        },
+        "System.Void ScriptRenamer.ScriptRenamerVisitor::DoAction(System.String&,ScriptRenamerParser/StmtContext)": {
+          "Lines": {
+            "270": 28,
+            "271": 28,
+            "274": 12,
+            "275": 3,
+            "277": 80,
+            "278": 25,
+            "280": 0,
+            "281": 0,
+            "283": 0,
+            "285": 28
+          },
+          "Branches": [
+            {
+              "Line": 271,
+              "Offset": 18,
+              "EndOffset": 40,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 271,
+              "Offset": 18,
+              "EndOffset": 106,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 25
+            },
+            {
+              "Line": 271,
+              "Offset": 18,
+              "EndOffset": 176,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 271,
+              "Offset": 18,
+              "EndOffset": 223,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.String ScriptRenamer.ScriptRenamerVisitor::AnimeTitleLanguage(Shoko.Plugin.Abstractions.DataModels.TitleLanguage)": {
+          "Lines": {
+            "292": 3,
+            "293": 6,
+            "294": 6,
+            "295": 0,
+            "296": 3,
+            "297": 3,
+            "298": 3
+          },
+          "Branches": [
+            {
+              "Line": 294,
+              "Offset": 81,
+              "EndOffset": 83,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 294,
+              "Offset": 122,
+              "EndOffset": 124,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 294,
+              "Offset": 81,
+              "EndOffset": 131,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 3
+            },
+            {
+              "Line": 294,
+              "Offset": 122,
+              "EndOffset": 131,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 294,
+              "Offset": 132,
+              "EndOffset": 134,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 294,
+              "Offset": 132,
+              "EndOffset": 138,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 3
+            }
+          ]
+        },
+        "System.String ScriptRenamer.ScriptRenamerVisitor::EpisodeTitleLanguage(Shoko.Plugin.Abstractions.DataModels.TitleLanguage)": {
+          "Lines": {
+            "301": 3,
+            "302": 15,
+            "303": 6,
+            "304": 3,
+            "305": 3,
+            "306": 3,
+            "307": 3
+          },
+          "Branches": [
+            {
+              "Line": 303,
+              "Offset": 81,
+              "EndOffset": 83,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 3
+            },
+            {
+              "Line": 303,
+              "Offset": 122,
+              "EndOffset": 124,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 0
+            },
+            {
+              "Line": 303,
+              "Offset": 81,
+              "EndOffset": 131,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 3
+            },
+            {
+              "Line": 303,
+              "Offset": 122,
+              "EndOffset": 131,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 303,
+              "Offset": 132,
+              "EndOffset": 134,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 0
+            },
+            {
+              "Line": 303,
+              "Offset": 132,
+              "EndOffset": 138,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 3
+            }
+          ]
+        },
+        "System.Collections.IList ScriptRenamer.ScriptRenamerVisitor::GetCollection(System.Int32)": {
+          "Lines": {
+            "310": 23,
+            "311": 23,
+            "312": 23,
+            "313": 2,
+            "314": 0,
+            "315": 2,
+            "316": 5,
+            "317": 0,
+            "318": 5,
+            "319": 1,
+            "320": 0,
+            "321": 1,
+            "322": 10,
+            "323": 2,
+            "324": 3,
+            "325": 0,
+            "326": 23,
+            "327": 23
+          },
+          "Branches": [
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 43,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 2
+            },
+            {
+              "Line": 313,
+              "Offset": 55,
+              "EndOffset": 57,
+              "Path": 0,
+              "Ordinal": 7,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 55,
+              "EndOffset": 61,
+              "Path": 1,
+              "Ordinal": 8,
+              "Hits": 2
+            },
+            {
+              "Line": 313,
+              "Offset": 67,
+              "EndOffset": 69,
+              "Path": 0,
+              "Ordinal": 9,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 67,
+              "EndOffset": 73,
+              "Path": 1,
+              "Ordinal": 10,
+              "Hits": 2
+            },
+            {
+              "Line": 313,
+              "Offset": 79,
+              "EndOffset": 81,
+              "Path": 0,
+              "Ordinal": 11,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 79,
+              "EndOffset": 85,
+              "Path": 1,
+              "Ordinal": 12,
+              "Hits": 2
+            },
+            {
+              "Line": 313,
+              "Offset": 96,
+              "EndOffset": 98,
+              "Path": 0,
+              "Ordinal": 13,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 111,
+              "EndOffset": 113,
+              "Path": 0,
+              "Ordinal": 15,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 111,
+              "EndOffset": 117,
+              "Path": 1,
+              "Ordinal": 16,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 123,
+              "EndOffset": 125,
+              "Path": 0,
+              "Ordinal": 17,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 123,
+              "EndOffset": 129,
+              "Path": 1,
+              "Ordinal": 18,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 176,
+              "EndOffset": 178,
+              "Path": 0,
+              "Ordinal": 19,
+              "Hits": 0
+            },
+            {
+              "Line": 313,
+              "Offset": 96,
+              "EndOffset": 184,
+              "Path": 1,
+              "Ordinal": 14,
+              "Hits": 2
+            },
+            {
+              "Line": 313,
+              "Offset": 176,
+              "EndOffset": 184,
+              "Path": 1,
+              "Ordinal": 20,
+              "Hits": 2
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 190,
+              "Path": 2,
+              "Ordinal": 2,
+              "Hits": 5
+            },
+            {
+              "Line": 316,
+              "Offset": 202,
+              "EndOffset": 204,
+              "Path": 0,
+              "Ordinal": 21,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 202,
+              "EndOffset": 208,
+              "Path": 1,
+              "Ordinal": 22,
+              "Hits": 5
+            },
+            {
+              "Line": 316,
+              "Offset": 214,
+              "EndOffset": 216,
+              "Path": 0,
+              "Ordinal": 23,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 214,
+              "EndOffset": 220,
+              "Path": 1,
+              "Ordinal": 24,
+              "Hits": 5
+            },
+            {
+              "Line": 316,
+              "Offset": 226,
+              "EndOffset": 228,
+              "Path": 0,
+              "Ordinal": 25,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 226,
+              "EndOffset": 232,
+              "Path": 1,
+              "Ordinal": 26,
+              "Hits": 5
+            },
+            {
+              "Line": 316,
+              "Offset": 243,
+              "EndOffset": 245,
+              "Path": 0,
+              "Ordinal": 27,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 258,
+              "EndOffset": 260,
+              "Path": 0,
+              "Ordinal": 29,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 258,
+              "EndOffset": 264,
+              "Path": 1,
+              "Ordinal": 30,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 270,
+              "EndOffset": 272,
+              "Path": 0,
+              "Ordinal": 31,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 270,
+              "EndOffset": 276,
+              "Path": 1,
+              "Ordinal": 32,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 323,
+              "EndOffset": 325,
+              "Path": 0,
+              "Ordinal": 33,
+              "Hits": 0
+            },
+            {
+              "Line": 316,
+              "Offset": 243,
+              "EndOffset": 331,
+              "Path": 1,
+              "Ordinal": 28,
+              "Hits": 5
+            },
+            {
+              "Line": 316,
+              "Offset": 323,
+              "EndOffset": 331,
+              "Path": 1,
+              "Ordinal": 34,
+              "Hits": 5
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 337,
+              "Path": 3,
+              "Ordinal": 3,
+              "Hits": 1
+            },
+            {
+              "Line": 319,
+              "Offset": 349,
+              "EndOffset": 351,
+              "Path": 0,
+              "Ordinal": 35,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 349,
+              "EndOffset": 355,
+              "Path": 1,
+              "Ordinal": 36,
+              "Hits": 1
+            },
+            {
+              "Line": 319,
+              "Offset": 361,
+              "EndOffset": 363,
+              "Path": 0,
+              "Ordinal": 37,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 361,
+              "EndOffset": 367,
+              "Path": 1,
+              "Ordinal": 38,
+              "Hits": 1
+            },
+            {
+              "Line": 319,
+              "Offset": 373,
+              "EndOffset": 375,
+              "Path": 0,
+              "Ordinal": 39,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 373,
+              "EndOffset": 379,
+              "Path": 1,
+              "Ordinal": 40,
+              "Hits": 1
+            },
+            {
+              "Line": 319,
+              "Offset": 390,
+              "EndOffset": 392,
+              "Path": 0,
+              "Ordinal": 41,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 405,
+              "EndOffset": 407,
+              "Path": 0,
+              "Ordinal": 43,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 405,
+              "EndOffset": 411,
+              "Path": 1,
+              "Ordinal": 44,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 417,
+              "EndOffset": 419,
+              "Path": 0,
+              "Ordinal": 45,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 417,
+              "EndOffset": 423,
+              "Path": 1,
+              "Ordinal": 46,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 470,
+              "EndOffset": 472,
+              "Path": 0,
+              "Ordinal": 47,
+              "Hits": 0
+            },
+            {
+              "Line": 319,
+              "Offset": 390,
+              "EndOffset": 478,
+              "Path": 1,
+              "Ordinal": 42,
+              "Hits": 1
+            },
+            {
+              "Line": 319,
+              "Offset": 470,
+              "EndOffset": 478,
+              "Path": 1,
+              "Ordinal": 48,
+              "Hits": 1
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 481,
+              "Path": 4,
+              "Ordinal": 4,
+              "Hits": 10
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 500,
+              "Path": 5,
+              "Ordinal": 5,
+              "Hits": 2
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 519,
+              "Path": 6,
+              "Ordinal": 6,
+              "Hits": 3
+            },
+            {
+              "Line": 311,
+              "Offset": 9,
+              "EndOffset": 528,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            }
+          ]
+        },
+        "T ScriptRenamer.ScriptRenamerVisitor::ParseEnum(System.String)": {
+          "Lines": {
+            "329": 73
+          },
+          "Branches": []
+        }
+      }
+    }
+  }
+}

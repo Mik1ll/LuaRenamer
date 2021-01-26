@@ -2,11 +2,11 @@
   "version": 1,
   "dependencies": {
     ".NETCoreApp,Version=v5.0": {
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.0.2, )",
         "resolved": "3.0.2",
-        "contentHash": "iBvPAIDaI7j/iMx/DzCGCJ3rdiOmel9VINEfaTiBv/NKIGHOP4X3hqc6Q1wgMtArEshlhXexQknP17SK4vXb1w=="
+        "contentHash": "chWBtSiXjjjQDOpnSl6Qld7jaUrGg+raxyCUaGKOab5Mc5TyQmCGYgU1CwWx6Zcb9KdRuAz/5r4hmqMmyhvFfw=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
