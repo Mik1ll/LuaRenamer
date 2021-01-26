@@ -82,11 +82,11 @@ namespace ScriptRenamerTests
             var visitor = new ScriptRenamerVisitor
             {
                 AnimeInfo = Mock.Of<IAnime>(x =>
-                    x.PreferredTitle == "prefTitle"
-                    && x.Restricted == true
-                    && x.Type == AnimeType.Movie
-                    && x.EpisodeCounts == new EpisodeCounts { Episodes = 20 }
-                    && x.Titles == new List<AnimeTitle> {
+                    x.PreferredTitle == "prefTitle" &&
+                    x.Restricted == true &&
+                    x.Type == AnimeType.Movie &&
+                    x.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
+                    x.Titles == new List<AnimeTitle> {
                         new AnimeTitle
                         {
                             Title = "animeTitle1",
@@ -115,30 +115,30 @@ namespace ScriptRenamerTests
                 ),
                 FileInfo = Mock.Of<IVideoFile>(x =>
                     x.Hashes == Mock.Of<IHashes>(x =>
-                        x.CRC == "abc123")
-                    && x.MediaInfo == Mock.Of<IMediaContainer>(x =>
+                        x.CRC == "abc123") &&
+                        x.MediaInfo == Mock.Of<IMediaContainer>(x =>
                         x.Video == Mock.Of<IVideoStream>(x =>
-                            x.StandardizedResolution == "1080p"
-                            && x.BitDepth == 8
-                            && x.SimplifiedCodec == "x.264"))
-                    && x.AniDBFileInfo == Mock.Of<IAniDBFile>(x =>
+                            x.StandardizedResolution == "1080p" &&
+                            x.BitDepth == 8 &&
+                            x.SimplifiedCodec == "x.264")) &&
+                    x.AniDBFileInfo == Mock.Of<IAniDBFile>(x =>
                         x.ReleaseGroup == Mock.Of<IReleaseGroup>(x =>
-                            x.Name == "testGroup"
-                            && x.ShortName == "TG")
-                        && x.Censored == true
-                        && x.Source == "DVD"
-                        && x.Version == 2
-                        && x.MediaInfo == Mock.Of<AniDBMediaData>(x =>
-                            x.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" }
-                            && x.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese }
-                            && x.SubLanguages == new List<TitleLanguage>()
+                            x.Name == "testGroup" &&
+                            x.ShortName == "TG") &&
+                        x.Censored == true &&
+                        x.Source == "DVD" &&
+                        x.Version == 2 &&
+                        x.MediaInfo == Mock.Of<AniDBMediaData>(x =>
+                            x.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
+                            x.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
+                            x.SubLanguages == new List<TitleLanguage>()
                         )
                     )
                 ),
                 EpisodeInfo = Mock.Of<IEpisode>(x =>
-                    x.Number == 5
-                    && x.Type == EpisodeType.Episode
-                    && x.Titles == new List<AnimeTitle>
+                    x.Number == 5 &&
+                    x.Type == EpisodeType.Episode &&
+                    x.Titles == new List<AnimeTitle>
                     {
                         new AnimeTitle
                         {
@@ -247,9 +247,9 @@ namespace ScriptRenamerTests
                 FileInfo = Mock.Of<IVideoFile>(v =>
                     v.AniDBFileInfo == Mock.Of<IAniDBFile>(m =>
                         m.MediaInfo == Mock.Of<AniDBMediaData>(md =>
-                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" }
-                            && md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.Afrikaans, TitleLanguage.Japanese }
-                            && md.SubLanguages == new List<TitleLanguage> { TitleLanguage.Hebrew, TitleLanguage.Galician }
+                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
+                            md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.Afrikaans, TitleLanguage.Japanese } &&
+                            md.SubLanguages == new List<TitleLanguage> { TitleLanguage.Hebrew, TitleLanguage.Galician }
                         )
                     )
                 ),
