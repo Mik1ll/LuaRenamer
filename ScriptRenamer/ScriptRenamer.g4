@@ -8,6 +8,7 @@ grammar ScriptRenamer;
             |   target_labels? op=ADD string_atom+
             |   target_labels? op=SET string_atom+
             |   target_labels? op=REPLACE string_atom string_atom
+            |   cancel=(CANCEL | CANCELMOVE | CANCELRENAME)
             |   block
             ;
 
@@ -68,15 +69,21 @@ grammar ScriptRenamer;
             |   string_labels
             |   collection_expr
             |   number_atom
+            |   date_atom
+            ;
+
+        date_atom
+            :   type=(ANIMERELEASEDATE | EPISDOERELEASEDATE | FILERELEASEDATE) (DOT field=(DAY | MONTH | YEAR))?
             ;
 
     // Labels
         number_labels
-            :   label=(EPISODENUMBER
+            :   label=(ANIMEID
+            |   EPISODEID
+            |   EPISODENUMBER
             |   VERSION
             |   WIDTH
             |   HEIGHT
-            |   YEAR
             |   EPISODECOUNT
             |   BITDEPTH
             |   AUDIOCHANNELS)
@@ -141,6 +148,9 @@ grammar ScriptRenamer;
     FILENAME : 'filename';
     DESTINATION : 'destination';
     SUBFOLDER : 'subfolder';
+    CANCEL : 'Cancel';
+    CANCELRENAME : 'CancelRename';
+    CANCELMOVE : 'CancelMove';
 
 // Operators
     AND : 'and';
@@ -158,6 +168,7 @@ grammar ScriptRenamer;
     IS : 'is';
     LENGTH : 'len';
     FIRST : 'first';
+    DOT : '.';
 
 // Tags
     // Strings
@@ -183,13 +194,21 @@ grammar ScriptRenamer;
         GROUPNAME : 'GroupName';
         OLDFILENAME : 'OldFilename';
         ORIGINALFILENAME : 'OriginalFilename';
+        ANIMERELEASEDATE : 'AnimeReleaseDate';
+        EPISDOERELEASEDATE : 'EpisodeReleaseDate';
+        FILERELEASEDATE : 'FileReleaseDate';
+        // Date Fields
+            YEAR : 'Year';
+            MONTH : 'Month';
+            DAY : 'Day';
 
     // Numbers
+        ANIMEID : 'AnimeID';
+        EPISODEID : 'EpisodeID';
         EPISODENUMBER : 'EpisodeNumber';
         VERSION : 'Version';
         WIDTH : 'Width';
         HEIGHT : 'Height';
-        YEAR : 'Year';
         EPISODECOUNT : 'EpisodeCount';
         BITDEPTH : 'BitDepth';
         AUDIOCHANNELS : 'AudioChannels';
@@ -198,6 +217,7 @@ grammar ScriptRenamer;
         RESTRICTED : 'Restricted';
         CENSORED : 'Censored';
         CHAPTERED : 'Chaptered';
+        MANUALLYLINKED : 'ManuallyLinked';
 
     // Collections
         AUDIOCODECS : 'AudioCodecs';

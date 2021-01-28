@@ -13,13 +13,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <_GeneratedFiles Include="$(ProjectDir)GeneratedCode\*" />
+    <_GeneratedFiles Include="GeneratedCode/*" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener $(ProjectDir)ScriptRenamer.g4 -o $(ProjectDir)GeneratedCode" />
     <ItemGroup>
-      <Compile Include="$(ProjectDir)/GeneratedCode/*.cs" />
+      <Compile Remove="GeneratedCode/*.cs" />
+    </ItemGroup>
+    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener ScriptRenamer.g4 -o GeneratedCode" />
+    <ItemGroup>
+      <Compile Include="GeneratedCode/*.cs" />
     </ItemGroup>
   </Target>
   <Target Name="PostClean" AfterTargets="CoreClean">

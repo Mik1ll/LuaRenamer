@@ -110,6 +110,7 @@ namespace ScriptRenamer
                 SRP.RESTRICTED => AnimeInfo.Restricted,
                 SRP.CENSORED => FileInfo.AniDBFileInfo?.Censored ?? false,
                 SRP.CHAPTERED => FileInfo.MediaInfo?.Chaptered ?? false,
+                SRP.MANUALLYLINKED => FileInfo.AniDBFileInfo is null,
                 _ => throw new ParseCanceledException("Could not parse bool_labels", context.exception),
             };
         }
@@ -171,14 +172,15 @@ namespace ScriptRenamer
         {
             return context.label.Type switch
             {
+                SRP.ANIMEID => AnimeInfo.AnimeID,
+                SRP.EPISODEID => EpisodeInfo.EpisodeID,
                 SRP.EPISODENUMBER => EpisodeInfo.Number,
-                SRP.VERSION => FileInfo.AniDBFileInfo?.Version,
-                SRP.WIDTH => FileInfo.MediaInfo?.Video?.Width,
-                SRP.HEIGHT => FileInfo.MediaInfo?.Video?.Height,
-                SRP.YEAR => AnimeInfo.AirDate?.Year,
+                SRP.VERSION => FileInfo.AniDBFileInfo?.Version ?? 0,
+                SRP.WIDTH => FileInfo.MediaInfo?.Video?.Width ?? 0,
+                SRP.HEIGHT => FileInfo.MediaInfo?.Video?.Height ?? 0,
                 SRP.EPISODECOUNT => AnimeInfo.EpisodeCounts.Episodes,
-                SRP.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth,
-                SRP.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).Max(),
+                SRP.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth ?? 0,
+                SRP.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).Max() ?? 0,
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }
@@ -201,13 +203,14 @@ namespace ScriptRenamer
 
         public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
-            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? (object)context.collection_expr()) switch
+            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.date_atom() ?? (object)context.collection_expr()) switch
             {
                 SRP.Number_atomContext => Visit(context.number_atom()).ToString(),
 
                 SRP.String_labelsContext => Visit(context.string_labels()),
                 SRP.STRING => context.STRING().GetText().Trim(new char[] { '\'', '"' }),
                 SRP.Collection_exprContext => ((IList)Visit(context.collection_expr())).CollectionString(),
+                SRP.Date_atomContext => Visit(context.date_atom()),
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception),
             };
         }
@@ -222,6 +225,31 @@ namespace ScriptRenamer
                 SRP.NUMBER => int.Parse(context.NUMBER().GetText()),
                 _ => throw new ParseCanceledException("Could not parse number_atom", context.exception),
             };
+        }
+
+        public override object VisitDate_atom([NotNull] SRP.Date_atomContext context)
+        {
+            var date = context.type.Type switch
+            {
+                SRP.ANIMERELEASEDATE => AnimeInfo.AirDate,
+                SRP.EPISDOERELEASEDATE => EpisodeInfo.AirDate,
+                SRP.FILERELEASEDATE => FileInfo.AniDBFileInfo?.ReleaseDate,
+                _ => throw new ParseCanceledException("Could not parse date_atom", context.exception),
+            };
+            if (context.DOT() is not null)
+            {
+                return context.field.Type switch
+                {
+                    SRP.YEAR => date?.Year.ToString(),
+                    SRP.MONTH => date?.Month.ToString(),
+                    SRP.DAY => date?.Day.ToString(),
+                    _ => throw new ParseCanceledException("Could not parse date_atom DOT", context.exception),
+                };
+            }
+            else
+            {
+                return date?.ToString("yyyy.MM.dd");
+            }
         }
 
         #endregion atoms
@@ -244,8 +272,14 @@ namespace ScriptRenamer
                 return Visit(context.if_stmt());
             else if (context.block() is not null)
                 return Visit(context.block());
+            else if (context.cancel is not null)
+                return context.cancel.Type == SRP.CANCEL
+                        || (context.cancel.Type == SRP.CANCELMOVE && !Renaming)
+                        || (context.cancel.Type == SRP.CANCELRENAME && Renaming)
+                    ? throw new CancelStmtException()
+                    : null;
             var target = context.target_labels()?.label.Type;
-            if ((target == SRP.DESTINATION || target == SRP.SUBFOLDER) ^ Renaming)
+            if (((target == SRP.DESTINATION || target == SRP.SUBFOLDER) && !Renaming) || ((target == SRP.FILENAME || target == null) && Renaming))
             {
                 switch (target)
                 {

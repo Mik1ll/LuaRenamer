@@ -16,29 +16,39 @@ namespace ScriptRenamer
 
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
-            if (string.IsNullOrWhiteSpace(args.Script?.Script))
+            if (BadArgs(args))
             {
+                args.Cancel = true;
                 return (null, null);
             }
             var context = GetContext(args.Script.Script);
             var visitor = new ScriptRenamerVisitor
             {
                 Renaming = false,
-                AvailableFolders = args.AvailableFolders ?? new List<IImportFolder>(),
+                AvailableFolders = args.AvailableFolders,
                 AnimeInfo = args.AnimeInfo.FirstOrDefault(),
                 EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
                 FileInfo = args.FileInfo,
                 GroupInfo = args.GroupInfo.FirstOrDefault()
             };
-            _ = visitor.Visit(context);
+            try
+            {
+                _ = visitor.Visit(context);
+            }
+            catch (CancelStmtException)
+            {
+                args.Cancel = true;
+                return (null, null);
+            }
             return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination),
                     !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
         }
 
         public string GetFilename(RenameEventArgs args)
         {
-            if (string.IsNullOrWhiteSpace(args.Script?.Script))
+            if (BadArgs(args))
             {
+                args.Cancel = true;
                 return null;
             }
             var context = GetContext(args.Script.Script);
@@ -51,7 +61,15 @@ namespace ScriptRenamer
                 FileInfo = args.FileInfo,
                 GroupInfo = args.GroupInfo.FirstOrDefault()
             };
-            _ = visitor.Visit(context);
+            try
+            {
+                _ = visitor.Visit(context);
+            }
+            catch (CancelStmtException)
+            {
+                args.Cancel = true;
+                return null;
+            }
             return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename.ReplaceInvalidPathCharacters() + Path.GetExtension(args.FileInfo.Filename) : null;
         }
 
@@ -68,5 +86,14 @@ namespace ScriptRenamer
             _context = parser.start();
             return _context;
         }
+
+        private static bool BadArgs(dynamic args)
+        {
+            return string.IsNullOrWhiteSpace(args.Script?.Script) || args.AnimeInfo is null || args.EpisodeInfo is null || args.FileInfo is null || ((IVideoFile)args.FileInfo)?.MediaInfo is null;
+        }
+    }
+
+    internal class CancelStmtException : System.Exception
+    {
     }
 }
