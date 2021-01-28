@@ -19,11 +19,8 @@ namespace ScriptRenamerTests
             return parser;
         }
 
-        [TestMethod]
-        public void BigTest()
-        {
-            var parser = Setup(
-                @"if (GroupShort)
+        [DataTestMethod]
+        [DataRow(@"if (GroupShort)
                     add '[' GroupShort '] '
                 else if (GroupLong)
                     add '[' GroupLong '] '
@@ -75,8 +72,12 @@ namespace ScriptRenamerTests
                     else
                         subfolder set first(AnimeTitles has English)
                 else
-                    subfolder set first(AnimeTitles has Main)"
-            );
+                    subfolder set first(AnimeTitles has Main)",
+            "[TG] animeTitle1 05v2 episodeTitle1 1080p x.264 8bit DVD [DUAL-AUDIO] [CEN] [ABC123]", "h-anime", "animeTitle1")]
+        [DataRow("add AnimeReleaseDate AnimeReleaseDate.Year EpisodeReleaseDate EpisodeReleaseDate.Month FileReleaseDate FileReleaseDate.Day", "2001.01.2020012001.03.0731997.12.022", null, null)]
+        public void BigTest(string input, string eFilename, string eDestination, string eSubfolder)
+        {
+            var parser = Setup(input);
             var context = parser.start();
 
             var visitor = new ScriptRenamerVisitor
@@ -86,6 +87,7 @@ namespace ScriptRenamerTests
                     x.Restricted == true &&
                     x.Type == AnimeType.Movie &&
                     x.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
+                    x.AirDate == new System.DateTime(2001, 1, 20) &&
                     x.Titles == new List<AnimeTitle> {
                         new AnimeTitle
                         {
@@ -125,6 +127,7 @@ namespace ScriptRenamerTests
                         x.ReleaseGroup == Mock.Of<IReleaseGroup>(x =>
                             x.Name == "testGroup" &&
                             x.ShortName == "TG") &&
+                        x.ReleaseDate == new System.DateTime(1997, 12, 2) &&
                         x.Censored == true &&
                         x.Source == "DVD" &&
                         x.Version == 2 &&
@@ -138,6 +141,7 @@ namespace ScriptRenamerTests
                 EpisodeInfo = Mock.Of<IEpisode>(x =>
                     x.Number == 5 &&
                     x.Type == EpisodeType.Episode &&
+                    x.AirDate == new System.DateTime(2001, 3, 7) &&
                     x.Titles == new List<AnimeTitle>
                     {
                         new AnimeTitle
@@ -169,11 +173,11 @@ namespace ScriptRenamerTests
                 }
             };
             _ = visitor.Visit(context);
-            Assert.AreEqual(visitor.Filename, "[TG] animeTitle1 05v2 episodeTitle1 1080p x.264 8bit DVD [DUAL-AUDIO] [CEN] [ABC123]");
+            Assert.AreEqual(visitor.Filename, eFilename);
             visitor.Renaming = false;
             _ = visitor.Visit(context);
-            Assert.AreEqual(visitor.Destination, "h-anime");
-            Assert.AreEqual(visitor.Subfolder, "animeTitle1");
+            Assert.AreEqual(visitor.Destination, eDestination);
+            Assert.AreEqual(visitor.Subfolder, eSubfolder);
         }
 
         [TestMethod]
