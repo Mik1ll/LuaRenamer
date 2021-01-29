@@ -65,10 +65,10 @@ namespace ScriptRenamerTests
                 else
                     destination set 'Anime'
                 if (AnimeTitles has English)
-                    if (AnimeTitles has English has Main)
-                        subfolder set first(AnimeTitles has English has Main)
-                    else if (AnimeTitles has English has Official)
-                        subfolder set first(AnimeTitles has English has Official)
+                    if (AnimeTitles has English and Main)
+                        subfolder set first(AnimeTitles has English and Main)
+                    else if (AnimeTitles has English and Official)
+                        subfolder set first(AnimeTitles has English and Official)
                     else
                         subfolder set first(AnimeTitles has English)
                 else
@@ -236,11 +236,11 @@ namespace ScriptRenamerTests
 
         [DataTestMethod]
         [DataRow("if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '"
-                        + "if (AnimeTitles has English has Main and len(AnimeTitles has Main has English) == 2) filename add AnimeTitles has English has Main"
+                        + "if (AnimeTitles has English and Main and len(AnimeTitles has Main and English) == 2) filename add AnimeTitles has English and Main"
                         + "if (len(ImportFolders) == 0) add ' empty import folder'"
                         + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
                         + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
-                        + "if (EpisodeTitles has English has Main) add ' ' EpisodeTitles has Main has English",
+                        + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English",
             "[raw] test, test4 empty import folder has mp3 test etest, etest4")]
         public void TestHasOperator(string input, string expected)
         {

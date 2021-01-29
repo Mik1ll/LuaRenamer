@@ -40,14 +40,9 @@ grammar ScriptRenamer;
             :   AUDIOCODECS HAS string_atom
             |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS LANGUAGE_ENUM
             |   IMPORTFOLDERS HAS string_atom
+            |   titles=(ANIMETITLES | EPISODETITLES) HAS (l=LANGUAGE_ENUM (AND t=TITLETYPE_ENUM)? | t=TITLETYPE_ENUM (AND l=LANGUAGE_ENUM)?)
             |   FIRST LPAREN collection_expr RPAREN
-            |   title_collection_expr
             |   collection_labels
-            ;
-
-        title_collection_expr
-            :   title_collection_expr HAS rhs=(LANGUAGE_ENUM | TITLETYPE_ENUM)
-            |   lhs=(ANIMETITLES | EPISODETITLES) HAS rhs=(LANGUAGE_ENUM | TITLETYPE_ENUM)
             ;
 
     // Atoms

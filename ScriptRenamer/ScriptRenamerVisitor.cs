@@ -69,33 +69,19 @@ namespace ScriptRenamer
         public override IList VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
             string rhsString = context.string_atom() is not null ? (string)Visit(context.string_atom()) : string.Empty;
-            return (context.AUDIOCODECS()?.Symbol.Type ?? context.LANGUAGE_ENUM()?.Symbol.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.title_collection_expr() ?? context.collection_labels() ?? (object)context.FIRST().Symbol.Type) switch
+            return (context.AUDIOCODECS()?.Symbol.Type ?? context.langs?.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ?? context.collection_labels() ?? context.titles?.Type ?? (object)context.FIRST().Symbol.Type) switch
             {
                 SRP.AUDIOCODECS => ((List<string>)GetCollection(context.AUDIOCODECS().Symbol.Type)).Where(c => c.Contains(rhsString)).ToList(),
-                SRP.LANGUAGE_ENUM => ((List<TitleLanguage>)GetCollection(context.langs.Type))
+                SRP.SUBLANGUAGES or SRP.DUBLANGUAGES => ((List<TitleLanguage>)GetCollection(context.langs.Type))
                                      .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
                 SRP.IMPORTFOLDERS => ((List<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
                                      .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(rhsString)).ToList(),
-                SRP.Title_collection_exprContext => (IList)Visit(context.title_collection_expr()),
+                SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.titles.Type))
+                                .Where(at => context.t is null || at.Type == ParseEnum<TitleType>(context.t.Text))
+                                .Where(at => context.l is null || at.Language == ParseEnum<TitleLanguage>(context.l.Text)).ToList(),
                 SRP.Collection_labelsContext => (IList)Visit(context.collection_labels()),
                 SRP.FIRST => ((IList)Visit(context.collection_expr())).Take(1).ToList(),
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception),
-            };
-        }
-
-        public override IList VisitTitle_collection_expr([NotNull] SRP.Title_collection_exprContext context)
-        {
-            Func<AnimeTitle, bool> wherePred = context.rhs?.Type switch
-            {
-                SRP.TITLETYPE_ENUM => at => at.Type == ParseEnum<TitleType>(context.TITLETYPE_ENUM().GetText()),
-                SRP.LANGUAGE_ENUM => at => at.Language == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText()),
-                _ => throw new ParseCanceledException("Could not parse title_collection_expr right hand side", context.exception),
-            };
-            return (context.title_collection_expr() ?? (object)context.lhs?.Type) switch
-            {
-                SRP.Title_collection_exprContext => ((List<AnimeTitle>)Visit(context.title_collection_expr())).Where(wherePred).ToList(),
-                SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.lhs.Type)).Where(wherePred).ToList(),
-                _ => throw new ParseCanceledException("Could not parse title_collection_expr", context.exception),
             };
         }
 
