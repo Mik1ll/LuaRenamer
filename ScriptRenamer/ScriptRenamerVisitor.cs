@@ -167,6 +167,7 @@ namespace ScriptRenamer
                 SRP.EPISODECOUNT => AnimeInfo.EpisodeCounts.Episodes,
                 SRP.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth ?? 0,
                 SRP.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).Max() ?? 0,
+                SRP.SERIESINGROUP => GroupInfo?.Series.Count ?? 1,
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }
