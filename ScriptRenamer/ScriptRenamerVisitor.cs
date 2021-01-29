@@ -146,7 +146,7 @@ namespace ScriptRenamer
                 },
                 SRP.VIDEOCODECLONG => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec ?? FileInfo.MediaInfo?.Video?.Codec,
                 SRP.VIDEOCODECSHORT => FileInfo.MediaInfo?.Video?.SimplifiedCodec,
-                SRP.DURATION => FileInfo.MediaInfo?.General?.Duration,
+                SRP.DURATION => FileInfo.MediaInfo?.General?.Duration.ToString(),
                 SRP.GROUPNAME => GroupInfo?.Name,
                 SRP.OLDFILENAME => FileInfo.Filename,
                 SRP.ORIGINALFILENAME => FileInfo.AniDBFileInfo?.OriginalFilename,
