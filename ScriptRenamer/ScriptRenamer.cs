@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
@@ -11,27 +10,19 @@ namespace ScriptRenamer
     [Renamer(RENAMER_ID)]
     public class ScriptRenamer : IRenamer
     {
-        private const string RENAMER_ID = nameof(ScriptRenamer);
+        public const string RENAMER_ID = nameof(ScriptRenamer);
         private static string _script = string.Empty;
         private static ParserRuleContext _context;
 
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
-            if (BadArgs(args))
+            var visitor = new ScriptRenamerVisitor(args);
+            if (BadArgs(args.Script, visitor))
             {
                 args.Cancel = true;
                 return (null, null);
             }
             var context = GetContext(args.Script.Script);
-            var visitor = new ScriptRenamerVisitor
-            {
-                Renaming = false,
-                AvailableFolders = args.AvailableFolders,
-                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
-                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
-                FileInfo = args.FileInfo,
-                GroupInfo = args.GroupInfo.FirstOrDefault()
-            };
             try
             {
                 _ = visitor.Visit(context);
@@ -47,21 +38,13 @@ namespace ScriptRenamer
 
         public string GetFilename(RenameEventArgs args)
         {
-            if (BadArgs(args))
+            var visitor = new ScriptRenamerVisitor(args);
+            if (BadArgs(args.Script, visitor))
             {
                 args.Cancel = true;
                 return null;
             }
             var context = GetContext(args.Script.Script);
-            var visitor = new ScriptRenamerVisitor
-            {
-                Renaming = true,
-                AvailableFolders = new List<IImportFolder>(),
-                AnimeInfo = args.AnimeInfo.FirstOrDefault(),
-                EpisodeInfo = args.EpisodeInfo.FirstOrDefault(),
-                FileInfo = args.FileInfo,
-                GroupInfo = args.GroupInfo.FirstOrDefault()
-            };
             try
             {
                 _ = visitor.Visit(context);
@@ -88,9 +71,14 @@ namespace ScriptRenamer
             return _context;
         }
 
-        private static bool BadArgs(dynamic args)
+        private static bool BadArgs(IRenameScript script, ScriptRenamerVisitor visitor)
         {
-            return string.IsNullOrWhiteSpace(args.Script?.Script) || args.Script.Type != RENAMER_ID || args.AnimeInfo is null || args.EpisodeInfo is null || args.FileInfo is null || ((IVideoFile)args.FileInfo)?.MediaInfo is null;
+            return string.IsNullOrWhiteSpace(script?.Script)
+                            || script.Type != RENAMER_ID
+                            || visitor.AnimeInfo is null
+                            || visitor.EpisodeInfo is null
+                            || visitor.FileInfo is null
+                            || visitor.FileInfo.MediaInfo is null;
         }
     }
 

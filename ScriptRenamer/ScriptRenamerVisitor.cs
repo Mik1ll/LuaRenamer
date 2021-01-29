@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime.Misc;
+using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 using SRP = ScriptRenamerParser;
 
@@ -21,6 +22,30 @@ namespace ScriptRenamer
         public IAnime AnimeInfo { get; set; }
         public IGroup GroupInfo { get; set; }
         public IEpisode EpisodeInfo { get; set; }
+
+        public ScriptRenamerVisitor()
+        {
+        }
+
+        public ScriptRenamerVisitor(RenameEventArgs args)
+        {
+            Renaming = true;
+            AvailableFolders = new List<IImportFolder>();
+            AnimeInfo = args.AnimeInfo.FirstOrDefault();
+            EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
+            FileInfo = args.FileInfo;
+            GroupInfo = args.GroupInfo.FirstOrDefault();
+        }
+
+        public ScriptRenamerVisitor(MoveEventArgs args)
+        {
+            Renaming = false;
+            AvailableFolders = args.AvailableFolders;
+            AnimeInfo = args.AnimeInfo.FirstOrDefault();
+            EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
+            FileInfo = args.FileInfo;
+            GroupInfo = args.GroupInfo.FirstOrDefault();
+        }
 
         #region expressions
 
