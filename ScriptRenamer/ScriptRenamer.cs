@@ -8,9 +8,10 @@ using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamer
 {
-    [Renamer("ScriptRenamer")]
+    [Renamer(RENAMER_ID)]
     public class ScriptRenamer : IRenamer
     {
+        private const string RENAMER_ID = nameof(ScriptRenamer);
         private static string _script = string.Empty;
         private static ParserRuleContext _context;
 
@@ -89,7 +90,7 @@ namespace ScriptRenamer
 
         private static bool BadArgs(dynamic args)
         {
-            return string.IsNullOrWhiteSpace(args.Script?.Script) || args.AnimeInfo is null || args.EpisodeInfo is null || args.FileInfo is null || ((IVideoFile)args.FileInfo)?.MediaInfo is null;
+            return string.IsNullOrWhiteSpace(args.Script?.Script) || args.Script.Type != RENAMER_ID || args.AnimeInfo is null || args.EpisodeInfo is null || args.FileInfo is null || ((IVideoFile)args.FileInfo)?.MediaInfo is null;
         }
     }
 
