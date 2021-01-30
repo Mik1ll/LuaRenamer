@@ -1,4 +1,3 @@
-// Define a grammar called Hello
 grammar ScriptRenamer;
 // Rules
     start : stmt* EOF;
@@ -144,9 +143,9 @@ grammar ScriptRenamer;
     FILENAME : 'filename';
     DESTINATION : 'destination';
     SUBFOLDER : 'subfolder';
-    CANCEL : 'Cancel';
-    CANCELRENAME : 'CancelRename';
-    CANCELMOVE : 'CancelMove';
+    CANCEL : 'cancel';
+    CANCELRENAME : 'cancelrename';
+    CANCELMOVE : 'cancelmove';
 
 // Operators
     AND : 'and';

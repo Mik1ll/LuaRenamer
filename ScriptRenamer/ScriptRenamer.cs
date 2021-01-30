@@ -32,7 +32,7 @@ namespace ScriptRenamer
                 args.Cancel = true;
                 return (null, null);
             }
-            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination),
+            return (args.AvailableFolders.FirstOrDefault(f => f.Name == visitor.Destination && f.DropFolderType != DropFolderType.Source),
                     !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
         }
 

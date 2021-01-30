@@ -100,7 +100,7 @@ namespace ScriptRenamer
                 SRP.SUBLANGUAGES or SRP.DUBLANGUAGES => ((List<TitleLanguage>)GetCollection(context.langs.Type))
                                      .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
                 SRP.IMPORTFOLDERS => ((List<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type))
-                                     .Where(f => f.DropFolderType != DropFolderType.Source && f.Name.Equals(rhsString)).ToList(),
+                                     .Where(f => f.Name.Equals(rhsString)).ToList(),
                 SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.titles.Type))
                                 .Where(at => context.t is null || at.Type == ParseEnum<TitleType>(context.t.Text))
                                 .Where(at => context.l is null || at.Language == ParseEnum<TitleLanguage>(context.l.Text)).ToList(),
@@ -367,7 +367,7 @@ namespace ScriptRenamer
                                  ?? new List<TitleLanguage>(),
                 SRP.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 SRP.EPISODETITLES => EpisodeInfo.Titles.ToList(),
-                SRP.IMPORTFOLDERS => AvailableFolders,
+                SRP.IMPORTFOLDERS => AvailableFolders.Where(i => i.DropFolderType != DropFolderType.Source).ToList(),
                 _ => throw new KeyNotFoundException("Could not find token type for collection"),
             };
         }
