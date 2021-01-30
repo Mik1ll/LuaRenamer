@@ -23,6 +23,7 @@ antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-star
 ### Important Note for File Moving
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 The final destination MUST match the Name of a drop folder (not the Path) in order to move the file.
+Destination import folder name must be unique or moving file will fail.
 
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
