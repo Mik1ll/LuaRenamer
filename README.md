@@ -19,6 +19,11 @@ antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-star
 ```
 
 ## Usage
+
+### Important Note for File Moving
+The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
+The final destination MUST match the Name of a drop folder (not the Path) in order to move the file.
+
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
 1. Either create a new script or change the type of the current script to ScriptRenamer in the drop-down menu.
@@ -26,7 +31,7 @@ antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-star
 1. Test your script using the preview utility in the same window.
 
 ### Script Grammar
-Refer to [this grammar](https://github.com/Mik1ll/ScriptRenamer/blob/master/ScriptRenamer/ScriptRenamer.g4) for full syntax in [EBNF form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form).  
+Refer to [this grammar](ScriptRenamer/ScriptRenamer.g4) for full syntax in [EBNF form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form).  
 
 Targets:
 1. filename
@@ -62,7 +67,7 @@ Boolean Expressions (In order of precedence):
     
 Dates:
 1. *date label*
-1. *date label*.*(year, month, or day)*
+1. *date label*.*(Year, Month, or Day)*
 
 ### Labels
 #### Strings
