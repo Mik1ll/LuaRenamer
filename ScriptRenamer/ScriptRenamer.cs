@@ -19,7 +19,6 @@ namespace ScriptRenamer
             var visitor = new ScriptRenamerVisitor(args);
             if (BadArgs(args.Script, visitor))
             {
-                args.Cancel = true;
                 return (null, null);
             }
             var context = GetContext(args.Script.Script);
@@ -41,7 +40,6 @@ namespace ScriptRenamer
             var visitor = new ScriptRenamerVisitor(args);
             if (BadArgs(args.Script, visitor))
             {
-                args.Cancel = true;
                 return null;
             }
             var context = GetContext(args.Script.Script);
