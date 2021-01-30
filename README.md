@@ -118,6 +118,42 @@ EpisodeTitles
 ImportFolders
 ```
 
+#### Enumerations
+##### TitleType
+```
+Main
+None
+Official
+Short
+Synonym
+```
+##### EpisodeType
+```
+Episode
+Credits
+Special
+Trailer
+Parody
+Other
+```
+##### AnimeType
+```
+Movie
+OVA
+TVSeries
+TVSpecial
+Web
+Other
+```
+##### Language (see grammar for full list)
+```
+Unknown
+English
+Romaji
+Japanese
+(cont ...)
+```
+
 #### Snippets
 ```
 if (not Sublanguages) filename add '[raw]'
