@@ -6,8 +6,17 @@ antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-star
 ## Installation
 1. Download the [latest release](https://github.com/Mik1ll/ScriptRenamer/releases)
 1. Unzip the binaries in the install location/Shoko Server/plugins or in the application data folder C:\ProgramData\ShokoServer\plugins (Windows), /home/.shoko/Shoko.CLI/plugins (Linux CLI)
-1. Add "ScriptRenamer": 0 (lower number is higher priority) to "Plugins":"RenamerPriorities": in settings-server.json.  
-Optionally add "ScriptRenamer": true to "Plugins":"EnabledRenamers"
+1. Add these settings in settings-server.json:
+```
+"Plugins": {
+    "EnabledRenamers": {
+      "ScriptRenamer": true
+    },
+    "RenamerPriorities": {
+      "ScriptRenamer": 0
+    }
+  }
+```
 
 ## Usage
 ### Shoko Desktop
