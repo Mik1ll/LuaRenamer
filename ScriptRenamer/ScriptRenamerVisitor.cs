@@ -22,6 +22,7 @@ namespace ScriptRenamer
         public IAnime AnimeInfo { get; set; }
         public IGroup GroupInfo { get; set; }
         public IEpisode EpisodeInfo { get; set; }
+        public IRenameScript Script { get; set; }
 
         public ScriptRenamerVisitor()
         {
@@ -35,6 +36,7 @@ namespace ScriptRenamer
             EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
+            Script = args.Script;
         }
 
         public ScriptRenamerVisitor(MoveEventArgs args)
@@ -45,6 +47,7 @@ namespace ScriptRenamer
             EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
+            Script = args.Script;
         }
 
         #region expressions
@@ -285,11 +288,15 @@ namespace ScriptRenamer
             else if (context.block() is not null)
                 return Visit(context.block());
             else if (context.cancel is not null)
-                return context.cancel.Type == SRP.CANCEL
-                        || (context.cancel.Type == SRP.CANCELMOVE && !Renaming)
-                        || (context.cancel.Type == SRP.CANCELRENAME && Renaming)
-                    ? throw new CancelStmtException()
-                    : null;
+                return context.cancel.Type switch
+                {
+                    SRP.CANCEL => throw new ParseCanceledException($"Line {context.cancel.Line} Column {context.cancel.Column} Cancelled: {context.string_atom()?.Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2)}"),
+                    SRP.SKIPRENAME when !Renaming => null,
+                    SRP.SKIPMOVE when Renaming => null,
+                    SRP.SKIPRENAME when Renaming => throw new SkipException(),
+                    SRP.SKIPMOVE when !Renaming => throw new SkipException(),
+                    _ => throw new ParseCanceledException("Could not parse skip/cancel", context.exception)
+                };
             var target = context.target_labels()?.label.Type;
             if (((target == SRP.DESTINATION || target == SRP.SUBFOLDER) && !Renaming) || ((target == SRP.FILENAME || target == null) && Renaming))
             {

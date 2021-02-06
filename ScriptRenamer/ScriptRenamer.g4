@@ -7,7 +7,8 @@ grammar ScriptRenamer;
             |   target_labels? op=ADD string_atom+
             |   target_labels? op=SET string_atom+
             |   target_labels? op=REPLACE string_atom string_atom
-            |   cancel=(CANCEL | CANCELMOVE | CANCELRENAME)
+            |   cancel=CANCEL string_atom*
+            |   cancel=(SKIPRENAME | SKIPMOVE)
             |   block
             ;
 
@@ -144,8 +145,8 @@ grammar ScriptRenamer;
     DESTINATION : 'destination';
     SUBFOLDER : 'subfolder';
     CANCEL : 'cancel';
-    CANCELRENAME : 'cancelrename';
-    CANCELMOVE : 'cancelmove';
+    SKIPRENAME : 'skipRename';
+    SKIPMOVE : 'skipMove';
 
 // Operators
     AND : 'and';

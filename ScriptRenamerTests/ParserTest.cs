@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Antlr4.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,8 +15,11 @@ namespace ScriptRenamerTests
         {
             AntlrInputStream inputStream = new(text);
             ScriptRenamerLexer lexer = new(inputStream);
+            lexer.AddErrorListener(ExceptionErrorListener.Instance);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
+            parser.ErrorHandler = new BailErrorStrategy();
+            parser.AddErrorListener(ExceptionErrorListener.Instance);
             return parser;
         }
 
@@ -242,6 +246,7 @@ namespace ScriptRenamerTests
                         + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
                         + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English",
             "[raw] test, test4 empty import folder has mp3 test etest, etest4")]
+        [DataRow("if (len(DubLanguages)) add len(DubLanguages)", "2")]
         public void TestHasOperator(string input, string expected)
         {
             var parser = Setup(input);
@@ -336,7 +341,7 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestDynamicEquality()
         {
-            var parser = Setup("265252 != 234232 and 'abc' == 'abc' and 1231 == 1231 and 'abd' != 'abdd'");
+            var parser = Setup("265252 != 234232 and 'abc' == 'abc' and 1231 == '1231' and 'abd' != 'abdd'");
             var context = parser.bool_expr();
             Assert.IsTrue((bool)new ScriptRenamerVisitor().Visit(context));
         }
@@ -359,16 +364,58 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestLexerError()
         {
-            var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' ' ");
-            var context = parser.start();
-            var visitor = new ScriptRenamerVisitor();
             try
             {
+                var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' ' ");
+                var context = parser.start();
+                var visitor = new ScriptRenamerVisitor();
                 _ = visitor.Visit(context);
                 Assert.Fail();
             }
             catch
             {
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' skipRename", null, "testdest", "subtest", null)]
+        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' skipMove", "test", null, null, null)]
+        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' cancel 'canc' 'elex'", null, null, null, "cancelex")]
+        public void TestSkipCancel(string input, string eFilename, string eDestination, string eSubfolder, string exMsg)
+        {
+            var parser = Setup(input);
+            var context = parser.start();
+            var visitor = new ScriptRenamerVisitor();
+            try
+            {
+                try
+                {
+                    _ = visitor.Visit(context);
+                }
+                catch (SkipException)
+                {
+                    visitor.Filename = null;
+                    visitor.Destination = null;
+                    visitor.Subfolder = null;
+                }
+                Assert.AreEqual(visitor.Filename, eFilename);
+                visitor.Renaming = false;
+                try
+                {
+                    _ = visitor.Visit(context);
+                }
+                catch (SkipException)
+                {
+                    visitor.Filename = null;
+                    visitor.Destination = null;
+                    visitor.Subfolder = null;
+                }
+                Assert.AreEqual(visitor.Destination, eDestination);
+                Assert.AreEqual(visitor.Subfolder, eSubfolder);
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(e.Message.EndsWith(exMsg));
             }
         }
     }
