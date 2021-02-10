@@ -19,15 +19,52 @@ namespace ScriptRenamer
         {
             var visitor = new ScriptRenamerVisitor(args);
             SetupAndLaunch(visitor);
-            return (args.AvailableFolders.SingleOrDefault(f => f.Name == visitor.Destination && f.DropFolderType != DropFolderType.Source),
-                    !string.IsNullOrWhiteSpace(visitor.Subfolder) ? visitor.Subfolder.ReplaceInvalidPathCharacters() : null);
+            (var destfolder, var olddestfolder) = GetNewAndOldDestinations(args, visitor);
+            string subfolder = GetNewSubfolder(args, visitor, olddestfolder);
+            return (destfolder, subfolder);
         }
 
         public string GetFilename(RenameEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
             SetupAndLaunch(visitor);
-            return !string.IsNullOrWhiteSpace(visitor.Filename) ? visitor.Filename.ReplaceInvalidPathCharacters() + Path.GetExtension(args.FileInfo.Filename) : null;
+            return !string.IsNullOrWhiteSpace(visitor.Filename) ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename) : null;
+        }
+
+        private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor, IImportFolder olddestfolder)
+        {
+            var oldsubfolder = olddestfolder is null ? null : $"{NormPath(Path.GetDirectoryName(args.FileInfo.FilePath))}/"
+                .Replace($"{NormPath(olddestfolder.Location)}/", null, StringComparison.OrdinalIgnoreCase).TrimEnd('/');
+            if (visitor.Destination is not null && visitor.Subfolder is null)
+                return oldsubfolder;
+            var oldsubfoldersplit = olddestfolder is null ? Array.Empty<string>() : oldsubfolder.Split('/');
+            var newsubfoldersplit = NormPath(visitor.Subfolder).Split('/').Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
+            var subfolder = string.Empty;
+            for (int i = 0; i < newsubfoldersplit.Length; i++)
+                if (newsubfoldersplit[i] == "*")
+                    if (i < oldsubfoldersplit.Length)
+                        subfolder += oldsubfoldersplit[i] + '/';
+                    else
+                        throw new ArgumentException("Could not find subfolder from wildcard");
+                else
+                    subfolder += newsubfoldersplit[i] + '/';
+            subfolder = NormPath(subfolder);
+            return subfolder == string.Empty ? throw new ArgumentException("Subfolder cannot be set to empty") : subfolder;
+        }
+
+        private static (IImportFolder destfolder, IImportFolder olddestfolder) GetNewAndOldDestinations(MoveEventArgs args, ScriptRenamerVisitor visitor)
+        {
+            var destfolder = args.AvailableFolders.SingleOrDefault(f =>
+                    (f.Name == visitor.Destination || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase))
+                    && f.DropFolderType.HasFlag(DropFolderType.Destination));
+            if (destfolder is null && visitor.Destination is not null)
+                throw new ArgumentException("Bad destination");
+            var olddestfolder = args.AvailableFolders.OrderByDescending(f => f.Location.Length)
+                                                     .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
+                                                                       && $"{NormPath(args.FileInfo.FilePath)}/".StartsWith($"{NormPath(f.Location)}/", StringComparison.OrdinalIgnoreCase));
+            if (visitor.Subfolder is not null && destfolder is null)
+                destfolder = olddestfolder;
+            return (destfolder, olddestfolder);
         }
 
         private static ParserRuleContext GetContext(string script)
@@ -77,7 +114,19 @@ namespace ScriptRenamer
             if (visitor.AnimeInfo is null || visitor.EpisodeInfo is null)
                 throw new ArgumentException("No anime info or episode info, cannot rename unrecognized file");
             if (visitor.FileInfo.MediaInfo is null)
-                throw new ArgumentException("No media info, cannot handle file.");
+                throw new ArgumentException("No media info, cannot handle file");
+        }
+
+        private static string NormPath(string path)
+        {
+            return path?.Replace('\\', '/').TrimEnd('/');
+        }
+
+        private static string RemoveInvalidFilenameChars(string filename)
+        {
+            filename = filename.RemoveInvalidPathCharacters();
+            filename = string.Concat(filename.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
+            return filename;
         }
     }
 
