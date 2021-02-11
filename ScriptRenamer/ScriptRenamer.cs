@@ -114,8 +114,6 @@ namespace ScriptRenamer
                 throw new ArgumentException($"Script doesn't match {RENAMER_ID}");
             if (visitor.AnimeInfo is null || visitor.EpisodeInfo is null)
                 throw new ArgumentException("No anime info or episode info, cannot rename unrecognized file");
-            if (visitor.FileInfo.MediaInfo is null)
-                throw new ArgumentException("No media info, cannot handle file");
         }
 
         public static string NormPath(string path)
