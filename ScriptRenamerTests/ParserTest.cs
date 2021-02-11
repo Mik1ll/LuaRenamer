@@ -177,11 +177,11 @@ namespace ScriptRenamerTests
                 }
             };
             _ = visitor.Visit(context);
-            Assert.AreEqual(visitor.Filename, eFilename);
+            Assert.AreEqual(eFilename, visitor.Filename);
             visitor.Renaming = false;
             _ = visitor.Visit(context);
-            Assert.AreEqual(visitor.Destination, eDestination);
-            Assert.AreEqual(visitor.Subfolder, eSubfolder);
+            Assert.AreEqual(eDestination, visitor.Destination);
+            Assert.AreEqual(eSubfolder, visitor.Subfolder);
         }
 
         [TestMethod]
@@ -335,7 +335,7 @@ namespace ScriptRenamerTests
                 AnimeInfo = Mock.Of<IAnime>(a => a.PreferredTitle == "wioewoihwoiehwoihweohwiowj")
             };
             _ = visitor.Visit(context);
-            Assert.IsTrue(visitor.Filename == "testtestingtestingwioewoihwoiehwoihweohwiowj");
+            Assert.AreEqual("testtestingtestingwioewoihwoiehwoihweohwiowj", visitor.Filename);
         }
 
         [TestMethod]
@@ -358,7 +358,7 @@ namespace ScriptRenamerTests
             var visitor = new ScriptRenamerVisitor();
             _ = visitor.Visit(context);
 
-            Assert.AreEqual(visitor.Filename, expected);
+            Assert.AreEqual(expected, visitor.Filename);
         }
 
         [TestMethod]
@@ -410,8 +410,8 @@ namespace ScriptRenamerTests
                     visitor.Destination = null;
                     visitor.Subfolder = null;
                 }
-                Assert.AreEqual(visitor.Destination, eDestination);
-                Assert.AreEqual(visitor.Subfolder, eSubfolder);
+                Assert.AreEqual(eDestination, visitor.Destination);
+                Assert.AreEqual(eSubfolder, visitor.Subfolder);
             }
             catch (Exception e)
             {

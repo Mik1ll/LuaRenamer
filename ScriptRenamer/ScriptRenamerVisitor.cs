@@ -103,8 +103,8 @@ namespace ScriptRenamer
                 SRP.SUBLANGUAGES or SRP.DUBLANGUAGES => ((List<TitleLanguage>)GetCollection(context.langs.Type))
                                      .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
                 SRP.IMPORTFOLDERS => ((List<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Where(f =>
-                    (string.Equals(f.Name, Destination, StringComparison.OrdinalIgnoreCase)
-                     || string.Equals(ScriptRenamer.NormPath(f.Location), ScriptRenamer.NormPath(Destination), StringComparison.OrdinalIgnoreCase)
+                    (string.Equals(f.Name, rhsString, StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(ScriptRenamer.NormPath(f.Location), ScriptRenamer.NormPath(rhsString), StringComparison.OrdinalIgnoreCase)
                     ) && f.DropFolderType.HasFlag(DropFolderType.Destination)).ToList(),
                 SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.titles.Type))
                                 .Where(at => context.t is null || at.Type == ParseEnum<TitleType>(context.t.Text))
