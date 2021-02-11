@@ -55,8 +55,9 @@ namespace ScriptRenamer
         private static (IImportFolder destfolder, IImportFolder olddestfolder) GetNewAndOldDestinations(MoveEventArgs args, ScriptRenamerVisitor visitor)
         {
             var destfolder = args.AvailableFolders.SingleOrDefault(f =>
-                    (f.Name == visitor.Destination || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase))
-                    && f.DropFolderType.HasFlag(DropFolderType.Destination));
+                    (string.Equals(f.Name, visitor.Destination, StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase)
+                    ) && f.DropFolderType.HasFlag(DropFolderType.Destination));
             if (destfolder is null && visitor.Destination is not null)
                 throw new ArgumentException("Bad destination");
             var olddestfolder = args.AvailableFolders.OrderByDescending(f => f.Location.Length)
@@ -117,7 +118,7 @@ namespace ScriptRenamer
                 throw new ArgumentException("No media info, cannot handle file");
         }
 
-        private static string NormPath(string path)
+        public static string NormPath(string path)
         {
             return path?.Replace('\\', '/').TrimEnd('/');
         }
