@@ -88,7 +88,8 @@ grammar ScriptRenamer;
         bool_labels
             :   label=(RESTRICTED
             |   CENSORED
-            |   CHAPTERED)
+            |   CHAPTERED
+            |   MANUALLYLINKED)
             ;
 
         collection_labels
