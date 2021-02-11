@@ -1,33 +1,20 @@
 # ScriptRenamer
-Renamer Plugin for Shoko  
-Requires Antlr4 and Java Runtime to compile  
-antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
+Renamer Plugin for Shoko
 
 ## Installation
 1. Download the [latest release](https://github.com/Mik1ll/ScriptRenamer/releases)
 1. Unzip the binaries in the install location/Shoko Server/plugins or in the application data folder C:\ProgramData\ShokoServer\plugins (Windows), /home/.shoko/Shoko.CLI/plugins (Linux CLI)
-1. Add these settings in settings-server.json:
-```
-"Plugins": {
-    "EnabledRenamers": {
-      "ScriptRenamer": true
-    },
-    "RenamerPriorities": {
-      "ScriptRenamer": 0
-    }
-  }
-```
+1. Follow instructions in the next section to add your script
 
 ## Usage
-
-### Important Note for File Moving
+#### Important Note for File Moving
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
-The final destination MUST match the Name of a drop folder (not the Path) in order to move the file.
-Destination import folder name must be unique or moving file will fail.
+The final destination MUST match the name or absolute path of a drop folder in order to move the file.
+If using name to set, destination import folder name must be unique or moving file will fail.
 
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
-1. Either create a new script or change the type of the current script to ScriptRenamer in the drop-down menu.
+1. Use the Default script and set the type of the script to ScriptRenamer in the drop-down menu. Don't add a new script, as they are currently ignored when importing/scanning.
 1. Type your script and Save (next to the script type drop-down).
 1. Test your script using the preview utility in the same window.
 
@@ -40,35 +27,57 @@ Targets:
 1. subfolder
 
 Statements: 
-1. if (*bool expr*) *statement*
-1. if (*bool expr*) *statement* else *statement*
-1. *target*? add *string*+
-1. *target*? set *string*+
-1. *target*? replace *string* *string*
-1. { *statement* }
-1. cancel / cancelrename / cancelmove
+1. if (***bool expr***) ***statement***
+1. if (***bool expr***) ***statement*** else ***statement***
+1. ***target***? add ***string***+    ```Append strings to the end of the current target```
+1. ***target***? set ***string***+    ```Reset the target to the strings```
+1. ***target***? replace ***string*** ***string***    ```Replace all instances of first string by the second string in the target```
+1. { ***statement*** }    ```Standard code block, enclosing multiple statements, required after if/else statements if using multiple statements```
+1. cancel ***string****    ```Cancel renaming and moving with an exception```
+1. skipRename | skipMove    ```Skip renaming or moving, deferring to the next renamer/mover in the priority list```
 
 
 Collections:
-1. *collection label*
-1. *collection label* has *collection enum*
-1. *collection label* has *collection enum* and *other collection enum*
+1. ***collection label***
+1. ***collection label*** has ***collection enum***    ```String for AudioCodec and Import Folders (name or absolute path)```
+1. ***collection label*** has ***collection enum*** and ***other collection enum***    ```Only supported by AnimeTitle and EpisodeTitle, for Types+Language enums```
+1. first(***collection***)    ```Get first element of a collection```
 
 Boolean Expressions (In order of precedence):
-1. not *bool expr*
-1. *collection*
-1. *type label* is *type enum*
-1. *number* *relational operator* *number*
-1. *(bool expr, number, string)* == *(bool expr, number, string)*
-1. *(bool expr, number, string)* != *(bool expr, number, string)*
-1. *bool expr* and *bool expr*
-1. *bool expr* or *bool expr*
-1. (*bool expr*)
-1. *bool*
-    
+1. not ***bool expr***    ```Invert the value of the expression```
+1. ***collection***    ```True if collection is non-empty```
+1. ***type label*** is ***type enum***    ```Used by AnimeType and EpisodeType, checks the type```
+1. ***number*** ***relational operator*** ***number***    ```Only supports integers at this time```
+1. ***(bool expr, number, or string)*** (== | !=) ***(bool expr, number, or string)***    ```Checks equality/inequality```
+1. ***bool expr*** and ***bool expr***    ```Boolean and expression```
+1. ***bool expr*** or ***bool expr***    ```Boolean or expression```
+1. (***bool expr***)    ```Expression parentheses for enforcing order of operations```
+1. ***bool*** 
+
+Bools:
+1. true | false
+1. ***number*** ```True if non-zero```
+1. ***string*** ```True if non-empty```
+
+Numbers:
+1. \[+-]?\[0-9]+
+1. ***number label***
+1. len(***collection*** | ***string***)    ```Length of a collection or a string```
+
+Strings:
+1. '***char****' | "***char****"
+1. ***string label***
+1. ***collection*** ```Comma delimited list, null if empty```
+1. ***number***
+1. ***date***
+
 Dates:
-1. *date label*
-1. *date label*.*(Year, Month, or Day)*
+1. ***date label***
+1. ***date label***.***(Year, Month, or Day)***
+
+Comments:
+1. //***char*******newline*** ```Line comment```
+1. /\*(***char***\*)\*/ ```Block Comment```
 
 ### Labels
 #### Strings
@@ -80,21 +89,21 @@ AnimeTitleJapanese
 EpisodeTitleRomaji
 EpisodeTitleEnglish
 EpisodeTitleJapanese
-GroupShort
-GroupLong
+GroupShort    // Release Group short name
+GroupLong    // Release Groupu long name
 CRCLower
 CRCUpper
 Source
-Resolution
+Resolution    // Standardized Resolution, use Height 'x' Width for exact dimensions
 AnimeType
 EpisodeType
 EpisodePrefix
-VideoCodecLong
-VideoCodecShort
+VideoCodecLong    // Entire CodecID returned by MediaInfo (or AniDB if no local media info), usually you want the short codec
+VideoCodecShort    // Simplified video codec
 Duration
-GroupName
-OldFilename
-OriginalFilename
+GroupName    // Shoko's Group name
+OldFilename     // Filename before the renamer script was run
+OriginalFilename    // Filename stored by AniDB when a file is added to the database
 Dates:
     AnimeReleaseDate
     EpisodeReleaseDate
@@ -186,21 +195,20 @@ if (AnimeTitles has English and Main)
     subfolder set first(AnimeTitles has English and Main)
 ```  
 Title collections can have two specifiers: language and type.  
-first(*collection*) returns the first element in a collection
+first(***collection***) returns the first element in a collection
 ```
 if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
     add '0'
 add EpisodeNumber
 ```  
 Episode number padding example.  
-len(*(number, collection, or string)*) returns the number of digits in a number, elements in a collection, and characters in a string
+len(***(number, collection, or string)***) returns the number of elements in a collection, or characters in a string. EpisodeCount is converted to a string automatically.
 
 ```
 // this is a line comment
 /* this is a multi- 
 line comment */
 ```
-
 
 ### Sample Script
 ```
@@ -258,3 +266,7 @@ if (AnimeTitles has English)
 else
     subfolder set first(AnimeTitles has Main)
 ```
+
+# Compilation
+Requires Antlr4 and Java Runtime to compile  
+antlr4 quick-start: https://github.com/antlr/antlr4/blob/master/doc/getting-started.md
