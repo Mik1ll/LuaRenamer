@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
@@ -14,6 +15,7 @@ namespace ScriptRenamer
         public const string RENAMER_ID = nameof(ScriptRenamer);
         private static string _script = string.Empty;
         private static ParserRuleContext _context;
+        private static Exception _contextException;
 
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
@@ -68,12 +70,16 @@ namespace ScriptRenamer
             return (destfolder, olddestfolder);
         }
 
-        private static ParserRuleContext GetContext(string script)
+        private static void SetContext(string script)
         {
-            if (script == _script && _context is not null)
-                return _context;
-            else
-                _script = script;
+            if (script == _script)
+                if (_contextException is not null)
+                    ExceptionDispatchInfo.Capture(_contextException).Throw();
+                else if (_context is not null)
+                    return;
+            _script = script;
+            _contextException = null;
+            _context = null;
             AntlrInputStream inputStream = new(new StringReader(script));
             ScriptRenamerLexer lexer = new(inputStream);
             lexer.AddErrorListener(ExceptionErrorListener.Instance);
@@ -82,7 +88,6 @@ namespace ScriptRenamer
             parser.ErrorHandler = new BailErrorStrategy();
             parser.AddErrorListener(ExceptionErrorListener.Instance);
             _context = parser.start();
-            return _context;
         }
 
         private static void SetupAndLaunch(ScriptRenamerVisitor visitor)
@@ -90,19 +95,22 @@ namespace ScriptRenamer
             try
             {
                 CheckBadArgs(visitor);
-                var context = GetContext(visitor.Script.Script);
-                _ = visitor.Visit(context);
+                SetContext(visitor.Script.Script);
+            }
+            catch (Exception e)
+            {
+                _contextException = e;
+                ExceptionDispatchInfo.Capture(e).Throw();
+            }
+            try
+            {
+                _ = visitor.Visit(_context);
             }
             catch (SkipException)
             {
                 visitor.Filename = null;
                 visitor.Destination = null;
                 visitor.Subfolder = null;
-            }
-            catch (Exception)
-            {
-                _context = null;
-                throw;
             }
         }
 
