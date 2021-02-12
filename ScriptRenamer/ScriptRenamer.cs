@@ -87,21 +87,21 @@ namespace ScriptRenamer
             ScriptRenamerParser parser = new(tokenStream);
             parser.ErrorHandler = new BailErrorStrategy();
             parser.AddErrorListener(ExceptionErrorListener.Instance);
-            _context = parser.start();
-        }
-
-        private static void SetupAndLaunch(ScriptRenamerVisitor visitor)
-        {
             try
             {
-                CheckBadArgs(visitor);
-                SetContext(visitor.Script.Script);
+                _context = parser.start();
             }
             catch (Exception e)
             {
                 _contextException = e;
                 ExceptionDispatchInfo.Capture(e).Throw();
             }
+        }
+
+        private static void SetupAndLaunch(ScriptRenamerVisitor visitor)
+        {
+            CheckBadArgs(visitor);
+            SetContext(visitor.Script.Script);
             try
             {
                 _ = visitor.Visit(_context);
