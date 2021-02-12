@@ -25,6 +25,10 @@ Targets:
 1. filename
 1. destination
 1. subfolder
+```
+can use single wildcard in place of subfolder names to match old subfolder names at same depth.
+            e.g. old: anime/mystuff/name, new: movies/*/newname, result: movies/mystuff/newname
+```
 
 Statements: 
 1. if (***bool expr***) ***statement***
