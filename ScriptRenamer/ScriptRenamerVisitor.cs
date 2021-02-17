@@ -88,6 +88,7 @@ namespace ScriptRenamer
                 SRP.AND => (bool)Visit(context.bool_expr(0)) && (bool)Visit(context.bool_expr(1)),
                 SRP.OR => (bool)Visit(context.bool_expr(0)) || (bool)Visit(context.bool_expr(1)),
                 SRP.LPAREN => (bool)Visit(context.bool_expr(0)),
+                SRP.CONTAINS => ((string)Visit(context.string_atom(0))).Contains((string)Visit(context.string_atom(1))),
                 null => (context.bool_atom() ?? (object)context.collection_expr()) switch
                 {
                     SRP.Bool_atomContext => (bool)Visit(context.bool_atom()),

@@ -26,6 +26,7 @@ grammar ScriptRenamer;
             |   collection_expr
             |   is_left=ANIMETYPE op=IS ANIMETYPE_ENUM
             |   is_left=EPISODETYPE op=IS EPISODETYPE_ENUM
+            |   string_atom op=CONTAINS string_atom
             |   number_atom op=(GT | GE | LT | LE) number_atom
             |   bool_expr op=(EQ | NE) bool_expr
             |   number_atom op=(EQ | NE) number_atom
@@ -169,6 +170,7 @@ grammar ScriptRenamer;
     LENGTH : 'len';
     FIRST : 'first';
     DOT : '.';
+    CONTAINS : 'contains';
 
 // Tags
     // Strings
