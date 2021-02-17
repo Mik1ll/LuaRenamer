@@ -23,7 +23,7 @@ namespace ScriptRenamer
         public IGroup GroupInfo { get; set; }
         public IEpisode EpisodeInfo { get; set; }
         public IRenameScript Script { get; set; }
-        
+
         private int LastEpisodeNumber { get; set; }
 
         public ScriptRenamerVisitor()
@@ -208,11 +208,26 @@ namespace ScriptRenamer
                 SRP.VERSION => FileInfo.AniDBFileInfo?.Version ?? 1,
                 SRP.WIDTH => FileInfo.MediaInfo?.Video?.Width ?? 0,
                 SRP.HEIGHT => FileInfo.MediaInfo?.Video?.Height ?? 0,
-                SRP.EPISODECOUNT => AnimeInfo.EpisodeCounts.Episodes,
+                SRP.EPISODECOUNT => EpisodeInfo.Type switch
+                {
+                    EpisodeType.Episode => AnimeInfo.EpisodeCounts.Episodes,
+                    EpisodeType.Special => AnimeInfo.EpisodeCounts.Specials,
+                    EpisodeType.Credits => AnimeInfo.EpisodeCounts.Credits,
+                    EpisodeType.Trailer => AnimeInfo.EpisodeCounts.Trailers,
+                    EpisodeType.Parody => AnimeInfo.EpisodeCounts.Parodies,
+                    EpisodeType.Other => AnimeInfo.EpisodeCounts.Others,
+                    _ => throw new ParseCanceledException("Could not parse EpisodeCount", context.exception),
+                },
                 SRP.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth ?? 0,
                 SRP.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).Max() ?? 0,
                 SRP.SERIESINGROUP => GroupInfo?.Series.Count ?? 1,
                 SRP.LASTEPISODENUMBER => LastEpisodeNumber,
+                SRP.MAXEPISODECOUNT => new[] { AnimeInfo.EpisodeCounts.Episodes,
+                                               AnimeInfo.EpisodeCounts.Specials,
+                                               AnimeInfo.EpisodeCounts.Credits,
+                                               AnimeInfo.EpisodeCounts.Trailers,
+                                               AnimeInfo.EpisodeCounts.Parodies,
+                                               AnimeInfo.EpisodeCounts.Others }.Max(),
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }

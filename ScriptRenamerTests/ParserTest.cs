@@ -219,7 +219,10 @@ namespace ScriptRenamerTests
                     x.EpisodeCounts == new EpisodeCounts
                     {
                         Episodes = 25
-                    })
+                    }),
+                EpisodeInfo = Mock.Of<IEpisode>(x =>
+                    x.Type == EpisodeType.Episode
+                    )
             };
             var result = visitor.Visit(context);
             Assert.IsNull(result);
