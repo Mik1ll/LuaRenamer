@@ -2,15 +2,16 @@
 Renamer Plugin for Shoko
 
 ## Installation
-1. Download the [latest release](https://github.com/Mik1ll/ScriptRenamer/releases)
+1. Download the [latest release](https://github.com/Mik1ll/ScriptRenamer/releases/latest)
 1. Unzip the binaries in the install location/Shoko Server/plugins or in the application data folder C:\ProgramData\ShokoServer\plugins (Windows), /home/.shoko/Shoko.CLI/plugins (Linux CLI)
 1. Follow instructions in the next section to add your script
 
 ## Usage
-#### Important Note for File Moving
+#### Important Notes for File Moving
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 The final destination MUST match the name or absolute path of a drop folder in order to move the file.
 If using name to set, destination import folder name must be unique or moving file will fail.
+Both Destination and Subfolder must be set or moving will fail.
 
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
@@ -51,6 +52,7 @@ Boolean Expressions (In order of precedence):
 1. not ***bool expr***    ```Invert the value of the expression```
 1. ***collection***    ```True if collection is non-empty```
 1. ***type label*** is ***type enum***    ```Used by AnimeType and EpisodeType, checks the type```
+1. ***string atom*** contains ***string atom***    ```True if string contains another string as a substring```
 1. ***number*** ***relational operator*** ***number***    ```Only supports integers at this time```
 1. ***(bool expr, number, or string)*** (== | !=) ***(bool expr, number, or string)***    ```Checks equality/inequality```
 1. ***bool expr*** and ***bool expr***    ```Boolean and expression```
@@ -108,6 +110,7 @@ Duration
 GroupName    // Shoko's Group name
 OldFilename     // Filename before the renamer script was run
 OriginalFilename    // Filename stored by AniDB when a file is added to the database
+OldImportFolder    // Import folder before move **Not available while renaming**
 Dates:
     AnimeReleaseDate
     EpisodeReleaseDate
@@ -126,6 +129,7 @@ EpisodeCount
 BitDepth
 AudioChannels
 SeriesInGroup
+LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes
 ```
 
 #### Booleans
@@ -134,6 +138,7 @@ Restricted
 Censored
 Chaptered
 ManuallyLinked
+InDropSource    // True if import folder moving from is a drop source **Not available while renaming**
 ```
 
 #### Collections
@@ -143,7 +148,7 @@ DubLanguages
 SubLanguages
 AnimeTitles
 EpisodeTitles
-ImportFolders
+ImportFolders    // Available drop folders (marked as destination) **Not available while renaming**
 ```
 
 #### Enumerations
