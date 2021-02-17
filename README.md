@@ -74,7 +74,7 @@ Strings:
 1. '***char****' | "***char****"
 1. ***string label***
 1. ***collection*** ```Comma delimited list, null if empty```
-1. ***number***
+1. ***number*** (pad ***number***)?    ```Able to pad nubmer up to same nubmer of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount```
 1. ***date***
 
 Dates:
@@ -126,11 +126,12 @@ EpisodeNumber
 Version
 Width
 Height
-EpisodeCount
+EpisodeCount     // Number of episodes of this episodes type
 BitDepth
 AudioChannels
-SeriesInGroup
+SeriesInGroup     // Number of series associated with a Shoko group
 LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes. Last episode in first contiguous series of episode numbers
+MaxEpisodeCount    // Max of all episode type counts
 ```
 
 #### Booleans
