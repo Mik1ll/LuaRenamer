@@ -64,7 +64,7 @@ grammar ScriptRenamer;
             :   STRING
             |   string_labels
             |   collection_expr
-            |   number_atom
+            |   number_atom (PAD number_atom)?
             |   date_atom
             ;
 
@@ -172,6 +172,7 @@ grammar ScriptRenamer;
     FIRST : 'first';
     DOT : '.';
     CONTAINS : 'contains';
+    PAD : 'pad';
 
 // Tags
     // Strings

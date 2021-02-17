@@ -235,10 +235,10 @@ namespace ScriptRenamer
 
         public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
-            return (context.number_atom() ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.date_atom() ?? (object)context.collection_expr()) switch
+            return (context.number_atom(0) ?? context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.date_atom() ?? (object)context.collection_expr()) switch
             {
-                SRP.Number_atomContext => Visit(context.number_atom()).ToString(),
-
+                SRP.Number_atomContext when context.PAD() is null => Visit(context.number_atom(0)).ToString(),
+                SRP.Number_atomContext when context.PAD() is not null => ((int)Visit(context.number_atom(0))).PadZeroes((int)Visit(context.number_atom(1))),
                 SRP.String_labelsContext => Visit(context.string_labels()),
                 SRP.STRING => context.STRING().GetText()[1..^1],
                 SRP.Collection_exprContext => ((IList)Visit(context.collection_expr())).CollectionString(),
