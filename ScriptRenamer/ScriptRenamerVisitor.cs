@@ -328,10 +328,10 @@ namespace ScriptRenamer
             switch (context.op.Type)
             {
                 case SRP.SET:
-                    tar = context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
+                    tar = AggregateString(context);
                     break;
                 case SRP.ADD:
-                    tar += context.string_atom().Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2);
+                    tar += AggregateString(context);
                     break;
                 case SRP.REPLACE:
                     tar = tar.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)));
@@ -339,6 +339,8 @@ namespace ScriptRenamer
                 default:
                     throw new ParseCanceledException("Could not parse action statement", context.exception);
             }
+
+            string AggregateString(SRP.StmtContext context) => context.string_atom().Select(a => a.STRING() is null || context.target_labels()?.label.Type != SRP.SUBFOLDER ? (string)Visit(a) : ((string)Visit(a)).Replace('/', (char)0x1F).Replace('\\', (char)0x1F)).Aggregate((s1, s2) => s1 + s2);
         }
 
         #endregion statements

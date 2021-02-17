@@ -40,7 +40,7 @@ namespace ScriptRenamer
             if (visitor.Destination is not null && visitor.Subfolder is null)
                 return oldsubfolder;
             var oldsubfoldersplit = olddestfolder is null ? Array.Empty<string>() : oldsubfolder.Split('/');
-            var newsubfoldersplit = NormPath(visitor.Subfolder).Split('/').Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
+            var newsubfoldersplit = visitor.Subfolder.Trim((char)0x1F).Split((char)0x1F).Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
             var subfolder = string.Empty;
             for (int i = 0; i < newsubfoldersplit.Length; i++)
                 if (newsubfoldersplit[i] == "*")
