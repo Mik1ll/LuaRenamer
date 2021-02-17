@@ -82,7 +82,8 @@ grammar ScriptRenamer;
             |   EPISODECOUNT
             |   BITDEPTH
             |   AUDIOCHANNELS
-            |   SERIESINGROUP)
+            |   SERIESINGROUP
+            |   LASTEPISODENUMBER)
             ;
 
         bool_labels
@@ -214,6 +215,7 @@ grammar ScriptRenamer;
         BITDEPTH : 'BitDepth';
         AUDIOCHANNELS : 'AudioChannels';
         SERIESINGROUP : 'SeriesInGroup';
+        LASTEPISODENUMBER : 'LastEpisodeNumber';
 
     // Bools
         RESTRICTED : 'Restricted';

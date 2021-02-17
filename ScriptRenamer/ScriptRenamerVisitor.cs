@@ -23,6 +23,8 @@ namespace ScriptRenamer
         public IGroup GroupInfo { get; set; }
         public IEpisode EpisodeInfo { get; set; }
         public IRenameScript Script { get; set; }
+        
+        private int LastEpisodeNumber { get; set; }
 
         public ScriptRenamerVisitor()
         {
@@ -33,7 +35,8 @@ namespace ScriptRenamer
             Renaming = true;
             AvailableFolders = new List<IImportFolder>();
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
-            EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
+            EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type).OrderByDescending(e => e.Number).FirstOrDefault()?.Number ?? 0;
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
             Script = args.Script;
@@ -44,7 +47,8 @@ namespace ScriptRenamer
             Renaming = false;
             AvailableFolders = args.AvailableFolders;
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
-            EpisodeInfo = args.EpisodeInfo.FirstOrDefault();
+            EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type).OrderByDescending(e => e.Number).FirstOrDefault()?.Number ?? 0;
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
             Script = args.Script;
@@ -202,6 +206,7 @@ namespace ScriptRenamer
                 SRP.BITDEPTH => FileInfo.MediaInfo?.Video?.BitDepth ?? 0,
                 SRP.AUDIOCHANNELS => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).Max() ?? 0,
                 SRP.SERIESINGROUP => GroupInfo?.Series.Count ?? 1,
+                SRP.LASTEPISODENUMBER => LastEpisodeNumber,
                 _ => throw new ParseCanceledException("Could not parse number_labels", context.exception),
             };
         }
