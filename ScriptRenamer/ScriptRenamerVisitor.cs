@@ -36,7 +36,9 @@ namespace ScriptRenamer
             AvailableFolders = new List<IImportFolder>();
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
             EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type).OrderByDescending(e => e.Number).FirstOrDefault()?.Number ?? 0;
+            var seq = EpisodeInfo.Number - 1;
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
+                                                .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
             Script = args.Script;
@@ -48,7 +50,9 @@ namespace ScriptRenamer
             AvailableFolders = args.AvailableFolders;
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
             EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type).OrderByDescending(e => e.Number).FirstOrDefault()?.Number ?? 0;
+            var seq = EpisodeInfo.Number - 1;
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
+                                                .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo.FirstOrDefault();
             Script = args.Script;

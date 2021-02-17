@@ -130,7 +130,7 @@ EpisodeCount
 BitDepth
 AudioChannels
 SeriesInGroup
-LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes
+LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes. Last episode in first contiguous series of episode numbers
 ```
 
 #### Booleans
