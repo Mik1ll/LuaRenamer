@@ -240,7 +240,7 @@ namespace ScriptRenamer
                 SRP.Number_atomContext => Visit(context.number_atom()).ToString(),
 
                 SRP.String_labelsContext => Visit(context.string_labels()),
-                SRP.STRING => context.STRING().GetText().Trim(new char[] { '\'', '"' }),
+                SRP.STRING => context.STRING().GetText()[1..^1],
                 SRP.Collection_exprContext => ((IList)Visit(context.collection_expr())).CollectionString(),
                 SRP.Date_atomContext => Visit(context.date_atom()),
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception),
