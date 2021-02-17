@@ -36,7 +36,7 @@ namespace ScriptRenamer
             AvailableFolders = new List<IImportFolder>();
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
             EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            var seq = EpisodeInfo.Number - 1;
+            var seq = EpisodeInfo?.Number ?? 1 - 1;
             LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
                                                 .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
             FileInfo = args.FileInfo;
@@ -50,7 +50,7 @@ namespace ScriptRenamer
             AvailableFolders = args.AvailableFolders;
             AnimeInfo = args.AnimeInfo.FirstOrDefault();
             EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            var seq = EpisodeInfo.Number - 1;
+            var seq = EpisodeInfo?.Number ?? 1 - 1;
             LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
                                                 .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
             FileInfo = args.FileInfo;
@@ -114,7 +114,7 @@ namespace ScriptRenamer
                 SRP.IMPORTFOLDERS => ((List<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Where(f =>
                     (string.Equals(f.Name, rhsString, StringComparison.OrdinalIgnoreCase)
                      || string.Equals(ScriptRenamer.NormPath(f.Location), ScriptRenamer.NormPath(rhsString), StringComparison.OrdinalIgnoreCase)
-                    ) && f.DropFolderType.HasFlag(DropFolderType.Destination)).ToList(),
+                    )).ToList(),
                 SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.titles.Type))
                                 .Where(at => context.t is null || at.Type == ParseEnum<TitleType>(context.t.Text))
                                 .Where(at => context.l is null || at.Language == ParseEnum<TitleLanguage>(context.l.Text)).ToList(),

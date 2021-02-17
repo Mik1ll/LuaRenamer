@@ -66,7 +66,7 @@ namespace ScriptRenamer
                      || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase)
                     ) && f.DropFolderType.HasFlag(DropFolderType.Destination));
             if (destfolder is null && visitor.Destination is not null)
-                throw new ArgumentException("Bad destination");
+                throw new ArgumentException($"Bad destination: {visitor.Destination}");
             return (destfolder, olddestfolder);
         }
 

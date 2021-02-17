@@ -13,7 +13,7 @@ namespace ScriptRenamer
             {
                 IEnumerable<string> s => s.DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                 IEnumerable<TitleLanguage> t => t.Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                IEnumerable<IImportFolder> i => i.Select(f => f.Name).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                IEnumerable<IImportFolder> i => i.Select(f => f.Location).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                 IEnumerable<AnimeTitle> t => t.Select(t => t.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
                 _ => throw new KeyNotFoundException("Could not find collection type in CollectionString"),
             };
