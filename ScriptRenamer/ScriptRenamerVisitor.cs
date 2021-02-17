@@ -380,7 +380,7 @@ namespace ScriptRenamer
                                  ?? new List<TitleLanguage>(),
                 SRP.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 SRP.EPISODETITLES => EpisodeInfo.Titles.ToList(),
-                SRP.IMPORTFOLDERS => AvailableFolders.Where(i => i.DropFolderType != DropFolderType.Source).ToList(),
+                SRP.IMPORTFOLDERS => AvailableFolders.Where(i => i.DropFolderType.HasFlag(DropFolderType.Destination)).ToList(),
                 _ => throw new KeyNotFoundException("Could not find token type for collection"),
             };
         }
