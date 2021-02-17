@@ -89,7 +89,8 @@ grammar ScriptRenamer;
             :   label=(RESTRICTED
             |   CENSORED
             |   CHAPTERED
-            |   MANUALLYLINKED)
+            |   MANUALLYLINKED
+            |   INDROPSOURCE)
             ;
 
         collection_labels
@@ -123,7 +124,8 @@ grammar ScriptRenamer;
             |   DURATION
             |   GROUPNAME
             |   OLDFILENAME
-            |   ORIGINALFILENAME)
+            |   ORIGINALFILENAME
+            |   OLDIMPORTFOLDER)
             ;
 
         target_labels
@@ -194,6 +196,8 @@ grammar ScriptRenamer;
         ANIMERELEASEDATE : 'AnimeReleaseDate';
         EPISDOERELEASEDATE : 'EpisodeReleaseDate';
         FILERELEASEDATE : 'FileReleaseDate';
+        OLDIMPORTFOLDER : 'OldImportFolder';
+
         // Date Fields
             YEAR : 'Year';
             MONTH : 'Month';
@@ -216,6 +220,7 @@ grammar ScriptRenamer;
         CENSORED : 'Censored';
         CHAPTERED : 'Chaptered';
         MANUALLYLINKED : 'ManuallyLinked';
+        INDROPSOURCE : 'InDropSource';
 
     // Collections
         AUDIOCODECS : 'AudioCodecs';

@@ -127,6 +127,7 @@ namespace ScriptRenamer
                 SRP.CENSORED => FileInfo.AniDBFileInfo?.Censored ?? false,
                 SRP.CHAPTERED => FileInfo.MediaInfo?.Chaptered ?? false,
                 SRP.MANUALLYLINKED => FileInfo.AniDBFileInfo is null,
+                SRP.INDROPSOURCE => OldDestination()?.DropFolderType.HasFlag(DropFolderType.Source) ?? false,
                 _ => throw new ParseCanceledException("Could not parse bool_labels", context.exception),
             };
         }
@@ -142,7 +143,7 @@ namespace ScriptRenamer
                 SRP.EPISODETITLEROMAJI => EpisodeTitleLanguage(TitleLanguage.Romaji),
                 SRP.EPISODETITLEENGLISH => EpisodeTitleLanguage(TitleLanguage.English),
                 SRP.EPISODETITLEJAPANESE => EpisodeTitleLanguage(TitleLanguage.Japanese),
-                SRP.GROUPSHORT => new[] { "raw", "unknown" }.Any(s => FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true) 
+                SRP.GROUPSHORT => new[] { "raw", "unknown" }.Any(s => FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
                                                             ? null : FileInfo.AniDBFileInfo.ReleaseGroup.ShortName,
                 SRP.GROUPLONG => new[] { "raw", "unknown" }.Any(s => FileInfo.AniDBFileInfo?.ReleaseGroup?.Name.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
                                                             ? null : FileInfo.AniDBFileInfo.ReleaseGroup.Name,
@@ -168,6 +169,7 @@ namespace ScriptRenamer
                 SRP.GROUPNAME => GroupInfo?.Name,
                 SRP.OLDFILENAME => FileInfo.Filename,
                 SRP.ORIGINALFILENAME => FileInfo.AniDBFileInfo?.OriginalFilename,
+                SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception),
             };
         }
@@ -386,6 +388,9 @@ namespace ScriptRenamer
         }
 
         private static T ParseEnum<T>(string text) => (T)Enum.Parse(typeof(T), text);
+
+        private IImportFolder OldDestination() => AvailableFolders.OrderByDescending(f => f.Location.Length)
+                                                        .FirstOrDefault(f => $"{ScriptRenamer.NormPath(FileInfo.FilePath)}/".StartsWith($"{ScriptRenamer.NormPath(f.Location)}/", StringComparison.OrdinalIgnoreCase));
 
         #endregion utility
     }
