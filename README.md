@@ -200,20 +200,22 @@ Collections can evaluate to true if it has any elements, false if it is empty.
 If/else statements can substitute a block {} with a single statement.   
 Can optionally add 'filename' target in front of actions, it is the default target.  
 'add' and 'set' actions take one or more strings as arguments. 
-Collections can also evaluate as a comma-seperated string.  
+Collections can also evaluate as a comma-seperated string.
+
+
 ```
 if (AnimeTitles has English and Main)
     subfolder set first(AnimeTitles has English and Main)
 ```  
 Title collections can have two specifiers: language and type.  
 first(***collection***) returns the first element in a collection
+
+
 ```
-if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
-    add '0'
-add EpisodeNumber
+add EpisodeNumber pad MaxEpisodeCount
 ```  
-Episode number padding example.  
-len(***(number, collection, or string)***) returns the number of elements in a collection, or characters in a string. EpisodeCount is converted to a string automatically.
+Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits.
+
 
 ```
 add EpisodeNumber
@@ -221,6 +223,7 @@ if (LastEpisodeNumber != EpisodeNumber)
     add '-' LastEpisodeNumber
 ```
 Adds support for files with a range of episodes
+
 
 ```
 // this is a line comment
@@ -239,8 +242,6 @@ if (AnimeTitleEnglish)
 else
     add AnimeTitle ' '
 add EpisodePrefix
-if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
-    add '0'
 add EpisodeNumber
 if (Version > 1)
     add 'v' Version
