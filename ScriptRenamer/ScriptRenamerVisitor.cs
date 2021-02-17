@@ -168,8 +168,9 @@ namespace ScriptRenamer
                     EpisodeType.Other => "O",
                     _ => ""
                 },
-                SRP.VIDEOCODECLONG => FileInfo.MediaInfo?.Video?.CodecID ?? FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec,
+                SRP.VIDEOCODECLONG => FileInfo.MediaInfo?.Video?.CodecID,
                 SRP.VIDEOCODECSHORT => FileInfo.MediaInfo?.Video?.SimplifiedCodec,
+                SRP.VIDEOCODECANIDB => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec,
                 SRP.DURATION => FileInfo.MediaInfo?.General?.Duration.ToString(),
                 SRP.GROUPNAME => GroupInfo?.Name,
                 SRP.OLDFILENAME => FileInfo.Filename,

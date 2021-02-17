@@ -106,6 +106,7 @@ EpisodeType
 EpisodePrefix
 VideoCodecLong    // Entire CodecID returned by MediaInfo (or AniDB if no local media info), usually you want the short codec
 VideoCodecShort    // Simplified video codec
+VideoCodecAniDB    // Codec string from AniDB
 Duration
 GroupName    // Shoko's Group name
 OldFilename     // Filename before the renamer script was run
@@ -212,6 +213,13 @@ add EpisodeNumber
 ```  
 Episode number padding example.  
 len(***(number, collection, or string)***) returns the number of elements in a collection, or characters in a string. EpisodeCount is converted to a string automatically.
+
+```
+add EpisodeNumber
+if (LastEpisodeNumber != EpisodeNumber)
+    add '-' LastEpisodeNumber
+```
+Adds support for files with a range of episodes
 
 ```
 // this is a line comment
