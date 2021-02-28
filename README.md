@@ -74,7 +74,7 @@ Strings:
 1. '***char****' | "***char****"
 1. ***string label***
 1. ***collection*** ```Comma delimited list, null if empty```
-1. ***number***
+1. ***number*** (pad ***number***)?    ```Able to pad nubmer up to same nubmer of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount```
 1. ***date***
 
 Dates:
@@ -126,11 +126,12 @@ EpisodeNumber
 Version
 Width
 Height
-EpisodeCount
+EpisodeCount     // Number of episodes of this episodes type
 BitDepth
 AudioChannels
-SeriesInGroup
+SeriesInGroup     // Number of series associated with a Shoko group
 LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes. Last episode in first contiguous series of episode numbers
+MaxEpisodeCount    // Max of all episode type counts
 ```
 
 #### Booleans
@@ -199,20 +200,22 @@ Collections can evaluate to true if it has any elements, false if it is empty.
 If/else statements can substitute a block {} with a single statement.   
 Can optionally add 'filename' target in front of actions, it is the default target.  
 'add' and 'set' actions take one or more strings as arguments. 
-Collections can also evaluate as a comma-seperated string.  
+Collections can also evaluate as a comma-seperated string.
+
+
 ```
 if (AnimeTitles has English and Main)
     subfolder set first(AnimeTitles has English and Main)
 ```  
 Title collections can have two specifiers: language and type.  
 first(***collection***) returns the first element in a collection
+
+
 ```
-if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
-    add '0'
-add EpisodeNumber
+add EpisodeNumber pad MaxEpisodeCount
 ```  
-Episode number padding example.  
-len(***(number, collection, or string)***) returns the number of elements in a collection, or characters in a string. EpisodeCount is converted to a string automatically.
+Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits.
+
 
 ```
 add EpisodeNumber
@@ -220,6 +223,7 @@ if (LastEpisodeNumber != EpisodeNumber)
     add '-' LastEpisodeNumber
 ```
 Adds support for files with a range of episodes
+
 
 ```
 // this is a line comment
@@ -238,8 +242,6 @@ if (AnimeTitleEnglish)
 else
     add AnimeTitle ' '
 add EpisodePrefix
-if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
-    add '0'
 add EpisodeNumber
 if (Version > 1)
     add 'v' Version
