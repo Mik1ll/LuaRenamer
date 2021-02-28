@@ -50,7 +50,7 @@ namespace ScriptRenamer
 
         public bool Renaming { get; set; } = true;
 
-        public List<IImportFolder> AvailableFolders { get; init; }
+        public List<IImportFolder> AvailableFolders { get; init; } = new();
         public IVideoFile FileInfo { get; init; }
         public IAnime AnimeInfo { get; init; }
         public IGroup GroupInfo { get; init; }
