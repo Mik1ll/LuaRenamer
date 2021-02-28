@@ -9,10 +9,10 @@ using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamer
 {
-    [Renamer(RENAMER_ID)]
+    [Renamer(RenamerId)]
     public class ScriptRenamer : IRenamer
     {
-        public const string RENAMER_ID = nameof(ScriptRenamer);
+        public const string RenamerId = nameof(ScriptRenamer);
         private static string _script = string.Empty;
         private static ParserRuleContext _context;
         private static Exception _contextException;
@@ -21,8 +21,8 @@ namespace ScriptRenamer
         {
             var visitor = new ScriptRenamerVisitor(args);
             SetupAndLaunch(visitor);
-            (var destfolder, var olddestfolder) = GetNewAndOldDestinations(args, visitor);
-            string subfolder = GetNewSubfolder(args, visitor, olddestfolder);
+            var (destfolder, olddestfolder) = GetNewAndOldDestinations(args, visitor);
+            var subfolder = GetNewSubfolder(args, visitor, olddestfolder);
             return (destfolder, subfolder);
         }
 
@@ -30,19 +30,24 @@ namespace ScriptRenamer
         {
             var visitor = new ScriptRenamerVisitor(args);
             SetupAndLaunch(visitor);
-            return !string.IsNullOrWhiteSpace(visitor.Filename) ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename) : null;
+            return !string.IsNullOrWhiteSpace(visitor.Filename)
+                ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename)
+                : null;
         }
 
         private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor, IImportFolder olddestfolder)
         {
             if (visitor.Destination is not null && visitor.Subfolder is null)
                 throw new ArgumentException("Destination set without Subfolder");
-            var oldsubfolder = olddestfolder is null ? null : $"{NormPath(Path.GetDirectoryName(args.FileInfo.FilePath))}/"
-                .Replace($"{NormPath(olddestfolder.Location)}/", null, StringComparison.OrdinalIgnoreCase).TrimEnd('/');
+            var oldsubfolder = olddestfolder is null
+                ? null
+                : $"{NormPath(Path.GetDirectoryName(args.FileInfo.FilePath))}/"
+                    .Replace($"{NormPath(olddestfolder.Location)}/", null, StringComparison.OrdinalIgnoreCase).TrimEnd('/');
             var oldsubfoldersplit = olddestfolder is null ? Array.Empty<string>() : oldsubfolder.Split('/');
-            var newsubfoldersplit = visitor.Subfolder.Trim((char)0x1F).Split((char)0x1F).Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
+            var newsubfoldersplit = visitor.Subfolder.Trim((char)0x1F).Split((char)0x1F)
+                .Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
             var subfolder = string.Empty;
-            for (int i = 0; i < newsubfoldersplit.Length; i++)
+            for (var i = 0; i < newsubfoldersplit.Length; i++)
                 if (newsubfoldersplit[i] == "*")
                     if (i < oldsubfoldersplit.Length)
                         subfolder += oldsubfoldersplit[i] + '/';
@@ -59,12 +64,12 @@ namespace ScriptRenamer
             if (visitor.Destination is null && visitor.Subfolder is not null)
                 throw new ArgumentException("Subfolder set without Destination");
             var olddestfolder = args.AvailableFolders.OrderByDescending(f => f.Location.Length)
-                                                        .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                                                          && $"{NormPath(args.FileInfo.FilePath)}/".StartsWith($"{NormPath(f.Location)}/", StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
+                                     && $"{NormPath(args.FileInfo.FilePath)}/".StartsWith($"{NormPath(f.Location)}/", StringComparison.OrdinalIgnoreCase));
             var destfolder = args.AvailableFolders.SingleOrDefault(f =>
-                    (string.Equals(f.Name, visitor.Destination, StringComparison.OrdinalIgnoreCase)
-                     || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase)
-                    ) && f.DropFolderType.HasFlag(DropFolderType.Destination));
+                (string.Equals(f.Name, visitor.Destination, StringComparison.OrdinalIgnoreCase)
+                 || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase)
+                ) && f.DropFolderType.HasFlag(DropFolderType.Destination));
             if (destfolder is null && visitor.Destination is not null)
                 throw new ArgumentException($"Bad destination: {visitor.Destination}");
             return (destfolder, olddestfolder);
@@ -118,8 +123,8 @@ namespace ScriptRenamer
         {
             if (string.IsNullOrWhiteSpace(visitor.Script?.Script))
                 throw new ArgumentException("Script is empty or null");
-            if (visitor.Script.Type != RENAMER_ID)
-                throw new ArgumentException($"Script doesn't match {RENAMER_ID}");
+            if (visitor.Script.Type != RenamerId)
+                throw new ArgumentException($"Script doesn't match {RenamerId}");
             if (visitor.AnimeInfo is null || visitor.EpisodeInfo is null)
                 throw new ArgumentException("No anime info or episode info, cannot rename unrecognized file");
         }
