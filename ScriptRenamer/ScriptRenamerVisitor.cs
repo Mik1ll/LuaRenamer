@@ -186,7 +186,7 @@ namespace ScriptRenamer
                 SRP.DURATION => FileInfo.MediaInfo?.General?.Duration.ToString(CultureInfo.InvariantCulture),
                 SRP.GROUPNAME => GroupInfo?.Name,
                 SRP.OLDFILENAME => FileInfo.Filename,
-                SRP.ORIGINALFILENAME => FileInfo.AniDBFileInfo?.OriginalFilename,
+                SRP.ORIGINALFILENAME => System.IO.Path.GetFileName(FileInfo.AniDBFileInfo?.OriginalFilename),
                 SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception)
             };
