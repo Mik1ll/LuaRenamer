@@ -185,7 +185,7 @@ namespace ScriptRenamer
                 SRP.VIDEOCODECANIDB => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec,
                 SRP.DURATION => FileInfo.MediaInfo?.General?.Duration.ToString(CultureInfo.InvariantCulture),
                 SRP.GROUPNAME => GroupInfo?.Name,
-                SRP.OLDFILENAME => FileInfo.Filename,
+                SRP.OLDFILENAME => System.IO.Path.GetFileName(FileInfo.Filename),
                 SRP.ORIGINALFILENAME => System.IO.Path.GetFileName(FileInfo.AniDBFileInfo?.OriginalFilename),
                 SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception)
