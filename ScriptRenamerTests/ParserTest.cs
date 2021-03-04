@@ -431,10 +431,10 @@ namespace ScriptRenamerTests
         }
 
         [DataTestMethod]
-        [DynamicData(nameof(TestEpisodeSelectionData))]
-        public void TestEpisodeSelection(List<IEpisode> episodes, int eEpisodeId)
+        [DynamicData(nameof(TestEpisodeSelectionAndNameData))]
+        public void TestEpisodeSelectionAndName(List<IEpisode> episodes, int eEpisodeId, string eEpisodesString)
         {
-            var visitor = new ScriptRenamerVisitor(new MoveEventArgs
+            var visitor = new ScriptRenamerVisitor(new RenameEventArgs
             {
                 AnimeInfo = new List<IAnime>
                 {
@@ -443,9 +443,13 @@ namespace ScriptRenamerTests
                 EpisodeInfo = episodes
             });
             Assert.AreEqual(eEpisodeId, visitor.EpisodeInfo.EpisodeID);
+            var parser = Setup("add EpisodeNumbers");
+            var context = parser.start();
+            _ = visitor.Visit(context);
+            Assert.AreEqual(eEpisodesString, visitor.Filename);
         }
 
-        private static IEnumerable<object[]> TestEpisodeSelectionData
+        private static IEnumerable<object[]> TestEpisodeSelectionAndNameData
         {
             get
             {
@@ -458,7 +462,8 @@ namespace ScriptRenamerTests
                         Mock.Of<IEpisode>(e => e.Type == EpisodeType.Other && e.Number == 5 && e.AnimeID == 10 && e.EpisodeID == 3),
                         Mock.Of<IEpisode>(e => e.Type == EpisodeType.Other && e.Number == 1 && e.AnimeID == 9 && e.EpisodeID == 4)
                     },
-                    3
+                    3,
+                    "1-2 O5"
                 };
                 yield return new object[]
                 {
@@ -471,7 +476,27 @@ namespace ScriptRenamerTests
                         Mock.Of<IEpisode>(e => e.Type == EpisodeType.Special && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 5),
                         Mock.Of<IEpisode>(e => e.Type == EpisodeType.Credits && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 6)
                     },
-                    4
+                    4,
+                    "1-2 C2 S1 P5"
+                };
+                yield return new object[]
+                {
+                    new List<IEpisode>
+                    {
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 9 && e.EpisodeID == 1),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 2),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Parody && e.Number == 5 && e.AnimeID == 10 && e.EpisodeID == 3),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 4),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Special && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 5),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Credits && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 6),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 3 && e.AnimeID == 10 && e.EpisodeID == 4),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 5 && e.AnimeID == 10 && e.EpisodeID == 4),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 6 && e.AnimeID == 10 && e.EpisodeID == 4),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Special && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 5),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Special && e.Number == 4 && e.AnimeID == 10 && e.EpisodeID == 5),
+                    },
+                    4,
+                    "1-3 5-6 C2 S1-2 S4 P5"
                 };
             }
         }

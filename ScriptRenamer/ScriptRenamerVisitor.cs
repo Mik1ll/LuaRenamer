@@ -50,6 +50,7 @@ namespace ScriptRenamer
         public IGroup GroupInfo { get; set; }
         public IEpisode EpisodeInfo { get; set; }
         public IRenameScript Script { get; set; }
+        public List<IEpisode> Episodes { get; set; }
 
         private int LastEpisodeNumber { get; set; }
 
@@ -66,6 +67,7 @@ namespace ScriptRenamer
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo?.FirstOrDefault();
             Script = args.Script;
+            Episodes = new List<IEpisode>(args.EpisodeInfo);
         }
 
         #region expressions
@@ -179,16 +181,7 @@ namespace ScriptRenamer
                 SRP.RESOLUTION => FileInfo.MediaInfo?.Video?.StandardizedResolution,
                 SRP.ANIMETYPE => AnimeInfo.Type.ToString(),
                 SRP.EPISODETYPE => EpisodeInfo.Type.ToString(),
-                SRP.EPISODEPREFIX => EpisodeInfo.Type switch
-                {
-                    EpisodeType.Episode => "",
-                    EpisodeType.Special => "S",
-                    EpisodeType.Credits => "C",
-                    EpisodeType.Trailer => "T",
-                    EpisodeType.Parody => "P",
-                    EpisodeType.Other => "O",
-                    _ => ""
-                },
+                SRP.EPISODEPREFIX => GetPrefix(EpisodeInfo.Type),
                 SRP.VIDEOCODECLONG => FileInfo.MediaInfo?.Video?.CodecID,
                 SRP.VIDEOCODECSHORT => FileInfo.MediaInfo?.Video?.SimplifiedCodec,
                 SRP.VIDEOCODECANIDB => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec,
@@ -197,8 +190,33 @@ namespace ScriptRenamer
                 SRP.OLDFILENAME => System.IO.Path.GetFileName(FileInfo.Filename),
                 SRP.ORIGINALFILENAME => System.IO.Path.GetFileName(FileInfo.AniDBFileInfo?.OriginalFilename),
                 SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
+                SRP.EPISODENUMBERS => Episodes.Where(e => e.AnimeID == AnimeInfo?.AnimeID)
+                    .OrderBy(e => e.Number)
+                    .GroupBy(e => e.Type)
+                    .OrderBy(g => g.Key)
+                    .Aggregate("", (s, g) =>
+                        s + (string.IsNullOrEmpty(s) ? string.Empty : " ") + g.Aggregate((Start: 0, Seq: -1, Str: ""), (tup, ep) => ep.Number == tup.Seq + 1
+                                ? (tup.Start, ep.Number, tup.Str)
+                                : tup.Seq >= 0
+                                    ? (ep.Number, ep.Number, $"{tup.Str}-{tup.Seq} {GetPrefix(g.Key)}{ep.Number}")
+                                    : (ep.Number, ep.Number, $"{tup.Str}{GetPrefix(g.Key)}{ep.Number}"),
+                            tup => tup.Start < tup.Seq ? $"{tup.Str}-{tup.Seq}" : tup.Str)),
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception)
             };
+
+            static string GetPrefix(EpisodeType episodeInfoType)
+            {
+                return episodeInfoType switch
+                {
+                    EpisodeType.Episode => "",
+                    EpisodeType.Special => "S",
+                    EpisodeType.Credits => "C",
+                    EpisodeType.Trailer => "T",
+                    EpisodeType.Parody => "P",
+                    EpisodeType.Other => "O",
+                    _ => ""
+                };
+            }
         }
 
         public override object VisitCollection_labels([NotNull] SRP.Collection_labelsContext context)

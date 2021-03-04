@@ -112,6 +112,7 @@ GroupName    // Shoko's Group name
 OldFilename     // Filename before the renamer script was run
 OriginalFilename    // Filename stored by AniDB when a file is added to the database
 OldImportFolder    // Import folder before move **Not available while renaming**
+EpisodeNumbers    // All episode numbers, as a space-seperated string. e.g. "1-3 5-6 C2 S1-2 S4 P5"
 Dates:
     AnimeReleaseDate
     EpisodeReleaseDate

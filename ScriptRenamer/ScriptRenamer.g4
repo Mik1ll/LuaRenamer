@@ -129,7 +129,8 @@ grammar ScriptRenamer;
             |   OLDFILENAME
             |   ORIGINALFILENAME
             |   OLDIMPORTFOLDER
-            |   VIDEOCODECANIDB)
+            |   VIDEOCODECANIDB
+            |   EPISODENUMBERS)
             ;
 
         target_labels
@@ -204,6 +205,7 @@ grammar ScriptRenamer;
         FILERELEASEDATE : 'FileReleaseDate';
         OLDIMPORTFOLDER : 'OldImportFolder';
         VIDEOCODECANIDB : 'VideoCodecAniDB';
+        EPISODENUMBERS : 'EpisodeNumbers';
 
         // Date Fields
             YEAR : 'Year';
