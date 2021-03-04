@@ -24,40 +24,49 @@ namespace ScriptRenamer
         {
             Renaming = true;
             AvailableFolders = new List<IImportFolder>();
-            AnimeInfo = args.AnimeInfo.FirstOrDefault();
-            EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            var seq = EpisodeInfo?.Number ?? 1 - 1;
-            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
-                .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
-            FileInfo = args.FileInfo;
-            GroupInfo = args.GroupInfo.FirstOrDefault();
-            Script = args.Script;
+            Init(args);
         }
 
         public ScriptRenamerVisitor(MoveEventArgs args)
         {
             Renaming = false;
             AvailableFolders = args.AvailableFolders;
-            AnimeInfo = args.AnimeInfo.FirstOrDefault();
-            EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID).OrderBy(e => e.Number).ThenBy(e => e.Type).FirstOrDefault();
-            var seq = EpisodeInfo?.Number ?? 1 - 1;
-            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
-                .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
-            FileInfo = args.FileInfo;
-            GroupInfo = args.GroupInfo.FirstOrDefault();
-            Script = args.Script;
+            Init(new RenameEventArgs
+            {
+                AnimeInfo = args.AnimeInfo,
+                EpisodeInfo = args.EpisodeInfo,
+                Script = args.Script,
+                FileInfo = args.FileInfo,
+                GroupInfo = args.GroupInfo,
+                Cancel = args.Cancel
+            });
         }
 
         public bool Renaming { get; set; } = true;
 
         public List<IImportFolder> AvailableFolders { get; init; } = new();
-        public IVideoFile FileInfo { get; init; }
-        public IAnime AnimeInfo { get; init; }
-        public IGroup GroupInfo { get; init; }
-        public IEpisode EpisodeInfo { get; init; }
-        public IRenameScript Script { get; init; }
+        public IVideoFile FileInfo { get; set; }
+        public IAnime AnimeInfo { get; set; }
+        public IGroup GroupInfo { get; set; }
+        public IEpisode EpisodeInfo { get; set; }
+        public IRenameScript Script { get; set; }
 
-        private int LastEpisodeNumber { get; }
+        private int LastEpisodeNumber { get; set; }
+
+        private void Init(RenameEventArgs args)
+        {
+            AnimeInfo = args.AnimeInfo.FirstOrDefault();
+            EpisodeInfo = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID)
+                .OrderBy(e => e.Type == EpisodeType.Other ? (EpisodeType)int.MinValue : e.Type)
+                .ThenBy(e => e.Number)
+                .FirstOrDefault();
+            var seq = EpisodeInfo?.Number ?? 1 - 1;
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
+                .OrderBy(e => e.Number).LastOrDefault(e => e.Number <= (seq += 1))?.Number ?? 0;
+            FileInfo = args.FileInfo;
+            GroupInfo = args.GroupInfo?.FirstOrDefault();
+            Script = args.Script;
+        }
 
         #region expressions
 

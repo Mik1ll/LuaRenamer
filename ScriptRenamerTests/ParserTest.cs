@@ -4,7 +4,10 @@ using Antlr4.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using ScriptRenamer;
+using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
+
+// ReSharper disable PossibleUnintendedReferenceComparison
 
 namespace ScriptRenamerTests
 {
@@ -78,7 +81,8 @@ namespace ScriptRenamerTests
                 else
                     subfolder set first(AnimeTitles has Main)",
             "[TG] animeTitle1 05v2 episodeTitle1 1080p x.264 8bit DVD [DUAL-AUDIO] [CEN] [ABC123]", "h-anime", "animeTitle1")]
-        [DataRow("add AnimeReleaseDate AnimeReleaseDate.Year EpisodeReleaseDate EpisodeReleaseDate.Month FileReleaseDate FileReleaseDate.Day", "2001.01.2020012001.03.0731997.12.022", null, null)]
+        [DataRow("add AnimeReleaseDate AnimeReleaseDate.Year EpisodeReleaseDate EpisodeReleaseDate.Month FileReleaseDate FileReleaseDate.Day",
+            "2001.01.2020012001.03.0731997.12.022", null, null)]
         public void BigTest(string input, string eFilename, string eDestination, string eSubfolder)
         {
             var parser = Setup(input);
@@ -86,32 +90,33 @@ namespace ScriptRenamerTests
 
             var visitor = new ScriptRenamerVisitor
             {
-                AnimeInfo = Mock.Of<IAnime>(x =>
-                    x.PreferredTitle == "prefTitle" &&
-                    x.Restricted == true &&
-                    x.Type == AnimeType.Movie &&
-                    x.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
-                    x.AirDate == new System.DateTime(2001, 1, 20) &&
-                    x.Titles == new List<AnimeTitle> {
-                        new AnimeTitle
+                AnimeInfo = Mock.Of<IAnime>(a =>
+                    a.PreferredTitle == "prefTitle" &&
+                    a.Restricted &&
+                    a.Type == AnimeType.Movie &&
+                    a.EpisodeCounts == new EpisodeCounts {Episodes = 20} &&
+                    a.AirDate == new DateTime(2001, 1, 20) &&
+                    a.Titles == new List<AnimeTitle>
+                    {
+                        new()
                         {
                             Title = "animeTitle1",
                             Language = TitleLanguage.English,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "animeTitle2",
                             Language = TitleLanguage.Japanese,
                             Type = TitleType.Official
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "animeTitle3",
                             Language = TitleLanguage.Romaji,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "animeTitle4",
                             Language = TitleLanguage.English,
@@ -119,48 +124,48 @@ namespace ScriptRenamerTests
                         }
                     }
                 ),
-                FileInfo = Mock.Of<IVideoFile>(x =>
-                    x.Hashes == Mock.Of<IHashes>(x =>
-                        x.CRC == "abc123") &&
-                        x.MediaInfo == Mock.Of<IMediaContainer>(x =>
-                        x.Video == Mock.Of<IVideoStream>(x =>
-                            x.StandardizedResolution == "1080p" &&
-                            x.BitDepth == 8 &&
-                            x.SimplifiedCodec == "x.264")) &&
-                    x.AniDBFileInfo == Mock.Of<IAniDBFile>(x =>
-                        x.ReleaseGroup == Mock.Of<IReleaseGroup>(x =>
-                            x.Name == "testGroup" &&
-                            x.ShortName == "TG") &&
-                        x.ReleaseDate == new System.DateTime(1997, 12, 2) &&
-                        x.Censored == true &&
-                        x.Source == "DVD" &&
-                        x.Version == 2 &&
-                        x.MediaInfo == Mock.Of<AniDBMediaData>(x =>
-                            x.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
-                            x.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
-                            x.SubLanguages == new List<TitleLanguage>()
+                FileInfo = Mock.Of<IVideoFile>(file =>
+                    file.Hashes == Mock.Of<IHashes>(hashes =>
+                        hashes.CRC == "abc123") &&
+                    file.MediaInfo == Mock.Of<IMediaContainer>(x =>
+                        x.Video == Mock.Of<IVideoStream>(vs =>
+                            vs.StandardizedResolution == "1080p" &&
+                            vs.BitDepth == 8 &&
+                            vs.SimplifiedCodec == "x.264")) &&
+                    file.AniDBFileInfo == Mock.Of<IAniDBFile>(af =>
+                        af.ReleaseGroup == Mock.Of<IReleaseGroup>(rg =>
+                            rg.Name == "testGroup" &&
+                            rg.ShortName == "TG") &&
+                        af.ReleaseDate == new DateTime(1997, 12, 2) &&
+                        af.Censored &&
+                        af.Source == "DVD" &&
+                        af.Version == 2 &&
+                        af.MediaInfo == Mock.Of<AniDBMediaData>(md =>
+                            md.AudioCodecs == new List<string> {"mp3", "FLAC", "opus"} &&
+                            md.AudioLanguages == new List<TitleLanguage> {TitleLanguage.English, TitleLanguage.Japanese} &&
+                            md.SubLanguages == new List<TitleLanguage>()
                         )
                     )
                 ),
-                EpisodeInfo = Mock.Of<IEpisode>(x =>
-                    x.Number == 5 &&
-                    x.Type == EpisodeType.Episode &&
-                    x.AirDate == new System.DateTime(2001, 3, 7) &&
-                    x.Titles == new List<AnimeTitle>
+                EpisodeInfo = Mock.Of<IEpisode>(e =>
+                    e.Number == 5 &&
+                    e.Type == EpisodeType.Episode &&
+                    e.AirDate == new DateTime(2001, 3, 7) &&
+                    e.Titles == new List<AnimeTitle>
                     {
-                        new AnimeTitle
+                        new()
                         {
                             Title = "episodeTitle1",
                             Language = TitleLanguage.English,
                             Type = TitleType.Official
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "episdoeTitle2",
                             Language = TitleLanguage.Danish,
-                            Type = TitleType.Main,
+                            Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "episodeTitle3",
                             Language = TitleLanguage.Romaji,
@@ -170,10 +175,13 @@ namespace ScriptRenamerTests
                 ),
                 AvailableFolders = new List<IImportFolder>
                 {
-                    Mock.Of<IImportFolder>(x => x.DropFolderType == DropFolderType.Source && x.Location == @"C:\Users\Mike\Desktop\Anime Drop" && x.Name == "Drop"),
-                    Mock.Of<IImportFolder>(x => x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\Movies" && x.Name == "Movies"),
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Source && x.Location == @"C:\Users\Mike\Desktop\Anime Drop" && x.Name == "Drop"),
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\Movies" && x.Name == "Movies"),
                     Mock.Of<IImportFolder>(x => x.DropFolderType == DropFolderType.Both && x.Location == @"C:\Users\Mike\Desktop\Anime" && x.Name == "Anime"),
-                    Mock.Of<IImportFolder>(x => x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\h-anime" && x.Name == "h-anime")
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\h-anime" && x.Name == "h-anime")
                 }
             };
             _ = visitor.Visit(context);
@@ -188,7 +196,7 @@ namespace ScriptRenamerTests
         public void TestDanglingElse()
         {
             var parser = Setup(
-           @"if (true) if (false) {} else {}");
+                @"if (true) if (false) {} else {}");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
             _ = visitor.Visit(context);
@@ -222,7 +230,7 @@ namespace ScriptRenamerTests
                     }),
                 EpisodeInfo = Mock.Of<IEpisode>(x =>
                     x.Type == EpisodeType.Episode
-                    )
+                )
             };
             var result = visitor.Visit(context);
             Assert.IsNull(result);
@@ -243,11 +251,11 @@ namespace ScriptRenamerTests
 
         [DataTestMethod]
         [DataRow("if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '"
-                        + "if (AnimeTitles has English and Main and len(AnimeTitles has Main and English) == 2) filename add AnimeTitles has English and Main"
-                        + "if (len(ImportFolders) == 0) add ' empty import folder'"
-                        + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
-                        + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
-                        + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English",
+                 + "if (AnimeTitles has English and Main and len(AnimeTitles has Main and English) == 2) filename add AnimeTitles has English and Main"
+                 + "if (len(ImportFolders) == 0) add ' empty import folder'"
+                 + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
+                 + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
+                 + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English",
             "[raw] test, test4 empty import folder has mp3 test etest, etest4")]
         [DataRow("if (len(DubLanguages)) add len(DubLanguages)", "2")]
         public void TestHasOperator(string input, string expected)
@@ -259,34 +267,34 @@ namespace ScriptRenamerTests
                 FileInfo = Mock.Of<IVideoFile>(v =>
                     v.AniDBFileInfo == Mock.Of<IAniDBFile>(m =>
                         m.MediaInfo == Mock.Of<AniDBMediaData>(md =>
-                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
-                            md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.Afrikaans, TitleLanguage.Japanese } &&
-                            md.SubLanguages == new List<TitleLanguage> { TitleLanguage.Hebrew, TitleLanguage.Galician }
+                            md.AudioCodecs == new List<string> {"mp3", "FLAC", "opus"} &&
+                            md.AudioLanguages == new List<TitleLanguage> {TitleLanguage.Afrikaans, TitleLanguage.Japanese} &&
+                            md.SubLanguages == new List<TitleLanguage> {TitleLanguage.Hebrew, TitleLanguage.Galician}
                         )
                     )
                 ),
                 AnimeInfo = Mock.Of<IAnime>(a =>
                     a.Titles == new List<AnimeTitle>
                     {
-                        new AnimeTitle
+                        new()
                         {
                             Title = "test",
                             Language = TitleLanguage.English,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "test2",
                             Language = TitleLanguage.Japanese,
                             Type = TitleType.Official
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "test3",
                             Language = TitleLanguage.Romaji,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "test4",
                             Language = TitleLanguage.English,
@@ -297,25 +305,25 @@ namespace ScriptRenamerTests
                 EpisodeInfo = Mock.Of<IEpisode>(e =>
                     e.Titles == new List<AnimeTitle>
                     {
-                        new AnimeTitle
+                        new()
                         {
                             Title = "etest",
                             Language = TitleLanguage.English,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "etest2",
                             Language = TitleLanguage.Japanese,
                             Type = TitleType.Official
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "etest3",
                             Language = TitleLanguage.Romaji,
                             Type = TitleType.Main
                         },
-                        new AnimeTitle
+                        new()
                         {
                             Title = "etest4",
                             Language = TitleLanguage.English,
@@ -419,6 +427,52 @@ namespace ScriptRenamerTests
             catch (Exception e)
             {
                 Assert.IsTrue(e.Message.EndsWith(exMsg));
+            }
+        }
+
+        [DataTestMethod]
+        [DynamicData(nameof(TestEpisodeSelectionData))]
+        public void TestEpisodeSelection(List<IEpisode> episodes, int eEpisodeId)
+        {
+            var visitor = new ScriptRenamerVisitor(new MoveEventArgs
+            {
+                AnimeInfo = new List<IAnime>
+                {
+                    Mock.Of<IAnime>(a => a.AnimeID == 10)
+                },
+                EpisodeInfo = episodes
+            });
+            Assert.AreEqual(eEpisodeId, visitor.EpisodeInfo.EpisodeID);
+        }
+
+        private static IEnumerable<object[]> TestEpisodeSelectionData
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    new List<IEpisode>
+                    {
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 1),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 2),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Other && e.Number == 5 && e.AnimeID == 10 && e.EpisodeID == 3),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Other && e.Number == 1 && e.AnimeID == 9 && e.EpisodeID == 4)
+                    },
+                    3
+                };
+                yield return new object[]
+                {
+                    new List<IEpisode>
+                    {
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 9 && e.EpisodeID == 1),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 2),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Parody && e.Number == 5 && e.AnimeID == 10 && e.EpisodeID == 3),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 4),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Special && e.Number == 1 && e.AnimeID == 10 && e.EpisodeID == 5),
+                        Mock.Of<IEpisode>(e => e.Type == EpisodeType.Credits && e.Number == 2 && e.AnimeID == 10 && e.EpisodeID == 6)
+                    },
+                    4
+                };
             }
         }
     }
