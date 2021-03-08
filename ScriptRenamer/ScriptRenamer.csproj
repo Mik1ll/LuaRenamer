@@ -16,18 +16,6 @@
     <_GeneratedFiles Include="GeneratedCode/*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Shoko.Commons, Version=3.8.0.28991, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\ShokoServer\Shoko.Server\bin\Debug\net5.0-windows\Shoko.Commons.dll</HintPath>
-    </Reference>
-    <Reference Include="Shoko.Models, Version=3.8.0.28990, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\ShokoServer\Shoko.Server\bin\Debug\net5.0-windows\Shoko.Models.dll</HintPath>
-    </Reference>
-    <Reference Include="Shoko.Server, Version=4.1.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\ShokoServer\Shoko.Server\bin\Debug\net5.0-windows\Shoko.Server.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <ItemGroup>
       <Compile Remove="GeneratedCode/*.cs" />

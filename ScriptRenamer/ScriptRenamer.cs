@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
-using Shoko.Server.Repositories;
 
 namespace ScriptRenamer
 {
@@ -17,19 +18,25 @@ namespace ScriptRenamer
         private static string _script = string.Empty;
         private static ParserRuleContext _context;
         private static Exception _contextException;
+        private static readonly Type Repofact = GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
+        private static readonly object VideoLocalRepo = Repofact.GetProperty("VideoLocal")?.GetValue(null);
+        private static readonly MethodInfo GetVideoLocalByAniDbAnimeId = VideoLocalRepo.GetType().GetMethod("GetByAniDBAnimeID", new[] {typeof(int)});
+        private static readonly object ImportFolderRepo = Repofact.GetProperty("ImportFolder")?.GetValue(null);
+        private static readonly MethodInfo GetImportFolderById = ImportFolderRepo.GetType().GetMethod("GetByID", new[] {typeof(int)});
 
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
             CheckBadArgs(visitor);
             IImportFolder fld = null;
-            var test = RepoFactory.VideoLocal.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID)
+            var test = ((IEnumerable<dynamic>)GetVideoLocalByAniDbAnimeId.Invoke(VideoLocalRepo, new object[] {visitor.AnimeInfo.AnimeID}))
                 .Where(vl => !string.Equals(vl.CRC32, visitor.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(vl => vl.DateTimeUpdated)
                 .Select(vl => vl.GetBestVideoLocalPlace())
                 .FirstOrDefault(vp =>
-                    (fld = RepoFactory.ImportFolder.GetByID(vp.ImportFolderID)).DropFolderType.HasFlag(DropFolderType.Destination | DropFolderType.Excluded));
-            var sub = Path.GetDirectoryName(test?.FilePath);
+                    (fld = (IImportFolder)GetImportFolderById.Invoke(ImportFolderRepo, new object[] {vp.ImportFolderID})).DropFolderType.HasFlag(
+                        DropFolderType.Destination | DropFolderType.Excluded));
+            string sub = Path.GetDirectoryName(test?.FilePath);
             if (fld is not null && sub is not null)
                 return (fld, sub);
             SetupAndLaunch(visitor);
