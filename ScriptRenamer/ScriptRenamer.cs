@@ -6,6 +6,7 @@ using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Server.Repositories;
 
 namespace ScriptRenamer
 {
@@ -20,15 +21,33 @@ namespace ScriptRenamer
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
+            CheckBadArgs(visitor);
+            IImportFolder fld = null;
+            var test = RepoFactory.VideoLocal.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID)
+                .Where(vl => !string.Equals(vl.CRC32, visitor.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(vl => vl.DateTimeUpdated)
+                .Select(vl => vl.GetBestVideoLocalPlace())
+                .FirstOrDefault(vp =>
+                    (fld = RepoFactory.ImportFolder.GetByID(vp.ImportFolderID)).DropFolderType.HasFlag(DropFolderType.Destination | DropFolderType.Excluded));
+            var sub = Path.GetDirectoryName(test?.FilePath);
+            if (fld is not null && sub is not null)
+                return (fld, sub);
             SetupAndLaunch(visitor);
             var (destfolder, olddestfolder) = GetNewAndOldDestinations(args, visitor);
             var subfolder = GetNewSubfolder(args, visitor, olddestfolder);
             return (destfolder, subfolder);
         }
 
+        private static Type GetTypeFromAssemblies(string typeName)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies().Select(currentassembly => currentassembly.GetType(typeName, false, true))
+                .FirstOrDefault(t => t is not null);
+        }
+
         public string GetFilename(RenameEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
+            CheckBadArgs(visitor);
             SetupAndLaunch(visitor);
             return !string.IsNullOrWhiteSpace(visitor.Filename)
                 ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename)
@@ -105,7 +124,6 @@ namespace ScriptRenamer
 
         private static void SetupAndLaunch(ScriptRenamerVisitor visitor)
         {
-            CheckBadArgs(visitor);
             SetContext(visitor.Script.Script);
             try
             {
