@@ -195,12 +195,16 @@ namespace ScriptRenamer
                     .GroupBy(e => e.Type)
                     .OrderBy(g => g.Key)
                     .Aggregate("", (s, g) =>
-                        s + (string.IsNullOrEmpty(s) ? string.Empty : " ") + g.Aggregate((Start: 0, Seq: -1, Str: ""), (tup, ep) => ep.Number == tup.Seq + 1
-                                ? (tup.Start, ep.Number, tup.Str)
-                                : tup.Seq >= 0
-                                    ? (ep.Number, ep.Number, $"{tup.Str}-{tup.Seq} {GetPrefix(g.Key)}{ep.Number}")
-                                    : (ep.Number, ep.Number, $"{tup.Str}{GetPrefix(g.Key)}{ep.Number}"),
-                            tup => tup.Start < tup.Seq ? $"{tup.Str}-{tup.Seq}" : tup.Str)),
+                        s + " " + g.Aggregate(
+                            (InRun: false, Seq: -1, Str: ""),
+                            (tup, ep) => ep.Number == tup.Seq + 1
+                                ? (true, ep.Number, tup.Str)
+                                : tup.InRun
+                                    ? (false, ep.Number, $"{tup.Str}-{tup.Seq} {GetPrefix(g.Key)}{ep.Number}")
+                                    : (false, ep.Number, $"{tup.Str} {GetPrefix(g.Key)}{ep.Number}"),
+                            tup => tup.InRun ? $"{tup.Str}-{tup.Seq}" : tup.Str
+                        ).Trim()
+                    ).Trim(),
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception)
             };
 
