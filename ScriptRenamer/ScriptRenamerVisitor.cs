@@ -288,16 +288,29 @@ namespace ScriptRenamer
 
         public override object VisitString_atom([NotNull] SRP.String_atomContext context)
         {
-            var ctx = context.number_atom(0) ??
-                      context.string_labels() ?? context.STRING()?.Symbol.Type ?? context.date_atom() ?? (object)context.collection_expr();
-            return ctx switch
+            return context.op?.Type switch
             {
-                SRP.Number_atomContext when context.PAD() is null => Visit(context.number_atom(0)).ToString(),
-                SRP.Number_atomContext when context.PAD() is not null => ((int)Visit(context.number_atom(0))).PadZeroes((int)Visit(context.number_atom(1))),
-                SRP.String_labelsContext => Visit(context.string_labels()),
+                SRP.PAD => ((int)Visit(context.number_atom(0))).PadZeroes((int)Visit(context.number_atom(1))),
                 SRP.STRING => context.STRING().GetText()[1..^1],
-                SRP.Collection_exprContext => ((IList)Visit(context.collection_expr())).CollectionString(),
-                SRP.Date_atomContext => Visit(context.date_atom()),
+                SRP.PLUS => (string)Visit(context.string_atom(0)) + (string)Visit(context.string_atom(1)),
+                SRP.REPLACE => (string)Visit(context.string_atom(1)) is var temp && !string.IsNullOrEmpty(temp)
+                    ? ((string)Visit(context.string_atom(0)))?.Replace(temp, (string)Visit(context.string_atom(2)))
+                    : (string)Visit(context.string_atom(0)),
+                SRP.SUBSTRING => context.number_atom(1) is not null
+                    ? ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0)), (int)Visit(context.number_atom(1)))
+                    : ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0))),
+                SRP.TRUNCATE => (string)Visit(context.string_atom(0)) is var temp
+                    ? temp?.Substring(0, Math.Min(temp.Length, (int)Visit(context.number_atom(0))))
+                    : null,
+                SRP.TRIM => ((string)Visit(context.string_atom(0))).Trim(),
+                null => (context.number_atom(0) ?? context.string_labels() ?? context.date_atom() ?? (object)context.collection_expr()) switch
+                {
+                    SRP.Number_atomContext => Visit(context.number_atom(0)).ToString(),
+                    SRP.String_labelsContext => Visit(context.string_labels()),
+                    SRP.Collection_exprContext => ((IList)Visit(context.collection_expr())).CollectionString(),
+                    SRP.Date_atomContext => Visit(context.date_atom()),
+                    _ => throw new ParseCanceledException("Could not parse string_atom with null op label", context.exception)
+                },
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception)
             };
         }

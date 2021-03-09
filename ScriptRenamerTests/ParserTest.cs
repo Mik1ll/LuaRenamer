@@ -500,5 +500,23 @@ namespace ScriptRenamerTests
                 };
             }
         }
+
+        [DataTestMethod]
+        [DataRow("53", "53")]
+        [DataRow("'weihrowih' + 'testting'", "weihrowihtestting")]
+        [DataRow("substr('blarglargle', 3)", "rglargle")]
+        [DataRow("substr('mrglrglelergle', 5, 3)", "gle")]
+        [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 14)", "j 098jwa09f 0w")]
+        [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 500)", "j 098jwa09f 0we9hwh90h23")]
+        [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 24)", "j 098jwa09f 0we9hwh90h23")]
+        [DataRow("trim('  w wihowieh '+'weio'+'hw oowoo     ')", "w wihowieh weiohw oowoo")]
+        public void TestStringOperations(string input, string expected)
+        {
+            var visitor = new ScriptRenamerVisitor();
+            var parser = Setup(input);
+            var context = parser.string_atom();
+            var result = (string)visitor.Visit(context);
+            Assert.AreEqual(expected, result);
+        }
     }
 }
