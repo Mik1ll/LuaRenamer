@@ -276,6 +276,12 @@ Strings:
 1. ***collection*** ```Comma delimited list, null if empty```
 1. ***number*** (pad ***number***)?    ```Able to pad nubmer up to same nubmer of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount```
 1. ***date***
+1. ***string*** + ***string***
+1. replace(***string***, ***old string***, ***new string***)    ```Returns string with old string replaced with new string```
+1. substr(***string***, ***index number***)    ```Returns string starting at given index```
+1. substr(***string***, ***index number***, ***length number***)    ```Returns string starting at given index with given length```
+1. trunc(***string***, ***length number***)    ```Returns string with characters after length sliced off```
+1. trim(***string***)    ```Trims whitespace on ends of string```
 
 Dates:
 1. ***date label***

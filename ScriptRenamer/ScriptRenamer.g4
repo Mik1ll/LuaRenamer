@@ -62,11 +62,16 @@ grammar ScriptRenamer;
             ;
 
         string_atom
-            :   STRING
+            :   op=STRING
             |   string_labels
             |   collection_expr
-            |   number_atom (PAD number_atom)?
+            |   number_atom (op=PAD number_atom)?
             |   date_atom
+            |   string_atom op=PLUS string_atom
+            |   op=REPLACE LPAREN string_atom COMMA string_atom COMMA string_atom RPAREN
+            |   op=SUBSTRING LPAREN string_atom COMMA number_atom (COMMA number_atom)? RPAREN
+            |   op=TRUNCATE LPAREN string_atom COMMA number_atom RPAREN
+            |   op=TRIM LPAREN string_atom RPAREN
             ;
 
         date_atom
@@ -177,6 +182,12 @@ grammar ScriptRenamer;
     DOT : '.';
     CONTAINS : 'contains';
     PAD : 'pad';
+    PLUS : '+';
+    COMMA : ',';
+    SUBSTRING : 'substr';
+    TRUNCATE : 'trunc';
+    TRIM : 'trim';
+
 
 // Tags
     // Strings
