@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Antlr4.Runtime;
 using Shoko.Plugin.Abstractions;
@@ -26,26 +25,23 @@ namespace ScriptRenamer
         {
             var visitor = new ScriptRenamerVisitor(args);
             CheckBadArgs(visitor);
-            IImportFolder fld = null;
-            var test = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID))
-                .Where(vl => !string.Equals(vl.CRC32, visitor.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(vl => vl.DateTimeUpdated)
-                .Select(vl => vl.GetBestVideoLocalPlace())
-                .FirstOrDefault(vp => (fld = (IImportFolder)ImportFolderRepo.GetByID(vp.ImportFolderID))
-                    .DropFolderType.HasFlag(DropFolderType.Destination | DropFolderType.Excluded));
-            string sub = Path.GetDirectoryName(test?.FilePath);
-            if (fld is not null && sub is not null)
-                return (fld, sub);
             SetupAndLaunch(visitor);
+            if (!visitor.OverrideLocation)
+            {
+                IImportFolder fld = null;
+                var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID))
+                    .Where(vl => !string.Equals(vl.CRC32, visitor.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(vl => vl.DateTimeUpdated)
+                    .Select(vl => vl.GetBestVideoLocalPlace())
+                    .FirstOrDefault(vlp => (fld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
+                                           (fld.DropFolderType.HasFlag(DropFolderType.Destination) || fld.DropFolderType.HasFlag(DropFolderType.Excluded)));
+                string subFld = Path.GetDirectoryName(lastFileLocation?.FilePath);
+                if (fld is not null && subFld is not null)
+                    return (fld, subFld);
+            }
             var (destfolder, olddestfolder) = GetNewAndOldDestinations(args, visitor);
             var subfolder = GetNewSubfolder(args, visitor, olddestfolder);
             return (destfolder, subfolder);
-        }
-
-        private static Type GetTypeFromAssemblies(string typeName)
-        {
-            return AppDomain.CurrentDomain.GetAssemblies().Select(currentassembly => currentassembly.GetType(typeName, false, true))
-                .FirstOrDefault(t => t is not null);
         }
 
         public string GetFilename(RenameEventArgs args)
@@ -56,6 +52,12 @@ namespace ScriptRenamer
             return !string.IsNullOrWhiteSpace(visitor.Filename)
                 ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename)
                 : null;
+        }
+
+        private static Type GetTypeFromAssemblies(string typeName)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies().Select(currentassembly => currentassembly.GetType(typeName, false, true))
+                .FirstOrDefault(t => t is not null);
         }
 
         private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor, IImportFolder olddestfolder)
