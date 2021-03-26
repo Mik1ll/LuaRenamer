@@ -30,14 +30,16 @@ else if (AnimeTitles has English and Official)
     add first(AnimeTitles has English and Official) ' '
 else
     add AnimeTitle ' '
-add EpisodePrefix EpisodeNumber pad EpisodeCount
-if (Version > 1)
-    add 'v' Version
-add ' '
-if (EpisodeTitleEnglish)
-    add EpisodeTitleEnglish ' '
-else
-    add first(EpisodeTitles has Main) ' '
+if (not (AnimeType is Movie and EpisodeCount == 1 and EpisodeType is Episode)) {
+    add EpisodePrefix EpisodeNumber pad EpisodeCount
+    if (Version > 1)
+        add 'v' Version
+    add ' '
+    if (EpisodeTitleEnglish)
+        add EpisodeTitleEnglish ' '
+    else
+        add first(EpisodeTitles has Main) ' '
+}
 add Resolution ' ' VideoCodecShort ' '
 if (BitDepth)
     add BitDepth 'bit '
@@ -57,8 +59,8 @@ if (Restricted)
 add '[' CRCUpper ']'
 
 // Import folders:
-if (Restricted and ImportFolders has 'h-anime')
-    destination set 'h-anime'
+if (Restricted and ImportFolders has 'Hentai')
+    destination set 'Hentai'
 else if (AnimeType is Movie)
     destination set 'Movies'
 else
