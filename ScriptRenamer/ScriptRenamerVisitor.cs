@@ -151,12 +151,14 @@ namespace ScriptRenamer
                 SRP.CHAPTERED => FileInfo.MediaInfo?.Chaptered ?? false,
                 SRP.MANUALLYLINKED => FileInfo.AniDBFileInfo is null,
                 SRP.INDROPSOURCE => OldDestination()?.DropFolderType.HasFlag(DropFolderType.Source) ?? false,
+                SRP.MULTILINKED => Episodes.Count(e => e.AnimeID == AnimeInfo.AnimeID) > 1,
                 _ => throw new ParseCanceledException("Could not parse bool_labels", context.exception)
             };
         }
 
         public override object VisitString_labels([NotNull] SRP.String_labelsContext context)
         {
+            int pad = context.number_atom() is null ? 0 : (int)Visit(context.number_atom());
             return context.label.Type switch
             {
                 SRP.ANIMETITLEPREFERRED => AnimeInfo.PreferredTitle,
@@ -201,9 +203,9 @@ namespace ScriptRenamer
                             (tup, ep) => ep.Number == tup.Seq + 1
                                 ? (true, ep.Number, tup.Str)
                                 : tup.InRun
-                                    ? (false, ep.Number, $"{tup.Str}-{tup.Seq} {GetPrefix(g.Key)}{ep.Number}")
-                                    : (false, ep.Number, $"{tup.Str} {GetPrefix(g.Key)}{ep.Number}"),
-                            tup => tup.InRun ? $"{tup.Str}-{tup.Seq}" : tup.Str
+                                    ? (false, ep.Number, $"{tup.Str}-{tup.Seq.PadZeroes(pad)} {GetPrefix(g.Key)}{ep.Number.PadZeroes(pad)}")
+                                    : (false, ep.Number, $"{tup.Str} {GetPrefix(g.Key)}{ep.Number.PadZeroes(pad)}"),
+                            tup => tup.InRun ? $"{tup.Str}-{tup.Seq.PadZeroes(pad)}" : tup.Str
                         ).Trim()
                     ).Trim(),
                 _ => throw new ParseCanceledException("Could not parse string_labels", context.exception)

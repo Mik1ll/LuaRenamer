@@ -31,19 +31,24 @@ else if (AnimeTitles has English and Official)
 else
     add AnimeTitle ' '
 if (not (AnimeType is Movie and EpisodeCount == 1 and EpisodeType is Episode)) {
-    add EpisodePrefix EpisodeNumber pad EpisodeCount
+    add EpisodeNumbers pad MaxEpisodeCount
     if (Version > 1)
         add 'v' Version
     add ' '
-    if (EpisodeTitleEnglish)
-        add EpisodeTitleEnglish ' '
-    else
-        add first(EpisodeTitles has Main) ' '
+    if (not MultiLinked)
+        if (EpisodeTitleEnglish)
+            add EpisodeTitleEnglish ' '
+        else
+            add first(EpisodeTitles has Main) ' '
 }
-add Resolution ' ' VideoCodecShort ' '
+add '(' Resolution ' ' VideoCodecShort ' '
 if (BitDepth)
     add BitDepth 'bit '
-add Source ' '
+if (Source)
+    add Source
+else
+    add 'Unknown'
+add ') '
 if (DubLanguages has English)
     if (DubLanguages has Japanese)
         add '[DUAL-AUDIO] '
@@ -101,7 +106,7 @@ GroupName    // Shoko's Group name
 OldFilename     // Filename before the renamer script was run
 OriginalFilename    // Filename stored by AniDB when a file is added to the database
 OldImportFolder    // Import folder before move **Not available while renaming**
-EpisodeNumbers    // All episode numbers, as a space-seperated string. e.g. "1-3 5-6 C2 S1-2 S4 P5"
+EpisodeNumbers    // All episode numbers, as a space-seperated string. e.g. "1-3 5-6 C2 S1-2 S4 P5" Can also use padding like numbers.
 Dates:
     AnimeReleaseDate
     EpisodeReleaseDate
@@ -131,6 +136,7 @@ Censored
 Chaptered
 ManuallyLinked
 InDropSource    // True if import folder moving from is a drop source **Not available while renaming**
+MultiLinked    // If file is linked with multiple episodes
 ```
 
 #### Collections
@@ -276,7 +282,7 @@ Strings:
 1. '***char****' | "***char****"
 1. ***string label***
 1. ***collection*** ```Comma delimited list, null if empty```
-1. ***number*** (pad ***number***)?    ```Able to pad nubmer up to same nubmer of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount```
+1. ***number*** (pad ***number***)?    ```Able to pad number up to same number of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount. Special case: works with EpisodeNumbers string```
 1. ***date***
 1. ***string*** + ***string***
 1. replace(***string***, ***old string***, ***new string***)    ```Returns string with old string replaced with new string```

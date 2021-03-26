@@ -99,7 +99,8 @@ grammar ScriptRenamer;
             |   CENSORED
             |   CHAPTERED
             |   MANUALLYLINKED
-            |   INDROPSOURCE)
+            |   INDROPSOURCE
+            |   MULTILINKED)
             ;
 
         collection_labels
@@ -135,8 +136,8 @@ grammar ScriptRenamer;
             |   OLDFILENAME
             |   ORIGINALFILENAME
             |   OLDIMPORTFOLDER
-            |   VIDEOCODECANIDB
-            |   EPISODENUMBERS)
+            |   VIDEOCODECANIDB)
+            |   label=EPISODENUMBERS (PAD number_atom)?
             ;
 
         target_labels
@@ -245,6 +246,7 @@ grammar ScriptRenamer;
         CHAPTERED : 'Chaptered';
         MANUALLYLINKED : 'ManuallyLinked';
         INDROPSOURCE : 'InDropSource';
+        MULTILINKED : 'MultiLinked';
 
     // Collections
         AUDIOCODECS : 'AudioCodecs';
