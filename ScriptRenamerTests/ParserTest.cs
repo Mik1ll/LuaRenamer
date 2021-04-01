@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Antlr4.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -520,5 +521,49 @@ namespace ScriptRenamerTests
             var result = (string)visitor.Visit(context);
             Assert.AreEqual(expected, result);
         }
+
+        [DataTestMethod]
+        [DynamicData(nameof(TestLastEpisodeNumberData))]
+        public void TestLastEpisodeNumber(List<IEpisode> episodes, string expected)
+        {
+            var visitor = new ScriptRenamerVisitor(new RenameEventArgs()
+            {
+                AnimeInfo = new List<IAnime>
+                {
+                    Mock.Of<IAnime>(a => a.AnimeID == 10)
+                },
+                EpisodeInfo = episodes
+            }) ;
+            var parser = Setup("add EpisodeNumber '-' LastEpisodeNumber");
+            var context = parser.start();
+            _ = visitor.Visit(context);
+            Assert.AreEqual(expected, visitor.Filename);
+        }
+
+        private static IEnumerable<object[]> TestLastEpisodeNumberData => new[]
+        {
+            new object[]
+            {
+                new List<IEpisode>
+                {
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 1 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 2 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 10 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 3 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 6 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 11 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 15 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 8 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 7 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 9 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 4 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 13 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 14 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 12 && e.AnimeID == 10),
+                    Mock.Of<IEpisode>(e => e.Type == EpisodeType.Episode && e.Number == 5 && e.AnimeID == 10),
+                },
+                "1-15"
+            }
+        };
     }
 }
