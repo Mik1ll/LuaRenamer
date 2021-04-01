@@ -62,11 +62,9 @@ namespace ScriptRenamer
                 .OrderBy(e => e.Type == EpisodeType.Other ? (EpisodeType)int.MinValue : e.Type)
                 .ThenBy(e => e.Number)
                 .FirstOrDefault();
-            var seq = (EpisodeInfo?.Number ?? 1) - 1;
-            LastEpisodeNumber = (args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
-                .OrderBy(e => e.Number).ToList<IEpisode>() is var eps)
-                ? eps.FirstOrDefault(e => e.Number != (seq += 1))?.Number - 1 ?? eps[^1].Number
-                : -1;
+            var seq = EpisodeInfo?.Number - 1 ?? 0;
+            LastEpisodeNumber = args.EpisodeInfo.Where(e => e.AnimeID == AnimeInfo?.AnimeID && e.Type == EpisodeInfo?.Type)
+                .OrderBy(e => e.Number).TakeWhile(e => e.Number == (seq += 1)).LastOrDefault()?.Number ?? -1;
             FileInfo = args.FileInfo;
             GroupInfo = args.GroupInfo?.FirstOrDefault();
             Script = args.Script;
