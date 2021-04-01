@@ -14,7 +14,7 @@ Renamer Plugin for Shoko
 1. Test your script using the preview utility in the same window.
 
 ### Important Notes for File Moving
-Unless 'overrideLocation' is used, the last added file's location from the same anime will be used if it exists.
+If 'findLastLocation' is used, the last added file's location from the same anime will be used if it exists.
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 The final destination MUST match the name or absolute path of a drop folder in order to move the file.  
 If using name to set, destination import folder name must be unique or moving file will fail.  
@@ -248,7 +248,7 @@ Statements:
 1. { ***statement*** }    ```Standard code block, enclosing multiple statements, required after if/else statements if using multiple statements```
 1. cancel ***string****    ```Cancel renaming and moving with an exception```
 1. skipRename | skipMove    ```Skip renaming or moving, deferring to the next renamer/mover in the priority list```
-1. overrideLocation    ```Disables using last added file's location from the same anime```
+1. findLastLocation    ```Enables using last added file's location from the same anime```
 
 Collections:
 1. ***collection label***

@@ -9,7 +9,7 @@ grammar ScriptRenamer;
             |   target_labels? op=REPLACE string_atom string_atom
             |   cancel=CANCEL string_atom*
             |   cancel=(SKIPRENAME | SKIPMOVE)
-            |   OVERRIDELOCATION
+            |   FINDLASTLOCATION
             |   block
             ;
 
@@ -162,7 +162,7 @@ grammar ScriptRenamer;
     CANCEL : 'cancel';
     SKIPRENAME : 'skipRename';
     SKIPMOVE : 'skipMove';
-    OVERRIDELOCATION : 'overrideLocation';
+    FINDLASTLOCATION : 'findLastLocation';
 
 // Operators
     AND : 'and';

@@ -26,7 +26,7 @@ namespace ScriptRenamer
             var visitor = new ScriptRenamerVisitor(args);
             CheckBadArgs(visitor);
             SetupAndLaunch(visitor);
-            if (!visitor.OverrideLocation)
+            if (visitor.FindLastLocation)
             {
                 IImportFolder fld = null;
                 var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID))

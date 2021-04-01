@@ -43,7 +43,7 @@ namespace ScriptRenamer
         }
 
         public bool Renaming { get; set; } = true;
-        public bool OverrideLocation { get; set; }
+        public bool FindLastLocation { get; set; }
 
         public List<IImportFolder> AvailableFolders { get; init; } = new();
         public IVideoFile FileInfo { get; set; }
@@ -385,9 +385,9 @@ namespace ScriptRenamer
                     SRP.SKIPMOVE when !Renaming => throw new SkipException(),
                     _ => throw new ParseCanceledException("Could not parse skip/cancel", context.exception)
                 };
-            if (context.OVERRIDELOCATION() is not null)
+            if (context.FINDLASTLOCATION() is not null)
             {
-                OverrideLocation = true;
+                FindLastLocation = true;
                 return null;
             }
             var target = context.target_labels()?.label.Type;
