@@ -370,69 +370,42 @@ namespace ScriptRenamer
 
         public override object VisitStmt([NotNull] SRP.StmtContext context)
         {
-            if (context.if_stmt() is not null)
-                return Visit(context.if_stmt());
-            if (context.block() is not null)
-                return Visit(context.block());
-            if (context.cancel is not null)
-                return context.cancel.Type switch
+            var ctx = context.if_stmt() ?? context.cancel?.Type ??
+                context.block() ?? context.FINDLASTLOCATION()?.Symbol.Type ?? (object)context.target_labels()?.label.Type;
+            return ctx switch
+            {
+                SRP.If_stmtContext => Visit(context.if_stmt()),
+                SRP.BlockContext => Visit(context.block()),
+                SRP.CANCEL => throw new ParseCanceledException(
+                    $"Line {context.cancel.Line} Column {context.cancel.Column} Cancelled: {AggregateString()}"),
+                SRP.SKIPRENAME => Renaming ? throw new SkipException() : null,
+                SRP.SKIPMOVE => Renaming ? null : throw new SkipException(),
+                SRP.FINDLASTLOCATION => FindLastLocation = true,
+                SRP.DESTINATION when !Renaming => DoAction(ref Destination),
+                SRP.SUBFOLDER when !Renaming => DoAction(ref Subfolder),
+                not (SRP.DESTINATION or SRP.SUBFOLDER) when Renaming && context.op is not null => DoAction(ref Filename),
+                _ when context.op is not null => null,
+                _ => throw new ParseCanceledException("Could not parse VisitStmt")
+            };
+
+            object DoAction(ref string target)
+            {
+                return context.op.Type switch
                 {
-                    SRP.CANCEL => throw new ParseCanceledException(
-                        $"Line {context.cancel.Line} Column {context.cancel.Column} Cancelled: {context.string_atom()?.Select(a => (string)Visit(a)).Aggregate((s1, s2) => s1 + s2)}"),
-                    SRP.SKIPRENAME when !Renaming => null,
-                    SRP.SKIPMOVE when Renaming => null,
-                    SRP.SKIPRENAME when Renaming => throw new SkipException(),
-                    SRP.SKIPMOVE when !Renaming => throw new SkipException(),
-                    _ => throw new ParseCanceledException("Could not parse skip/cancel", context.exception)
+                    SRP.SET => target = AggregateString(),
+                    SRP.ADD => target += AggregateString(),
+                    SRP.REPLACE => target = target.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1))),
+                    _ => throw new ParseCanceledException("Could not parse action statement", context.exception)
                 };
-            if (context.FINDLASTLOCATION() is not null)
-            {
-                FindLastLocation = true;
-                return null;
-            }
-            var target = context.target_labels()?.label.Type;
-            if ((target == SRP.DESTINATION || target == SRP.SUBFOLDER) && !Renaming || (target == SRP.FILENAME || target == null) && Renaming)
-                switch (target)
-                {
-                    case SRP.FILENAME:
-                        DoAction(ref Filename, context);
-                        break;
-                    case SRP.DESTINATION:
-                        DoAction(ref Destination, context);
-                        break;
-                    case SRP.SUBFOLDER:
-                        DoAction(ref Subfolder, context);
-                        break;
-                    default:
-                        DoAction(ref Filename, context);
-                        break;
-                }
-            return null;
-        }
-
-        private void DoAction(ref string tar, SRP.StmtContext context)
-        {
-            switch (context.op.Type)
-            {
-                case SRP.SET:
-                    tar = AggregateString(context);
-                    break;
-                case SRP.ADD:
-                    tar += AggregateString(context);
-                    break;
-                case SRP.REPLACE:
-                    tar = tar.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)));
-                    break;
-                default:
-                    throw new ParseCanceledException("Could not parse action statement", context.exception);
             }
 
-            string AggregateString(SRP.StmtContext ctx)
+            string AggregateString()
             {
-                return ctx.string_atom().Select(a =>
-                    a.STRING() is null || ctx.target_labels()?.label.Type != SRP.SUBFOLDER
+                return context.string_atom()?.Select(a =>
+                    a.STRING() is null || context.target_labels()?.label.Type != SRP.SUBFOLDER
                         ? (string)Visit(a)
-                        : ((string)Visit(a)).Replace('/', (char)0x1F).Replace('\\', (char)0x1F)).Aggregate((s1, s2) => s1 + s2);
+                        : ((string)Visit(a)).Replace('/', (char)0x1F).Replace('\\', (char)0x1F)
+                ).Aggregate((s1, s2) => s1 + s2);
             }
         }
 
