@@ -68,7 +68,7 @@ grammar ScriptRenamer;
             |   number_atom (op=PAD number_atom)?
             |   date_atom
             |   string_atom op=PLUS string_atom
-            |   op=REPLACE LPAREN string_atom COMMA string_atom COMMA string_atom RPAREN
+            |   op=(REPLACE | RXREPLACE) LPAREN string_atom COMMA string_atom COMMA string_atom RPAREN
             |   op=SUBSTRING LPAREN string_atom COMMA number_atom (COMMA number_atom)? RPAREN
             |   op=TRUNCATE LPAREN string_atom COMMA number_atom RPAREN
             |   op=TRIM LPAREN string_atom RPAREN
@@ -188,6 +188,7 @@ grammar ScriptRenamer;
     SUBSTRING : 'substr';
     TRUNCATE : 'trunc';
     TRIM : 'trim';
+    RXREPLACE : 'rxreplace';
 
 
 // Tags

@@ -286,6 +286,7 @@ Strings:
 1. ***date***
 1. ***string*** + ***string***
 1. replace(***string***, ***old string***, ***new string***)    ```Returns string with old string replaced with new string```
+1. rxreplace(***string***, ***pattern string***, ***replacement string***))    ```Replaces using a Regular Expression, see ```[here](https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-5.0)``` and ```[here](https://docs.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions)``` for more information.```
 1. substr(***string***, ***index number***)    ```Returns string starting at given index```
 1. substr(***string***, ***index number***, ***length number***)    ```Returns string starting at given index with given length```
 1. trunc(***string***, ***length number***)    ```Returns string with characters after length sliced off```

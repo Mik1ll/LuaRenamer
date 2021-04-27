@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Antlr4.Runtime.Misc;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
@@ -303,6 +304,7 @@ namespace ScriptRenamer
                 SRP.REPLACE => (string)Visit(context.string_atom(1)) is var temp && !string.IsNullOrEmpty(temp)
                     ? ((string)Visit(context.string_atom(0)))?.Replace(temp, (string)Visit(context.string_atom(2)))
                     : (string)Visit(context.string_atom(0)),
+                SRP.RXREPLACE => Regex.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)), (string)Visit(context.string_atom(2))), 
                 SRP.SUBSTRING => context.number_atom(1) is not null
                     ? ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0)), (int)Visit(context.number_atom(1)))
                     : ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0))),
