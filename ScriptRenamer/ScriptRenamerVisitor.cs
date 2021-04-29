@@ -191,8 +191,8 @@ namespace ScriptRenamer
                 SRP.VIDEOCODECANIDB => FileInfo.AniDBFileInfo?.MediaInfo?.VideoCodec,
                 SRP.DURATION => FileInfo.MediaInfo?.General?.Duration.ToString(CultureInfo.InvariantCulture),
                 SRP.GROUPNAME => GroupInfo?.Name,
-                SRP.OLDFILENAME => System.IO.Path.GetFileName(FileInfo.Filename),
-                SRP.ORIGINALFILENAME => System.IO.Path.GetFileName(FileInfo.AniDBFileInfo?.OriginalFilename),
+                SRP.OLDFILENAME => System.IO.Path.GetFileNameWithoutExtension(FileInfo.Filename),
+                SRP.ORIGINALFILENAME => System.IO.Path.GetFileNameWithoutExtension(FileInfo.AniDBFileInfo?.OriginalFilename),
                 SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
                 SRP.EPISODENUMBERS => Episodes.Where(e => e.AnimeID == AnimeInfo?.AnimeID)
                     .OrderBy(e => e.Number)
