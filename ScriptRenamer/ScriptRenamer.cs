@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
@@ -24,7 +25,11 @@ namespace ScriptRenamer
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
-            CheckBadArgs(visitor);
+            if (CheckBadArgs(visitor))
+            {
+                args.Cancel = true;
+                return (null, null);
+            }
             SetupAndLaunch(visitor);
             if (visitor.FindLastLocation)
             {
@@ -47,7 +52,11 @@ namespace ScriptRenamer
         public string GetFilename(RenameEventArgs args)
         {
             var visitor = new ScriptRenamerVisitor(args);
-            CheckBadArgs(visitor);
+            if (CheckBadArgs(visitor))
+            {
+                args.Cancel = true;
+                return null;
+            }
             SetupAndLaunch(visitor);
             return !string.IsNullOrWhiteSpace(visitor.Filename)
                 ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename)
@@ -143,14 +152,13 @@ namespace ScriptRenamer
             }
         }
 
-        private static void CheckBadArgs(ScriptRenamerVisitor visitor)
+        private static bool CheckBadArgs(ScriptRenamerVisitor visitor)
         {
             if (string.IsNullOrWhiteSpace(visitor.Script?.Script))
                 throw new ArgumentException("Script is empty or null");
             if (visitor.Script.Type != RenamerId)
                 throw new ArgumentException($"Script doesn't match {RenamerId}");
-            if (visitor.AnimeInfo is null || visitor.EpisodeInfo is null)
-                throw new ArgumentException("No anime info or episode info, cannot rename unrecognized file");
+            return visitor.AnimeInfo is null || visitor.EpisodeInfo is null;
         }
 
         public static string NormPath(string path)
