@@ -169,11 +169,11 @@ namespace ScriptRenamer
                 SRP.EPISODETITLEROMAJI => EpisodeTitleLanguage(TitleLanguage.Romaji),
                 SRP.EPISODETITLEENGLISH => EpisodeTitleLanguage(TitleLanguage.English),
                 SRP.EPISODETITLEJAPANESE => EpisodeTitleLanguage(TitleLanguage.Japanese),
-                SRP.GROUPSHORT => new[] {"raw", "unknown"}.Any(s =>
+                SRP.GROUPSHORT => new[] { "raw", "unknown" }.Any(s =>
                     FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
                     ? null
                     : FileInfo.AniDBFileInfo.ReleaseGroup.ShortName,
-                SRP.GROUPLONG => new[] {"raw", "unknown"}.Any(s =>
+                SRP.GROUPLONG => new[] { "raw", "unknown" }.Any(s =>
                     FileInfo.AniDBFileInfo?.ReleaseGroup?.Name.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
                     ? null
                     : FileInfo.AniDBFileInfo.ReleaseGroup.Name,
@@ -194,6 +194,9 @@ namespace ScriptRenamer
                 SRP.OLDFILENAME => System.IO.Path.GetFileNameWithoutExtension(FileInfo.Filename),
                 SRP.ORIGINALFILENAME => System.IO.Path.GetFileNameWithoutExtension(FileInfo.AniDBFileInfo?.OriginalFilename),
                 SRP.OLDIMPORTFOLDER => OldDestination()?.Location,
+                SRP.FILENAME => Filename,
+                SRP.SUBFOLDER => Subfolder,
+                SRP.DESTINATION => Destination,
                 SRP.EPISODENUMBERS => Episodes.Where(e => e.AnimeID == AnimeInfo?.AnimeID)
                     .OrderBy(e => e.Number)
                     .GroupBy(e => e.Type)
@@ -304,7 +307,8 @@ namespace ScriptRenamer
                 SRP.REPLACE => (string)Visit(context.string_atom(1)) is var temp && !string.IsNullOrEmpty(temp)
                     ? ((string)Visit(context.string_atom(0)))?.Replace(temp, (string)Visit(context.string_atom(2)))
                     : (string)Visit(context.string_atom(0)),
-                SRP.RXREPLACE => Regex.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)), (string)Visit(context.string_atom(2))), 
+                SRP.RXREPLACE => Regex.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)),
+                    (string)Visit(context.string_atom(2))),
                 SRP.SUBSTRING => context.number_atom(1) is not null
                     ? ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0)), (int)Visit(context.number_atom(1)))
                     : ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0))),
@@ -370,14 +374,21 @@ namespace ScriptRenamer
             return null;
         }
 
-        public override object VisitStmt([NotNull] SRP.StmtContext context)
+        public override object VisitCtrl([NotNull] SRP.CtrlContext context)
         {
-            var ctx = context.if_stmt() ?? context.cancel?.Type ??
-                context.block() ?? context.FINDLASTLOCATION()?.Symbol.Type ?? (object)context.target_labels()?.label.Type;
-            return ctx switch
+            return (context.if_stmt() ?? (object)context.block()) switch
             {
                 SRP.If_stmtContext => Visit(context.if_stmt()),
                 SRP.BlockContext => Visit(context.block()),
+                _ => throw new ParseCanceledException("Could not parse VisitCtrl")
+            };
+        }
+
+        public override object VisitStmt([NotNull] SRP.StmtContext context)
+        {
+            var ctx = context.cancel?.Type ?? context.FINDLASTLOCATION()?.Symbol.Type ?? (object)context.target_labels()?.label.Type;
+            return ctx switch
+            {
                 SRP.CANCEL => throw new ParseCanceledException(
                     $"Line {context.cancel.Line} Column {context.cancel.Column} Cancelled: {AggregateString()}"),
                 SRP.SKIPRENAME => Renaming ? throw new SkipException() : null,

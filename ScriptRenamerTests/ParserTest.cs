@@ -29,60 +29,60 @@ namespace ScriptRenamerTests
 
         [DataTestMethod]
         [DataRow(@"if (GroupShort)
-                    add '[' GroupShort '] '
+                    add '[' GroupShort '] ';
                 else if (GroupLong)
-                    add '[' GroupLong '] '
+                    add '[' GroupLong '] ';
                 if (AnimeTitleEnglish)
-                    add AnimeTitleEnglish ' '
+                    add AnimeTitleEnglish ' ';
                 else
-                    add AnimeTitle ' '
-                add EpisodePrefix
+                    add AnimeTitle ' ';
+                add EpisodePrefix;
                 if (EpisodeType is Episode and len(EpisodeCount) >= 2 and EpisodeNumber <= 9)
-                    add '0'
-                add EpisodeNumber
+                    add '0';
+                add EpisodeNumber;
                 if (Version > 1)
-                    add 'v' Version
-                add ' '
+                    add 'v' Version;
+                add ' ';
                 if (EpisodeTitleEnglish)
-                    add EpisodeTitleEnglish ' '
+                    add EpisodeTitleEnglish ' ';
                 else
-                    add first(EpisodeTitles has Main) ' '
-                add Resolution ' ' VideoCodecShort ' '
+                    add first(EpisodeTitles has Main) ' ';
+                add Resolution ' ' VideoCodecShort ' ';
                 if (BitDepth)
-                    add BitDepth 'bit '
-                add Source ' '
+                    add BitDepth 'bit ';
+                add Source ' ';
                 if (DubLanguages has English)
                     if (DubLanguages has Japanese)
-                        add '[DUAL-AUDIO] '
+                        add '[DUAL-AUDIO] ';
                     else
-                        add '[DUB] '
+                        add '[DUB] ';
                 else if (DubLanguages has Japanese and not SubLanguages has English)
-                    add '[raw] '
+                    add '[raw] ';
                 if (Restricted)
                     if (Censored)
-                        add '[CEN] '
+                        add '[CEN] ';
                     else
-                        add '[UNC] '
-                add '[' CRCUpper ']'
+                        add '[UNC] ';
+                add '[' CRCUpper ']';
 
                 // Import folders:
                 if (Restricted and ImportFolders has 'h-anime')
-                    destination set 'h-anime'
+                    destination set 'h-anime';
                 else if (AnimeType is Movie)
-                    destination set 'Movies'
+                    destination set 'Movies';
                 else
-                    destination set 'Anime'
+                    destination set 'Anime';
                 if (AnimeTitles has English)
                     if (AnimeTitles has English and Main)
-                        subfolder set first(AnimeTitles has English and Main)
+                        subfolder set first(AnimeTitles has English and Main);
                     else if (AnimeTitles has English and Official)
-                        subfolder set first(AnimeTitles has English and Official)
+                        subfolder set first(AnimeTitles has English and Official);
                     else
-                        subfolder set first(AnimeTitles has English)
+                        subfolder set first(AnimeTitles has English);
                 else
-                    subfolder set first(AnimeTitles has Main)",
+                    subfolder set first(AnimeTitles has Main);",
             "[TG] animeTitle1 05v2 episodeTitle1 1080p x.264 8bit DVD [DUAL-AUDIO] [CEN] [ABC123]", "h-anime", "animeTitle1")]
-        [DataRow("add AnimeReleaseDate AnimeReleaseDate.Year EpisodeReleaseDate EpisodeReleaseDate.Month FileReleaseDate FileReleaseDate.Day",
+        [DataRow("add AnimeReleaseDate AnimeReleaseDate.Year EpisodeReleaseDate EpisodeReleaseDate.Month FileReleaseDate FileReleaseDate.Day;",
             "2001.01.2020012001.03.0731997.12.022", null, null)]
         public void BigTest(string input, string eFilename, string eDestination, string eSubfolder)
         {
@@ -95,7 +95,7 @@ namespace ScriptRenamerTests
                     a.PreferredTitle == "prefTitle" &&
                     a.Restricted &&
                     a.Type == AnimeType.Movie &&
-                    a.EpisodeCounts == new EpisodeCounts {Episodes = 20} &&
+                    a.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
                     a.AirDate == new DateTime(2001, 1, 20) &&
                     a.Titles == new List<AnimeTitle>
                     {
@@ -142,8 +142,8 @@ namespace ScriptRenamerTests
                         af.Source == "DVD" &&
                         af.Version == 2 &&
                         af.MediaInfo == Mock.Of<AniDBMediaData>(md =>
-                            md.AudioCodecs == new List<string> {"mp3", "FLAC", "opus"} &&
-                            md.AudioLanguages == new List<TitleLanguage> {TitleLanguage.English, TitleLanguage.Japanese} &&
+                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
+                            md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
                             md.SubLanguages == new List<TitleLanguage>()
                         )
                     )
@@ -201,7 +201,8 @@ namespace ScriptRenamerTests
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor();
             _ = visitor.Visit(context);
-            Assert.IsTrue(context.stmt(0).if_stmt().ELSE() is null && context.stmt(0).if_stmt().true_branch.if_stmt().ELSE() is not null);
+            Assert.IsTrue(context.ctrlstmt(0).ctrl().if_stmt().ELSE() is null &&
+                          context.ctrlstmt(0).ctrl().if_stmt().true_branch.ctrl().if_stmt().ELSE() is not null);
         }
 
         [TestMethod]
@@ -220,7 +221,7 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestNumberAtomCompare()
         {
-            var parser = Setup("if (22 < EpisodeCount) filename add 'testing' ");
+            var parser = Setup("if (22 < EpisodeCount) filename add 'testing'; ");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
@@ -251,14 +252,14 @@ namespace ScriptRenamerTests
         }
 
         [DataTestMethod]
-        [DataRow("if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] '"
-                 + "if (AnimeTitles has English and Main and len(AnimeTitles has Main and English) == 2) filename add AnimeTitles has English and Main"
-                 + "if (len(ImportFolders) == 0) add ' empty import folder'"
-                 + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3'"
-                 + "if (first(AnimeTitles)) add ' ' first(AnimeTitles)"
-                 + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English",
+        [DataRow("if (DubLanguages has Japanese and not SubLanguages has English) add '[raw] ';\n"
+                 + "if (AnimeTitles has English and Main and len(AnimeTitles has Main and English) == 2) filename add AnimeTitles has English and Main;\n"
+                 + "if (len(ImportFolders) == 0) add ' empty import folder';\n"
+                 + "if (AudioCodecs has 'mp3') add ' has ' AudioCodecs has 'mp3';\n"
+                 + "if (first(AnimeTitles)) add ' ' first(AnimeTitles);\n"
+                 + "if (EpisodeTitles has English and Main) add ' ' EpisodeTitles has Main and English;\n",
             "[raw] test, test4 empty import folder has mp3 test etest, etest4")]
-        [DataRow("if (len(DubLanguages)) add len(DubLanguages)", "2")]
+        [DataRow("if (len(DubLanguages)) add len(DubLanguages);", "2")]
         public void TestHasOperator(string input, string expected)
         {
             var parser = Setup(input);
@@ -268,9 +269,9 @@ namespace ScriptRenamerTests
                 FileInfo = Mock.Of<IVideoFile>(v =>
                     v.AniDBFileInfo == Mock.Of<IAniDBFile>(m =>
                         m.MediaInfo == Mock.Of<AniDBMediaData>(md =>
-                            md.AudioCodecs == new List<string> {"mp3", "FLAC", "opus"} &&
-                            md.AudioLanguages == new List<TitleLanguage> {TitleLanguage.Afrikaans, TitleLanguage.Japanese} &&
-                            md.SubLanguages == new List<TitleLanguage> {TitleLanguage.Hebrew, TitleLanguage.Galician}
+                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
+                            md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.Afrikaans, TitleLanguage.Japanese } &&
+                            md.SubLanguages == new List<TitleLanguage> { TitleLanguage.Hebrew, TitleLanguage.Galician }
                         )
                     )
                 ),
@@ -340,7 +341,7 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestSetStmt()
         {
-            var parser = Setup("filename set 'test' 'testing' 'testing' AnimeTitlePreferred");
+            var parser = Setup("filename set 'test' 'testing' 'testing' AnimeTitlePreferred;");
             var context = parser.start();
             var visitor = new ScriptRenamerVisitor
             {
@@ -359,10 +360,10 @@ namespace ScriptRenamerTests
         }
 
         [DataTestMethod]
-        [DataRow("if (1 == '1' and 2 <= 2 and true == true and 'true' and 1 and (false and true or true)) add 'true'", "true")]
-        [DataRow("if (not (1 and 2 and 0)) add 'true'", "true")]
-        [DataRow("if (not(not true or (not true and true and true))) add 'true'", "true")]
-        [DataRow("if (not ('test' and 'testing' and '')) add 'true'", "true")]
+        [DataRow("if (1 == '1' and 2 <= 2 and true == true and 'true' and 1 and (false and true or true)) add 'true';", "true")]
+        [DataRow("if (not (1 and 2 and 0)) add 'true';", "true")]
+        [DataRow("if (not(not true or (not true and true and true))) add 'true';", "true")]
+        [DataRow("if (not ('test' and 'testing' and '')) add 'true';", "true")]
         public void TestExpression(string input, string expected)
         {
             var parser = Setup(input);
@@ -378,7 +379,7 @@ namespace ScriptRenamerTests
         {
             try
             {
-                var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' ' ");
+                var parser = Setup("if (true or false and true and -++107.2342 == 3) filename add ' '; ");
                 var context = parser.start();
                 var visitor = new ScriptRenamerVisitor();
                 _ = visitor.Visit(context);
@@ -390,9 +391,9 @@ namespace ScriptRenamerTests
         }
 
         [DataTestMethod]
-        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' skipRename", null, "testdest", "subtest", null)]
-        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' skipMove", "test", null, null, null)]
-        [DataRow("set 'test' destination set 'testdest' subfolder set 'subtest' cancel 'canc' 'elex'", null, null, null, "cancelex")]
+        [DataRow("set 'test';\n destination set 'testdest';\n subfolder set 'subtest';\n skipRename;", null, "testdest", "subtest", null)]
+        [DataRow("set 'test';\n destination set 'testdest';\n subfolder set 'subtest';\n skipMove;", "test", null, null, null)]
+        [DataRow("set 'test';\n destination set 'testdest';\n subfolder set 'subtest';\n cancel 'canc' 'elex';", null, null, null, "cancelex")]
         public void TestSkipCancel(string input, string eFilename, string eDestination, string eSubfolder, string exMsg)
         {
             var parser = Setup(input);
@@ -444,7 +445,7 @@ namespace ScriptRenamerTests
                 EpisodeInfo = episodes
             });
             Assert.AreEqual(eEpisodeId, visitor.EpisodeInfo.EpisodeID);
-            var parser = Setup("add EpisodeNumbers");
+            var parser = Setup("add EpisodeNumbers;");
             var context = parser.start();
             _ = visitor.Visit(context);
             Assert.AreEqual(eEpisodesString, visitor.Filename);
@@ -533,8 +534,8 @@ namespace ScriptRenamerTests
                     Mock.Of<IAnime>(a => a.AnimeID == 10)
                 },
                 EpisodeInfo = episodes
-            }) ;
-            var parser = Setup("add EpisodeNumber '-' LastEpisodeNumber");
+            });
+            var parser = Setup("add EpisodeNumber '-' LastEpisodeNumber;");
             var context = parser.start();
             _ = visitor.Visit(context);
             Assert.AreEqual(expected, visitor.Filename);

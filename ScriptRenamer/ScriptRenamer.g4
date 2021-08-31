@@ -1,24 +1,33 @@
 grammar ScriptRenamer;
 // Rules
-    start : stmt* EOF;
+    start : ctrlstmt* EOF;
+    
     // Statements
-        stmt
+        
+        ctrlstmt
+            :   (ctrl | stmt)
+            ;
+        
+        ctrl
             :   if_stmt
-            |   target_labels? op=ADD string_atom+
+            |   block
+            ;
+        
+        stmt
+            :   (target_labels? op=ADD string_atom+
             |   target_labels? op=SET string_atom+
             |   target_labels? op=REPLACE string_atom string_atom
             |   cancel=CANCEL string_atom*
             |   cancel=(SKIPRENAME | SKIPMOVE)
-            |   FINDLASTLOCATION
-            |   block
+            |   FINDLASTLOCATION) SEMICOLON
             ;
 
         if_stmt
-            :   IF LPAREN bool_expr RPAREN (true_branch=stmt | true_branch=stmt ELSE false_branch=stmt)
+            :   IF LPAREN bool_expr RPAREN (true_branch=ctrlstmt | true_branch=ctrlstmt ELSE false_branch=ctrlstmt)
             ;
 
         block
-            :   LBRACK stmt* RBRACK
+            :   LBRACK ctrlstmt* RBRACK
             ;
 
     // Expressions
@@ -136,7 +145,10 @@ grammar ScriptRenamer;
             |   OLDFILENAME
             |   ORIGINALFILENAME
             |   OLDIMPORTFOLDER
-            |   VIDEOCODECANIDB)
+            |   VIDEOCODECANIDB
+            |   FILENAME
+            |   DESTINATION
+            |   SUBFOLDER)
             |   label=EPISODENUMBERS (PAD number_atom)?
             ;
 
@@ -185,6 +197,7 @@ grammar ScriptRenamer;
     PAD : 'pad';
     PLUS : '+';
     COMMA : ',';
+    SEMICOLON: ';';
     SUBSTRING : 'substr';
     TRUNCATE : 'trunc';
     TRIM : 'trim';
