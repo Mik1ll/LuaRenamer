@@ -175,10 +175,10 @@ grammar ScriptRenamer;
     DESTINATION : 'destination';
     SUBFOLDER : 'subfolder';
     CANCEL : 'cancel';
-    SKIPRENAME : 'skipRename';
-    SKIPMOVE : 'skipMove';
-    FINDLASTLOCATION : 'findLastLocation';
-    REMOVERESERVEDCHARS : 'removeReservedChars';
+    SKIPRENAME : 'skiprename';
+    SKIPMOVE : 'skipmove';
+    FINDLASTLOCATION : 'findlastlocation';
+    REMOVERESERVEDCHARS : 'removereservedchars';
 
 // Operators
     AND : 'and';
@@ -210,157 +210,157 @@ grammar ScriptRenamer;
 
 // Tags
     // Strings
-        ANIMETITLEPREFERRED : 'AnimeTitlePreferred' | 'AnimeTitle';
-        ANIMETITLEROMAJI : 'AnimeTitleRomaji';
-        ANIMETITLEENGLISH : 'AnimeTitleEnglish';
-        ANIMETITLEJAPANESE : 'AnimeTitleJapanese';
-        EPISODETITLEROMAJI : 'EpisodeTitleRomaji';
-        EPISODETITLEENGLISH : 'EpisodeTitleEnglish';
-        EPISODETITLEJAPANESE : 'EpisodeTitleJapanese';
-        GROUPSHORT : 'GroupShort';
-        GROUPLONG : 'GroupLong';
-        CRCLOWER : 'CRCLower';
-        CRCUPPER : 'CRCUpper';
-        SOURCE : 'Source';
-        RESOLUTION : 'Resolution';
-        ANIMETYPE : 'AnimeType';
-        EPISODETYPE : 'EpisodeType';
-        EPISODEPREFIX : 'EpisodePrefix';
-        VIDEOCODECLONG : 'VideoCodecLong';
-        VIDEOCODECSHORT : 'VideoCodecShort';
-        DURATION : 'Duration';
-        GROUPNAME : 'GroupName';
-        OLDFILENAME : 'OldFilename';
-        ORIGINALFILENAME : 'OriginalFilename';
-        ANIMERELEASEDATE : 'AnimeReleaseDate';
-        EPISDOERELEASEDATE : 'EpisodeReleaseDate';
-        FILERELEASEDATE : 'FileReleaseDate';
-        OLDIMPORTFOLDER : 'OldImportFolder';
-        VIDEOCODECANIDB : 'VideoCodecAniDB';
-        EPISODENUMBERS : 'EpisodeNumbers';
+        ANIMETITLEPREFERRED : 'animetitlepreferred' | 'animetitle';
+        ANIMETITLEROMAJI : 'animetitleromaji';
+        ANIMETITLEENGLISH : 'animetitleenglish';
+        ANIMETITLEJAPANESE : 'animetitlejapanese';
+        EPISODETITLEROMAJI : 'episodetitleromaji';
+        EPISODETITLEENGLISH : 'episodetitleenglish';
+        EPISODETITLEJAPANESE : 'episodetitlejapanese';
+        GROUPSHORT : 'groupshort';
+        GROUPLONG : 'grouplong';
+        CRCLOWER : 'crclower';
+        CRCUPPER : 'crcupper';
+        SOURCE : 'source';
+        RESOLUTION : 'resolution';
+        ANIMETYPE : 'animetype';
+        EPISODETYPE : 'episodetype';
+        EPISODEPREFIX : 'episodeprefix';
+        VIDEOCODECLONG : 'videocodeclong';
+        VIDEOCODECSHORT : 'videocodecshort';
+        DURATION : 'duration';
+        GROUPNAME : 'groupname';
+        OLDFILENAME : 'oldfilename';
+        ORIGINALFILENAME : 'originalfilename';
+        ANIMERELEASEDATE : 'animereleasedate';
+        EPISDOERELEASEDATE : 'episodereleasedate';
+        FILERELEASEDATE : 'filereleasedate';
+        OLDIMPORTFOLDER : 'oldimportfolder';
+        VIDEOCODECANIDB : 'videocodecanidb';
+        EPISODENUMBERS : 'episodenumbers';
 
         // Date Fields
-            YEAR : 'Year';
-            MONTH : 'Month';
-            DAY : 'Day';
+            YEAR : 'year';
+            MONTH : 'month';
+            DAY : 'day';
 
     // Numbers
-        ANIMEID : 'AnimeID';
-        EPISODEID : 'EpisodeID';
-        EPISODENUMBER : 'EpisodeNumber';
-        VERSION : 'Version';
-        WIDTH : 'Width';
-        HEIGHT : 'Height';
-        EPISODECOUNT : 'EpisodeCount';
-        BITDEPTH : 'BitDepth';
-        AUDIOCHANNELS : 'AudioChannels';
-        SERIESINGROUP : 'SeriesInGroup';
-        LASTEPISODENUMBER : 'LastEpisodeNumber';
-        MAXEPISODECOUNT : 'MaxEpisodeCount';
+        ANIMEID : 'animeid';
+        EPISODEID : 'episodeid';
+        EPISODENUMBER : 'episodenumber';
+        VERSION : 'version';
+        WIDTH : 'width';
+        HEIGHT : 'height';
+        EPISODECOUNT : 'episodecount';
+        BITDEPTH : 'bitdepth';
+        AUDIOCHANNELS : 'audiochannels';
+        SERIESINGROUP : 'seriesingroup';
+        LASTEPISODENUMBER : 'lastepisodenumber';
+        MAXEPISODECOUNT : 'maxepisodecount';
 
     // Bools
-        RESTRICTED : 'Restricted';
-        CENSORED : 'Censored';
-        CHAPTERED : 'Chaptered';
-        MANUALLYLINKED : 'ManuallyLinked';
-        INDROPSOURCE : 'InDropSource';
-        MULTILINKED : 'MultiLinked';
+        RESTRICTED : 'restricted';
+        CENSORED : 'censored';
+        CHAPTERED : 'chaptered';
+        MANUALLYLINKED : 'manuallylinked';
+        INDROPSOURCE : 'indropsource';
+        MULTILINKED : 'multilinked';
 
     // Collections
-        AUDIOCODECS : 'AudioCodecs';
-        DUBLANGUAGES : 'DubLanguages';
-        SUBLANGUAGES : 'SubLanguages';
-        ANIMETITLES : 'AnimeTitles';
-        EPISODETITLES : 'EpisodeTitles';
-        IMPORTFOLDERS : 'ImportFolders';
+        AUDIOCODECS : 'audiocodecs';
+        DUBLANGUAGES : 'dublanguages';
+        SUBLANGUAGES : 'sublanguages';
+        ANIMETITLES : 'animetitles';
+        EPISODETITLES : 'episodetitles';
+        IMPORTFOLDERS : 'importfolders';
 
     // Enums
         // Languages
         
             LANGUAGE_ENUM
-                :   'Unknown'
-                |   'English'
-                |   'Romaji'
-                |   'Japanese'
-                |   'Afrikaans'
-                |   'Arabic'
-                |   'Bangladeshi'
-                |   'Bulgarian'
-                |   'FrenchCanadian'
-                |   'Czech'
-                |   'Danish'
-                |   'German'
-                |   'Greek'
-                |   'Spanish'
-                |   'Estonian'
-                |   'Finnish'
-                |   'French'
-                |   'Galician'
-                |   'Hebrew'
-                |   'Hungarian'
-                |   'Italian'
-                |   'Korean'
-                |   'Lithuania'
-                |   'Mongolian'
-                |   'Malaysian'
-                |   'Dutch'
-                |   'Norwegian'
-                |   'Polish'
-                |   'Portuguese'
-                |   'BrazilianPortuguese'
-                |   'Romanian'
-                |   'Russian'
-                |   'Slovak'
-                |   'Slovenian'
-                |   'Serbian'
-                |   'Swedish'
-                |   'Thai'
-                |   'Turkish'
-                |   'Ukrainian'
-                |   'Vietnamese'
-                |   'Chinese'
-                |   'ChineseSimplified'
-                |   'ChineseTraditional'
-                |   'Pinyin'
-                |   'Latin'
-                |   'Albanian'
-                |   'Basque'
-                |   'Bengali'
-                |   'Bosnian'
+                :   'unknown'
+                |   'english'
+                |   'romaji'
+                |   'japanese'
+                |   'afrikaans'
+                |   'arabic'
+                |   'bangladeshi'
+                |   'bulgarian'
+                |   'frenchcanadian'
+                |   'czech'
+                |   'danish'
+                |   'german'
+                |   'greek'
+                |   'spanish'
+                |   'estonian'
+                |   'finnish'
+                |   'french'
+                |   'galician'
+                |   'hebrew'
+                |   'hungarian'
+                |   'italian'
+                |   'korean'
+                |   'lithuania'
+                |   'mongolian'
+                |   'malaysian'
+                |   'dutch'
+                |   'norwegian'
+                |   'polish'
+                |   'portuguese'
+                |   'brazilianportuguese'
+                |   'romanian'
+                |   'russian'
+                |   'slovak'
+                |   'slovenian'
+                |   'serbian'
+                |   'swedish'
+                |   'thai'
+                |   'turkish'
+                |   'ukrainian'
+                |   'vietnamese'
+                |   'chinese'
+                |   'chinesesimplified'
+                |   'chinesetraditional'
+                |   'pinyin'
+                |   'latin'
+                |   'albanian'
+                |   'basque'
+                |   'bengali'
+                |   'bosnian'
                 ;
 
         // TitleType
             TITLETYPE_ENUM
-                :   'Main'
-                |   'None'
-                |   'Official'
-                |   'Short'
-                |   'Synonym'
+                :   'main'
+                |   'none'
+                |   'official'
+                |   'short'
+                |   'synonym'
                 ;
 
         // EpisodeType
             EPISODETYPE_ENUM
-                :	'Episode'
-                |	'Credits'
-                |	'Special'
-                |	'Trailer'
-                |	'Parody'
+                :	'episode'
+                |	'credits'
+                |	'special'
+                |	'trailer'
+                |	'parody'
                 |	OTHER
                 ;
 
 
         //AnimeType
             ANIMETYPE_ENUM
-                :	'Movie'
-                |	'OVA'
-                |	'TVSeries'
-                |	'TVSpecial'
-                |	'Web'
+                :	'movie'
+                |	'ova'
+                |	'tvseries'
+                |	'tvspecial'
+                |	'web'
                 |   OTHER
                 ;
         
         //Shared between Episode and anime types
-        OTHER : 'Other';
+        OTHER : 'other';
 
 
 // Literals

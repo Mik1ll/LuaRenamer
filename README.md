@@ -10,7 +10,7 @@ Renamer Plugin for Shoko
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
 1. Use the Default script and set the type of the script to ScriptRenamer in the drop-down menu. Don't add a new script, as they are currently ignored when importing/scanning.
-1. Type your script and Save (next to the script type drop-down).
+1. Type your script and Save (next to the script type drop-down). Note: all language keywords and labels are NOT case-sensitive.
 1. Test your script using the preview utility in the same window.
 
 ### Important Notes for File Moving
@@ -23,60 +23,92 @@ Both Destination and Subfolder must be set or moving will fail.
 ## Sample Script
 ```
 if (GroupShort)
-    add '[' GroupShort '] '
-if (AnimeTitles has English and Main)
-    add first(AnimeTitles has English and Main) ' '
-else if (AnimeTitles has English and Official)
-    add first(AnimeTitles has English and Official) ' '
+    add '[' GroupShort '] ';
+else if (GroupLong)
+    add '[' GroupLong '] ';
+if (AnimeTitleEnglish)
+    add AnimeTitleEnglish ' ';
 else
-    add AnimeTitle ' '
-if (not (AnimeType is Movie and EpisodeCount == 1 and EpisodeType is Episode)) {
-    add EpisodeNumbers pad MaxEpisodeCount
+    add AnimeTitle ' ';
+// Only adds episode numbers and titles if it is an episode or movie with parts
+if (not (AnimeType is Movie and EpisodeCount == 1)) {
+    add EpisodeNumbers pad 10;
     if (Version > 1)
-        add 'v' Version
-    add ' '
-    if (not MultiLinked)
-        if (EpisodeTitleEnglish)
-            add EpisodeTitleEnglish ' '
-        else
-            add first(EpisodeTitles has Main) ' '
+        add 'v' Version;
+    add ' ';
+    // Don't bother with episode names if there are multiple file relations or if it doesn't have a name (these start with Episode xx)
+    if (not MultiLinked and EpisodeTitleEnglish and not EpisodeTitleEnglish contains 'Episode') {
+        // Episode names can get LONG, so truncate them
+        add trunc(EpisodeTitleEnglish, 35);
+        if (len(EpisodeTitleEnglish) > 35)
+            add '...';
+        add ' ';
+    }
 }
-add '(' Resolution ' ' VideoCodecShort ' '
+add '(' Resolution ' ' VideoCodecShort ' ';
 if (BitDepth)
-    add BitDepth 'bit '
-if (Source)
-    add Source
-else
-    add 'Unknown'
-add ') '
+    add BitDepth 'bit ';
+add Source ') ';
 if (DubLanguages has English)
     if (DubLanguages has Japanese)
-        add '[DUAL-AUDIO] '
+        add '[DUAL-AUDIO] ';
     else
-        add '[DUB] '
+        add '[DUB] ';
 else if (DubLanguages has Japanese and not SubLanguages has English)
-    add '[RAW] '
+    add '[RAW] ';
 if (Restricted)
     if (Censored)
-        add '[CEN] '
+        add '[CEN] ';
     else
-        add '[UNC] '
-add '[' CRCUpper ']'
+        add '[UNC] ';
+add '[' CRCUpper ']';
+// Truncate filename just in case, old windows max path length is 260 chars
+filename set trunc(Filename, 120);
+```
 
-// Import folders:
-if (Restricted and ImportFolders has 'Hentai')
-    destination set 'Hentai'
-else if (AnimeType is Movie)
-    destination set 'Movies'
-else
-    destination set 'Anime'
+### Snippets
+```
+if (not Sublanguages) filename add '[RAW]';
+else {
+    add 'subs:' Sublanguages;
+}
+```  
+Collections can evaluate to true if it has any elements, false if it is empty.  
+If/else statements can substitute a block {} with a single statement.   
+Can optionally add 'filename' target in front of actions, it is the default target.  
+'add' and 'set' actions take one or more strings as arguments. 
+Collections can also evaluate as a comma-seperated string.
 
+```
 if (AnimeTitles has English and Main)
-    subfolder set first(AnimeTitles has English and Main)
-else if (AnimeTitles has English and Official)
-    subfolder set first(AnimeTitles has English and Official)
-else
-    subfolder set AnimeTitle
+    subfolder set first(AnimeTitles has English and Main);
+```  
+Title collections can have two specifiers: language and type.  
+first(***collection***) returns the first element in a collection
+
+```
+add EpisodeNumber pad MaxEpisodeCount;
+```  
+Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits.
+
+```
+add EpisodePrefix EpisodeNumber;
+if (LastEpisodeNumber != EpisodeNumber)
+    add '-' LastEpisodeNumber;
+```
+Adds support for files with a range of episodes.
+Recommend using EpisodesNumbers instead unless you have some requirement e.g. plex episode number recognition 
+
+```
+filename set trunc(Filename, 120);
+```
+Ensures that filename length do not exceed a number, useful for old Windows versions where max path was 260 chars (entire path, not just file name).
+May also want to truncate each segment of the subfolder if that can become too long
+
+```
+// this is a line comment
+/* this is a multi- 
+line comment */
 ```
 
 ### Labels
@@ -107,6 +139,9 @@ OldFilename     // Filename before the renamer script was run
 OriginalFilename    // Filename stored by AniDB when a file is added to the database
 OldImportFolder    // Import folder before move **Not available while renaming**
 EpisodeNumbers    // All episode numbers, as a space-seperated string. e.g. "1-3 5-6 C2 S1-2 S4 P5" Can also use padding like numbers.
+Filename    // Access currently building filename
+Destination // Access currently building destination
+Subfolder   // Access currently building subfolder
 Dates:
     AnimeReleaseDate
     EpisodeReleaseDate
@@ -125,7 +160,7 @@ EpisodeCount     // Number of episodes of this episodes type
 BitDepth
 AudioChannels
 SeriesInGroup     // Number of series associated with a Shoko group
-LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes. Last episode in first contiguous series of episode numbers
+LastEpisodeNumber  // Same as EpisodeNumber unless file is associated with multiple episodes. Last episode in first contiguous series of episode numbers of the same EpisodeType
 MaxEpisodeCount    // Max of all episode type counts
 ```
 
@@ -185,48 +220,6 @@ Japanese
 (cont ...)
 ```
 
-#### Snippets
-```
-if (not Sublanguages) filename add '[raw]'
-else {
-    add 'subs:' Sublanguages
-}
-```  
-Collections can evaluate to true if it has any elements, false if it is empty.  
-If/else statements can substitute a block {} with a single statement.   
-Can optionally add 'filename' target in front of actions, it is the default target.  
-'add' and 'set' actions take one or more strings as arguments. 
-Collections can also evaluate as a comma-seperated string.
-
-
-```
-if (AnimeTitles has English and Main)
-    subfolder set first(AnimeTitles has English and Main)
-```  
-Title collections can have two specifiers: language and type.  
-first(***collection***) returns the first element in a collection
-
-
-```
-add EpisodeNumber pad MaxEpisodeCount
-```  
-Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits.
-
-
-```
-add EpisodeNumber
-if (LastEpisodeNumber != EpisodeNumber)
-    add '-' LastEpisodeNumber
-```
-Adds support for files with a range of episodes
-
-
-```
-// this is a line comment
-/* this is a multi- 
-line comment */
-```
-
 ### Script Grammar
 Refer to [this grammar](ScriptRenamer/ScriptRenamer.g4) for full syntax in [EBNF form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form).  
 
@@ -239,16 +232,19 @@ can use single wildcard in place of subfolder names to match old subfolder names
             e.g. old: anime/mystuff/name, new: movies/*/newname, result: movies/mystuff/newname
 ```
 
-Statements: 
+Control: 
 1. if (***bool expr***) ***statement***
 1. if (***bool expr***) ***statement*** else ***statement***
-1. ***target***? add ***string***+    ```Append strings to the end of the current target```
-1. ***target***? set ***string***+    ```Reset the target to the strings```
-1. ***target***? replace ***string*** ***string***    ```Replace all instances of first string by the second string in the target```
 1. { ***statement*** }    ```Standard code block, enclosing multiple statements, required after if/else statements if using multiple statements```
-1. cancel ***string****    ```Cancel renaming and moving with an exception```
-1. skipRename | skipMove    ```Skip renaming or moving, deferring to the next renamer/mover in the priority list```
-1. findLastLocation    ```Enables using last added file's location from the same anime```
+
+Statements (All end with a semicolon):
+1. ***target***? add ***string***+ ;   ```Append strings to the end of the current target```
+1. ***target***? set ***string***+  ;  ```Reset the target to the strings```
+1. ***target***? replace ***string*** ***string*** ;    ```Replace all instances of first string by the second string in the target```
+1. cancel ***string**** ;    ```Cancel renaming and moving with an exception```
+1. (skipRename | skipMove) ;   ```Skip renaming or moving, deferring to the next renamer/mover in the priority list```
+1. findLastLocation ;    ```Enables using last added file's location from the same anime```
+1. removeReservedChars ;    ```Remove reserved characters instead of replacing them with alternatives```
 
 Collections:
 1. ***collection label***

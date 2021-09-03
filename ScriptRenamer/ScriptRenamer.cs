@@ -139,7 +139,8 @@ namespace ScriptRenamer
             _contextException = null;
             _context = null;
             AntlrInputStream inputStream = new(new StringReader(script));
-            ScriptRenamerLexer lexer = new(inputStream);
+            CaseChangingCharStream lowerstream = new(inputStream, false);
+            ScriptRenamerLexer lexer = new(lowerstream);
             lexer.AddErrorListener(ExceptionErrorListener.Instance);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
