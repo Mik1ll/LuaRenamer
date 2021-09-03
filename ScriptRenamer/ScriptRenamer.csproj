@@ -16,6 +16,10 @@
     <_GeneratedFiles Include="GeneratedCode/*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="GeneratedCode" />
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <ItemGroup>
       <Compile Remove="GeneratedCode/*.cs" />

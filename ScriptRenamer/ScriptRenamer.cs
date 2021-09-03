@@ -59,7 +59,8 @@ namespace ScriptRenamer
             }
             SetupAndLaunch(visitor);
             return !string.IsNullOrWhiteSpace(visitor.Filename)
-                ? RemoveInvalidFilenameChars(visitor.Filename.ReplaceInvalidPathCharacters()) + Path.GetExtension(args.FileInfo.Filename)
+                ? RemoveInvalidFilenameChars(visitor.RemoveReservedChars ? visitor.Filename : visitor.Filename.ReplaceInvalidPathCharacters()) +
+                  Path.GetExtension(args.FileInfo.Filename)
                 : null;
         }
 
@@ -72,7 +73,9 @@ namespace ScriptRenamer
         private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor, IImportFolder olddestfolder)
         {
             if (visitor.Subfolder is null)
-                return RemoveInvalidFilenameChars(args.AnimeInfo.OrderBy(a => a.AnimeID).First().PreferredTitle.ReplaceInvalidPathCharacters());
+                return RemoveInvalidFilenameChars(args.AnimeInfo.OrderBy(a => a.AnimeID).First().PreferredTitle is var title && visitor.RemoveReservedChars
+                    ? title
+                    : title.ReplaceInvalidPathCharacters());
             var oldsubfolder = string.Empty;
             if (olddestfolder is not null)
             {
@@ -83,7 +86,7 @@ namespace ScriptRenamer
             var subfolder = string.Empty;
             var oldsubfoldersplit = olddestfolder is null ? Array.Empty<string>() : oldsubfolder.Split('/');
             var newsubfoldersplit = visitor.Subfolder.Trim((char)0x1F).Split((char)0x1F)
-                .Select(f => f == "*" ? f : RemoveInvalidFilenameChars(f.ReplaceInvalidPathCharacters())).ToArray();
+                .Select(f => f == "*" ? f : RemoveInvalidFilenameChars(visitor.RemoveReservedChars ? f : f.ReplaceInvalidPathCharacters())).ToArray();
             for (var i = 0; i < newsubfoldersplit.Length; i++)
                 if (newsubfoldersplit[i] == "*")
                     if (i < oldsubfoldersplit.Length)

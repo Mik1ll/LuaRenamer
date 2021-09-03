@@ -14,12 +14,15 @@ grammar ScriptRenamer;
             ;
         
         stmt
-            :   (target_labels? op=ADD string_atom+
+            :   (
+                target_labels? op=ADD string_atom+
             |   target_labels? op=SET string_atom+
             |   target_labels? op=REPLACE string_atom string_atom
             |   cancel=CANCEL string_atom*
             |   cancel=(SKIPRENAME | SKIPMOVE)
-            |   FINDLASTLOCATION) SEMICOLON
+            |   FINDLASTLOCATION
+            |   REMOVERESERVEDCHARS
+                ) SEMICOLON
             ;
 
         if_stmt
@@ -175,6 +178,7 @@ grammar ScriptRenamer;
     SKIPRENAME : 'skipRename';
     SKIPMOVE : 'skipMove';
     FINDLASTLOCATION : 'findLastLocation';
+    REMOVERESERVEDCHARS : 'removeReservedChars';
 
 // Operators
     AND : 'and';

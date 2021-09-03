@@ -45,6 +45,7 @@ namespace ScriptRenamer
 
         public bool Renaming { get; set; } = true;
         public bool FindLastLocation { get; set; }
+        public bool RemoveReservedChars { get; set; }
 
         public List<IImportFolder> AvailableFolders { get; init; } = new();
         public IVideoFile FileInfo { get; set; }
@@ -386,7 +387,8 @@ namespace ScriptRenamer
 
         public override object VisitStmt([NotNull] SRP.StmtContext context)
         {
-            var ctx = context.cancel?.Type ?? context.FINDLASTLOCATION()?.Symbol.Type ?? (object)context.target_labels()?.label.Type;
+            var ctx = context.cancel?.Type ?? context.FINDLASTLOCATION()?.Symbol.Type ??
+                context.REMOVERESERVEDCHARS()?.Symbol.Type ?? (object)context.target_labels()?.label.Type;
             return ctx switch
             {
                 SRP.CANCEL => throw new ParseCanceledException(
@@ -396,6 +398,7 @@ namespace ScriptRenamer
                 SRP.FINDLASTLOCATION => FindLastLocation = true,
                 SRP.DESTINATION when !Renaming => DoAction(ref Destination),
                 SRP.SUBFOLDER when !Renaming => DoAction(ref Subfolder),
+                SRP.REMOVERESERVEDCHARS => RemoveReservedChars = true,
                 not (SRP.DESTINATION or SRP.SUBFOLDER) when Renaming && context.op is not null => DoAction(ref Filename),
                 _ when context.op is not null => null,
                 _ => throw new ParseCanceledException("Could not parse VisitStmt")
