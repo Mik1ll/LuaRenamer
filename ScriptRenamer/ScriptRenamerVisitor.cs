@@ -310,9 +310,15 @@ namespace ScriptRenamer
                     : (string)Visit(context.string_atom(0)),
                 SRP.RXREPLACE => Regex.Replace((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1)),
                     (string)Visit(context.string_atom(2))),
-                SRP.SUBSTRING => context.number_atom(1) is not null
-                    ? ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0)), (int)Visit(context.number_atom(1)))
-                    : ((string)Visit(context.string_atom(0)))?.Substring((int)Visit(context.number_atom(0))),
+                SRP.SUBSTRING => (string)Visit(context.string_atom(0)) is var str
+                                 && (int)Visit(context.number_atom(0)) is var num1
+                                 && context.number_atom(1) is not null
+                    ? ((int)Visit(context.number_atom(1)) is var num2 && num1 + num2 <= str?.Length
+                        ? str.Substring(num1, num2)
+                        : string.Empty)
+                    : (num1 < str?.Length
+                        ? str.Substring(num1)
+                        : string.Empty),
                 SRP.TRUNCATE => (string)Visit(context.string_atom(0)) is var temp
                     ? temp?.Substring(0, Math.Min(temp.Length, (int)Visit(context.number_atom(0))))
                     : null,
