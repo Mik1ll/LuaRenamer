@@ -313,8 +313,8 @@ namespace ScriptRenamer
                 SRP.SUBSTRING => (string)Visit(context.string_atom(0)) is var str
                                  && (int)Visit(context.number_atom(0)) is var num1
                                  && context.number_atom(1) is not null
-                    ? ((int)Visit(context.number_atom(1)) is var num2 && num1 + num2 <= str?.Length
-                        ? str.Substring(num1, num2)
+                    ? ((int)Visit(context.number_atom(1)) is var num2 && num1 < str?.Length
+                        ? str.Substring(num1, num1 + num2 <= str.Length ? num2 : str.Length - num1)
                         : string.Empty)
                     : (num1 < str?.Length
                         ? str.Substring(num1)

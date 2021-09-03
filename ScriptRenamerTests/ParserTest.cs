@@ -18,7 +18,8 @@ namespace ScriptRenamerTests
         private static ScriptRenamerParser Setup(string text)
         {
             AntlrInputStream inputStream = new(text);
-            ScriptRenamerLexer lexer = new(inputStream);
+            CaseChangingCharStream lowerStream = new(inputStream, false);
+            ScriptRenamerLexer lexer = new(lowerStream);
             lexer.AddErrorListener(ExceptionErrorListener.Instance);
             CommonTokenStream tokenStream = new(lexer);
             ScriptRenamerParser parser = new(tokenStream);
@@ -510,6 +511,11 @@ namespace ScriptRenamerTests
         [DataRow("'weihrowih' + 'testting'", "weihrowihtestting")]
         [DataRow("substr('blarglargle', 3)", "rglargle")]
         [DataRow("substr('mrglrglelergle', 5, 3)", "gle")]
+        [DataRow("substr('blarg', 2, 50)", "arg")]
+        [DataRow("substr('blargleargle', 20, 20)", "")]
+        [DataRow("substr('argle', 0, 0)", "")]
+        [DataRow("substr('aowih', 4, 1)", "h")]
+        [DataRow("substr('owhiw', 5)", "")]
         [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 14)", "j 098jwa09f 0w")]
         [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 500)", "j 098jwa09f 0we9hwh90h23")]
         [DataRow("trunc('j 098jwa09f 0we9hwh90h23', 24)", "j 098jwa09f 0we9hwh90h23")]
