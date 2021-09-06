@@ -170,14 +170,14 @@ namespace ScriptRenamer
                 SRP.EPISODETITLEROMAJI => EpisodeTitleLanguage(TitleLanguage.Romaji),
                 SRP.EPISODETITLEENGLISH => EpisodeTitleLanguage(TitleLanguage.English),
                 SRP.EPISODETITLEJAPANESE => EpisodeTitleLanguage(TitleLanguage.Japanese),
-                SRP.GROUPSHORT => new[] { "raw", "unknown" }.Any(s =>
-                    FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
-                    ? null
-                    : FileInfo.AniDBFileInfo.ReleaseGroup.ShortName,
-                SRP.GROUPLONG => new[] { "raw", "unknown" }.Any(s =>
-                    FileInfo.AniDBFileInfo?.ReleaseGroup?.Name.Contains(s, StringComparison.OrdinalIgnoreCase) ?? true)
-                    ? null
-                    : FileInfo.AniDBFileInfo.ReleaseGroup.Name,
+                SRP.GROUPSHORT =>
+                    FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName == "raw"
+                        ? null
+                        : FileInfo.AniDBFileInfo?.ReleaseGroup?.ShortName,
+                SRP.GROUPLONG =>
+                    FileInfo.AniDBFileInfo?.ReleaseGroup?.Name == "raw/unknown"
+                        ? null
+                        : FileInfo.AniDBFileInfo?.ReleaseGroup?.Name,
                 SRP.CRCLOWER => FileInfo.Hashes.CRC.ToLower(),
                 SRP.CRCUPPER => FileInfo.Hashes.CRC.ToUpper(),
                 SRP.SOURCE => FileInfo.AniDBFileInfo?.Source.Contains("unknown", StringComparison.OrdinalIgnoreCase) ?? true
