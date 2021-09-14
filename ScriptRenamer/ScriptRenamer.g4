@@ -84,6 +84,7 @@ grammar ScriptRenamer;
             |   op=SUBSTRING LPAREN string_atom COMMA number_atom (COMMA number_atom)? RPAREN
             |   op=TRUNCATE LPAREN string_atom COMMA number_atom RPAREN
             |   op=TRIM LPAREN string_atom RPAREN
+            |   op=RXMATCH LPAREN string_atom COMMA string_atom RPAREN
             ;
 
         date_atom
@@ -206,6 +207,7 @@ grammar ScriptRenamer;
     TRUNCATE : 'trunc';
     TRIM : 'trim';
     RXREPLACE : 'rxreplace';
+    RXMATCH : 'rxmatch';
 
 
 // Tags

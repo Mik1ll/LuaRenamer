@@ -331,6 +331,7 @@ namespace ScriptRenamer
                     SRP.Date_atomContext => Visit(context.date_atom()),
                     _ => throw new ParseCanceledException("Could not parse string_atom with null op label", context.exception)
                 },
+                SRP.RXMATCH => Regex.Match((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1))).Value,
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception)
             };
         }

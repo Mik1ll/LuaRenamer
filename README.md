@@ -276,17 +276,18 @@ Numbers:
 
 Strings:
 1. '***char****' | "***char****"
-1. ***string label***
-1. ***collection*** ```Comma delimited list, null if empty```
-1. ***number*** (pad ***number***)?    ```Able to pad number up to same number of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount. Special case: works with EpisodeNumbers string```
-1. ***date***
-1. ***string*** + ***string***
-1. replace(***string***, ***old string***, ***new string***)    ```Returns string with old string replaced with new string```
-1. rxreplace(***string***, ***pattern string***, ***replacement string***))    ```Replaces using a Regular Expression, see ```[here](https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-5.0)``` and ```[here](https://docs.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions)``` for more information.```
-1. substr(***string***, ***index number***)    ```Returns string starting at given index```
-1. substr(***string***, ***index number***, ***length number***)    ```Returns string starting at given index with given length```
-1. trunc(***string***, ***length number***)    ```Returns string with characters after length sliced off```
-1. trim(***string***)    ```Trims whitespace on ends of string```
+2. ***string label***
+3. ***collection*** ```Comma delimited list, null if empty```
+4. ***number*** (pad ***number***)?    ```Able to pad number up to same number of digits as second number, commonly used with EpisodeCount or MaxEpisodeCount. Special case: works with EpisodeNumbers string```
+5. ***date***
+6. ***string*** + ***string***
+7. replace(***string***, ***old string***, ***new string***)    ```Returns string with old string replaced with new string```
+8. rxreplace(***string***, ***pattern string***, ***replacement string***))    ```Replaces using a Regular Expression, see ```[here](https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-5.0)``` and ```[here](https://docs.microsoft.com/en-us/dotnet/standard/base-types/substitutions-in-regular-expressions)``` for more information.```
+9. rxmatch(***string***, ***pattern string***)    ```Matches a string with a pattern and returns the first match```
+10. substr(***string***, ***index number***)    ```Returns string starting at given index```
+11. substr(***string***, ***index number***, ***length number***)    ```Returns string starting at given index with given length```
+12. trunc(***string***, ***length number***)    ```Returns string with characters after length sliced off```
+13. trim(***string***)    ```Trims whitespace on ends of string```
 
 Dates:
 1. ***date label***
