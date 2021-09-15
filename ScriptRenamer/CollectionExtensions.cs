@@ -11,10 +11,11 @@ namespace ScriptRenamer
         {
             return myenum switch
             {
-                IEnumerable<string> s => s.DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                IEnumerable<TitleLanguage> t => t.Select(t => t.ToString()).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                IEnumerable<IImportFolder> i => i.Select(f => f.Location).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
-                IEnumerable<AnimeTitle> t => t.Select(t => t.Title).DefaultIfEmpty().Aggregate((s1, s2) => $"{s1}, {s2}"),
+                IEnumerable<string> s => string.Join(", ", s),
+                IEnumerable<TitleLanguage> t => string.Join(", ", t),
+                IEnumerable<IImportFolder> i => string.Join(", ", i.Select(f => f.Location)),
+                IEnumerable<AnimeTitle> t => string.Join(", ", t.Select(tt => tt.Title)),
+                IEnumerable<int> i => string.Join(", ", i),
                 _ => throw new KeyNotFoundException("Could not find collection type in CollectionString")
             };
         }
@@ -27,6 +28,7 @@ namespace ScriptRenamer
                 IEnumerable<AnimeTitle> c => Enumerable.Take(c, i),
                 IEnumerable<TitleLanguage> c => Enumerable.Take(c, i),
                 IEnumerable<IImportFolder> c => Enumerable.Take(c, i),
+                IEnumerable<int> c => Enumerable.Take(c, 1),
                 _ => throw new KeyNotFoundException("Could not find collection type in Take")
             };
         }
@@ -39,6 +41,7 @@ namespace ScriptRenamer
                 IEnumerable<AnimeTitle> c => Enumerable.ToList(c),
                 IEnumerable<TitleLanguage> c => Enumerable.ToList(c),
                 IEnumerable<IImportFolder> c => Enumerable.ToList(c),
+                IEnumerable<int> c => Enumerable.ToList(c),
                 _ => throw new KeyNotFoundException("Could not find collection type in ToList")
             };
         }
