@@ -51,10 +51,8 @@ grammar ScriptRenamer;
             ;
 
         collection_expr
-            :   AUDIOCODECS HAS string_atom
-            |   langs=(DUBLANGUAGES | SUBLANGUAGES) HAS LANGUAGE_ENUM
-            |   IMPORTFOLDERS HAS string_atom
-            |   titles=(ANIMETITLES | EPISODETITLES) HAS (l=LANGUAGE_ENUM (AND t=TITLETYPE_ENUM)? | t=TITLETYPE_ENUM (AND l=LANGUAGE_ENUM)?)
+            :   collection_expr HAS string_atom
+            |   collection_expr HAS (LANGUAGE_ENUM (AND TITLETYPE_ENUM)? | TITLETYPE_ENUM (AND LANGUAGE_ENUM)?)
             |   FIRST LPAREN collection_expr RPAREN
             |   collection_labels
             ;
@@ -88,7 +86,7 @@ grammar ScriptRenamer;
             ;
 
         date_atom
-            :   type=(ANIMERELEASEDATE | EPISDOERELEASEDATE | FILERELEASEDATE) (DOT field=(DAY | MONTH | YEAR))?
+            :   type=(ANIMERELEASEDATE | EPISODERELEASEDATE | FILERELEASEDATE) (DOT field=(DAY | MONTH | YEAR))?
             ;
 
     // Labels
@@ -235,7 +233,7 @@ grammar ScriptRenamer;
         OLDFILENAME : 'oldfilename';
         ORIGINALFILENAME : 'originalfilename';
         ANIMERELEASEDATE : 'animereleasedate';
-        EPISDOERELEASEDATE : 'episodereleasedate';
+        EPISODERELEASEDATE : 'episodereleasedate';
         FILERELEASEDATE : 'filereleasedate';
         OLDIMPORTFOLDER : 'oldimportfolder';
         VIDEOCODECANIDB : 'videocodecanidb';

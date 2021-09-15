@@ -121,21 +121,32 @@ namespace ScriptRenamer
         public override IList VisitCollection_expr([NotNull] SRP.Collection_exprContext context)
         {
             var rhsString = context.string_atom() is not null ? (string)Visit(context.string_atom()) : string.Empty;
-            var ctx = context.AUDIOCODECS()?.Symbol.Type ?? context.langs?.Type ?? context.IMPORTFOLDERS()?.Symbol.Type ??
-                context.collection_labels() ?? context.titles?.Type ?? (object)context.FIRST().Symbol.Type;
-            return ctx switch
+            if (context.collection_labels() is not null)
+                return (IList)Visit(context.collection_labels());
+            var collection = (IList)Visit(context.collection_expr());
+
+            int type = 0;
+            SRP.Collection_exprContext exprContext = context;
+            while (type == 0)
             {
-                SRP.AUDIOCODECS => ((List<string>)GetCollection(context.AUDIOCODECS().Symbol.Type)).Where(c => c.Contains(rhsString)).ToList(),
-                SRP.SUBLANGUAGES or SRP.DUBLANGUAGES => ((List<TitleLanguage>)GetCollection(context.langs.Type))
+                if (exprContext.collection_labels() is null)
+                    exprContext = exprContext.collection_expr();
+                else
+                    type = exprContext.collection_labels().label.Type;
+            }
+
+            return (context.FIRST()?.Symbol.Type ?? type) switch
+            {
+                SRP.AUDIOCODECS when rhsString is not null => ((List<string>)collection).Where(c => c.Contains(rhsString)).ToList(),
+                SRP.SUBLANGUAGES or SRP.DUBLANGUAGES when context.LANGUAGE_ENUM() is not null => ((List<TitleLanguage>)collection)
                     .Where(l => l == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
-                SRP.IMPORTFOLDERS => ((List<IImportFolder>)GetCollection(context.IMPORTFOLDERS().Symbol.Type)).Where(f =>
+                SRP.IMPORTFOLDERS when rhsString is not null => ((List<IImportFolder>)collection).Where(f =>
                     string.Equals(f.Name, rhsString, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(ScriptRenamer.NormPath(f.Location), ScriptRenamer.NormPath(rhsString), StringComparison.OrdinalIgnoreCase)).ToList(),
-                SRP.ANIMETITLES or SRP.EPISODETITLES => ((List<AnimeTitle>)GetCollection(context.titles.Type))
-                    .Where(at => context.t is null || at.Type == ParseEnum<TitleType>(context.t.Text))
-                    .Where(at => context.l is null || at.Language == ParseEnum<TitleLanguage>(context.l.Text)).ToList(),
-                SRP.Collection_labelsContext => (IList)Visit(context.collection_labels()),
-                SRP.FIRST => ((IList)Visit(context.collection_expr())).Take(1).ToList(),
+                SRP.ANIMETITLES or SRP.EPISODETITLES when (context.TITLETYPE_ENUM() ?? context.LANGUAGE_ENUM()) is not null => ((List<AnimeTitle>)collection)
+                    .Where(at => context.TITLETYPE_ENUM() is null || at.Type == ParseEnum<TitleType>(context.TITLETYPE_ENUM().GetText()))
+                    .Where(at => context.LANGUAGE_ENUM() is null || at.Language == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
+                SRP.FIRST => collection.Take(1).ToList(),
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception)
             };
         }
@@ -353,7 +364,7 @@ namespace ScriptRenamer
             var date = context.type.Type switch
             {
                 SRP.ANIMERELEASEDATE => AnimeInfo.AirDate,
-                SRP.EPISDOERELEASEDATE => EpisodeInfo.AirDate,
+                SRP.EPISODERELEASEDATE => EpisodeInfo.AirDate,
                 SRP.FILERELEASEDATE => FileInfo.AniDBFileInfo?.ReleaseDate,
                 _ => throw new ParseCanceledException("Could not parse date_atom", context.exception)
             };
