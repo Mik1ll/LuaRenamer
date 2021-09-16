@@ -273,8 +273,6 @@ grammar ScriptRenamer;
         ANIMETITLES : 'animetitles';
         EPISODETITLES : 'episodetitles';
         IMPORTFOLDERS : 'importfolders';
-        AUDIOS : 'audios';
-        SUBTITLES : 'subtitles';
 
     // Enums
         // Languages

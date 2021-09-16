@@ -147,7 +147,6 @@ namespace ScriptRenamer
                     .Where(at => context.TITLETYPE_ENUM() is null || at.Type == ParseEnum<TitleType>(context.TITLETYPE_ENUM().GetText()))
                     .Where(at => context.LANGUAGE_ENUM() is null || at.Language == ParseEnum<TitleLanguage>(context.LANGUAGE_ENUM().GetText())).ToList(),
                 SRP.FIRST => collection.Take(1).ToList(),
-                SRP.AUDIOCHANNELSLIST when rhsString is not null => ((List<int>)collection).Where(c => c.ToString() == rhsString).ToList(),
                 _ => throw new ParseCanceledException("Could not parse collection_expr", context.exception)
             };
         }
