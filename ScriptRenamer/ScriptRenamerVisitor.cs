@@ -253,7 +253,6 @@ namespace ScriptRenamer
                 SRP.ANIMETITLES => GetCollection(context.ANIMETITLES().Symbol.Type),
                 SRP.EPISODETITLES => GetCollection(context.EPISODETITLES().Symbol.Type),
                 SRP.IMPORTFOLDERS => GetCollection(context.IMPORTFOLDERS().Symbol.Type),
-                SRP.AUDIOCHANNELSLIST => GetCollection(context.AUDIOCHANNELSLIST().Symbol.Type),
                 _ => throw new ParseCanceledException("Could not parse collection labels", context.exception)
             };
         }
@@ -471,16 +470,15 @@ namespace ScriptRenamer
         {
             return tokenType switch
             {
-                SRP.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs?.ToList()
-                                   ?? FileInfo.MediaInfo?.Audio?.Select(a => a.SimplifiedCodec).ToList()
+                SRP.AUDIOCODECS => FileInfo.AniDBFileInfo?.MediaInfo?.AudioCodecs?.Distinct().ToList()
+                                   ?? FileInfo.MediaInfo?.Audio?.Select(a => a.SimplifiedCodec).Distinct().ToList()
                                    ?? new List<string>(),
-                SRP.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages?.ToList()
-                                    ?? FileInfo.MediaInfo?.Audio?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).ToList()
+                SRP.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages?.Distinct().ToList()
+                                    ?? FileInfo.MediaInfo?.Audio?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).Distinct().ToList()
                                     ?? new List<TitleLanguage>(),
-                SRP.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages?.ToList()
-                                    ?? FileInfo.MediaInfo?.Subs?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).ToList()
+                SRP.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages?.Distinct().ToList()
+                                    ?? FileInfo.MediaInfo?.Subs?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).Distinct().ToList()
                                     ?? new List<TitleLanguage>(),
-                SRP.AUDIOCHANNELSLIST => FileInfo.MediaInfo?.Audio?.Select(a => a.Channels).ToList(),
                 SRP.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 SRP.EPISODETITLES => EpisodeInfo.Titles.ToList(),
                 SRP.IMPORTFOLDERS => AvailableFolders.Where(i => i.DropFolderType.HasFlag(DropFolderType.Destination)).ToList(),

@@ -120,8 +120,7 @@ grammar ScriptRenamer;
             |   SUBLANGUAGES
             |   ANIMETITLES
             |   EPISODETITLES
-            |   IMPORTFOLDERS
-            |   AUDIOCHANNELSLIST)
+            |   IMPORTFOLDERS)
             ;
 
         string_labels
@@ -274,7 +273,8 @@ grammar ScriptRenamer;
         ANIMETITLES : 'animetitles';
         EPISODETITLES : 'episodetitles';
         IMPORTFOLDERS : 'importfolders';
-        AUDIOCHANNELSLIST : 'audiochannelslist';
+        AUDIOS : 'audios';
+        SUBTITLES : 'subtitles';
 
     // Enums
         // Languages
