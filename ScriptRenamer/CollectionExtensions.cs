@@ -16,6 +16,7 @@ namespace ScriptRenamer
                 IEnumerable<IImportFolder> i => string.Join(", ", i.Select(f => f.Location)),
                 IEnumerable<AnimeTitle> t => string.Join(", ", t.Select(tt => tt.Title)),
                 IEnumerable<int> i => string.Join(", ", i),
+                IEnumerable<IAudioStream> a => string.Join(", ", a.Select(b => $"{b.LanguageCode} {b.SimplifiedCodec} {b.Channels}")),
                 _ => throw new KeyNotFoundException("Could not find collection type in CollectionString")
             };
         }
@@ -28,7 +29,8 @@ namespace ScriptRenamer
                 IEnumerable<AnimeTitle> c => Enumerable.Take(c, i),
                 IEnumerable<TitleLanguage> c => Enumerable.Take(c, i),
                 IEnumerable<IImportFolder> c => Enumerable.Take(c, i),
-                IEnumerable<int> c => Enumerable.Take(c, 1),
+                IEnumerable<int> c => Enumerable.Take(c, i),
+                IEnumerable<IAudioStream> c => Enumerable.Take(c, i),
                 _ => throw new KeyNotFoundException("Could not find collection type in Take")
             };
         }
@@ -42,6 +44,7 @@ namespace ScriptRenamer
                 IEnumerable<TitleLanguage> c => Enumerable.ToList(c),
                 IEnumerable<IImportFolder> c => Enumerable.ToList(c),
                 IEnumerable<int> c => Enumerable.ToList(c),
+                IEnumerable<IAudioStream> c => Enumerable.ToList(c),
                 _ => throw new KeyNotFoundException("Could not find collection type in ToList")
             };
         }
