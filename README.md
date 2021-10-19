@@ -18,7 +18,8 @@ If 'findLastLocation' is used, the last added file's location from the same anim
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 The final destination MUST match the name or absolute path of a drop folder in order to move the file.  
 If using name to set, destination import folder name must be unique or moving file will fail.  
-Both Destination and Subfolder must be set or moving will fail.
+Desination defaults to the first destination folder it can find.  
+Subfolder defaults to your preferred langauge anime titles.
 
 ## Sample Script
 ```
