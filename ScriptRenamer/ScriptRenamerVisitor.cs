@@ -473,10 +473,10 @@ namespace ScriptRenamer
                                    ?? FileInfo.MediaInfo?.Audio?.Select(a => a.SimplifiedCodec).Distinct().ToList()
                                    ?? new List<string>(),
                 SRP.DUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.AudioLanguages?.Distinct().ToList()
-                                    ?? FileInfo.MediaInfo?.Audio?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).Distinct().ToList()
+                                    ?? FileInfo.MediaInfo?.Audio?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown ? ParseEnum<TitleLanguage>(a.Title, false) : l).Distinct().ToList()
                                     ?? new List<TitleLanguage>(),
                 SRP.SUBLANGUAGES => FileInfo.AniDBFileInfo?.MediaInfo?.SubLanguages?.Distinct().ToList()
-                                    ?? FileInfo.MediaInfo?.Subs?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName)).Distinct().ToList()
+                                    ?? FileInfo.MediaInfo?.Subs?.Select(a => ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown ? ParseEnum<TitleLanguage>(a.Title, false) : l).Distinct().ToList()
                                     ?? new List<TitleLanguage>(),
                 SRP.ANIMETITLES => AnimeInfo.Titles.ToList(),
                 SRP.EPISODETITLES => EpisodeInfo.Titles.ToList(),
@@ -485,9 +485,18 @@ namespace ScriptRenamer
             };
         }
 
-        private static T ParseEnum<T>(string text)
+        private static T ParseEnum<T>(string text, bool throwException = true)
         {
-            return (T)Enum.Parse(typeof(T), text);
+            try
+            {
+                return (T)Enum.Parse(typeof(T), text, true);
+            }
+            catch
+            {
+                if (throwException)
+                    throw;
+                return default;
+            }
         }
 
         private IImportFolder OldDestination()
