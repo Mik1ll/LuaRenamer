@@ -83,6 +83,7 @@ grammar ScriptRenamer;
             |   op=TRUNCATE LPAREN string_atom COMMA number_atom RPAREN
             |   op=TRIM LPAREN string_atom RPAREN
             |   op=RXMATCH LPAREN string_atom COMMA string_atom RPAREN
+            |   op=(UPPER | LOWER) LPAREN string_atom RPAREN
             ;
 
         date_atom
@@ -206,6 +207,8 @@ grammar ScriptRenamer;
     TRIM : 'trim';
     RXREPLACE : 'rxreplace';
     RXMATCH : 'rxmatch';
+    UPPER : 'upper';
+    LOWER : 'lower';
 
 
 // Tags

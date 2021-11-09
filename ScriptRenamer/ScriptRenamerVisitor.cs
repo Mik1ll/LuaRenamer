@@ -343,6 +343,8 @@ namespace ScriptRenamer
                     _ => throw new ParseCanceledException("Could not parse string_atom with null op label", context.exception)
                 },
                 SRP.RXMATCH => Regex.Match((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1))).Value,
+                SRP.UPPER => ((string)Visit(context.string_atom(0))).ToUpper(),
+                SRP.LOWER => ((string)Visit(context.string_atom(0))).ToLower(),
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception)
             };
         }
