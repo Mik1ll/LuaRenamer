@@ -345,6 +345,7 @@ namespace ScriptRenamer
                 SRP.RXMATCH => Regex.Match((string)Visit(context.string_atom(0)), (string)Visit(context.string_atom(1))).Value,
                 SRP.UPPER => ((string)Visit(context.string_atom(0))).ToUpper(),
                 SRP.LOWER => ((string)Visit(context.string_atom(0))).ToLower(),
+                SRP.CAPITALIZE => CultureInfo.InvariantCulture.TextInfo.ToTitleCase((string)Visit(context.string_atom(0))),
                 _ => throw new ParseCanceledException("Could not parse string_atom", context.exception)
             };
         }

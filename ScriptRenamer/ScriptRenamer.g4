@@ -84,6 +84,7 @@ grammar ScriptRenamer;
             |   op=TRIM LPAREN string_atom RPAREN
             |   op=RXMATCH LPAREN string_atom COMMA string_atom RPAREN
             |   op=(UPPER | LOWER) LPAREN string_atom RPAREN
+            |   op=CAPITALIZE LPAREN string_atom RPAREN
             ;
 
         date_atom
@@ -209,6 +210,7 @@ grammar ScriptRenamer;
     RXMATCH : 'rxmatch';
     UPPER : 'upper';
     LOWER : 'lower';
+    CAPITALIZE : 'capitalize';
 
 
 // Tags
