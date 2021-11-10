@@ -10,7 +10,7 @@ Renamer Plugin for Shoko
 ### Shoko Desktop
 1. Navigate to Utilities/File Renaming
 1. Use the Default script and set the type of the script to ScriptRenamer in the drop-down menu. Don't add a new script, as they are currently ignored when importing/scanning.
-1. Type your script and Save (next to the script type drop-down). Note: all language keywords and labels are NOT case-sensitive.
+1. Type your script and Save (next to the script type drop-down). Note: all language keywords and labels are case insensitive.
 1. Test your script using the preview utility in the same window.
 
 ### Important Notes for File Moving
@@ -18,8 +18,8 @@ If 'findLastLocation' is used, the last added file's location from the same anim
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 The final destination MUST match the name or absolute path of a drop folder in order to move the file.  
 If using name to set, destination import folder name must be unique or moving file will fail.  
-Desination defaults to the first destination folder it can find.  
-Subfolder defaults to your preferred langauge anime titles.
+Destination defaults to the first destination folder it can find.  
+Subfolder defaults to your preferred language anime title.
 
 ## Sample Script
 ```
@@ -74,37 +74,33 @@ else {
     add 'subs:' Sublanguages;
 }
 ```  
-Collections can evaluate to true if it has any elements, false if it is empty.  
-If/else statements can substitute a block {} with a single statement.   
-Can optionally add 'filename' target in front of actions, it is the default target.  
-'add' and 'set' actions take one or more strings as arguments. 
-Collections can also evaluate as a comma-seperated string.
+* Collections evaluate to true if it has any elements, false if it is empty.  
+* If/else statements can substitute a block {} with a single statement.  
+* Can optionally add 'filename' target in front of actions, it is the default target.  
+* 'add' and 'set' actions take one or more strings as arguments.  
+* Collections can also evaluate as a comma-separated string.
 
 ```
 if (AnimeTitles has English and Main)
     subfolder set first(AnimeTitles has English and Main);
 ```  
-Title collections can have two specifiers: language and type.  
-first(***collection***) returns the first element in a collection
+* Title collections can have two filters: language and type.  
+* first(***collection***) returns the first element in a collection
 
 ```
-add EpisodeNumber pad MaxEpisodeCount;
-```  
-Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits.
-
-```
-add EpisodePrefix EpisodeNumber;
+add EpisodePrefix EpisodeNumber pad MaxEpisodeCount;
 if (LastEpisodeNumber != EpisodeNumber)
-    add '-' LastEpisodeNumber;
+    add '-' LastEpisodeNumber pad MaxEpisodeCount;
 ```
-Adds support for files with a range of episodes.
-Recommend using EpisodesNumbers instead unless you have some requirement e.g. plex episode number recognition 
+* Episode number padding. Can use EpisodeCount or any other number, pads to match number of digits of the number on right side.
+* Adds support for files with a range of episodes.
+* Recommend using EpisodesNumbers instead unless you have some requirement e.g. plex episode number recognition 
 
 ```
 filename set trunc(Filename, 120);
 ```
-Ensures that filename length do not exceed a number, useful for old Windows versions where max path was 260 chars (entire path, not just file name).
-May also want to truncate each segment of the subfolder if that can become too long
+* Ensures that filename length do not exceed a number, useful for Windows installations that still have the 260 char limit (entire path, not just file name).
+* You should truncate long strings first such as episode names before resorting to this.
 
 ```
 // this is a line comment
@@ -258,7 +254,7 @@ Boolean Expressions (In order of precedence):
 1. ***collection***    ```True if collection is non-empty```
 1. ***type label*** is ***type enum***    ```Used by AnimeType and EpisodeType, checks the type```
 1. ***string atom*** contains ***string atom***    ```True if string contains another string as a substring```
-1. ***number*** ***relational operator*** ***number***    ```Only supports integers at this time```
+1. ***number*** (< | > | <= | >= | == | !=) ***number***    ```Only supports integers at this time```
 1. ***(bool expr, number, or string)*** (== | !=) ***(bool expr, number, or string)***    ```Checks equality/inequality```
 1. ***bool expr*** and ***bool expr***    ```Boolean and expression```
 1. ***bool expr*** or ***bool expr***    ```Boolean or expression```
@@ -289,6 +285,9 @@ Strings:
 11. substr(***string***, ***index number***, ***length number***)    ```Returns string starting at given index with given length```
 12. trunc(***string***, ***length number***)    ```Returns string with characters after length sliced off```
 13. trim(***string***)    ```Trims whitespace on ends of string```
+14. upper(***string***)    ```Convert to all uppercase```
+15. lower(***string***)    ```Convert to all lowercase```
+16. capitalize(***string***)    ```Convert to title case (each word capitalized)```
 
 Dates:
 1. ***date label***
