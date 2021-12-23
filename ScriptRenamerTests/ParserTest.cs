@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Antlr4.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -22,8 +21,10 @@ namespace ScriptRenamerTests
             ScriptRenamerLexer lexer = new(lowerStream);
             lexer.AddErrorListener(ExceptionErrorListener.Instance);
             CommonTokenStream tokenStream = new(lexer);
-            ScriptRenamerParser parser = new(tokenStream);
-            parser.ErrorHandler = new BailErrorStrategy();
+            ScriptRenamerParser parser = new(tokenStream)
+            {
+                ErrorHandler = new BailErrorStrategy()
+            };
             parser.AddErrorListener(ExceptionErrorListener.Instance);
             return parser;
         }
@@ -388,6 +389,7 @@ namespace ScriptRenamerTests
             }
             catch
             {
+                // ignored
             }
         }
 
