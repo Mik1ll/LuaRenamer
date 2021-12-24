@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.1" GeneratePathProperty="true" />
+    <PackageReference Include="NLua" Version="1.6.0" />
     <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.2.0" />
   </ItemGroup>
 

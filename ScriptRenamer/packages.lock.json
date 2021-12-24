@@ -8,11 +8,25 @@
         "resolved": "4.9.1",
         "contentHash": "2b6SrwXRa3lgJ7nQyG+EZFJHGDWRW0Bb8KfqdXaAVL3QoGOuXkFRLBxTIbRt1lNUop9k++SG2kid/pl1Q49UGw=="
       },
+      "NLua": {
+        "type": "Direct",
+        "requested": "[1.6.0, )",
+        "resolved": "1.6.0",
+        "contentHash": "0+p4yrJoAGfsMuoZpcdSpp8jNHrZs9nyGPoYLbHaxzqbPZIS8RhBO1fnQLYsECrTMiQVledR3bDkEfRybjBdpw==",
+        "dependencies": {
+          "KeraLua": "1.3.1"
+        }
+      },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
         "requested": "[2.2.0, )",
         "resolved": "2.2.0",
         "contentHash": "FOytlGNY3PmCfeU8oNYVb32Pq8L3tmisG063KzWuuvdyq8h1AJZWbY43HSakoj9uigLZw60iajeyC3rYqnPbNQ=="
+      },
+      "KeraLua": {
+        "type": "Transitive",
+        "resolved": "1.3.1",
+        "contentHash": "DSZkJx3+9YmJONylrJY2xvjmBBT6oPZO1Iv+MBZh4Ta8KsYewKmpp5n+yW2J5vkIxkJ1yxiQuHE+iKw25Kw6GA=="
       }
     }
   }

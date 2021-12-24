@@ -21,13 +21,6 @@ namespace ScriptRenamer
         {
         }
 
-        public ScriptRenamerVisitor(RenameEventArgs args)
-        {
-            Renaming = true;
-            AvailableFolders = new List<IImportFolder>();
-            Init(args);
-        }
-
         public ScriptRenamerVisitor(MoveEventArgs args)
         {
             Renaming = false;

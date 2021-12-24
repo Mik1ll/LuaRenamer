@@ -439,7 +439,7 @@ namespace ScriptRenamerTests
         [DynamicData(nameof(TestEpisodeSelectionAndNameData))]
         public void TestEpisodeSelectionAndName(List<IEpisode> episodes, int eEpisodeId, string eEpisodesString)
         {
-            var visitor = new ScriptRenamerVisitor(new RenameEventArgs
+            var visitor = new ScriptRenamerVisitor(new MoveEventArgs
             {
                 AnimeInfo = new List<IAnime>
                 {
@@ -535,7 +535,7 @@ namespace ScriptRenamerTests
         [DynamicData(nameof(TestLastEpisodeNumberData))]
         public void TestLastEpisodeNumber(List<IEpisode> episodes, string expected)
         {
-            var visitor = new ScriptRenamerVisitor(new RenameEventArgs()
+            var visitor = new ScriptRenamerVisitor(new MoveEventArgs()
             {
                 AnimeInfo = new List<IAnime>
                 {

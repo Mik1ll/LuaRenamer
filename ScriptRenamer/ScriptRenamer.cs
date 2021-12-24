@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using NLua;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
@@ -51,7 +54,18 @@ namespace ScriptRenamer
 
         public string GetFilename(RenameEventArgs args)
         {
-            var visitor = new ScriptRenamerVisitor(args);
+            var mvEventArgs = new MoveEventArgs
+            {
+                Cancel = args.Cancel,
+                AvailableFolders = ((IEnumerable)ImportFolderRepo.GetAll()).Cast<IImportFolder>()
+                    .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList<IImportFolder>(),
+                FileInfo = args.FileInfo,
+                AnimeInfo = args.AnimeInfo,
+                GroupInfo = args.GroupInfo,
+                EpisodeInfo = args.EpisodeInfo,
+                Script = args.Script
+            };
+            var visitor = new ScriptRenamerVisitor(mvEventArgs);
             if (CheckBadArgs(visitor))
             {
                 args.Cancel = true;
