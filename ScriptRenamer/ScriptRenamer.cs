@@ -36,19 +36,25 @@ namespace ScriptRenamer
             SetupAndLaunch(visitor);
             if (visitor.FindLastLocation)
             {
-                IImportFolder fld = null;
-                var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID))
+                IImportFolder oldFld = null;
+                string subFld = null;
+                var lastFileLocation = (IVideoFile)((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(visitor.AnimeInfo.AnimeID))
                     .Where(vl => !string.Equals(vl.CRC32, visitor.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
                     .OrderByDescending(vl => vl.DateTimeUpdated)
                     .Select(vl => vl.GetBestVideoLocalPlace())
-                    .FirstOrDefault(vlp => (fld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
-                                           (fld.DropFolderType.HasFlag(DropFolderType.Destination) || fld.DropFolderType.HasFlag(DropFolderType.Excluded)));
-                string subFld = Path.GetDirectoryName(lastFileLocation?.FilePath);
-                if (fld is not null && subFld is not null)
-                    return (fld, subFld);
+                    .FirstOrDefault(vlp => (oldFld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
+                                           (oldFld.DropFolderType.HasFlag(DropFolderType.Destination) ||
+                                            oldFld.DropFolderType.HasFlag(DropFolderType.Excluded)));
+                if (lastFileLocation is not null)
+                {
+                    var oldLoc = NormPath(oldFld.Location);
+                    subFld = Path.GetRelativePath(oldLoc, Path.GetDirectoryName(lastFileLocation.FilePath)!);
+                }
+                if (oldFld is not null && subFld is not null)
+                    return (oldFld, subFld);
             }
-            var (destfolder, olddestfolder) = GetNewAndOldDestinations(args, visitor);
-            var subfolder = GetNewSubfolder(args, visitor, olddestfolder);
+            var destfolder = GetNewDestination(visitor);
+            var subfolder = GetNewSubfolder(args, visitor);
             return (destfolder, subfolder);
         }
 
@@ -84,50 +90,35 @@ namespace ScriptRenamer
                 .FirstOrDefault(t => t is not null);
         }
 
-        private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor, IImportFolder olddestfolder)
+        private static string GetNewSubfolder(MoveEventArgs args, ScriptRenamerVisitor visitor)
         {
             if (visitor.Subfolder is null)
                 return RemoveInvalidFilenameChars(args.AnimeInfo.OrderBy(a => a.AnimeID).First().PreferredTitle is var title && visitor.RemoveReservedChars
                     ? title
                     : title.ReplaceInvalidPathCharacters());
-            var oldsubfolder = string.Empty;
-            if (olddestfolder is not null)
-            {
-                var olddest = $"{NormPath(olddestfolder.Location)}/";
-                oldsubfolder = string.Concat($"{NormPath(Path.GetDirectoryName(args.FileInfo.FilePath))}/".SkipWhile((ch, i) => i < olddest.Length
-                    && char.ToUpperInvariant(olddest[i]) == char.ToUpperInvariant(ch))).TrimEnd('/');
-            }
             var subfolder = string.Empty;
-            var oldsubfoldersplit = olddestfolder is null ? Array.Empty<string>() : oldsubfolder.Split('/');
             var newsubfoldersplit = visitor.Subfolder.Trim((char)0x1F).Split((char)0x1F)
-                .Select(f => f == "*" ? f : RemoveInvalidFilenameChars(visitor.RemoveReservedChars ? f : f.ReplaceInvalidPathCharacters())).ToArray();
-            for (var i = 0; i < newsubfoldersplit.Length; i++)
-                if (newsubfoldersplit[i] == "*")
-                    if (i < oldsubfoldersplit.Length)
-                        subfolder += oldsubfoldersplit[i] + '/';
-                    else
-                        throw new ArgumentException("Could not find subfolder from wildcard");
-                else
-                    subfolder += newsubfoldersplit[i] + '/';
+                .Select(f => RemoveInvalidFilenameChars(visitor.RemoveReservedChars ? f : f.ReplaceInvalidPathCharacters())).ToArray();
+            subfolder = newsubfoldersplit.Aggregate(subfolder, (current, t) => current + (t + '/'));
             subfolder = NormPath(subfolder);
             return subfolder;
         }
 
-        private static (IImportFolder destfolder, IImportFolder olddestfolder) GetNewAndOldDestinations(MoveEventArgs args, ScriptRenamerVisitor visitor)
+        private static IImportFolder GetNewDestination(ScriptRenamerVisitor visitor)
         {
             IImportFolder destfolder;
             if (string.IsNullOrWhiteSpace(visitor.Destination))
             {
-                destfolder = args.AvailableFolders
+                destfolder = visitor.AvailableFolders
                     // Order by common prefix (stronger version of same drive)
-                    .OrderBy(f => string.Concat(NormPath(args.FileInfo.FilePath)
+                    .OrderBy(f => string.Concat(NormPath(visitor.FileInfo.FilePath)
                         .TakeWhile((ch, i) => i < NormPath(f.Location).Length
                                               && char.ToUpperInvariant(NormPath(f.Location)[i]) == char.ToUpperInvariant(ch))).Length)
                     .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
             }
             else
             {
-                destfolder = args.AvailableFolders.FirstOrDefault(f =>
+                destfolder = visitor.AvailableFolders.FirstOrDefault(f =>
                     f.DropFolderType.HasFlag(DropFolderType.Destination)
                     && (string.Equals(f.Name, visitor.Destination, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(NormPath(f.Location), NormPath(visitor.Destination), StringComparison.OrdinalIgnoreCase))
@@ -135,11 +126,7 @@ namespace ScriptRenamer
                 if (destfolder is null)
                     throw new ArgumentException($"Bad destination: {visitor.Destination}");
             }
-
-            var olddestfolder = args.AvailableFolders.OrderByDescending(f => f.Location.Length)
-                .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                     && NormPath(args.FileInfo.FilePath).StartsWith(NormPath(f.Location), StringComparison.OrdinalIgnoreCase));
-            return (destfolder, olddestfolder);
+            return destfolder;
         }
 
         private static void SetContext(string script)
