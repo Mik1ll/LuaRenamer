@@ -3,15 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Text;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Misc;
 using NLua;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
-using System.Runtime.InteropServices;
 using NLua.Exceptions;
 
 namespace ScriptRenamer
@@ -20,16 +15,13 @@ namespace ScriptRenamer
     public class ScriptRenamer : IRenamer
     {
         private const string RenamerId = nameof(ScriptRenamer);
-        private static string _script = string.Empty;
-        private static ParserRuleContext _context;
-        private static Exception _contextException;
         private static readonly Type Repofact = GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
         private static readonly dynamic VideoLocalRepo = Repofact.GetProperty("VideoLocal")?.GetValue(null);
         private static readonly dynamic ImportFolderRepo = Repofact.GetProperty("ImportFolder")?.GetValue(null);
         private static readonly NLuaSingleton Lua = new();
 
-        private static string _scriptCache = null;
-        private static Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> _resultCache = new();
+        private static string _scriptCache;
+        private static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
         private static (string filename, IImportFolder destination, string subfolder)? CheckCache(MoveEventArgs args)
         {
@@ -37,11 +29,11 @@ namespace ScriptRenamer
             if (args.Script.Script != _scriptCache)
             {
                 _scriptCache = args.Script.Script;
-                _resultCache.Clear();
+                ResultCache.Clear();
                 return null;
             }
-            if (!_resultCache.TryGetValue(crc, out var res)) return null;
-            _resultCache.Remove(crc);
+            if (!ResultCache.TryGetValue(crc, out var res)) return null;
+            ResultCache.Remove(crc);
             if (res.setTIme < DateTime.UtcNow + TimeSpan.FromSeconds(2))
                 return (res.filename, res.destination, res.subfolder);
             return null;
@@ -80,7 +72,7 @@ namespace ScriptRenamer
             {
                 Cancel = args.Cancel,
                 AvailableFolders = ((IEnumerable)ImportFolderRepo.GetAll()).Cast<IImportFolder>()
-                    .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList<IImportFolder>(),
+                    .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList(),
                 FileInfo = args.FileInfo,
                 AnimeInfo = args.AnimeInfo,
                 GroupInfo = args.GroupInfo,
@@ -127,7 +119,7 @@ namespace ScriptRenamer
             else
                 (destination, subfolder) = existingAnimeLocation.Value;
             if (filename is null || destination is null || subfolder is null) return null;
-            _resultCache.Add(args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
+            ResultCache.Add(args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
             return (filename, destination, subfolder);
         }
 
@@ -173,7 +165,7 @@ namespace ScriptRenamer
         private static IImportFolder GetNewDestination(MoveEventArgs args, object destination)
         {
             IImportFolder destfolder;
-            if (destination is string && string.IsNullOrWhiteSpace((string)destination))
+            if (destination is string d && string.IsNullOrWhiteSpace(d))
                 destination = null;
             switch (destination)
             {
