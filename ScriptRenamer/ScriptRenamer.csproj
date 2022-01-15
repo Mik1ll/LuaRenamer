@@ -1,37 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+        <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.1" GeneratePathProperty="true" />
-    <PackageReference Include="NLua" Version="1.6.0" />
-    <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_GeneratedFiles Include="GeneratedCode/*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="GeneratedCode" />
-  </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <ItemGroup>
-      <Compile Remove="GeneratedCode/*.cs" />
+        <PackageReference Include="NLua" Version="1.6.0"/>
+        <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.2.0" >
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
     </ItemGroup>
-    <Exec Command="antlr4 -Dlanguage=CSharp -visitor -no-listener ScriptRenamer.g4 -o GeneratedCode" />
-    <ItemGroup>
-      <Compile Include="GeneratedCode/*.cs" />
-    </ItemGroup>
-  </Target>
-  <Target Name="PostClean" AfterTargets="CoreClean">
-    <Delete Files="@(_GeneratedFiles)" />
-  </Target>
-
 </Project>

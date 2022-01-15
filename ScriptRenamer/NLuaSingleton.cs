@@ -4,11 +4,11 @@ using NLua;
 
 namespace ScriptRenamer
 {
-    internal class NLuaSingleton
+    public class NLuaSingleton
     {
-        public readonly Lua Inst = new();
+        public Lua Inst { get; } = new();
         private readonly LuaFunction _runSandboxed;
-        private readonly LuaTable _env;
+        public LuaTable Env { get; private set; }
 
         #region Sandbox
 
@@ -50,23 +50,20 @@ return runsandboxed
 
         #endregion
 
-        
+
         public NLuaSingleton()
         {
             Inst.State.Encoding = Encoding.UTF8;
             _runSandboxed = (LuaFunction)Inst.DoString(SandboxFunction)[0];
-            var envBuilder = new List<string> { BaseEnv };
-            Inst.AddObject(envBuilder, null, "filename");
-            Inst.AddObject(envBuilder, null, "destination");
-            Inst.AddObject(envBuilder, null, "subfolder");
-            Inst.AddObject(envBuilder, false, "use_existing_anime_location");
-            Inst.AddObject(envBuilder, false, "remove_reserved_chars");
-            _env = Inst.CreateEnv(envBuilder);
         }
 
-        public void RunSandboxed(string code)
+        public object[] RunSandboxed(string code, Dictionary<string, object> env)
         {
-            _runSandboxed.Call(code, _env);
+            var envBuilder = new HashSet<string> { BaseEnv };
+            foreach (var (k, v) in env)
+                Inst.AddObject(envBuilder, v, k);
+            Env = Inst.CreateEnv(envBuilder);
+            return _runSandboxed.Call(code, Env);
         }
 
         ~NLuaSingleton()

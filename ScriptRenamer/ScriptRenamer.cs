@@ -16,8 +16,8 @@ namespace ScriptRenamer
     {
         private const string RenamerId = nameof(ScriptRenamer);
         private static readonly Type Repofact = GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
-        private static readonly dynamic VideoLocalRepo = Repofact.GetProperty("VideoLocal")?.GetValue(null);
-        private static readonly dynamic ImportFolderRepo = Repofact.GetProperty("ImportFolder")?.GetValue(null);
+        private static readonly dynamic VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
+        private static readonly dynamic ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
         private static readonly NLuaSingleton Lua = new();
 
         private static string _scriptCache;
@@ -88,30 +88,38 @@ namespace ScriptRenamer
             return result?.filename;
         }
 
-        private static (string filename, IImportFolder destination, string subfolder)? GetInfo(MoveEventArgs args)
+        public static (string filename, IImportFolder destination, string subfolder)? GetInfo(MoveEventArgs args)
         {
             var res = CheckCache(args);
             if (res is not null)
                 return res;
-            Lua.RunSandboxed(args.Script.Script);
-            if (Lua.Inst["filename"] is not (string or null))
+            Lua.RunSandboxed(args.Script.Script, new Dictionary<string, object>
+            {
+                { LuaEnv.Filename, "" },
+                { LuaEnv.Destination, "" },
+                { LuaEnv.Subfolder, "" },
+                { LuaEnv.RemoveReservedChars, false },
+                { LuaEnv.UseExistingAnimeLocation, false },
+            });
+            var env = Lua.Inst.GetTableDict(Lua.Env);
+            var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
+            var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
+            
+            if (env.TryGetValue(LuaEnv.Filename, out var luaFilename) && luaFilename is not (string or null))
                 throw new LuaScriptException("filename must be a string", string.Empty);
-            var filename = (string)Lua.Inst["filename"];
-            var luaDestination = Lua.Inst["destination"];
-            if (luaDestination is not (string or IImportFolder or LuaTable or null))
-                throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
-            if (Lua.Inst["subfolder"] is not (string or LuaTable or null))
-                throw new LuaScriptException("subfolder must be a string or an array of path segments", string.Empty);
-            var luaSubfolder = (LuaTable)Lua.Inst["subfolder"];
-            string subfolder;
-            IImportFolder destination;
-            var removeReservedChars = (bool)Lua.Inst["remove_reserved_chars"];
-            var useExistingAnimeLocation = (bool)Lua.Inst["use_existing_anime_location"];
-
-            filename = !string.IsNullOrWhiteSpace(filename)
-                ? RemoveInvalidFilenameChars(removeReservedChars ? filename : filename.ReplaceInvalidPathCharacters()) +
+            var filename = !string.IsNullOrWhiteSpace((string)luaFilename)
+                ? RemoveInvalidFilenameChars(removeReservedChars ? (string)luaFilename : ((string)luaFilename).ReplaceInvalidPathCharacters()) +
                   Path.GetExtension(args.FileInfo.Filename)
-                : null;
+                : args.FileInfo.Filename;
+            
+            if (env.TryGetValue(LuaEnv.Destination, out var luaDestination) && luaDestination is not (string or IImportFolder or LuaTable or null))
+                throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
+            IImportFolder destination;
+            
+            if (env.TryGetValue(LuaEnv.Subfolder, out var luaSubfolder) && luaSubfolder is not (string or LuaTable or null))
+                throw new LuaScriptException("subfolder must be a string or an array of path segments", string.Empty);
+            string subfolder;
+
             (IImportFolder, string)? existingAnimeLocation = null;
             if (useExistingAnimeLocation) existingAnimeLocation = GetExistingAnimeLocation(args);
             if (existingAnimeLocation is null)
@@ -158,7 +166,7 @@ namespace ScriptRenamer
                     throw new ArgumentException("subfolder was not an expected type");
             }
             newSubFolderSplit = newSubFolderSplit.Select(f => RemoveInvalidFilenameChars(removeReservedChars ? f : f.ReplaceInvalidPathCharacters())).ToList();
-            var newSubfolder = NormPath(newSubFolderSplit.Aggregate((current, t) => current + (t + Path.DirectorySeparatorChar)));
+            var newSubfolder = NormPath(string.Join(Path.DirectorySeparatorChar, newSubFolderSplit));
             return newSubfolder;
         }
 
@@ -183,7 +191,8 @@ namespace ScriptRenamer
                         && string.Equals(f.Name, s, StringComparison.OrdinalIgnoreCase)
                     );
                     if (destfolder is null)
-                        throw new ArgumentException($"Could not find destination folder by name (NOTE: You must use an array of path segments if using a path): {s}");
+                        throw new ArgumentException(
+                            $"Could not find destination folder by name (NOTE: You must use an array of path segments if using a path): {s}");
                     break;
                 case IImportFolder imp:
                     destfolder = imp;
@@ -199,7 +208,7 @@ namespace ScriptRenamer
                         destDict[key] = val;
                     }
                     var newDestSplit = destDict.Values.ToList();
-                    var newDest = NormPath(newDestSplit.Aggregate((current, t) => current + (t + Path.DirectorySeparatorChar)));
+                    var newDest = NormPath(string.Join(Path.DirectorySeparatorChar, newDestSplit));
                     destfolder = args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
                                                                            && string.Equals(NormPath(f.Location), newDest, StringComparison.OrdinalIgnoreCase));
                     if (destfolder is null)

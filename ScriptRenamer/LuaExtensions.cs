@@ -5,7 +5,7 @@ namespace ScriptRenamer
 {
     public static class LuaExtensions
     {
-        public static void AddObject(this Lua lua, ICollection<string> envBuilder, object obj, string name)
+        public static void AddObject(this Lua lua, HashSet<string> envBuilder, object obj, string name)
         {
             envBuilder.Add($"{name} = {name},");
             lua[name] = obj;

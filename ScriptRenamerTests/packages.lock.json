@@ -44,10 +44,11 @@
         "resolved": "2.1.2",
         "contentHash": "DXTDuBumPC4oo9KKZMt5zgOuLdfUjqcsLRLyqeubaIxfl7ZBfk8wfsKRWYd1m5aCL3ekifW5pwT3rwuB2mDdLw=="
       },
-      "Antlr4.Runtime.Standard": {
-        "type": "Transitive",
-        "resolved": "4.9.1",
-        "contentHash": "2b6SrwXRa3lgJ7nQyG+EZFJHGDWRW0Bb8KfqdXaAVL3QoGOuXkFRLBxTIbRt1lNUop9k++SG2kid/pl1Q49UGw=="
+      "Shoko.Plugin.Abstractions": {
+        "type": "Direct",
+        "requested": "[2.2.0, )",
+        "resolved": "2.2.0",
+        "contentHash": "FOytlGNY3PmCfeU8oNYVb32Pq8L3tmisG063KzWuuvdyq8h1AJZWbY43HSakoj9uigLZw60iajeyC3rYqnPbNQ=="
       },
       "Castle.Core": {
         "type": "Transitive",
@@ -337,11 +338,6 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "VB5cn/7OzUfzdnC8tqAIMQciVLiq2epm2NrAm1E9OjNRyG4lVhfR61SMcLizejzQP8R8Uf/0l5qOIbUEi+RdEg=="
-      },
-      "Shoko.Plugin.Abstractions": {
-        "type": "Transitive",
-        "resolved": "2.2.0",
-        "contentHash": "FOytlGNY3PmCfeU8oNYVb32Pq8L3tmisG063KzWuuvdyq8h1AJZWbY43HSakoj9uigLZw60iajeyC3rYqnPbNQ=="
       },
       "System.AppContext": {
         "type": "Transitive",
@@ -1209,7 +1205,6 @@
       "scriptrenamer": {
         "type": "Project",
         "dependencies": {
-          "Antlr4.Runtime.Standard": "4.9.1",
           "NLua": "1.6.0",
           "Shoko.Plugin.Abstractions": "2.2.0"
         }

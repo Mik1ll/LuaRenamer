@@ -1,0 +1,143 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using NLua;
+using ScriptRenamer;
+using Shoko.Plugin.Abstractions;
+using Shoko.Plugin.Abstractions.DataModels;
+
+namespace ScriptRenamerTests
+{
+    [TestClass]
+    public class LuaTests
+    {
+        private MoveEventArgs Args()
+        {
+            return new MoveEventArgs
+            {
+                AnimeInfo = new List<IAnime>
+                {
+                    Mock.Of<IAnime>(a =>
+                        a.PreferredTitle == "prefTitle" &&
+                        a.Restricted &&
+                        a.Type == AnimeType.Movie &&
+                        a.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
+                        a.AirDate == new DateTime(2001, 1, 20) &&
+                        a.Titles == new List<AnimeTitle>
+                        {
+                            new()
+                            {
+                                Title = "animeTitle1",
+                                Language = TitleLanguage.English,
+                                Type = TitleType.Main
+                            },
+                            new()
+                            {
+                                Title = "animeTitle2",
+                                Language = TitleLanguage.Japanese,
+                                Type = TitleType.Official
+                            },
+                            new()
+                            {
+                                Title = "animeTitle3",
+                                Language = TitleLanguage.Romaji,
+                                Type = TitleType.Main
+                            },
+                            new()
+                            {
+                                Title = "animeTitle4",
+                                Language = TitleLanguage.English,
+                                Type = TitleType.Main
+                            }
+                        }
+                    )
+                },
+                FileInfo = Mock.Of<IVideoFile>(file =>
+                    file.Hashes == Mock.Of<IHashes>(hashes =>
+                        hashes.CRC == "abc123") &&
+                    file.MediaInfo == Mock.Of<IMediaContainer>(x =>
+                        x.Video == Mock.Of<IVideoStream>(vs =>
+                            vs.StandardizedResolution == "1080p" &&
+                            vs.BitDepth == 8 &&
+                            vs.SimplifiedCodec == "x.264")) &&
+                    file.AniDBFileInfo == Mock.Of<IAniDBFile>(af =>
+                        af.ReleaseGroup == Mock.Of<IReleaseGroup>(rg =>
+                            rg.Name == "testGroup" &&
+                            rg.ShortName == "TG") &&
+                        af.ReleaseDate == new DateTime(1997, 12, 2) &&
+                        af.Censored &&
+                        af.Source == "DVD" &&
+                        af.Version == 2 &&
+                        af.MediaInfo == Mock.Of<AniDBMediaData>(md =>
+                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
+                            md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
+                            md.SubLanguages == new List<TitleLanguage>()
+                        )
+                    )
+                ),
+                EpisodeInfo = new List<IEpisode>
+                {
+                    Mock.Of<IEpisode>(e =>
+                        e.Number == 5 &&
+                        e.Type == EpisodeType.Episode &&
+                        e.AirDate == new DateTime(2001, 3, 7) &&
+                        e.Titles == new List<AnimeTitle>
+                        {
+                            new()
+                            {
+                                Title = "episodeTitle1",
+                                Language = TitleLanguage.English,
+                                Type = TitleType.Official
+                            },
+                            new()
+                            {
+                                Title = "episdoeTitle2",
+                                Language = TitleLanguage.Danish,
+                                Type = TitleType.Main
+                            },
+                            new()
+                            {
+                                Title = "episodeTitle3",
+                                Language = TitleLanguage.Romaji,
+                                Type = TitleType.Main
+                            }
+                        }
+                    )
+                },
+                AvailableFolders = new List<IImportFolder>
+                {
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Source && x.Location == @"C:\Users\Mike\Desktop\Anime Drop" && x.Name == "Drop"),
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\Movies" && x.Name == "Movies"),
+                    Mock.Of<IImportFolder>(x => x.DropFolderType == DropFolderType.Both && x.Location == @"C:\Users\Mike\Desktop\Anime" && x.Name == "Anime"),
+                    Mock.Of<IImportFolder>(x =>
+                        x.DropFolderType == DropFolderType.Destination && x.Location == @"C:\Users\Mike\Desktop\h-anime" && x.Name == "h-anime")
+                },
+                GroupInfo = new List<IGroup>
+                {
+                    Mock.Of<IGroup>(x => x.Name == "groupname")
+                }
+            };
+        }
+
+
+        [TestMethod]
+        public void TestScriptRuns()
+        {
+            var renamer = new ScriptRenamer.ScriptRenamer();
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"filename = ""testfilename""
+destination = ""Anime""
+subfolder = ""test123""
+",
+                Type = nameof(ScriptRenamer.ScriptRenamer)
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            Assert.AreEqual(res!.Value.filename, "testfilename");
+        }
+    }
+}
