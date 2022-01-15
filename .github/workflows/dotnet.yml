@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: [ master ]
+    branches: [ lua_parsing ]
   pull_request:
-    branches: [ master ]
+    branches: [ lua_parsing ]
 
 jobs:
   build:
@@ -18,15 +18,9 @@ jobs:
       with:
         path: |
           ~/.nuget/packages
-          antlr-4.9-complete.jar
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-    - name: Download antlr4
-      run: |
-        test -f antlr-4.9-complete.jar || curl -O https://www.antlr.org/download/antlr-4.9-complete.jar
-        printf '#!/bin/bash\njava -cp "$GITHUB_WORKSPACE/antlr-4.9-complete.jar" -Xmx500M org.antlr.v4.Tool $@\n' | sudo tee /usr/bin/antlr4
-        sudo chmod +x /usr/bin/antlr4
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
