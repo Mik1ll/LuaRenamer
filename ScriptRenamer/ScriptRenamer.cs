@@ -100,22 +100,54 @@ namespace ScriptRenamer
                 { LuaEnv.Subfolder, "" },
                 { LuaEnv.RemoveReservedChars, false },
                 { LuaEnv.UseExistingAnimeLocation, false },
+                {
+                    LuaEnv.Anime, args.AnimeInfo.Select(a => new Dictionary<string, object>
+                    {
+                        { "airdate", a.AirDate?.ToTable() },
+                        { "enddate", a.EndDate?.ToTable() },
+                        { "rating", a.Rating },
+                        { "restricted", a.Restricted },
+                        { "type", (int)a.Type },
+                        { "preferredtitle", a.PreferredTitle },
+                        { "animeid", a.AnimeID },
+                        {
+                            "titles", a.Titles.Select(t => new Dictionary<string, object>()
+                            {
+                                { "title", t.Title },
+                                { "language", (int)t.Language },
+                                { "languagecode", t.LanguageCode },
+                                { "type", (int)t.Type }
+                            }).ToList()
+                        },
+                        {
+                            "episodecounts", new Dictionary<string, int>()
+                            {
+                                { "episodes", a.EpisodeCounts.Episodes },
+                                { "specials", a.EpisodeCounts.Specials },
+                                { "credits", a.EpisodeCounts.Credits },
+                                { "trailers", a.EpisodeCounts.Trailers },
+                                { "others", a.EpisodeCounts.Others },
+                                { "parodies", a.EpisodeCounts.Parodies }
+                            }
+                        }
+                    }).ToList()
+                },
             });
             var env = Lua.Inst.GetTableDict(Lua.Env);
             var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
-            
+
             if (env.TryGetValue(LuaEnv.Filename, out var luaFilename) && luaFilename is not (string or null))
                 throw new LuaScriptException("filename must be a string", string.Empty);
             var filename = !string.IsNullOrWhiteSpace((string)luaFilename)
                 ? RemoveInvalidFilenameChars(removeReservedChars ? (string)luaFilename : ((string)luaFilename).ReplaceInvalidPathCharacters()) +
                   Path.GetExtension(args.FileInfo.Filename)
                 : args.FileInfo.Filename;
-            
+
             if (env.TryGetValue(LuaEnv.Destination, out var luaDestination) && luaDestination is not (string or IImportFolder or LuaTable or null))
                 throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
             IImportFolder destination;
-            
+
             if (env.TryGetValue(LuaEnv.Subfolder, out var luaSubfolder) && luaSubfolder is not (string or LuaTable or null))
                 throw new LuaScriptException("subfolder must be a string or an array of path segments", string.Empty);
             string subfolder;
@@ -140,6 +172,8 @@ namespace ScriptRenamer
         private static string GetNewSubfolder(MoveEventArgs args, object subfolder, bool removeReservedChars)
         {
             List<string> newSubFolderSplit;
+            if (subfolder is string sf && string.IsNullOrWhiteSpace(sf))
+                subfolder = null;
             switch (subfolder)
             {
                 case null:
@@ -180,7 +214,7 @@ namespace ScriptRenamer
                 case null:
                     destfolder = args.AvailableFolders
                         // Order by common prefix (stronger version of same drive)
-                        .OrderBy(f => string.Concat(NormPath(args.FileInfo.FilePath)
+                        .OrderByDescending(f => string.Concat(NormPath(args.FileInfo.FilePath)
                             .TakeWhile((ch, i) => i < NormPath(f.Location).Length
                                                   && char.ToUpperInvariant(NormPath(f.Location)[i]) == char.ToUpperInvariant(ch))).Length)
                         .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));

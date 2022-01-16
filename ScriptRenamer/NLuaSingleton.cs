@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NLua;
+using Shoko.Plugin.Abstractions.DataModels;
 
 namespace ScriptRenamer
 {
@@ -62,6 +65,10 @@ return runsandboxed
             var envBuilder = new HashSet<string> { BaseEnv };
             foreach (var (k, v) in env)
                 Inst.AddObject(envBuilder, v, k);
+
+            Inst.AddObject(envBuilder, Enum.GetValues(typeof(AnimeType)).Cast<AnimeType>().ToDictionary(a => a.ToString(), a => (long)a), "AnimeType");
+            Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleType)).Cast<TitleType>().ToDictionary(a => a.ToString(), a => (long)a), "TitleType");
+            Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleLanguage)).Cast<TitleLanguage>().ToDictionary(a => a.ToString(), a => (long)a), "TitleType");
             Env = Inst.CreateEnv(envBuilder);
             return _runSandboxed.Call(code, Env);
         }

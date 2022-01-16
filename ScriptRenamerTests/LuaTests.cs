@@ -19,6 +19,7 @@ namespace ScriptRenamerTests
                 AnimeInfo = new List<IAnime>
                 {
                     Mock.Of<IAnime>(a =>
+                        a.AnimeID == 532 &&
                         a.PreferredTitle == "prefTitle" &&
                         a.Restricted &&
                         a.Type == AnimeType.Movie &&
@@ -74,7 +75,8 @@ namespace ScriptRenamerTests
                             md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
                             md.SubLanguages == new List<TitleLanguage>()
                         )
-                    )
+                    ) &&
+                    file.FilePath == @"C:\Users\Mike\Desktop\Anime\testfile.mp4"
                 ),
                 EpisodeInfo = new List<IEpisode>
                 {
@@ -138,6 +140,20 @@ subfolder = ""test123""
             };
             var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
             Assert.AreEqual(res!.Value.filename, "testfilename");
+        }
+
+        [TestMethod]
+        public void TestAnime()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"filename = tostring(anime[0].type == AnimeType.Movie)",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            Assert.AreEqual(res!.Value.filename, "true");
         }
     }
 }
