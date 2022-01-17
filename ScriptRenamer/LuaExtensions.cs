@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NLua;
 
 namespace ScriptRenamer
@@ -9,12 +11,57 @@ namespace ScriptRenamer
         public static void AddObject(this Lua lua, HashSet<string> envBuilder, object obj, string name)
         {
             envBuilder.Add($"{name} = {name},");
-            lua[name] = obj;
+            switch (obj)
+            {
+                case IDictionary:
+                    lua.NewTable(name);
+                    lua[name] = DictIteration(lua, (Dictionary<string, object>)obj);
+                    break;
+                case IList:
+                    lua.NewTable(name);
+                    lua[name] = ListIteration(lua, (IEnumerable<object>)obj);
+                    break;
+                default:
+                    lua[name] = obj;
+                    break;
+            }
+        }
+
+        private static LuaTable DictIteration(Lua lua, Dictionary<string, object> dict)
+        {
+            lua.NewTable("newtab");
+            var tab = lua.GetTable("newtab");
+            foreach (var (key, obj) in dict)
+            {
+                tab[key] = obj switch
+                {
+                    IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
+                    IList => ListIteration(lua, (IEnumerable<object>)obj),
+                    _ => obj
+                };
+            }
+            return tab;
+        }
+
+        private static LuaTable ListIteration(Lua lua, IEnumerable<object> list)
+        {
+            lua.NewTable("newtab");
+            var tab = lua.GetTable("newtab");
+            foreach (var (obj, i) in list.Select((o, i) => (o, i + 1)))
+            {
+                tab[i] = obj switch
+                {
+                    IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
+                    IList => ListIteration(lua, (IEnumerable<object>)obj),
+                    _ => obj
+                };
+            }
+            return tab;
         }
 
         public static LuaTable CreateEnv(this Lua lua, IEnumerable<string> envBuilder) =>
             (LuaTable)lua.DoString($"return {{{string.Join("", envBuilder)}}}")[0];
-    
+
         public static Dictionary<string, object> ToTable(this DateTime dt)
         {
             return new Dictionary<string, object>

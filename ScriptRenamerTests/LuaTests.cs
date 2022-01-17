@@ -153,7 +153,7 @@ subfolder = ""test123""
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = tostring(anime[0].type == AnimeType.Movie)",
+                Script = @"filename = tostring(anime[1].type == AnimeType.Movie)",
                 Type = nameof(ScriptRenamer.ScriptRenamer),
                 ExtraData = null
             };
