@@ -94,64 +94,155 @@ namespace ScriptRenamer
             if (res is not null)
                 return res;
             Lua.RunSandboxed(args.Script.Script, new Dictionary<string, object>
-            {
-                { LuaEnv.Filename, "" },
-                { LuaEnv.Destination, "" },
-                { LuaEnv.Subfolder, "" },
-                { LuaEnv.RemoveReservedChars, false },
-                { LuaEnv.UseExistingAnimeLocation, false },
                 {
-                    LuaEnv.Anime, args.AnimeInfo.Select(a => new Dictionary<string, object>
+                    { LuaEnv.Filename, "" },
+                    { LuaEnv.Destination, "" },
+                    { LuaEnv.Subfolder, "" },
+                    { LuaEnv.RemoveReservedChars, false },
+                    { LuaEnv.UseExistingAnimeLocation, false },
                     {
-                        { "airdate", a.AirDate?.ToTable() },
-                        { "enddate", a.EndDate?.ToTable() },
-                        { "rating", a.Rating },
-                        { "restricted", a.Restricted },
-                        { "type", (int)a.Type },
-                        { "preferredtitle", a.PreferredTitle },
-                        { "animeid", a.AnimeID },
+                        LuaEnv.Anime, args.AnimeInfo.Select(a => new Dictionary<string, object>
                         {
-                            "titles", a.Titles.Select(t => new Dictionary<string, object>()
+                            { "airdate", a.AirDate?.ToTable() },
+                            { "enddate", a.EndDate?.ToTable() },
+                            { "rating", a.Rating },
+                            { "restricted", a.Restricted },
+                            { "type", (int)a.Type },
+                            { "preferredtitle", a.PreferredTitle },
+                            { "animeid", a.AnimeID },
                             {
-                                { "title", t.Title },
-                                { "language", (int)t.Language },
-                                { "languagecode", t.LanguageCode },
-                                { "type", (int)t.Type }
-                            }).ToList()
-                        },
+                                "titles", a.Titles.Select(t => new Dictionary<string, object>
+                                {
+                                    { "title", t.Title },
+                                    { "language", (int)t.Language },
+                                    { "languagecode", t.LanguageCode },
+                                    { "type", (int)t.Type }
+                                }).ToList()
+                            },
+                            {
+                                "episodecounts", new Dictionary<string, int>
+                                {
+                                    { "episodes", a.EpisodeCounts.Episodes },
+                                    { "specials", a.EpisodeCounts.Specials },
+                                    { "credits", a.EpisodeCounts.Credits },
+                                    { "trailers", a.EpisodeCounts.Trailers },
+                                    { "others", a.EpisodeCounts.Others },
+                                    { "parodies", a.EpisodeCounts.Parodies }
+                                }
+                            }
+                        }).ToList()
+                    },
+                    {
+                        LuaEnv.File, new Dictionary<string, object>
                         {
-                            "episodecounts", new Dictionary<string, int>()
+                            { "name", args.FileInfo.Filename },
+                            { "path", args.FileInfo.FilePath },
+                            { "size", args.FileInfo.FileSize },
                             {
-                                { "episodes", a.EpisodeCounts.Episodes },
-                                { "specials", a.EpisodeCounts.Specials },
-                                { "credits", a.EpisodeCounts.Credits },
-                                { "trailers", a.EpisodeCounts.Trailers },
-                                { "others", a.EpisodeCounts.Others },
-                                { "parodies", a.EpisodeCounts.Parodies }
+                                "hashes", new Dictionary<string, string>
+                                {
+                                    { "crc", args.FileInfo.Hashes.CRC },
+                                    { "md5", args.FileInfo.Hashes.MD5 },
+                                    { "ed2k", args.FileInfo.Hashes.ED2K },
+                                    { "sha1", args.FileInfo.Hashes.SHA1 },
+                                }
+                            },
+                            {
+                                "anidb", args.FileInfo.AniDBFileInfo is null
+                                    ? null
+                                    : new Dictionary<string, object>
+                                    {
+                                        { "censored", args.FileInfo.AniDBFileInfo.Censored },
+                                        { "source", args.FileInfo.AniDBFileInfo.Source },
+                                        { "version", args.FileInfo.AniDBFileInfo.Version },
+                                        { "releasedate", args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
+                                        {
+                                            "releasegroup", args.FileInfo.AniDBFileInfo.ReleaseGroup is null
+                                                ? null
+                                                : new Dictionary<string, object>
+                                                {
+                                                    { "name", args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
+                                                    { "shortname", args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
+                                                }
+                                        },
+                                        { "fileid", args.FileInfo.AniDBFileInfo.AniDBFileID },
+                                        {
+                                            "media", new Dictionary<string, object>
+                                            {
+                                                { "videocodec", args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
+                                                { "sublanguages", args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Cast<int>().ToList() },
+                                                { "dublanguages", args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Cast<int>().ToList() }
+                                            }
+                                        }
+                                    }
+                            },
+                            {
+                                "media", args.FileInfo.MediaInfo is null
+                                    ? null
+                                    : new Dictionary<string, object>
+                                    {
+                                        { "chaptered", args.FileInfo.MediaInfo.Chaptered },
+                                        {
+                                            "video", new Dictionary<string, object>
+                                            {
+                                                { "height", args.FileInfo.MediaInfo.Video.Height },
+                                                { "width", args.FileInfo.MediaInfo.Video.Width },
+                                                { "codec", args.FileInfo.MediaInfo.Video.Codec },
+                                                { "res", args.FileInfo.MediaInfo.Video.StandardizedResolution },
+                                                { "bitrate", args.FileInfo.MediaInfo.Video.BitRate },
+                                                { "bitdepth", args.FileInfo.MediaInfo.Video.BitDepth },
+                                                { "framerate", args.FileInfo.MediaInfo.Video.FrameRate }
+                                            }
+                                        },
+                                        { "duration", args.FileInfo.MediaInfo.General.Duration },
+                                        { "bitrate", args.FileInfo.MediaInfo.General.OverallBitRate },
+                                        {
+                                            "sublanguages", args.FileInfo.MediaInfo.Subs.Select(s =>
+                                                ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                                    ? ParseEnum<TitleLanguage>(s.Title, false)
+                                                    : l)
+                                        },
+                                        {
+                                            "audio", args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
+                                            {
+                                                { "compressionmode", a.Compression_Mode },
+                                                { "bitrate", a.BitRate },
+                                                { "channels", a.Channels },
+                                                { "bitdepth", a.BitDepth },
+                                                { "samplingrate", a.SamplingRate },
+                                                { "bitratemode", a.BitRate_Mode },
+                                                { "simplecodec", a.SimplifiedCodec },
+                                                { "codec", a.Codec },
+                                                {
+                                                    "language",
+                                                    ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                                        ? ParseEnum<TitleLanguage>(a.Title, false)
+                                                        : l
+                                                },
+                                                { "title", a.Title }
+                                            }).ToList()
+                                        }
+                                    }
                             }
                         }
-                    }).ToList()
-                },
-            });
+                    }
+                }
+            );
             var env = Lua.Inst.GetTableDict(Lua.Env);
             var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
-
             if (env.TryGetValue(LuaEnv.Filename, out var luaFilename) && luaFilename is not (string or null))
                 throw new LuaScriptException("filename must be a string", string.Empty);
             var filename = !string.IsNullOrWhiteSpace((string)luaFilename)
                 ? RemoveInvalidFilenameChars(removeReservedChars ? (string)luaFilename : ((string)luaFilename).ReplaceInvalidPathCharacters()) +
                   Path.GetExtension(args.FileInfo.Filename)
                 : args.FileInfo.Filename;
-
             if (env.TryGetValue(LuaEnv.Destination, out var luaDestination) && luaDestination is not (string or IImportFolder or LuaTable or null))
                 throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
             IImportFolder destination;
-
             if (env.TryGetValue(LuaEnv.Subfolder, out var luaSubfolder) && luaSubfolder is not (string or LuaTable or null))
                 throw new LuaScriptException("subfolder must be a string or an array of path segments", string.Empty);
             string subfolder;
-
             (IImportFolder, string)? existingAnimeLocation = null;
             if (useExistingAnimeLocation) existingAnimeLocation = GetExistingAnimeLocation(args);
             if (existingAnimeLocation is null)
@@ -199,7 +290,8 @@ namespace ScriptRenamer
                 default:
                     throw new ArgumentException("subfolder was not an expected type");
             }
-            newSubFolderSplit = newSubFolderSplit.Select(f => RemoveInvalidFilenameChars(removeReservedChars ? f : f.ReplaceInvalidPathCharacters())).ToList();
+            newSubFolderSplit = newSubFolderSplit.Select(f => RemoveInvalidFilenameChars(removeReservedChars ? f : f.ReplaceInvalidPathCharacters()))
+                .ToList();
             var newSubfolder = NormPath(string.Join(Path.DirectorySeparatorChar, newSubFolderSplit));
             return newSubfolder;
         }
@@ -244,7 +336,8 @@ namespace ScriptRenamer
                     var newDestSplit = destDict.Values.ToList();
                     var newDest = NormPath(string.Join(Path.DirectorySeparatorChar, newDestSplit));
                     destfolder = args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                                                           && string.Equals(NormPath(f.Location), newDest, StringComparison.OrdinalIgnoreCase));
+                                                                           && string.Equals(NormPath(f.Location), newDest,
+                                                                               StringComparison.OrdinalIgnoreCase));
                     if (destfolder is null)
                         throw new ArgumentException($"Could not find destination folder by path: {newDest}");
                     break;
@@ -274,6 +367,20 @@ namespace ScriptRenamer
             filename = filename.RemoveInvalidPathCharacters();
             filename = string.Concat(filename.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
             return filename;
+        }
+
+        private static T ParseEnum<T>(string text, bool throwException = true)
+        {
+            try
+            {
+                return (T)Enum.Parse(typeof(T), string.Concat(text.Where(c => !char.IsWhiteSpace(c))), true);
+            }
+            catch
+            {
+                if (throwException)
+                    throw;
+                return default;
+            }
         }
     }
 }

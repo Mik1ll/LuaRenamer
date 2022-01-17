@@ -8,5 +8,6 @@
         public const string UseExistingAnimeLocation = "use_existing_anime_location";
         public const string RemoveReservedChars = "remove_reserved_chars";
         public const string Anime = "anime";
+        public const string File = "file";
     }
 }

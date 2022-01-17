@@ -68,7 +68,7 @@ return runsandboxed
 
             Inst.AddObject(envBuilder, Enum.GetValues(typeof(AnimeType)).Cast<AnimeType>().ToDictionary(a => a.ToString(), a => (long)a), "AnimeType");
             Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleType)).Cast<TitleType>().ToDictionary(a => a.ToString(), a => (long)a), "TitleType");
-            Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleLanguage)).Cast<TitleLanguage>().ToDictionary(a => a.ToString(), a => (long)a), "TitleType");
+            Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleLanguage)).Cast<TitleLanguage>().ToDictionary(a => a.ToString(), a => (long)a), "TitleLanguage");
             Env = Inst.CreateEnv(envBuilder);
             return _runSandboxed.Call(code, Env);
         }

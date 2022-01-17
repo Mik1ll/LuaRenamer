@@ -61,7 +61,13 @@ namespace ScriptRenamerTests
                         x.Video == Mock.Of<IVideoStream>(vs =>
                             vs.StandardizedResolution == "1080p" &&
                             vs.BitDepth == 8 &&
-                            vs.SimplifiedCodec == "x.264")) &&
+                            vs.SimplifiedCodec == "x.264") &&
+                        x.Subs == new List<ITextStream>() &&
+                        x.Audio == new List<IAudioStream>() &&
+                        x.General == Mock.Of<IGeneralStream>(gs =>
+                            gs.Duration == 20.3 &&
+                            gs.FrameRate == 30.21m &&
+                            gs.OverallBitRate == 23423)) &&
                     file.AniDBFileInfo == Mock.Of<IAniDBFile>(af =>
                         af.ReleaseGroup == Mock.Of<IReleaseGroup>(rg =>
                             rg.Name == "testGroup" &&
@@ -73,10 +79,9 @@ namespace ScriptRenamerTests
                         af.MediaInfo == Mock.Of<AniDBMediaData>(md =>
                             md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
                             md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
-                            md.SubLanguages == new List<TitleLanguage>()
-                        )
-                    ) &&
-                    file.FilePath == @"C:\Users\Mike\Desktop\Anime\testfile.mp4"
+                            md.SubLanguages == new List<TitleLanguage>())) &&
+                    file.FilePath == @"C:\Users\Mike\Desktop\Anime\testfile.mp4" &&
+                    file.Filename == "testfilename"
                 ),
                 EpisodeInfo = new List<IEpisode>
                 {
@@ -154,6 +159,19 @@ subfolder = ""test123""
             };
             var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
             Assert.AreEqual(res!.Value.filename, "true");
+        }
+
+        [TestMethod]
+        public void TestFile()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"filename = os.date(""%c"", os.time(file.anidb.releasedate))",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
         }
     }
 }
