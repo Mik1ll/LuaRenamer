@@ -9,5 +9,6 @@
         public const string RemoveReservedChars = "remove_reserved_chars";
         public const string Anime = "anime";
         public const string File = "file";
+        public const string Episodes = "episodes";
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;
@@ -172,6 +173,22 @@ subfolder = ""test123""
                 ExtraData = null
             };
             var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+        }
+
+        [TestMethod]
+        public void TestEpisodes()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"local episode = episodes[1]
+filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episode.type",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            Debug.Assert(res != null, nameof(res) + " != null");
+            Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
         }
     }
 }

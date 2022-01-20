@@ -93,149 +93,7 @@ namespace ScriptRenamer
             var res = CheckCache(args);
             if (res is not null)
                 return res;
-            Lua.RunSandboxed(args.Script.Script, new Dictionary<string, object>
-                {
-                    { LuaEnv.Filename, "" },
-                    { LuaEnv.Destination, "" },
-                    { LuaEnv.Subfolder, "" },
-                    { LuaEnv.RemoveReservedChars, false },
-                    { LuaEnv.UseExistingAnimeLocation, false },
-                    {
-                        LuaEnv.Anime, args.AnimeInfo.Select(a => new Dictionary<string, object>
-                        {
-                            { "airdate", a.AirDate?.ToTable() },
-                            { "enddate", a.EndDate?.ToTable() },
-                            { "rating", a.Rating },
-                            { "restricted", a.Restricted },
-                            { "type", Convert.ChangeType(a.Type, TypeCode.Int32) },
-                            { "preferredtitle", a.PreferredTitle },
-                            { "animeid", a.AnimeID },
-                            {
-                                "titles", a.Titles.Select(t => new Dictionary<string, object>
-                                {
-                                    { "title", t.Title },
-                                    { "language", (int)t.Language },
-                                    { "languagecode", t.LanguageCode },
-                                    { "type", Convert.ChangeType(t.Type, TypeCode.Int32) }
-                                }).ToList()
-                            },
-                            {
-                                "episodecounts", new Dictionary<string, object>
-                                {
-                                    { "episodes", a.EpisodeCounts.Episodes },
-                                    { "specials", a.EpisodeCounts.Specials },
-                                    { "credits", a.EpisodeCounts.Credits },
-                                    { "trailers", a.EpisodeCounts.Trailers },
-                                    { "others", a.EpisodeCounts.Others },
-                                    { "parodies", a.EpisodeCounts.Parodies }
-                                }
-                            }
-                        }).ToList()
-                    },
-                    {
-                        LuaEnv.File, new Dictionary<string, object>
-                        {
-                            { "name", args.FileInfo.Filename },
-                            { "path", args.FileInfo.FilePath },
-                            { "size", args.FileInfo.FileSize },
-                            {
-                                "hashes", new Dictionary<string, object>
-                                {
-                                    { "crc", args.FileInfo.Hashes.CRC },
-                                    { "md5", args.FileInfo.Hashes.MD5 },
-                                    { "ed2k", args.FileInfo.Hashes.ED2K },
-                                    { "sha1", args.FileInfo.Hashes.SHA1 },
-                                }
-                            },
-                            {
-                                "anidb", args.FileInfo.AniDBFileInfo is null
-                                    ? null
-                                    : new Dictionary<string, object>
-                                    {
-                                        { "censored", args.FileInfo.AniDBFileInfo.Censored },
-                                        { "source", args.FileInfo.AniDBFileInfo.Source },
-                                        { "version", args.FileInfo.AniDBFileInfo.Version },
-                                        { "releasedate", args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
-                                        {
-                                            "releasegroup", args.FileInfo.AniDBFileInfo.ReleaseGroup is null
-                                                ? null
-                                                : new Dictionary<string, object>
-                                                {
-                                                    { "name", args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
-                                                    { "shortname", args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
-                                                }
-                                        },
-                                        { "fileid", args.FileInfo.AniDBFileInfo.AniDBFileID },
-                                        {
-                                            "media", new Dictionary<string, object>
-                                            {
-                                                { "videocodec", args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
-                                                {
-                                                    "sublanguages",
-                                                    args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32))
-                                                        .ToList()
-                                                },
-                                                {
-                                                    "dublanguages",
-                                                    args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32))
-                                                        .ToList()
-                                                }
-                                            }
-                                        }
-                                    }
-                            },
-                            {
-                                "media", args.FileInfo.MediaInfo is null
-                                    ? null
-                                    : new Dictionary<string, object>
-                                    {
-                                        { "chaptered", args.FileInfo.MediaInfo.Chaptered },
-                                        {
-                                            "video", new Dictionary<string, object>
-                                            {
-                                                { "height", args.FileInfo.MediaInfo.Video.Height },
-                                                { "width", args.FileInfo.MediaInfo.Video.Width },
-                                                { "codec", args.FileInfo.MediaInfo.Video.Codec },
-                                                { "res", args.FileInfo.MediaInfo.Video.StandardizedResolution },
-                                                { "bitrate", args.FileInfo.MediaInfo.Video.BitRate },
-                                                { "bitdepth", args.FileInfo.MediaInfo.Video.BitDepth },
-                                                { "framerate", args.FileInfo.MediaInfo.Video.FrameRate }
-                                            }
-                                        },
-                                        { "duration", args.FileInfo.MediaInfo.General.Duration },
-                                        { "bitrate", args.FileInfo.MediaInfo.General.OverallBitRate },
-                                        {
-                                            "sublanguages", args.FileInfo.MediaInfo.Subs.Select(s =>
-                                                ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
-                                                    ? ParseEnum<TitleLanguage>(s.Title, false)
-                                                    : l).Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
-                                        },
-                                        {
-                                            "audio", args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
-                                            {
-                                                { "compressionmode", a.Compression_Mode },
-                                                { "bitrate", a.BitRate },
-                                                { "channels", a.Channels },
-                                                { "bitdepth", a.BitDepth },
-                                                { "samplingrate", a.SamplingRate },
-                                                { "bitratemode", a.BitRate_Mode },
-                                                { "simplecodec", a.SimplifiedCodec },
-                                                { "codec", a.Codec },
-                                                {
-                                                    "language", Convert.ChangeType(
-                                                        ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
-                                                            ? ParseEnum<TitleLanguage>(a.Title, false)
-                                                            : l, TypeCode.Int32)
-                                                },
-                                                { "title", a.Title }
-                                            }).ToList()
-                                        }
-                                    }
-                            }
-                        }
-                    }
-                }
-            );
+            Lua.RunSandboxed(args.Script.Script, CreateLuaEnv(args));
             var env = Lua.Inst.GetTableDict(Lua.Env);
             var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
@@ -260,6 +118,162 @@ namespace ScriptRenamer
             if (filename is null || destination is null || subfolder is null) return null;
             ResultCache.Add(args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
             return (filename, destination, subfolder);
+        }
+
+        private static Dictionary<string, object> CreateLuaEnv(MoveEventArgs args)
+        {
+            List<Dictionary<string, object>> ConvertTitles(IEnumerable<AnimeTitle> titles)
+            {
+                return titles.Select(t => new Dictionary<string, object>
+                {
+                    { "title", t.Title },
+                    { "language", Convert.ChangeType(t.Language, TypeCode.Int32) },
+                    { "languagecode", t.LanguageCode },
+                    { "type", Convert.ChangeType(t.Type, TypeCode.Int32) }
+                }).ToList();
+            }
+
+            var anime = args.AnimeInfo.Select(a => new Dictionary<string, object>
+            {
+                { "airdate", a.AirDate?.ToTable() },
+                { "enddate", a.EndDate?.ToTable() },
+                { "rating", a.Rating },
+                { "restricted", a.Restricted },
+                { "type", Convert.ChangeType(a.Type, TypeCode.Int32) },
+                { "preferredtitle", a.PreferredTitle },
+                { "animeid", a.AnimeID },
+                {
+                    "titles", ConvertTitles(a.Titles)
+                },
+                {
+                    "episodecounts", new Dictionary<string, object>
+                    {
+                        { "episodes", a.EpisodeCounts.Episodes },
+                        { "specials", a.EpisodeCounts.Specials },
+                        { "credits", a.EpisodeCounts.Credits },
+                        { "trailers", a.EpisodeCounts.Trailers },
+                        { "others", a.EpisodeCounts.Others },
+                        { "parodies", a.EpisodeCounts.Parodies }
+                    }
+                }
+            }).ToList();
+            var anidb = args.FileInfo.AniDBFileInfo is null
+                ? null
+                : new Dictionary<string, object>
+                {
+                    { "censored", args.FileInfo.AniDBFileInfo.Censored },
+                    { "source", args.FileInfo.AniDBFileInfo.Source },
+                    { "version", args.FileInfo.AniDBFileInfo.Version },
+                    { "releasedate", args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
+                    {
+                        "releasegroup", args.FileInfo.AniDBFileInfo.ReleaseGroup is null
+                            ? null
+                            : new Dictionary<string, object>
+                            {
+                                { "name", args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
+                                { "shortname", args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
+                            }
+                    },
+                    { "fileid", args.FileInfo.AniDBFileInfo.AniDBFileID },
+                    {
+                        "media", new Dictionary<string, object>
+                        {
+                            { "videocodec", args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
+                            {
+                                "sublanguages",
+                                args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                            },
+                            {
+                                "dublanguages",
+                                args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                            }
+                        }
+                    }
+                };
+            var mediainfo = args.FileInfo.MediaInfo is null
+                ? null
+                : new Dictionary<string, object>
+                {
+                    { "chaptered", args.FileInfo.MediaInfo.Chaptered },
+                    {
+                        "video", new Dictionary<string, object>
+                        {
+                            { "height", args.FileInfo.MediaInfo.Video.Height },
+                            { "width", args.FileInfo.MediaInfo.Video.Width },
+                            { "codec", args.FileInfo.MediaInfo.Video.Codec },
+                            { "res", args.FileInfo.MediaInfo.Video.StandardizedResolution },
+                            { "bitrate", args.FileInfo.MediaInfo.Video.BitRate },
+                            { "bitdepth", args.FileInfo.MediaInfo.Video.BitDepth },
+                            { "framerate", args.FileInfo.MediaInfo.Video.FrameRate }
+                        }
+                    },
+                    { "duration", args.FileInfo.MediaInfo.General.Duration },
+                    { "bitrate", args.FileInfo.MediaInfo.General.OverallBitRate },
+                    {
+                        "sublanguages", args.FileInfo.MediaInfo.Subs.Select(s =>
+                            ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                ? ParseEnum<TitleLanguage>(s.Title, false)
+                                : l).Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                    },
+                    {
+                        "audio", args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
+                        {
+                            { "compressionmode", a.Compression_Mode },
+                            { "bitrate", a.BitRate },
+                            { "channels", a.Channels },
+                            { "bitdepth", a.BitDepth },
+                            { "samplingrate", a.SamplingRate },
+                            { "bitratemode", a.BitRate_Mode },
+                            { "simplecodec", a.SimplifiedCodec },
+                            { "codec", a.Codec },
+                            {
+                                "language", Convert.ChangeType(
+                                    ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                        ? ParseEnum<TitleLanguage>(a.Title, false)
+                                        : l, TypeCode.Int32)
+                            },
+                            { "title", a.Title }
+                        }).ToList()
+                    }
+                };
+            var file = new Dictionary<string, object>
+            {
+                { "name", args.FileInfo.Filename },
+                { "path", args.FileInfo.FilePath },
+                { "size", args.FileInfo.FileSize },
+                {
+                    "hashes", new Dictionary<string, object>
+                    {
+                        { "crc", args.FileInfo.Hashes.CRC },
+                        { "md5", args.FileInfo.Hashes.MD5 },
+                        { "ed2k", args.FileInfo.Hashes.ED2K },
+                        { "sha1", args.FileInfo.Hashes.SHA1 },
+                    }
+                },
+                { "anidb", anidb },
+                { "media", mediainfo }
+            };
+            var episodes = args.EpisodeInfo.Select(e => new Dictionary<string, object>
+            {
+                { "duration", e.Duration },
+                { "number", e.Number },
+                { "type", Convert.ChangeType(e.Type, TypeCode.Int32) },
+                { "airdate", e.AirDate?.ToTable() },
+                { "animeid", e.AnimeID },
+                { "episodeid", e.EpisodeID },
+                { "titles", ConvertTitles(e.Titles) }
+            }).ToList();
+            return new Dictionary<string, object>
+            {
+                { LuaEnv.Filename, "" },
+                { LuaEnv.Destination, "" },
+                { LuaEnv.Subfolder, "" },
+                { LuaEnv.RemoveReservedChars, false },
+                { LuaEnv.UseExistingAnimeLocation, false },
+                { LuaEnv.Anime, anime },
+                { LuaEnv.File, file },
+                { LuaEnv.Episodes, episodes }
+            };
         }
 
         private static Type GetTypeFromAssemblies(string typeName)
