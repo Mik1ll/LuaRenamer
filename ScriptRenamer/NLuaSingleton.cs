@@ -70,6 +70,7 @@ return runsandboxed
             Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleType)).Cast<TitleType>().ToDictionary(a => a.ToString(), a => Convert.ChangeType(a, TypeCode.Int32)), "TitleType");
             Inst.AddObject(envBuilder, Enum.GetValues(typeof(TitleLanguage)).Cast<TitleLanguage>().ToDictionary(a => a.ToString(), a => Convert.ChangeType(a, TypeCode.Int32)), "TitleLanguage");
             Inst.AddObject(envBuilder, Enum.GetValues(typeof(EpisodeType)).Cast<EpisodeType>().ToDictionary(a => a.ToString(), a => Convert.ChangeType(a, TypeCode.Int32)), "EpisodeType");
+            Inst.AddObject(envBuilder, Enum.GetValues(typeof(DropFolderType)).Cast<DropFolderType>().ToDictionary(a => a.ToString(), a => Convert.ChangeType(a, TypeCode.Int32)), "DropFolderType");
             Env = Inst.CreateEnv(envBuilder);
             return _runSandboxed.Call(code, Env);
         }

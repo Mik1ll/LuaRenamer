@@ -140,7 +140,7 @@ namespace ScriptRenamerTests
             {
                 Script = @"filename = ""testfilename""
 destination = ""Anime""
-subfolder = ""test123""
+subfolder = {""test123""}
 ",
                 Type = nameof(ScriptRenamer.ScriptRenamer)
             };
@@ -189,6 +189,22 @@ filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episod
             var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
             Debug.Assert(res != null, nameof(res) + " != null");
             Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
+        }
+
+        [TestMethod]
+        public void TestImportFolder()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"if (importfolders[2].type & DropFolderType.Destination) then
+  destination = importfolders[2]
+end",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            Assert.AreSame(res!.Value.destination, args.AvailableFolders[1]);
         }
     }
 }
