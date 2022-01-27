@@ -11,5 +11,6 @@
         public const string File = "file";
         public const string Episodes = "episodes";
         public const string ImportFolders = "importfolders";
+        public const string Groups = "groups";
     }
 }

@@ -17,9 +17,9 @@ namespace ScriptRenamer
                     lua.NewTable(name);
                     lua[name] = DictIteration(lua, (Dictionary<string, object>)obj);
                     break;
-                case IList:
+                case IEnumerable<dynamic> e:
                     lua.NewTable(name);
-                    lua[name] = ListIteration(lua, (IEnumerable<object>)obj);
+                    lua[name] = ListIteration(lua, e);
                     break;
                 default:
                     lua[name] = obj;
@@ -36,14 +36,14 @@ namespace ScriptRenamer
                 tab[key] = obj switch
                 {
                     IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
-                    IList => ListIteration(lua, (IEnumerable<object>)obj),
+                    IEnumerable<dynamic> e => ListIteration(lua, e),
                     _ => obj
                 };
             }
             return tab;
         }
 
-        private static LuaTable ListIteration(Lua lua, IEnumerable<object> list)
+        private static LuaTable ListIteration(Lua lua, IEnumerable<dynamic> list)
         {
             lua.NewTable("newtab");
             var tab = lua.GetTable("newtab");
@@ -52,7 +52,7 @@ namespace ScriptRenamer
                 tab[i] = obj switch
                 {
                     IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
-                    IList => ListIteration(lua, (IEnumerable<object>)obj),
+                    IEnumerable<dynamic> e => ListIteration(lua, e),
                     _ => obj
                 };
             }

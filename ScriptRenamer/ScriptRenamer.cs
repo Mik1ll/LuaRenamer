@@ -12,6 +12,7 @@ using NLua.Exceptions;
 namespace ScriptRenamer
 {
     [Renamer(RenamerId)]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ScriptRenamer : IRenamer
     {
         private const string RenamerId = nameof(ScriptRenamer);
@@ -269,6 +270,13 @@ namespace ScriptRenamer
                 { "location", f.Location },
                 { "type", Convert.ChangeType(f.DropFolderType, TypeCode.Int32) }
             }).ToList();
+            var groups = args.GroupInfo.Select(g => new Dictionary<string, object>
+            {
+                { "name", g.Name },
+                // Just give Ids, subject to change if there is ever a reason to use more.
+                { "mainSeriesId", g.MainSeries.AnimeID },
+                { "seriesIds", g.Series.Select(s => s.AnimeID).ToList() }
+            }).ToList();
             return new Dictionary<string, object>
             {
                 { LuaEnv.Filename, "" },
@@ -279,7 +287,8 @@ namespace ScriptRenamer
                 { LuaEnv.Anime, anime },
                 { LuaEnv.File, file },
                 { LuaEnv.Episodes, episodes },
-                { LuaEnv.ImportFolders, importfolders }
+                { LuaEnv.ImportFolders, importfolders },
+                { LuaEnv.Groups, groups }
             };
         }
 

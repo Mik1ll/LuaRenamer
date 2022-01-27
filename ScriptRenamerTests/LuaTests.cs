@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NLua;
-using ScriptRenamer;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -125,7 +123,7 @@ namespace ScriptRenamerTests
                 },
                 GroupInfo = new List<IGroup>
                 {
-                    Mock.Of<IGroup>(x => x.Name == "groupname")
+                    Mock.Of<IGroup>(x => x.Name == "groupname" && x.MainSeries == Mock.Of<IAnime>(a => a.AnimeID == 3523) && x.Series == new List<IAnime>())
                 }
             };
         }
@@ -134,7 +132,6 @@ namespace ScriptRenamerTests
         [TestMethod]
         public void TestScriptRuns()
         {
-            var renamer = new ScriptRenamer.ScriptRenamer();
             var args = Args();
             args.Script = new RenameScriptImpl
             {
