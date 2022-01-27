@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NLua.Exceptions;
+using ScriptRenamer;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -202,6 +204,29 @@ end",
             };
             var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
             Assert.AreSame(res!.Value.destination, args.AvailableFolders[1]);
+        }
+
+        [TestMethod]
+        public void TestSandbox()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"TitleType.Main = 25
+",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            try
+            {
+                ScriptRenamer.ScriptRenamer.GetInfo(args);
+            }
+            catch (LuaException ex)
+            {
+                Assert.IsTrue(ex.Message.Contains("attempt to update a read-only table"));
+                return;
+            }
+            Assert.Fail("Should have thrown an LuaException with access readonly error");
         }
     }
 }

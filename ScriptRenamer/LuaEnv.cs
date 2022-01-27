@@ -12,5 +12,10 @@
         public const string Episodes = "episodes";
         public const string ImportFolders = "importfolders";
         public const string Groups = "groups";
+        public const string AnimeType = "AnimeType";
+        public const string TitleType = "TitleType";
+        public const string TitleLanguage = "TitleLanguage";
+        public const string EpisodeType = "EpisodeType";
+        public const string DropFolderType = "DropFolderType";
     }
 }

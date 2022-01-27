@@ -1,60 +1,52 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using NLua;
 
 namespace ScriptRenamer
 {
     public static class LuaExtensions
     {
-        public static void AddObject(this Lua lua, HashSet<string> envBuilder, object obj, string name)
+        public static void AddObject(this Lua lua, LuaTable env, object obj, string name)
         {
-            envBuilder.Add($"{name} = {name},");
-            switch (obj)
+            env[name] = obj switch
             {
-                case IDictionary<string, dynamic> d:
-                    lua.NewTable(name);
-                    lua[name] = DictIteration(lua, d);
-                    break;
-                case IEnumerable<dynamic> e:
-                    lua.NewTable(name);
-                    lua[name] = ListIteration(lua, e);
-                    break;
-                default:
-                    lua[name] = obj;
-                    break;
-            }
+                IDictionary d => DictIteration(lua, d),
+                IList e => ListIteration(lua, e),
+                _ => obj
+            };
         }
 
-        private static LuaTable DictIteration(Lua lua, IDictionary<string, dynamic> dict)
+        private static LuaTable DictIteration(Lua lua, IDictionary dict)
         {
-            lua.NewTable("newtab");
-            var tab = lua.GetTable("newtab");
-            foreach (var (key, obj) in dict)
+            lua.NewTable("newTable");
+            var tab = lua.GetTable("newTable");
+            foreach (DictionaryEntry entry in dict)
             {
-                tab[key] = obj switch
+                tab[entry.Key] = entry.Value switch
                 {
-                    IDictionary<string, dynamic> d => DictIteration(lua, d),
-                    IEnumerable<dynamic> e => ListIteration(lua, e),
-                    _ => obj
+                    IDictionary d => DictIteration(lua, d),
+                    IList e => ListIteration(lua, e),
+                    _ => entry.Value
                 };
             }
             return tab;
         }
 
-        private static LuaTable ListIteration(Lua lua, IEnumerable<dynamic> list)
+        private static LuaTable ListIteration(Lua lua, IEnumerable list)
         {
-            lua.NewTable("newtab");
-            var tab = lua.GetTable("newtab");
-            foreach (var (obj, i) in list.Select((o, i) => (o, i + 1)))
+            lua.NewTable("newTable");
+            var tab = lua.GetTable("newTable");
+            var i = 1;
+            foreach (var obj in list)
             {
                 tab[i] = obj switch
                 {
-                    IDictionary<string, dynamic> d => DictIteration(lua, d),
-                    IEnumerable<dynamic> e => ListIteration(lua, e),
+                    IDictionary d => DictIteration(lua, d),
+                    IList e => ListIteration(lua, e),
                     _ => obj
                 };
+                i++;
             }
             return tab;
         }
