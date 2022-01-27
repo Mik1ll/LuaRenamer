@@ -13,9 +13,9 @@ namespace ScriptRenamer
             envBuilder.Add($"{name} = {name},");
             switch (obj)
             {
-                case IDictionary:
+                case IDictionary<string, dynamic> d:
                     lua.NewTable(name);
-                    lua[name] = DictIteration(lua, (Dictionary<string, object>)obj);
+                    lua[name] = DictIteration(lua, d);
                     break;
                 case IEnumerable<dynamic> e:
                     lua.NewTable(name);
@@ -27,7 +27,7 @@ namespace ScriptRenamer
             }
         }
 
-        private static LuaTable DictIteration(Lua lua, Dictionary<string, object> dict)
+        private static LuaTable DictIteration(Lua lua, IDictionary<string, dynamic> dict)
         {
             lua.NewTable("newtab");
             var tab = lua.GetTable("newtab");
@@ -35,7 +35,7 @@ namespace ScriptRenamer
             {
                 tab[key] = obj switch
                 {
-                    IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
+                    IDictionary<string, dynamic> d => DictIteration(lua, d),
                     IEnumerable<dynamic> e => ListIteration(lua, e),
                     _ => obj
                 };
@@ -51,7 +51,7 @@ namespace ScriptRenamer
             {
                 tab[i] = obj switch
                 {
-                    IDictionary => DictIteration(lua, (Dictionary<string, object>)obj),
+                    IDictionary<string, dynamic> d => DictIteration(lua, d),
                     IEnumerable<dynamic> e => ListIteration(lua, e),
                     _ => obj
                 };
