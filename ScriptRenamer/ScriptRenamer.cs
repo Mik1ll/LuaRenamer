@@ -312,7 +312,7 @@ namespace ScriptRenamer
                     foreach (KeyValuePair<object, object> kvp in subfolderTable)
                     {
                         if (kvp.Key is not long key)
-                            throw new LuaScriptException("subfolder can't be a non-array table, found non-integer index", string.Empty);
+                            continue;
                         if (kvp.Value is not string val)
                             throw new LuaScriptException("subfolder array must only contain strings", string.Empty);
                         subfolderDict[key] = val;
@@ -370,7 +370,7 @@ namespace ScriptRenamer
                     foreach (KeyValuePair<object, object> kvp in destinationTable)
                     {
                         if (kvp.Key is not long key)
-                            throw new LuaScriptException("destination can't be a non-array table, found non-integer index", string.Empty);
+                            continue;
                         if (kvp.Value is not string val)
                             throw new LuaScriptException("destination array must only contain strings", string.Empty);
                         destDict[key] = val;

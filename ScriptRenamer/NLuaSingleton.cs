@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using NLua;
 using Shoko.Plugin.Abstractions.DataModels;
@@ -12,8 +14,9 @@ namespace ScriptRenamer
         public Lua Inst { get; } = new();
         private readonly LuaFunction _runSandboxed;
         private readonly LuaFunction _readonly;
-        private readonly HashSet<string> _envBuilder = new() { BaseEnv };
+        private readonly HashSet<string> _envBuilder = new() { BaseEnv, LuaLinqEnv };
         private readonly LuaTable _globalEnv;
+        private readonly string _luaLinqLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
         public LuaTable Env { get; private set; }
 
         #region Sandbox
@@ -43,6 +46,17 @@ math = { abs = math.abs, acos = math.acos, asin = math.asin,
   rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
   sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
 os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
+";
+
+        private const string LuaLinqEnv = @"
+from = from,
+fromArray = fromArray,
+fromArrayInstance = fromArrayInstance,
+fromDictionary = fromDictionary,
+fromIterator = fromIterator,
+fromIteratorsArray = fromIteratorsArray,
+fromSet = fromSet,
+fromNothing = fromNothing,
 ";
 
         private const string SandboxFunction = @"
@@ -75,6 +89,7 @@ end
             _runSandboxed = (LuaFunction)Inst.DoString(SandboxFunction)[0];
             _readonly = (LuaFunction)Inst.DoString(ReadOnlyFunction)[0];
             _globalEnv = Inst.GetTable("_G");
+            Inst.DoFile(_luaLinqLocation);
             AddGlobalReadOnlyTable(ConvertEnum<AnimeType>(), LuaEnv.AnimeType);
             AddGlobalReadOnlyTable(ConvertEnum<TitleType>(), LuaEnv.TitleType);
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.TitleLanguage);

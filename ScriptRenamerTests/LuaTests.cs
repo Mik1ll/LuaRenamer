@@ -228,5 +228,19 @@ end",
             }
             Assert.Fail("Should have thrown an LuaException with access readonly error");
         }
+
+        [TestMethod]
+        public void TestLuaLinq()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"filename = from(anime[1].titles):map(function(x, r) return r .. x.title; end, """")",
+                Type = nameof(ScriptRenamer.ScriptRenamer),
+                ExtraData = null
+            };
+            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            Assert.AreEqual("animeTitle1animeTitle2animeTitle3animeTitle4", res?.filename);
+        }
     }
 }
