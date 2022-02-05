@@ -201,7 +201,7 @@ namespace ScriptRenamer
                         {
                             { "height", args.FileInfo.MediaInfo.Video.Height },
                             { "width", args.FileInfo.MediaInfo.Video.Width },
-                            { "codec", args.FileInfo.MediaInfo.Video.Codec },
+                            { "codec", args.FileInfo.MediaInfo.Video.SimplifiedCodec },
                             { "res", args.FileInfo.MediaInfo.Video.StandardizedResolution },
                             { "bitrate", args.FileInfo.MediaInfo.Video.BitRate },
                             { "bitdepth", args.FileInfo.MediaInfo.Video.BitDepth },
