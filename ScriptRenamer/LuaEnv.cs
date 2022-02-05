@@ -14,7 +14,7 @@
         public const string Groups = "groups";
         public const string AnimeType = "AnimeType";
         public const string TitleType = "TitleType";
-        public const string TitleLanguage = "TitleLanguage";
+        public const string Language = "Language";
         public const string EpisodeType = "EpisodeType";
         public const string DropFolderType = "DropFolderType";
     }

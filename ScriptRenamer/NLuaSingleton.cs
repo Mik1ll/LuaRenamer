@@ -92,7 +92,7 @@ end
             Inst.DoFile(_luaLinqLocation);
             AddGlobalReadOnlyTable(ConvertEnum<AnimeType>(), LuaEnv.AnimeType);
             AddGlobalReadOnlyTable(ConvertEnum<TitleType>(), LuaEnv.TitleType);
-            AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.TitleLanguage);
+            AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
         }
