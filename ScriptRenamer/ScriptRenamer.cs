@@ -274,7 +274,7 @@ namespace ScriptRenamer
             {
                 { "name", g.Name },
                 // Just give Ids, subject to change if there is ever a reason to use more.
-                { "mainSeriesId", g.MainSeries.AnimeID },
+                { "mainSeriesId", g.MainSeries?.AnimeID },
                 { "seriesIds", g.Series.Select(s => s.AnimeID).ToList() }
             }).ToList();
             return new Dictionary<string, object>
