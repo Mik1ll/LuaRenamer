@@ -120,6 +120,7 @@ end
             Inst["env"] = Env;
             foreach (var (k, v) in env)
                 Inst.AddObject(Env, v, k);
+            Env[LuaEnv.Anime] = ((LuaTable)Env[LuaEnv.Animes])[1];
             return _runSandboxed.Call(code, Env);
         }
 

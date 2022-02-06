@@ -153,7 +153,7 @@ subfolder = {""test123""}
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = tostring(anime[1].type == AnimeType.Movie)",
+                Script = @"filename = tostring(anime.type == AnimeType.Movie)",
                 Type = nameof(ScriptRenamer.ScriptRenamer),
                 ExtraData = null
             };
@@ -235,7 +235,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = from(anime[1].titles):map(function(x, r) return r .. x.title; end, """")",
+                Script = @"filename = from(anime.titles):map(function(x, r) return r .. x.title; end, """")",
                 Type = nameof(ScriptRenamer.ScriptRenamer),
                 ExtraData = null
             };

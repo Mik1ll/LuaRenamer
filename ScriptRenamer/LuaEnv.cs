@@ -8,6 +8,7 @@
         public const string UseExistingAnimeLocation = "use_existing_anime_location";
         public const string RemoveReservedChars = "remove_reserved_chars";
         public const string Anime = "anime";
+        public const string Animes = "animes";
         public const string File = "file";
         public const string Episodes = "episodes";
         public const string ImportFolders = "importfolders";

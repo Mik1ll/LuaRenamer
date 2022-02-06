@@ -284,7 +284,7 @@ namespace ScriptRenamer
                 //{ LuaEnv.Subfolder, new Dictionary<string, object>() },
                 { LuaEnv.RemoveReservedChars, false },
                 { LuaEnv.UseExistingAnimeLocation, false },
-                { LuaEnv.Anime, anime },
+                { LuaEnv.Animes, anime },
                 { LuaEnv.File, file },
                 { LuaEnv.Episodes, episodes },
                 { LuaEnv.ImportFolders, importfolders },
