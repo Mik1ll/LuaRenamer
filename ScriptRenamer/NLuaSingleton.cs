@@ -18,7 +18,6 @@ namespace ScriptRenamer
         private readonly LuaTable _globalEnv;
         private readonly string _luaLinqLocation =
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
-        public LuaTable Env { get; private set; }
 
         #region Sandbox
 
@@ -114,14 +113,14 @@ end
             _envBuilder.Add($"{name} = {name},");
         }
 
-        public object[] RunSandboxed(string code, Dictionary<string, object> env)
+        public (object[] retVal, LuaTable env) RunSandboxed(string code, Dictionary<string, object> env)
         {
-            Env = Inst.CreateEnv(_envBuilder);
-            Inst["env"] = Env;
+            var luaEnv = Inst.CreateEnv(_envBuilder);
+            Inst["env"] = luaEnv;
             foreach (var (k, v) in env)
-                Inst.AddObject(Env, v, k);
-            Env[LuaEnv.Anime] = ((LuaTable)Env[LuaEnv.Animes])[1];
-            return _runSandboxed.Call(code, Env);
+                Inst.AddObject(luaEnv, v, k);
+            luaEnv[LuaEnv.Anime] = ((LuaTable)luaEnv[LuaEnv.Animes])[1];
+            return (_runSandboxed.Call(code, luaEnv), luaEnv);
         }
 
         private static Dictionary<string, int> ConvertEnum<T>() =>

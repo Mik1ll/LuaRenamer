@@ -94,8 +94,8 @@ namespace ScriptRenamer
             var res = CheckCache(args);
             if (res is not null)
                 return res;
-            Lua.RunSandboxed(args.Script.Script, CreateLuaEnv(args));
-            var env = Lua.Inst.GetTableDict(Lua.Env);
+            var result = Lua.RunSandboxed(args.Script.Script, CreateLuaEnv(args));
+            var env = Lua.Inst.GetTableDict(result.env);
             var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
             if (env.TryGetValue(LuaEnv.Filename, out var luaFilename) && luaFilename is not (string or null))

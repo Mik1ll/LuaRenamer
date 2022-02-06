@@ -19,8 +19,8 @@ namespace ScriptRenamer
 
         private static LuaTable DictIteration(Lua lua, IDictionary dict)
         {
-            lua.NewTable("newTable");
-            var tab = lua.GetTable("newTable");
+            lua.NewTable("_");
+            var tab = lua.GetTable("_");
             foreach (DictionaryEntry entry in dict)
             {
                 tab[entry.Key] = entry.Value switch
@@ -35,8 +35,8 @@ namespace ScriptRenamer
 
         private static LuaTable ListIteration(Lua lua, IEnumerable list)
         {
-            lua.NewTable("newTable");
-            var tab = lua.GetTable("newTable");
+            lua.NewTable("_");
+            var tab = lua.GetTable("_");
             var i = 1;
             foreach (var obj in list)
             {
