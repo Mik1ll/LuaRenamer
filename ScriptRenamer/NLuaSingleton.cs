@@ -16,7 +16,8 @@ namespace ScriptRenamer
         private readonly LuaFunction _readonly;
         private readonly HashSet<string> _envBuilder = new() { BaseEnv, LuaLinqEnv };
         private readonly LuaTable _globalEnv;
-        private readonly string _luaLinqLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
+        private readonly string _luaLinqLocation =
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
         public LuaTable Env { get; private set; }
 
         #region Sandbox
@@ -95,6 +96,15 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
+            AddGlobalReadOnlyTable(new Dictionary<int, string>
+            {
+                { (int)Convert.ChangeType(EpisodeType.Episode, TypeCode.Int32), "" },
+                { (int)Convert.ChangeType(EpisodeType.Special, TypeCode.Int32), "S" },
+                { (int)Convert.ChangeType(EpisodeType.Credits, TypeCode.Int32), "C" },
+                { (int)Convert.ChangeType(EpisodeType.Other, TypeCode.Int32), "O" },
+                { (int)Convert.ChangeType(EpisodeType.Parody, TypeCode.Int32), "P" },
+                { (int)Convert.ChangeType(EpisodeType.Trailer, TypeCode.Int32), "T" }
+            }, LuaEnv.EpNumPrefix);
         }
 
         private void AddGlobalReadOnlyTable(object obj, string name)
