@@ -97,12 +97,12 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
             AddGlobalReadOnlyTable(new Dictionary<int, string>
             {
-                { (int)Convert.ChangeType(EpisodeType.Episode, TypeCode.Int32), "" },
-                { (int)Convert.ChangeType(EpisodeType.Special, TypeCode.Int32), "S" },
-                { (int)Convert.ChangeType(EpisodeType.Credits, TypeCode.Int32), "C" },
-                { (int)Convert.ChangeType(EpisodeType.Other, TypeCode.Int32), "O" },
-                { (int)Convert.ChangeType(EpisodeType.Parody, TypeCode.Int32), "P" },
-                { (int)Convert.ChangeType(EpisodeType.Trailer, TypeCode.Int32), "T" }
+                { Convert.ToInt32(EpisodeType.Episode), "" },
+                { Convert.ToInt32(EpisodeType.Special), "S" },
+                { Convert.ToInt32(EpisodeType.Credits), "C" },
+                { Convert.ToInt32(EpisodeType.Other), "O" },
+                { Convert.ToInt32(EpisodeType.Parody), "P" },
+                { Convert.ToInt32(EpisodeType.Trailer), "T" }
             }, LuaEnv.EpNumPrefix);
         }
 
@@ -119,12 +119,18 @@ end
             Inst["env"] = luaEnv;
             foreach (var (k, v) in env)
                 Inst.AddObject(luaEnv, v, k);
-            luaEnv[LuaEnv.Anime] = ((LuaTable)luaEnv[LuaEnv.Animes])[1];
+            var luaAnime = (LuaTable)((LuaTable)luaEnv[LuaEnv.Animes])[1];
+            luaEnv[LuaEnv.Anime] = luaAnime;
+            var luaEpisode = Inst.GetTableDict((LuaTable)luaEnv[LuaEnv.Episodes]).Where(e => Convert.ToInt32(((LuaTable)e.Value)["animeid"]) == Convert.ToInt32(luaAnime["animeid"]))
+                .OrderBy(e => Convert.ToInt32(((LuaTable)e.Value)["type"]) == (int)EpisodeType.Other ? int.MinValue : Convert.ToInt32(((LuaTable)e.Value)["type"]))
+                .ThenBy(e => Convert.ToInt32(((LuaTable)e.Value)["number"]))
+                .First().Value;
+            luaEnv[LuaEnv.Episode] = luaEpisode;
             return (_runSandboxed.Call(code, luaEnv), luaEnv);
         }
 
         private static Dictionary<string, int> ConvertEnum<T>() =>
-            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => (int)Convert.ChangeType(a, TypeCode.Int32));
+            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => Convert.ToInt32(a));
 
         ~NLuaSingleton()
         {

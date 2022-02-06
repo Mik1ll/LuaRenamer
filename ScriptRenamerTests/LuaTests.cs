@@ -90,6 +90,7 @@ namespace ScriptRenamerTests
                         e.Number == 5 &&
                         e.Type == EpisodeType.Episode &&
                         e.AirDate == new DateTime(2001, 3, 7) &&
+                        e.AnimeID == 532 &&
                         e.Titles == new List<AnimeTitle>
                         {
                             new()

@@ -11,6 +11,7 @@
         public const string Animes = "animes";
         public const string File = "file";
         public const string Episodes = "episodes";
+        public const string Episode = "episode";
         public const string ImportFolders = "importfolders";
         public const string Groups = "groups";
         public const string AnimeType = "AnimeType";

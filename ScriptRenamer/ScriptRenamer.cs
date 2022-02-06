@@ -128,9 +128,9 @@ namespace ScriptRenamer
                 return titles.Select(t => new Dictionary<string, object>
                 {
                     { "title", t.Title },
-                    { "language", Convert.ChangeType(t.Language, TypeCode.Int32) },
+                    { "language", Convert.ToInt32(t.Language) },
                     { "languagecode", t.LanguageCode },
-                    { "type", Convert.ChangeType(t.Type, TypeCode.Int32) }
+                    { "type", Convert.ToInt32(t.Type) }
                 }).ToList();
             }
 
@@ -140,7 +140,7 @@ namespace ScriptRenamer
                 { "enddate", a.EndDate?.ToTable() },
                 { "rating", a.Rating },
                 { "restricted", a.Restricted },
-                { "type", Convert.ChangeType(a.Type, TypeCode.Int32) },
+                { "type", Convert.ToInt32(a.Type) },
                 { "preferredtitle", a.PreferredTitle },
                 { "animeid", a.AnimeID },
                 {
@@ -182,11 +182,11 @@ namespace ScriptRenamer
                             { "videocodec", args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
                             {
                                 "sublanguages",
-                                args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                                args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(a => Convert.ToInt32(a)).ToList()
                             },
                             {
                                 "dublanguages",
-                                args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                                args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(a => Convert.ToInt32(a)).ToList()
                             }
                         }
                     }
@@ -214,7 +214,7 @@ namespace ScriptRenamer
                         "sublanguages", args.FileInfo.MediaInfo.Subs.Select(s =>
                             ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                 ? ParseEnum<TitleLanguage>(s.Title, false)
-                                : l).Select(a => Convert.ChangeType(a, TypeCode.Int32)).ToList()
+                                : l).Select(a => Convert.ToInt32(a)).ToList()
                     },
                     {
                         "audio", args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
@@ -258,7 +258,7 @@ namespace ScriptRenamer
             {
                 { "duration", e.Duration },
                 { "number", e.Number },
-                { "type", Convert.ChangeType(e.Type, TypeCode.Int32) },
+                { "type", Convert.ToInt32(e.Type) },
                 { "airdate", e.AirDate?.ToTable() },
                 { "animeid", e.AnimeID },
                 { "episodeid", e.EpisodeID },
@@ -268,7 +268,7 @@ namespace ScriptRenamer
             {
                 { "name", f.Name },
                 { "location", f.Location },
-                { "type", Convert.ChangeType(f.DropFolderType, TypeCode.Int32) }
+                { "type", Convert.ToInt32(f.DropFolderType) }
             }).ToList();
             var groups = args.GroupInfo.Select(g => new Dictionary<string, object>
             {
