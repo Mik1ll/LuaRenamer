@@ -134,7 +134,7 @@ namespace ScriptRenamer
                 { "restricted", a.Restricted },
                 { "type", Convert.ToInt32(a.Type) },
                 { "preferredtitle", a.PreferredTitle },
-                { "animeid", a.AnimeID },
+                { "id", a.AnimeID },
                 {
                     "titles", ConvertTitles(a.Titles)
                 },
@@ -167,7 +167,7 @@ namespace ScriptRenamer
                                 { "shortname", args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
                             }
                     },
-                    { "fileid", args.FileInfo.AniDBFileInfo.AniDBFileID },
+                    { "id", args.FileInfo.AniDBFileInfo.AniDBFileID },
                     {
                         "media", new Dictionary<string, object>
                         {
@@ -253,7 +253,7 @@ namespace ScriptRenamer
                 { "type", Convert.ToInt32(e.Type) },
                 { "airdate", e.AirDate?.ToTable() },
                 { "animeid", e.AnimeID },
-                { "episodeid", e.EpisodeID },
+                { "id", e.EpisodeID },
                 { "titles", ConvertTitles(e.Titles) }
             }).ToList();
             var importfolders = args.AvailableFolders.Select(f => new Dictionary<string, object>
@@ -266,8 +266,8 @@ namespace ScriptRenamer
             {
                 { "name", g.Name },
                 // Just give Ids, subject to change if there is ever a reason to use more.
-                { "mainSeriesId", g.MainSeries?.AnimeID },
-                { "seriesIds", g.Series.Select(s => s.AnimeID).ToList() }
+                { "mainSeriesid", g.MainSeries?.AnimeID },
+                { "seriesids", g.Series.Select(s => s.AnimeID).ToList() }
             }).ToList();
             return new Dictionary<string, object>
             {
