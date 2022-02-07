@@ -42,13 +42,27 @@ namespace ScriptRenamer
 
         public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
         {
-            if (CheckBadArgs(args))
-            {
-                args.Cancel = true;
-                return (null, null);
-            }
+            CheckBadArgs(args);
             var result = GetInfo(args);
             return (result?.destination, result?.subfolder);
+        }
+
+        public string GetFilename(RenameEventArgs args)
+        {
+            var mvEventArgs = new MoveEventArgs
+            {
+                Cancel = args.Cancel,
+                AvailableFolders = ((IEnumerable)ImportFolderRepo.GetAll()).Cast<IImportFolder>()
+                    .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList(),
+                FileInfo = args.FileInfo,
+                AnimeInfo = args.AnimeInfo,
+                GroupInfo = args.GroupInfo,
+                EpisodeInfo = args.EpisodeInfo,
+                Script = args.Script
+            };
+            CheckBadArgs(mvEventArgs);
+            var result = GetInfo(mvEventArgs);
+            return result?.filename;
         }
 
         private static (IImportFolder destination, string subfolder)? GetExistingAnimeLocation(MoveEventArgs args)
@@ -65,28 +79,6 @@ namespace ScriptRenamer
             var oldLoc = NormPath(oldFld.Location);
             var subFld = Path.GetRelativePath(oldLoc, Path.GetDirectoryName(lastFileLocation.FilePath)!);
             return (oldFld, subFld);
-        }
-
-        public string GetFilename(RenameEventArgs args)
-        {
-            var mvEventArgs = new MoveEventArgs
-            {
-                Cancel = args.Cancel,
-                AvailableFolders = ((IEnumerable)ImportFolderRepo.GetAll()).Cast<IImportFolder>()
-                    .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList(),
-                FileInfo = args.FileInfo,
-                AnimeInfo = args.AnimeInfo,
-                GroupInfo = args.GroupInfo,
-                EpisodeInfo = args.EpisodeInfo,
-                Script = args.Script
-            };
-            if (CheckBadArgs(mvEventArgs))
-            {
-                args.Cancel = true;
-                return null;
-            }
-            var result = GetInfo(mvEventArgs);
-            return result?.filename;
         }
 
         public static (string filename, IImportFolder destination, string subfolder)? GetInfo(MoveEventArgs args)
@@ -390,13 +382,14 @@ namespace ScriptRenamer
         }
 
 
-        private static bool CheckBadArgs(MoveEventArgs args)
+        private static void CheckBadArgs(MoveEventArgs args)
         {
             if (string.IsNullOrWhiteSpace(args.Script?.Script))
                 throw new ArgumentException("Script is empty or null");
             if (args.Script.Type != RenamerId)
                 throw new ArgumentException($"Script doesn't match {RenamerId}");
-            return args.AnimeInfo is null || args.EpisodeInfo is null;
+            if (args.AnimeInfo.Count == 0 || args.EpisodeInfo.Count == 0)
+                throw new ArgumentException("No anime and/or episode info");
         }
 
         private static string NormPath(string path)
