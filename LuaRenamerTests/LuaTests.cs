@@ -4,11 +4,11 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua.Exceptions;
-using ScriptRenamer;
+using LuaRenamer;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
-namespace ScriptRenamerTests
+namespace LuaRenamerTests
 {
     [TestClass]
     public class LuaTests
@@ -142,9 +142,9 @@ namespace ScriptRenamerTests
 destination = ""Anime""
 subfolder = {""test123""}
 ",
-                Type = nameof(ScriptRenamer.ScriptRenamer)
+                Type = nameof(LuaRenamer.LuaRenamer)
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
             Assert.AreEqual(res!.Value.filename, "testfilename");
         }
 
@@ -155,10 +155,10 @@ subfolder = {""test123""}
             args.Script = new RenameScriptImpl
             {
                 Script = @"filename = tostring(anime.type == AnimeType.Movie)",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
             Assert.AreEqual(res!.Value.filename, "true");
         }
 
@@ -169,10 +169,10 @@ subfolder = {""test123""}
             args.Script = new RenameScriptImpl
             {
                 Script = @"filename = os.date(""%c"", os.time(file.anidb.releasedate))",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
         }
 
         [TestMethod]
@@ -183,10 +183,10 @@ subfolder = {""test123""}
             {
                 Script = @"local episode = episodes[1]
 filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episode.type",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
             Debug.Assert(res != null, nameof(res) + " != null");
             Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
         }
@@ -200,10 +200,10 @@ filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episod
                 Script = @"if (importfolders[2].type & DropFolderType.Destination) then
   destination = importfolders[2]
 end",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
             Assert.AreSame(res!.Value.destination, args.AvailableFolders[1]);
         }
 
@@ -215,12 +215,12 @@ end",
             {
                 Script = @"TitleType.Main = 25
 ",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
             try
             {
-                ScriptRenamer.ScriptRenamer.GetInfo(args);
+                LuaRenamer.LuaRenamer.GetInfo(args);
             }
             catch (LuaException ex)
             {
@@ -237,10 +237,10 @@ end",
             args.Script = new RenameScriptImpl
             {
                 Script = @"filename = from(anime.titles):map(function(x, r) return r .. x.title; end, """")",
-                Type = nameof(ScriptRenamer.ScriptRenamer),
+                Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = ScriptRenamer.ScriptRenamer.GetInfo(args);
+            var res = LuaRenamer.LuaRenamer.GetInfo(args);
             Assert.AreEqual("animeTitle1animeTitle2animeTitle3animeTitle4", res?.filename);
         }
     }

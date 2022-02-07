@@ -7,7 +7,7 @@ using System.Text;
 using NLua;
 using Shoko.Plugin.Abstractions.DataModels;
 
-namespace ScriptRenamer
+namespace LuaRenamer
 {
     public class NLuaSingleton
     {

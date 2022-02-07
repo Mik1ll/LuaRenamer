@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NLua" Version="1.6.0"/>
+        <PackageReference Include="NLua" Version="1.6.0" />
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.2.0">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>

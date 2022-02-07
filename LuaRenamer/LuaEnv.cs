@@ -1,4 +1,4 @@
-﻿namespace ScriptRenamer
+﻿namespace LuaRenamer
 {
     public static class LuaEnv
     {

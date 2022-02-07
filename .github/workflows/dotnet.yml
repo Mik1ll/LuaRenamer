@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: [ lua_parsing ]
+    branches: [ master ]
   pull_request:
-    branches: [ lua_parsing ]
+    branches: [ master ]
 
 jobs:
   build:

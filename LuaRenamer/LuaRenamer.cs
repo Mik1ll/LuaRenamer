@@ -9,13 +9,13 @@ using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
 using NLua.Exceptions;
 
-namespace ScriptRenamer
+namespace LuaRenamer
 {
     [Renamer(RenamerId)]
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ScriptRenamer : IRenamer
+    public class LuaRenamer : IRenamer
     {
-        private const string RenamerId = nameof(ScriptRenamer);
+        private const string RenamerId = nameof(LuaRenamer);
         private static readonly Type Repofact = GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
         private static readonly dynamic VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
         private static readonly dynamic ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);

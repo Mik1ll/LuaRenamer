@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptRenamer", "ScriptRenamer\ScriptRenamer.csproj", "{9BA452A6-1131-4E08-96BF-39B89F9D5A07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LuaRenamer", "LuaRenamer\LuaRenamer.csproj", "{9BA452A6-1131-4E08-96BF-39B89F9D5A07}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptRenamerTests", "ScriptRenamerTests\ScriptRenamerTests.csproj", "{B208D612-0247-4766-93CB-ABB0010F436C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LuaRenamerTests", "LuaRenamerTests\LuaRenamerTests.csproj", "{B208D612-0247-4766-93CB-ABB0010F436C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

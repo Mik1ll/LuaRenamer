@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NLua;
 
-namespace ScriptRenamer
+namespace LuaRenamer
 {
     public static class LuaExtensions
     {

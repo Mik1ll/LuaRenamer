@@ -1205,7 +1205,7 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
-      "scriptrenamer": {
+      "luarenamer": {
         "type": "Project",
         "dependencies": {
           "NLua": "1.6.0",

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ScriptRenamer\ScriptRenamer.csproj" />
+    <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
   </ItemGroup>
 
 </Project>
