@@ -147,14 +147,14 @@ namespace ScriptRenamer
                     "titles", ConvertTitles(a.Titles)
                 },
                 {
-                    "episodecounts", new Dictionary<string, object>
+                    "episodecounts", new Dictionary<int, object>
                     {
-                        { "episodes", a.EpisodeCounts.Episodes },
-                        { "specials", a.EpisodeCounts.Specials },
-                        { "credits", a.EpisodeCounts.Credits },
-                        { "trailers", a.EpisodeCounts.Trailers },
-                        { "others", a.EpisodeCounts.Others },
-                        { "parodies", a.EpisodeCounts.Parodies }
+                        { Convert.ToInt32(EpisodeType.Episode), a.EpisodeCounts.Episodes },
+                        { Convert.ToInt32(EpisodeType.Special), a.EpisodeCounts.Specials },
+                        { Convert.ToInt32(EpisodeType.Credits), a.EpisodeCounts.Credits },
+                        { Convert.ToInt32(EpisodeType.Trailer), a.EpisodeCounts.Trailers },
+                        { Convert.ToInt32(EpisodeType.Other), a.EpisodeCounts.Others },
+                        { Convert.ToInt32(EpisodeType.Parody), a.EpisodeCounts.Parodies }
                     }
                 }
             }).ToList();
