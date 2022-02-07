@@ -121,7 +121,7 @@ end
                 Inst.AddObject(luaEnv, v, k);
             var luaAnime = (LuaTable)((LuaTable)luaEnv[LuaEnv.Animes])[1];
             luaEnv[LuaEnv.Anime] = luaAnime;
-            var luaEpisode = Inst.GetTableDict((LuaTable)luaEnv[LuaEnv.Episodes]).Where(e => (long)((LuaTable)e.Value)["animeid"] == (long)luaAnime["animeid"])
+            var luaEpisode = Inst.GetTableDict((LuaTable)luaEnv[LuaEnv.Episodes]).Where(e => (long)((LuaTable)e.Value)["animeid"] == (long)luaAnime["id"])
                 .OrderBy(e => (long)((LuaTable)e.Value)["type"] == (int)EpisodeType.Other ? int.MinValue : (long)((LuaTable)e.Value)["type"])
                 .ThenBy(e => (long)((LuaTable)e.Value)["number"])
                 .First().Value;
