@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using NLua;
+using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer
@@ -12,9 +13,9 @@ namespace LuaRenamer
     public class NLuaSingleton
     {
         public Lua Inst { get; } = new();
-        private readonly LuaFunction _runSandboxed;
+        public readonly LuaFunction LuaRunSandboxed;
         private readonly LuaFunction _readonly;
-        private readonly HashSet<string> _envBuilder = new() { BaseEnv, LuaLinqEnv };
+        public readonly HashSet<string> BaseEnvStrings = new() { BaseEnv, LuaLinqEnv };
         private readonly LuaTable _globalEnv;
         private readonly string _luaLinqLocation =
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
@@ -86,7 +87,7 @@ end
         public NLuaSingleton()
         {
             Inst.State.Encoding = Encoding.UTF8;
-            _runSandboxed = (LuaFunction)Inst.DoString(SandboxFunction)[0];
+            LuaRunSandboxed = (LuaFunction)Inst.DoString(SandboxFunction)[0];
             _readonly = (LuaFunction)Inst.DoString(ReadOnlyFunction)[0];
             _globalEnv = Inst.GetTable("_G");
             Inst.DoFile(_luaLinqLocation);
@@ -110,24 +111,9 @@ end
         {
             Inst.AddObject(_globalEnv, obj, name);
             _globalEnv[name] = _readonly.Call(_globalEnv[name])[0];
-            _envBuilder.Add($"{name} = {name},");
+            BaseEnvStrings.Add($"{name} = {name},");
         }
 
-        public (object[] retVal, LuaTable env) RunSandboxed(string code, Dictionary<string, object> env)
-        {
-            var luaEnv = Inst.CreateEnv(_envBuilder);
-            Inst["env"] = luaEnv;
-            foreach (var (k, v) in env)
-                Inst.AddObject(luaEnv, v, k);
-            var luaAnime = (LuaTable)((LuaTable)luaEnv[LuaEnv.Animes])[1];
-            luaEnv[LuaEnv.Anime] = luaAnime;
-            var luaEpisode = Inst.GetTableDict((LuaTable)luaEnv[LuaEnv.Episodes]).Where(e => (long)((LuaTable)e.Value)["animeid"] == (long)luaAnime["id"])
-                .OrderBy(e => (long)((LuaTable)e.Value)["type"] == (int)EpisodeType.Other ? int.MinValue : (long)((LuaTable)e.Value)["type"])
-                .ThenBy(e => (long)((LuaTable)e.Value)["number"])
-                .First().Value;
-            luaEnv[LuaEnv.Episode] = luaEpisode;
-            return (_runSandboxed.Call(code, luaEnv), luaEnv);
-        }
 
         private static Dictionary<string, int> ConvertEnum<T>() =>
             Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => Convert.ToInt32(a));

@@ -144,8 +144,12 @@ subfolder = {""test123""}
 ",
                 Type = nameof(LuaRenamer.LuaRenamer)
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
-            Assert.AreEqual(res!.Value.filename, "testfilename");
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreEqual("testfilename", res?.filename);
         }
 
         [TestMethod]
@@ -158,8 +162,12 @@ subfolder = {""test123""}
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
-            Assert.AreEqual(res!.Value.filename, "true");
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreEqual("true", res?.filename);
         }
 
         [TestMethod]
@@ -172,7 +180,11 @@ subfolder = {""test123""}
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
         }
 
         [TestMethod]
@@ -186,7 +198,11 @@ filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episod
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
             Debug.Assert(res != null, nameof(res) + " != null");
             Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
         }
@@ -203,8 +219,12 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
-            Assert.AreSame(res!.Value.destination, args.AvailableFolders[1]);
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreSame(args.AvailableFolders[1], res?.destination);
         }
 
         [TestMethod]
@@ -220,7 +240,11 @@ end",
             };
             try
             {
-                LuaRenamer.LuaRenamer.GetInfo(args);
+                var renamer = new LuaRenamer.LuaRenamer
+                {
+                    Args = args
+                };
+                var res = renamer.GetInfo();
             }
             catch (LuaException ex)
             {
@@ -240,8 +264,30 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var res = LuaRenamer.LuaRenamer.GetInfo(args);
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
             Assert.AreEqual("animeTitle1animeTitle2animeTitle3animeTitle4", res?.filename);
+        }
+        
+        [TestMethod]
+        public void TestEpisodeNumbers()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl
+            {
+                Script = @"filename = episode_numbers(3)",
+                Type = nameof(LuaRenamer.LuaRenamer),
+                ExtraData = null
+            };
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreEqual("005", res?.filename);
         }
     }
 }

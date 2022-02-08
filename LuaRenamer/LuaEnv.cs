@@ -20,5 +20,6 @@
         public const string EpisodeType = "EpisodeType";
         public const string DropFolderType = "DropFolderType";
         public const string EpNumPrefix = "EpNumPrefix";
+        public const string EpisodeNumbers = "episode_numbers";
     }
 }
