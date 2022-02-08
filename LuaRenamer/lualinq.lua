@@ -1,3 +1,5 @@
+-- Modified for LuaRenamer to add annotations, bug fixes, and add orderby function
+
 -- LuaLinq - http://code.google.com/p/lualinq/
 -- ------------------------------------------------------------------------
 -- Copyright (c) 2012, Marco Mastropaolo (Xanathar)
@@ -108,6 +110,7 @@ end
 
 -- [private] Creates a linq data structure from an array without copying the data for efficiency
 function _new_lualinq(method, collection)
+	---@class Linq
 	local self = { }
 	
 	self.classid_71cd970f_a742_4316_938d_1998df001335 = 2
@@ -122,6 +125,8 @@ function _new_lualinq(method, collection)
 	self.take = _take
 	self.skip = _skip
 	self.zip = _zip
+	self.orderby = _orderby
+	self.orderBy = _orderby
 	
 	self.distinct = _distinct 
 	self.union = _union
@@ -173,6 +178,7 @@ end
 -- ============================================================
 
 -- Tries to autodetect input type and uses the appropriate from method
+---@return Linq
 function from(auto)
 	if (auto == nil) then
 		return fromNothing()
@@ -268,13 +274,16 @@ end
 -- ============================================================
 
 -- Concatenates two collections together
-function _concat(self, otherlinq)
+---@param other Linq|table
+---@return Linq
+function _concat(self, other)
 	local result = { }
+	other = from(other)
 
 	for idx, value in ipairs(self.m_Data) do
 		table.insert(result, value)
 	end
-	for idx, value in ipairs(otherlinq.m_Data) do
+	for idx, value in ipairs(other.m_Data) do
 		table.insert(result, value)
 	end
 	
@@ -282,6 +291,8 @@ function _concat(self, otherlinq)
 end
 
 -- Replaces items with those returned by the selector function or properties with name selector
+---@param self Linq
+---@param selector fun(a):any
 function _select(self, selector)
 	local result = { }
 
@@ -307,6 +318,8 @@ end
 
 
 -- Replaces items with those contained in arrays returned by the selector function
+---@param self Linq
+---@param selector fun(a):table
 function _selectMany(self, selector)
 	local result = { }
 
@@ -326,6 +339,9 @@ end
 
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included
+---@param self Linq
+---@param predicate string|fun(a):boolean
+---@param refvalue? any
 function _where(self, predicate, refvalue, ...)
 	local result = { }
 
@@ -365,6 +381,8 @@ end
 
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included, indexed version
+---@param self Linq
+---@param predicate fun(a):boolean
 function _whereIndex(self, predicate)
 	local result = { }
 
@@ -378,33 +396,65 @@ function _whereIndex(self, predicate)
 end
 
 -- Return a linq data structure with at most the first howmany elements
+---@param self Linq
+---@param howmany integer
+---@return Linq
 function _take(self, howmany)
 	return self:whereIndex(function(i, v) return i <= howmany; end)
 end
 
 -- Return a linq data structure skipping the first howmany elements
+---@param self Linq
+---@param howmany integer
+---@return Linq
 function _skip(self, howmany)
 	return self:whereIndex(function(i, v) return i > howmany; end)
 end
 
 -- Zips two collections together, using the specified join function
-function _zip(self, otherlinq, joiner)
-	otherlinq = from(otherlinq) 
+---@param self Linq
+---@param other Linq|table
+---@param joiner fun(a, b):any
+function _zip(self, other, joiner)
+	other = from(other) 
 
 	local thismax = #self.m_Data
-	local thatmax = #otherlinq.m_Data
+	local thatmax = #other.m_Data
 	local result = {}
 	
 	if (thatmax < thismax) then thismax = thatmax; end
 	
 	for i = 1, thismax do
-		result[i] = joiner(self.m_Data[i], otherlinq.m_Data[i]);
+		result[i] = joiner(self.m_Data[i], other.m_Data[i]);
 	end
 	
 	return _new_lualinq(":zip", result)
 end
 
+---Returns ordered items according to pipeline of comparators. 
+---@vararg fun(a, b):integer @ Must return -1, 0, 1 for a < b, a == b, a > b respectively
+function _orderby(self, ...)
+	local funcs = {...}
+	local result = {}
+	for idx, value in ipairs(self.m_Data) do
+		result[idx] = value
+	end
+	local function compfunc(a, b)
+		for idx, value in ipairs(funcs) do
+			local res = value(a, b)
+			if res ~= 0 then
+				return res < 0
+			end
+		end
+		return false
+	end
+	table.sort(result, compfunc)
+	return _new_lualinq(":orderby", result)
+end
+
 -- Returns only distinct items, using an optional comparator
+---@param self Linq
+---@param comparator? fun(a, b):boolean
 function _distinct(self, comparator)
 	local result = {}
 	
@@ -428,29 +478,49 @@ function _distinct(self, comparator)
 end
 
 -- Returns the union of two collections, using an optional comparator
+---@param self Linq
+---@param other Linq|table
+---@param comparator? fun(a, b):boolean
+---@return Linq
 function _union(self, other, comparator)
 	return self:concat(from(other)):distinct(comparator)
 end
 
 -- Returns the difference of two collections, using an optional comparator
+---@param self Linq
+---@param other Linq|table
+---@param comparator? fun(a, b):boolean
+---@return Linq
 function _except(self, other, comparator)
 	other = from(other)
 	return self:where(function (v) return not other:contains(v, comparator) end)
 end
 
 -- Returns the intersection of two collections, using an optional comparator
+---@param self Linq
+---@param other Linq|table
+---@param comparator? fun(a, b):boolean
+---@return Linq
 function _intersection(self, other, comparator)
 	other = from(other)
 	return self:where(function (v) return other:contains(v, comparator) end)
 end
 
 -- Returns the difference of two collections, using a property accessor
+---@param self Linq
+---@param property any
+---@param other Linq|table
+---@return Linq
 function _exceptby(self, property, other)
 	other = from(other)
 	return self:where(function (v) return not other:contains(v[property]) end)
 end
 
 -- Returns the intersection of two collections, using a property accessor
+---@param self Linq
+---@param property any
+---@param other Linq|table
+---@return Linq
 function _intersectionby(self, property, other)
 	other = from(other)
 	return self:where(function (v) return other:contains(v[property]) end)
@@ -460,7 +530,7 @@ end
 -- CONVERSION METHODS
 -- ============================================================
 
--- Converts the collection to an array
+-- Converts the collection to an iterator
 function _toIterator(self)
 	local i = 0
 	local n = #self.m_Data
@@ -471,11 +541,13 @@ function _toIterator(self)
 end
 
 -- Converts the collection to an array
+---@return table
 function _toArray(self)
 	return self.m_Data
 end
 
 -- Converts the collection to a table using a selector functions which returns key and value for each item
+---@return table
 function _toDictionary(self, keyValueSelector)
 	local result = { }
 
@@ -502,6 +574,9 @@ end
 -- ============================================================
 
 -- Return the first item or default if no items in the colelction
+---@param self Linq
+---@param default? any
+---@return any
 function _first(self, default)
 	if (#self.m_Data > 0) then
 		return self.m_Data[1]
@@ -511,6 +586,9 @@ function _first(self, default)
 end
 
 -- Return the last item or default if no items in the colelction
+---@param self Linq
+---@param default? any
+---@return any
 function _last(self, default)
 	if (#self.m_Data > 0) then
 		return self.m_Data[#self.m_Data]
@@ -520,6 +598,9 @@ function _last(self, default)
 end
 
 -- Returns true if any item satisfies the predicate. If predicate is null, it returns true if the collection has at least one item.
+---@param self Linq
+---@param predicate? fun(a):boolean
+---@return boolean
 function _any(self, predicate)
 	if (predicate == nil) then return #self.m_Data > 0; end
 
@@ -533,6 +614,9 @@ function _any(self, predicate)
 end
 
 -- Returns true if all items satisfy the predicate. If predicate is null, it returns true if the collection is empty.
+---@param self Linq
+---@param predicate? fun(a):boolean
+---@return boolean
 function _all(self, predicate)
 	if (predicate == nil) then return #self.m_Data == 0; end
 
@@ -546,6 +630,9 @@ function _all(self, predicate)
 end
 
 -- Returns the number of items satisfying the predicate. If predicate is null, it returns the number of items in the collection.
+---@param self Linq
+---@param predicate? fun(a):boolean
+---@return integer
 function _count(self, predicate)
 	if (predicate == nil) then return #self.m_Data; end
 
@@ -557,7 +644,7 @@ function _count(self, predicate)
 		end
 	end
 	
-	return false
+	return result
 end
 
 
@@ -587,6 +674,10 @@ end
 
 -- Calls the action for each item in the collection. Action takes 1 parameter: the item value.
 -- If the action is a string, it calls that method with the additional parameters
+---@param self Linq
+---@param action string|fun(a)
+---@param ... any
+---@return Linq
 function _foreach(self, action, ...)
 	if (type(action) == "function") then
 		for idx, value in ipairs(self.m_Data) do
@@ -606,6 +697,11 @@ end
 
 -- Calls the accumulator for each item in the collection. Accumulator takes 2 parameters: value and the previous result of 
 -- the accumulator itself (firstvalue for the first call) and returns a new result.
+---@generic T
+---@param self Linq
+---@param accumulator fun(a, r:T):T
+---@param firstvalue T
+---@return T
 function _map(self, accumulator, firstvalue)
 	local result = firstvalue
 
@@ -619,6 +715,12 @@ end
 -- Calls the accumulator for each item in the collection. Accumulator takes 3 parameters: value, the previous result of 
 -- the accumulator itself (nil on first call) and the previous associated-result of the accumulator(firstvalue for the first call) 
 -- and returns a new result and a new associated-result.
+---@generic T1
+---@generic T2
+---@param self Linq
+---@param accumulator fun(val, lastres:T1, lastval:T2):T1, T2
+---@param firstvalue? T2
+---@return T1
 function _xmap(self, accumulator, firstvalue)
 	local result = nil
 	local lastval = firstvalue
@@ -631,6 +733,9 @@ function _xmap(self, accumulator, firstvalue)
 end
 
 -- Returns the max of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
+---@param self Linq
+---@param selector? fun(a):number
+---@return number
 function _max(self, selector)
  	if (selector == nil) then 
 		selector = function(n) return n; end
@@ -639,6 +744,9 @@ function _max(self, selector)
 end
 
 -- Returns the min of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
+---@param self Linq
+---@param selector? fun(a):number
+---@return number
 function _min(self, selector)
 	if (selector == nil) then 
 		selector = function(n) return n; end
@@ -647,6 +755,9 @@ function _min(self, selector)
 end
 
 -- Returns the sum of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
+---@param self Linq
+---@param selector? fun(a):number
+---@return number
 function _sum(self, selector)
 	if (selector == nil) then 
 		selector = function(n) return n; end
@@ -655,6 +766,9 @@ function _sum(self, selector)
 end
 
 -- Returns the average of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
+---@param self Linq
+---@param selector? fun(a):number
+---@return number
 function _average(self, selector)
 	local count = self:count()
 	if (count > 0) then
@@ -663,18 +777,3 @@ function _average(self, selector)
 		return 0
 	end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
