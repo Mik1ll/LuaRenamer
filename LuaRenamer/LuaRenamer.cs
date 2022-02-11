@@ -199,7 +199,7 @@ namespace LuaRenamer
         private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
         {
             IImportFolder oldFld = null;
-            var lastFileLocation = (IVideoFile)Args.AnimeInfo.SelectMany(anime => (IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(anime.AnimeID))
+            var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(Args.AnimeInfo[0].AnimeID))
                 .Where(vl => !string.Equals(vl.CRC32, Args.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(vl => vl.DateTimeUpdated)
                 .Select(vl => vl.GetBestVideoLocalPlace())
@@ -207,8 +207,7 @@ namespace LuaRenamer
                                        (oldFld.DropFolderType.HasFlag(DropFolderType.Destination) ||
                                         oldFld.DropFolderType.HasFlag(DropFolderType.Excluded)));
             if (oldFld is null || lastFileLocation is null) return null;
-            var oldLoc = Utils.NormPath(oldFld.Location);
-            var subFld = Path.GetRelativePath(oldLoc, Path.GetDirectoryName(lastFileLocation.FilePath)!);
+            var subFld = Path.GetDirectoryName(lastFileLocation.FilePath);
             return (oldFld, subFld);
         }
 
