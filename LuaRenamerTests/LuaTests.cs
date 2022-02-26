@@ -4,7 +4,6 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua.Exceptions;
-using LuaRenamer;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -32,7 +31,7 @@ namespace LuaRenamerTests
                             {
                                 Title = "animeTitle1",
                                 Language = TitleLanguage.English,
-                                Type = TitleType.Main
+                                Type = TitleType.Short
                             },
                             new()
                             {
@@ -44,7 +43,7 @@ namespace LuaRenamerTests
                             {
                                 Title = "animeTitle3",
                                 Language = TitleLanguage.Romaji,
-                                Type = TitleType.Main
+                                Type = TitleType.Synonym
                             },
                             new()
                             {
@@ -97,19 +96,19 @@ namespace LuaRenamerTests
                             {
                                 Title = "episodeTitle1",
                                 Language = TitleLanguage.English,
-                                Type = TitleType.Official
+                                Type = TitleType.Short
                             },
                             new()
                             {
                                 Title = "episdoeTitle2",
-                                Language = TitleLanguage.Danish,
-                                Type = TitleType.Main
+                                Language = TitleLanguage.English,
+                                Type = TitleType.Synonym
                             },
                             new()
                             {
                                 Title = "episodeTitle3",
                                 Language = TitleLanguage.Romaji,
-                                Type = TitleType.Main
+                                Type = TitleType.Short
                             }
                         }
                     )
@@ -271,7 +270,7 @@ end",
             var res = renamer.GetInfo();
             Assert.AreEqual("animeTitle1animeTitle2animeTitle3animeTitle4", res?.filename);
         }
-        
+
         [TestMethod]
         public void TestEpisodeNumbers()
         {
@@ -288,6 +287,24 @@ end",
             };
             var res = renamer.GetInfo();
             Assert.AreEqual("005", res?.filename);
+        }
+
+        [TestMethod]
+        public void TestGetTitle()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl()
+            {
+                Script = @"filename = anime:get_title(Language.English) .. episode:get_title(Language.English, true)",
+                Type = nameof(LuaRenamer.LuaRenamer),
+                ExtraData = null
+            };
+            var renamer = new LuaRenamer.LuaRenamer
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreEqual("animeTitle4episdoeTitle2", res?.filename);
         }
     }
 }

@@ -257,6 +257,7 @@ namespace LuaRenamer
                 {
                     "titles", ConvertTitles(a.Titles)
                 },
+                { "get_title", Lua.TitleFunc },
                 {
                     "episodecounts", new Dictionary<EpisodeType, int>
                     {
@@ -373,6 +374,7 @@ namespace LuaRenamer
                 { "animeid", e.AnimeID },
                 { "id", e.EpisodeID },
                 { "titles", ConvertTitles(e.Titles) },
+                { "get_title", Lua.TitleFunc },
                 { "prefix", Utils.EpPrefix[e.Type] }
             }).ToList();
             var importfolders = Args.AvailableFolders.Select(f => new Dictionary<string, object>

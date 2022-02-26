@@ -82,6 +82,19 @@ end
 
         #endregion
 
+        #region Instance Functions
+
+        private const string TitleFunction = @"
+return function (self, language, allow_unofficial)
+  local titles = from(self.titles):where(function (a) return a.language == language; end)
+                                  :orderby(function (a) if a.type == TitleType.Short then return 10; end return a.type; end)
+  local title = allow_unofficial and titles:first() or titles:where(function (a) return a.type == TitleType.Main or a.type == TitleType.Official; end):first()
+  if title then return title.title end
+end
+";
+        public readonly LuaFunction TitleFunc;
+
+        #endregion
 
         public NLuaSingleton()
         {
@@ -95,6 +108,7 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
+            TitleFunc = (LuaFunction)Inst.DoString(TitleFunction)[0];
         }
 
         private void AddGlobalReadOnlyTable(object obj, string name)
