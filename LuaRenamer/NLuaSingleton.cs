@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using NLua;
-using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer
@@ -96,15 +95,7 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
-            AddGlobalReadOnlyTable(new Dictionary<int, string>
-            {
-                { Convert.ToInt32(EpisodeType.Episode), "" },
-                { Convert.ToInt32(EpisodeType.Special), "S" },
-                { Convert.ToInt32(EpisodeType.Credits), "C" },
-                { Convert.ToInt32(EpisodeType.Other), "O" },
-                { Convert.ToInt32(EpisodeType.Parody), "P" },
-                { Convert.ToInt32(EpisodeType.Trailer), "T" }
-            }, LuaEnv.EpNumPrefix);
+            AddGlobalReadOnlyTable(Utils.EpPrefix, LuaEnv.EpNumPrefix);
         }
 
         private void AddGlobalReadOnlyTable(object obj, string name)
@@ -115,8 +106,8 @@ end
         }
 
 
-        private static Dictionary<string, int> ConvertEnum<T>() =>
-            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => Convert.ToInt32(a));
+        private static Dictionary<string, T> ConvertEnum<T>() =>
+            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => a);
 
         ~NLuaSingleton()
         {

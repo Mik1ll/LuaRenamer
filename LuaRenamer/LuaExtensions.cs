@@ -9,13 +9,17 @@ namespace LuaRenamer
     {
         public static void AddObject(this Lua lua, LuaTable env, object obj, string name)
         {
-            env[name] = obj switch
-            {
-                IDictionary d => DictIteration(lua, d),
-                IList e => ListIteration(lua, e),
-                _ => obj
-            };
+            env[name] = AddHelper(lua, obj);
         }
+
+        // TODO: convert enum to a unique string
+        private static object AddHelper(Lua lua, object obj) => obj switch
+        {
+            IDictionary d => DictIteration(lua, d),
+            IList e => ListIteration(lua, e),
+            Enum e => Convert.ToInt64(e),
+            _ => obj
+        };
 
         private static LuaTable DictIteration(Lua lua, IDictionary dict)
         {
@@ -23,12 +27,7 @@ namespace LuaRenamer
             var tab = lua.GetTable("_");
             foreach (DictionaryEntry entry in dict)
             {
-                tab[entry.Key] = entry.Value switch
-                {
-                    IDictionary d => DictIteration(lua, d),
-                    IList e => ListIteration(lua, e),
-                    _ => entry.Value
-                };
+                tab[entry.Key is Enum e ? Convert.ToInt64(e) : entry.Key] = AddHelper(lua, entry.Value);
             }
             return tab;
         }
@@ -40,12 +39,7 @@ namespace LuaRenamer
             var i = 1;
             foreach (var obj in list)
             {
-                tab[i] = obj switch
-                {
-                    IDictionary d => DictIteration(lua, d),
-                    IList e => ListIteration(lua, e),
-                    _ => obj
-                };
+                tab[i] = AddHelper(lua, obj);
                 i++;
             }
             return tab;

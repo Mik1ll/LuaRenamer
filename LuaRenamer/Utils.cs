@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Shoko.Plugin.Abstractions;
+using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer
 {
@@ -38,5 +40,15 @@ namespace LuaRenamer
             return AppDomain.CurrentDomain.GetAssemblies().Select(currentassembly => currentassembly.GetType(typeName, false, true))
                 .FirstOrDefault(t => t is not null);
         }
+
+        public static readonly Dictionary<EpisodeType, string> EpPrefix = new()
+        {
+            { EpisodeType.Episode, "" },
+            { EpisodeType.Special, "S" },
+            { EpisodeType.Credits, "C" },
+            { EpisodeType.Other, "O" },
+            { EpisodeType.Parody, "P" },
+            { EpisodeType.Trailer, "T" }
+        };
     }
 }

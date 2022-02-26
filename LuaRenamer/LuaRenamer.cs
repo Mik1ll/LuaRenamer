@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NLua;
+using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
-using NLua.Exceptions;
 
 namespace LuaRenamer
 {
@@ -58,7 +58,7 @@ namespace LuaRenamer
             var result = GetInfo();
             return (result?.destination, result?.subfolder);
         }
-        
+
         private static MoveEventArgs RenameArgsToMoveArgs(RenameEventArgs args) => new()
         {
             Cancel = args.Cancel,
@@ -72,7 +72,7 @@ namespace LuaRenamer
             EpisodeInfo = args.EpisodeInfo,
             Script = args.Script
         };
-        
+
         public (string filename, IImportFolder destination, string subfolder)? GetInfo()
         {
             var res = CheckCache();
@@ -104,7 +104,7 @@ namespace LuaRenamer
             ResultCache.Add(Args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
             return (filename, destination, subfolder);
         }
-        
+
         private string GetNewSubfolder(object subfolder, bool removeReservedChars)
         {
             List<string> newSubFolderSplit;
@@ -166,7 +166,8 @@ namespace LuaRenamer
                         if ((string)kvp.Key == "location")
                         {
                             destfolder = Args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                                                                   && string.Equals(Utils.NormPath(f.Location), Utils.NormPath((string)kvp.Value),
+                                                                                   && string.Equals(Utils.NormPath(f.Location),
+                                                                                       Utils.NormPath((string)kvp.Value),
                                                                                        StringComparison.OrdinalIgnoreCase));
                             break;
                         }
@@ -195,7 +196,7 @@ namespace LuaRenamer
             }
             return destfolder;
         }
-        
+
         private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
         {
             IImportFolder oldFld = null;
@@ -246,9 +247,9 @@ namespace LuaRenamer
                 return titles.Select(t => new Dictionary<string, object>
                 {
                     { "title", t.Title },
-                    { "language", Convert.ToInt32(t.Language) },
+                    { "language", t.Language },
                     { "languagecode", t.LanguageCode },
-                    { "type", Convert.ToInt32(t.Type) }
+                    { "type", t.Type }
                 }).ToList();
             }
 
@@ -258,21 +259,21 @@ namespace LuaRenamer
                 { "enddate", a.EndDate?.ToTable() },
                 { "rating", a.Rating },
                 { "restricted", a.Restricted },
-                { "type", Convert.ToInt32(a.Type) },
+                { "type", a.Type },
                 { "preferredtitle", a.PreferredTitle },
                 { "id", a.AnimeID },
                 {
                     "titles", ConvertTitles(a.Titles)
                 },
                 {
-                    "episodecounts", new Dictionary<int, object>
+                    "episodecounts", new Dictionary<EpisodeType, int>
                     {
-                        { Convert.ToInt32(EpisodeType.Episode), a.EpisodeCounts.Episodes },
-                        { Convert.ToInt32(EpisodeType.Special), a.EpisodeCounts.Specials },
-                        { Convert.ToInt32(EpisodeType.Credits), a.EpisodeCounts.Credits },
-                        { Convert.ToInt32(EpisodeType.Trailer), a.EpisodeCounts.Trailers },
-                        { Convert.ToInt32(EpisodeType.Other), a.EpisodeCounts.Others },
-                        { Convert.ToInt32(EpisodeType.Parody), a.EpisodeCounts.Parodies }
+                        { EpisodeType.Episode, a.EpisodeCounts.Episodes },
+                        { EpisodeType.Special, a.EpisodeCounts.Specials },
+                        { EpisodeType.Credits, a.EpisodeCounts.Credits },
+                        { EpisodeType.Trailer, a.EpisodeCounts.Trailers },
+                        { EpisodeType.Other, a.EpisodeCounts.Others },
+                        { EpisodeType.Parody, a.EpisodeCounts.Parodies }
                     }
                 }
             }).ToList();
@@ -300,11 +301,11 @@ namespace LuaRenamer
                             { "videocodec", Args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
                             {
                                 "sublanguages",
-                                Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(a => Convert.ToInt32(a)).ToList()
+                                Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.ToList()
                             },
                             {
                                 "dublanguages",
-                                Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(a => Convert.ToInt32(a)).ToList()
+                                Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.ToList()
                             }
                         }
                     }
@@ -329,9 +330,10 @@ namespace LuaRenamer
                     { "duration", Args.FileInfo.MediaInfo.General.Duration },
                     { "bitrate", Args.FileInfo.MediaInfo.General.OverallBitRate },
                     {
-                        "sublanguages", Args.FileInfo.MediaInfo.Subs.Select(s => Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                        "sublanguages", Args.FileInfo.MediaInfo.Subs.Select(s =>
+                            Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                 ? Utils.ParseEnum<TitleLanguage>(s.Title, false)
-                                : l).Select(a => Convert.ToInt32(a)).ToList()
+                                : l).ToList()
                     },
                     {
                         "audio", Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
@@ -345,9 +347,9 @@ namespace LuaRenamer
                             { "simplecodec", a.SimplifiedCodec },
                             { "codec", a.Codec },
                             {
-                                "language", Convert.ChangeType(Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                "language", Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                     ? Utils.ParseEnum<TitleLanguage>(a.Title, false)
-                                    : l, TypeCode.Int32)
+                                    : l
                             },
                             { "title", a.Title }
                         }).ToList()
@@ -374,7 +376,7 @@ namespace LuaRenamer
             {
                 { "duration", e.Duration },
                 { "number", e.Number },
-                { "type", Convert.ToInt32(e.Type) },
+                { "type", e.Type },
                 { "airdate", e.AirDate?.ToTable() },
                 { "animeid", e.AnimeID },
                 { "id", e.EpisodeID },
@@ -384,7 +386,7 @@ namespace LuaRenamer
             {
                 { "name", f.Name },
                 { "location", f.Location },
-                { "type", Convert.ToInt32(f.DropFolderType) }
+                { "type", f.DropFolderType }
             }).ToList();
             var groups = Args.GroupInfo.Select(g => new Dictionary<string, object>
             {
@@ -409,37 +411,21 @@ namespace LuaRenamer
         }
 
         // ReSharper disable once UnusedMember.Local
-        private string GetEpisodesString(int pad)
-        {
-            static string GetPrefix(EpisodeType episodeInfoType)
-            {
-                return episodeInfoType switch
-                {
-                    EpisodeType.Episode => "",
-                    EpisodeType.Special => "S",
-                    EpisodeType.Credits => "C",
-                    EpisodeType.Trailer => "T",
-                    EpisodeType.Parody => "P",
-                    EpisodeType.Other => "O",
-                    _ => ""
-                };
-            }
-
-            return Args.EpisodeInfo.Where(e => e.AnimeID == Args.AnimeInfo[0]?.AnimeID)
-                .OrderBy(e => e.Number)
-                .GroupBy(e => e.Type)
-                .OrderBy(g => g.Key)
-                .Aggregate("", (s, g) =>
-                    s + " " + g.Aggregate(
-                        (InRun: false, Seq: -1, Str: ""),
-                        (tup, ep) => ep.Number == tup.Seq + 1
-                            ? (true, ep.Number, tup.Str)
-                            : tup.InRun
-                                ? (false, ep.Number, $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')} {GetPrefix(g.Key)}{ep.Number.ToString().PadLeft(pad, '0')}")
-                                : (false, ep.Number, $"{tup.Str} {GetPrefix(g.Key)}{ep.Number.ToString().PadLeft(pad, '0')}"),
-                        tup => tup.InRun ? $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')}" : tup.Str
-                    ).Trim()
-                ).Trim();
-        }
+        private string GetEpisodesString(int pad) => Args.EpisodeInfo.Where(e => e.AnimeID == Args.AnimeInfo[0]?.AnimeID)
+            .OrderBy(e => e.Number)
+            .GroupBy(e => e.Type)
+            .OrderBy(g => g.Key)
+            .Aggregate("", (s, g) =>
+                s + " " + g.Aggregate(
+                    (InRun: false, Seq: -1, Str: ""),
+                    (tup, ep) => ep.Number == tup.Seq + 1
+                        ? (true, ep.Number, tup.Str)
+                        : tup.InRun
+                            ? (false, ep.Number,
+                                $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')} {Utils.EpPrefix[g.Key]}{ep.Number.ToString().PadLeft(pad, '0')}")
+                            : (false, ep.Number, $"{tup.Str} {Utils.EpPrefix[g.Key]}{ep.Number.ToString().PadLeft(pad, '0')}"),
+                    tup => tup.InRun ? $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')}" : tup.Str
+                ).Trim()
+            ).Trim();
     }
 }
