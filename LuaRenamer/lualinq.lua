@@ -431,8 +431,8 @@ function _zip(self, other, joiner)
 	return _new_lualinq(":zip", result)
 end
 
----Returns ordered items according to pipeline of comparators. 
----@vararg fun(a, b):integer @ Must return -1, 0, 1 for a < b, a == b, a > b respectively
+---Returns ordered items according to pipeline of key selectors.
+---@vararg fun(a):number|string @ Key selector
 function _orderby(self, ...)
 	local funcs = {...}
 	local result = {}
@@ -441,10 +441,7 @@ function _orderby(self, ...)
 	end
 	local function compfunc(a, b)
 		for idx, value in ipairs(funcs) do
-			local res = value(a, b)
-			if res ~= 0 then
-				return res < 0
-			end
+			if value(a) < value(b) then return true end
 		end
 		return false
 	end
