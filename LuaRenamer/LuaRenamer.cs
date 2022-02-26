@@ -229,8 +229,6 @@ namespace LuaRenamer
             Lua.Inst["env"] = luaEnv;
             var objCache = new Dictionary<object, LuaTable>();
             foreach (var (k, v) in env) Lua.Inst.AddObject(luaEnv, v, k, objCache);
-            luaEnv[LuaEnv.EpisodeNumbers] = Lua.Inst.RegisterFunction(LuaEnv.EpisodeNumbers, this,
-                GetType().GetMethod("GetEpisodesString", BindingFlags.NonPublic | BindingFlags.Instance));
             return (Lua.LuaRunSandboxed.Call(code, luaEnv), luaEnv);
         }
 
@@ -408,7 +406,11 @@ namespace LuaRenamer
                         .First()
                 },
                 { LuaEnv.ImportFolders, importfolders },
-                { LuaEnv.Groups, groups }
+                { LuaEnv.Groups, groups },
+                {
+                    LuaEnv.EpisodeNumbers, Lua.Inst.RegisterFunction(LuaEnv.EpisodeNumbers, this,
+                        GetType().GetMethod("GetEpisodesString", BindingFlags.NonPublic | BindingFlags.Instance))
+                }
             };
         }
 
