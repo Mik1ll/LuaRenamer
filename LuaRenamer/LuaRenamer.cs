@@ -380,7 +380,8 @@ namespace LuaRenamer
                 { "airdate", e.AirDate?.ToTable() },
                 { "animeid", e.AnimeID },
                 { "id", e.EpisodeID },
-                { "titles", ConvertTitles(e.Titles) }
+                { "titles", ConvertTitles(e.Titles) },
+                { "prefix", Utils.EpPrefix[e.Type] }
             }).ToList();
             var importfolders = Args.AvailableFolders.Select(f => new Dictionary<string, object>
             {

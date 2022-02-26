@@ -95,7 +95,6 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
-            AddGlobalReadOnlyTable(Utils.EpPrefix, LuaEnv.EpNumPrefix);
         }
 
         private void AddGlobalReadOnlyTable(object obj, string name)
