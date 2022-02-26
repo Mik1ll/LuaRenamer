@@ -227,14 +227,8 @@ namespace LuaRenamer
             var env = CreateLuaEnv();
             var luaEnv = Lua.Inst.CreateEnv(Lua.BaseEnvStrings);
             Lua.Inst["env"] = luaEnv;
-            foreach (var (k, v) in env) Lua.Inst.AddObject(luaEnv, v, k);
-            var luaAnime = (LuaTable)((LuaTable)luaEnv[LuaEnv.Animes])[1];
-            luaEnv[LuaEnv.Anime] = luaAnime;
-            var luaEpisode = Lua.Inst.GetTableDict((LuaTable)luaEnv[LuaEnv.Episodes]).Where(e => (long)((LuaTable)e.Value)["animeid"] == (long)luaAnime["id"])
-                .OrderBy(e => (long)((LuaTable)e.Value)["type"] == (int)EpisodeType.Other ? int.MinValue : (long)((LuaTable)e.Value)["type"])
-                .ThenBy(e => (long)((LuaTable)e.Value)["number"])
-                .First().Value;
-            luaEnv[LuaEnv.Episode] = luaEpisode;
+            var objCache = new Dictionary<object, LuaTable>();
+            foreach (var (k, v) in env) Lua.Inst.AddObject(luaEnv, v, k, objCache);
             luaEnv[LuaEnv.EpisodeNumbers] = Lua.Inst.RegisterFunction(LuaEnv.EpisodeNumbers, this,
                 GetType().GetMethod("GetEpisodesString", BindingFlags.NonPublic | BindingFlags.Instance));
             return (Lua.LuaRunSandboxed.Call(code, luaEnv), luaEnv);
@@ -253,7 +247,7 @@ namespace LuaRenamer
                 }).ToList();
             }
 
-            var anime = Args.AnimeInfo.Select(a => new Dictionary<string, object>
+            var animes = Args.AnimeInfo.Select(a => new Dictionary<string, object>
             {
                 { "airdate", a.AirDate?.ToTable() },
                 { "enddate", a.EndDate?.ToTable() },
@@ -403,9 +397,16 @@ namespace LuaRenamer
                 //{ LuaEnv.Subfolder, new Dictionary<string, object>() },
                 { LuaEnv.RemoveReservedChars, false },
                 { LuaEnv.UseExistingAnimeLocation, false },
-                { LuaEnv.Animes, anime },
+                { LuaEnv.Animes, animes },
+                { LuaEnv.Anime, animes[0] },
                 { LuaEnv.File, file },
                 { LuaEnv.Episodes, episodes },
+                {
+                    LuaEnv.Episode, episodes.Where(e => (int)e["animeid"] == (int)animes[0]["id"])
+                        .OrderBy(e => (EpisodeType)e["type"] == EpisodeType.Other ? int.MinValue : (int)e["type"])
+                        .ThenBy(e => (int)e["number"])
+                        .First()
+                },
                 { LuaEnv.ImportFolders, importfolders },
                 { LuaEnv.Groups, groups }
             };

@@ -104,7 +104,6 @@ end
             BaseEnvStrings.Add($"{name} = {name},");
         }
 
-
         private static Dictionary<string, T> ConvertEnum<T>() =>
             Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => a);
 
