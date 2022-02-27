@@ -193,7 +193,7 @@ subfolder = {""test123""}
             args.Script = new RenameScriptImpl
             {
                 Script = @"local episode = episodes[1]
-filename = episode.titles[1].title .. "" "" .. episode.number .. "" "" .. episode.type",
+filename = episode.titles[1].name .. "" "" .. episode.number .. "" "" .. episode.type",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -259,7 +259,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = from(anime.titles):map(function(x, r) return r .. x.title; end, """")",
+                Script = @"filename = from(anime.titles):map(function(x, r) return r .. x.name; end, """")",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -295,7 +295,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl()
             {
-                Script = @"filename = anime:get_title(Language.English) .. episode:get_title(Language.English, true)",
+                Script = @"filename = anime:getname(Language.English) .. episode:getname(Language.English, true)",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };

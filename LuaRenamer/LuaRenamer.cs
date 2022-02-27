@@ -238,7 +238,7 @@ namespace LuaRenamer
             {
                 return titles.Select(t => new Dictionary<string, object>
                 {
-                    { "title", t.Title },
+                    { "name", t.Title },
                     { "language", t.Language },
                     { "languagecode", t.LanguageCode },
                     { "type", t.Type }
@@ -252,12 +252,12 @@ namespace LuaRenamer
                 { "rating", a.Rating },
                 { "restricted", a.Restricted },
                 { "type", a.Type },
-                { "preferredtitle", a.PreferredTitle },
+                { "preferredname", a.PreferredTitle },
                 { "id", a.AnimeID },
                 {
                     "titles", ConvertTitles(a.Titles)
                 },
-                { "get_title", Lua.TitleFunc },
+                { "getname", Lua.TitleFunc },
                 {
                     "episodecounts", new Dictionary<EpisodeType, int>
                     {
@@ -374,7 +374,7 @@ namespace LuaRenamer
                 { "animeid", e.AnimeID },
                 { "id", e.EpisodeID },
                 { "titles", ConvertTitles(e.Titles) },
-                { "get_title", Lua.TitleFunc },
+                { "getname", Lua.TitleFunc },
                 { "prefix", Utils.EpPrefix[e.Type] }
             }).ToList();
             var importfolders = Args.AvailableFolders.Select(f => new Dictionary<string, object>
