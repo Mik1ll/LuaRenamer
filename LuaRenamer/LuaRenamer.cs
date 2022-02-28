@@ -80,18 +80,18 @@ namespace LuaRenamer
                 return res;
             var result = RunSandboxed(Args.Script.Script);
             var env = Lua.Inst.GetTableDict(result.env);
-            var removeReservedChars = (bool)env[LuaEnv.RemoveReservedChars];
-            var useExistingAnimeLocation = (bool)env[LuaEnv.UseExistingAnimeLocation];
-            if (env.TryGetValue(LuaEnv.Filename, out var luaFilename) && luaFilename is not (string or null))
+            var removeReservedChars = (bool)env[LuaEnv.remove_reserved_chars];
+            var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
+            if (env.TryGetValue(LuaEnv.filename, out var luaFilename) && luaFilename is not (string or null))
                 throw new LuaScriptException("filename must be a string", string.Empty);
             var filename = !string.IsNullOrWhiteSpace((string)luaFilename)
                 ? Utils.RemoveInvalidFilenameChars(removeReservedChars ? (string)luaFilename : ((string)luaFilename).ReplaceInvalidPathCharacters()) +
                   Path.GetExtension(Args.FileInfo.Filename)
                 : Args.FileInfo.Filename;
-            if (env.TryGetValue(LuaEnv.Destination, out var luaDestination) && luaDestination is not (string or LuaTable or null))
+            if (env.TryGetValue(LuaEnv.destination, out var luaDestination) && luaDestination is not (string or LuaTable or null))
                 throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
             IImportFolder destination;
-            if (env.TryGetValue(LuaEnv.Subfolder, out var luaSubfolder) && luaSubfolder is not (LuaTable or null))
+            if (env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder) && luaSubfolder is not (LuaTable or null))
                 throw new LuaScriptException("subfolder must be an array of path segments", string.Empty);
             string subfolder;
             (IImportFolder, string)? existingAnimeLocation = null;
@@ -163,7 +163,7 @@ namespace LuaRenamer
                 case LuaTable destinationTable:
                     foreach (KeyValuePair<object, object> kvp in destinationTable)
                     {
-                        if ((string)kvp.Key == "location")
+                        if ((string)kvp.Key == LuaEnv.importfolder.location)
                         {
                             destfolder = Args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
                                                                                    && string.Equals(Utils.NormPath(f.Location),
@@ -238,28 +238,26 @@ namespace LuaRenamer
             {
                 return titles.Select(t => new Dictionary<string, object>
                 {
-                    { "name", t.Title },
-                    { "language", t.Language },
-                    { "languagecode", t.LanguageCode },
-                    { "type", t.Type }
+                    { LuaEnv.title.name, t.Title },
+                    { LuaEnv.title.language, t.Language },
+                    { LuaEnv.title.languagecode, t.LanguageCode },
+                    { LuaEnv.title.type, t.Type }
                 }).ToList();
             }
 
             var animes = Args.AnimeInfo.Select(a => new Dictionary<string, object>
             {
-                { "airdate", a.AirDate?.ToTable() },
-                { "enddate", a.EndDate?.ToTable() },
-                { "rating", a.Rating },
-                { "restricted", a.Restricted },
-                { "type", a.Type },
-                { "preferredname", a.PreferredTitle },
-                { "id", a.AnimeID },
+                { LuaEnv.anime.airdate, a.AirDate?.ToTable() },
+                { LuaEnv.anime.enddate, a.EndDate?.ToTable() },
+                { LuaEnv.anime.rating, a.Rating },
+                { LuaEnv.anime.restricted, a.Restricted },
+                { LuaEnv.anime.type, a.Type },
+                { LuaEnv.anime.preferredname, a.PreferredTitle },
+                { LuaEnv.anime.id, a.AnimeID },
+                { LuaEnv.anime.titles, ConvertTitles(a.Titles) },
+                { LuaEnv.anime.getname, Lua.TitleFunc },
                 {
-                    "titles", ConvertTitles(a.Titles)
-                },
-                { "getname", Lua.TitleFunc },
-                {
-                    "episodecounts", new Dictionary<EpisodeType, int>
+                    LuaEnv.anime.episodecounts, new Dictionary<EpisodeType, int>
                     {
                         { EpisodeType.Episode, a.EpisodeCounts.Episodes },
                         { EpisodeType.Special, a.EpisodeCounts.Specials },
@@ -274,30 +272,30 @@ namespace LuaRenamer
                 ? null
                 : new Dictionary<string, object>
                 {
-                    { "censored", Args.FileInfo.AniDBFileInfo.Censored },
-                    { "source", Args.FileInfo.AniDBFileInfo.Source },
-                    { "version", Args.FileInfo.AniDBFileInfo.Version },
-                    { "releasedate", Args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
+                    { LuaEnv.file.anidb.censored, Args.FileInfo.AniDBFileInfo.Censored },
+                    { LuaEnv.file.anidb.source, Args.FileInfo.AniDBFileInfo.Source },
+                    { LuaEnv.file.anidb.version, Args.FileInfo.AniDBFileInfo.Version },
+                    { LuaEnv.file.anidb.releasedate, Args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
                     {
-                        "releasegroup", Args.FileInfo.AniDBFileInfo.ReleaseGroup is null
+                        LuaEnv.file.anidb.releasegroup.N, Args.FileInfo.AniDBFileInfo.ReleaseGroup is null
                             ? null
                             : new Dictionary<string, object>
                             {
-                                { "name", Args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
-                                { "shortname", Args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
+                                { LuaEnv.file.anidb.releasegroup.name, Args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
+                                { LuaEnv.file.anidb.releasegroup.shortname, Args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
                             }
                     },
-                    { "id", Args.FileInfo.AniDBFileInfo.AniDBFileID },
+                    { LuaEnv.file.anidb.id, Args.FileInfo.AniDBFileInfo.AniDBFileID },
                     {
-                        "media", new Dictionary<string, object>
+                        LuaEnv.file.anidb.media.N, new Dictionary<string, object>
                         {
-                            { "videocodec", Args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
+                            { LuaEnv.file.anidb.media.videocodec, Args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
                             {
-                                "sublanguages",
+                                LuaEnv.file.anidb.media.sublanguages,
                                 Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.ToList()
                             },
                             {
-                                "dublanguages",
+                                LuaEnv.file.anidb.media.dublanguages,
                                 Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.ToList()
                             }
                         }
@@ -307,111 +305,111 @@ namespace LuaRenamer
                 ? null
                 : new Dictionary<string, object>
                 {
-                    { "chaptered", Args.FileInfo.MediaInfo.Chaptered },
+                    { LuaEnv.file.media.chaptered, Args.FileInfo.MediaInfo.Chaptered },
                     {
-                        "video", new Dictionary<string, object>
+                        LuaEnv.file.media.video.N, new Dictionary<string, object>
                         {
-                            { "height", Args.FileInfo.MediaInfo.Video.Height },
-                            { "width", Args.FileInfo.MediaInfo.Video.Width },
-                            { "codec", Args.FileInfo.MediaInfo.Video.SimplifiedCodec },
-                            { "res", Args.FileInfo.MediaInfo.Video.StandardizedResolution },
-                            { "bitrate", Args.FileInfo.MediaInfo.Video.BitRate },
-                            { "bitdepth", Args.FileInfo.MediaInfo.Video.BitDepth },
-                            { "framerate", Args.FileInfo.MediaInfo.Video.FrameRate }
+                            { LuaEnv.file.media.video.height, Args.FileInfo.MediaInfo.Video.Height },
+                            { LuaEnv.file.media.video.width, Args.FileInfo.MediaInfo.Video.Width },
+                            { LuaEnv.file.media.video.codec, Args.FileInfo.MediaInfo.Video.SimplifiedCodec },
+                            { LuaEnv.file.media.video.res, Args.FileInfo.MediaInfo.Video.StandardizedResolution },
+                            { LuaEnv.file.media.video.bitrate, Args.FileInfo.MediaInfo.Video.BitRate },
+                            { LuaEnv.file.media.video.bitdepth, Args.FileInfo.MediaInfo.Video.BitDepth },
+                            { LuaEnv.file.media.video.framerate, Args.FileInfo.MediaInfo.Video.FrameRate }
                         }
                     },
-                    { "duration", Args.FileInfo.MediaInfo.General.Duration },
-                    { "bitrate", Args.FileInfo.MediaInfo.General.OverallBitRate },
+                    { LuaEnv.file.media.duration, Args.FileInfo.MediaInfo.General.Duration },
+                    { LuaEnv.file.media.bitrate, Args.FileInfo.MediaInfo.General.OverallBitRate },
                     {
-                        "sublanguages", Args.FileInfo.MediaInfo.Subs.Select(s =>
+                        LuaEnv.file.media.sublanguages, Args.FileInfo.MediaInfo.Subs.Select(s =>
                             Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                 ? Utils.ParseEnum<TitleLanguage>(s.Title, false)
                                 : l).ToList()
                     },
                     {
-                        "audio", Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
+                        LuaEnv.file.media.audio.N, Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
                         {
-                            { "compressionmode", a.Compression_Mode },
-                            { "bitrate", a.BitRate },
-                            { "channels", a.Channels },
-                            { "bitdepth", a.BitDepth },
-                            { "samplingrate", a.SamplingRate },
-                            { "bitratemode", a.BitRate_Mode },
-                            { "simplecodec", a.SimplifiedCodec },
-                            { "codec", a.Codec },
+                            { LuaEnv.file.media.audio.compressionmode, a.Compression_Mode },
+                            { LuaEnv.file.media.audio.bitrate, a.BitRate },
+                            { LuaEnv.file.media.audio.channels, a.Channels },
+                            { LuaEnv.file.media.audio.bitdepth, a.BitDepth },
+                            { LuaEnv.file.media.audio.samplingrate, a.SamplingRate },
+                            { LuaEnv.file.media.audio.bitratemode, a.BitRate_Mode },
+                            { LuaEnv.file.media.audio.simplecodec, a.SimplifiedCodec },
+                            { LuaEnv.file.media.audio.codec, a.Codec },
                             {
-                                "language", Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                LuaEnv.file.media.audio.language, Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                     ? Utils.ParseEnum<TitleLanguage>(a.Title, false)
                                     : l
                             },
-                            { "title", a.Title }
+                            { LuaEnv.file.media.audio.title, a.Title }
                         }).ToList()
                     }
                 };
             var file = new Dictionary<string, object>
             {
-                { "name", Args.FileInfo.Filename },
-                { "path", Args.FileInfo.FilePath },
-                { "size", Args.FileInfo.FileSize },
+                { LuaEnv.file.name, Args.FileInfo.Filename },
+                { LuaEnv.file.path, Args.FileInfo.FilePath },
+                { LuaEnv.file.size, Args.FileInfo.FileSize },
                 {
-                    "hashes", new Dictionary<string, object>
+                    LuaEnv.file.hashes.N, new Dictionary<string, object>
                     {
-                        { "crc", Args.FileInfo.Hashes.CRC },
-                        { "md5", Args.FileInfo.Hashes.MD5 },
-                        { "ed2k", Args.FileInfo.Hashes.ED2K },
-                        { "sha1", Args.FileInfo.Hashes.SHA1 },
+                        { LuaEnv.file.hashes.crc, Args.FileInfo.Hashes.CRC },
+                        { LuaEnv.file.hashes.md5, Args.FileInfo.Hashes.MD5 },
+                        { LuaEnv.file.hashes.ed2k, Args.FileInfo.Hashes.ED2K },
+                        { LuaEnv.file.hashes.sha1, Args.FileInfo.Hashes.SHA1 },
                     }
                 },
-                { "anidb", anidb },
-                { "media", mediainfo }
+                { LuaEnv.file.anidb.N, anidb },
+                { LuaEnv.file.media.N, mediainfo }
             };
             var episodes = Args.EpisodeInfo.Select(e => new Dictionary<string, object>
             {
-                { "duration", e.Duration },
-                { "number", e.Number },
-                { "type", e.Type },
-                { "airdate", e.AirDate?.ToTable() },
-                { "animeid", e.AnimeID },
-                { "id", e.EpisodeID },
-                { "titles", ConvertTitles(e.Titles) },
-                { "getname", Lua.TitleFunc },
-                { "prefix", Utils.EpPrefix[e.Type] }
+                { LuaEnv.episode.duration, e.Duration },
+                { LuaEnv.episode.number, e.Number },
+                { LuaEnv.episode.type, e.Type },
+                { LuaEnv.episode.airdate, e.AirDate?.ToTable() },
+                { LuaEnv.episode.animeid, e.AnimeID },
+                { LuaEnv.episode.id, e.EpisodeID },
+                { LuaEnv.episode.titles, ConvertTitles(e.Titles) },
+                { LuaEnv.episode.getname, Lua.TitleFunc },
+                { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] }
             }).ToList();
             var importfolders = Args.AvailableFolders.Select(f => new Dictionary<string, object>
             {
-                { "name", f.Name },
-                { "location", f.Location },
-                { "type", f.DropFolderType }
+                { LuaEnv.importfolder.name, f.Name },
+                { LuaEnv.importfolder.location, f.Location },
+                { LuaEnv.importfolder.type, f.DropFolderType }
             }).ToList();
             var groups = Args.GroupInfo.Select(g => new Dictionary<string, object>
             {
-                { "name", g.Name },
+                { LuaEnv.group.name, g.Name },
                 // Just give Ids, subject to change if there is ever a reason to use more.
-                { "mainSeriesid", g.MainSeries?.AnimeID },
-                { "seriesids", g.Series.Select(s => s.AnimeID).ToList() }
+                { LuaEnv.group.mainSeriesid, g.MainSeries?.AnimeID },
+                { LuaEnv.group.seriesids, g.Series.Select(s => s.AnimeID).ToList() }
             }).ToList();
             return new Dictionary<string, object>
             {
-                { LuaEnv.Filename, "" },
-                //{ LuaEnv.Destination, "" },
-                //{ LuaEnv.Subfolder, new Dictionary<string, object>() },
-                { LuaEnv.RemoveReservedChars, false },
-                { LuaEnv.UseExistingAnimeLocation, false },
-                { LuaEnv.Animes, animes },
-                { LuaEnv.Anime, animes[0] },
-                { LuaEnv.File, file },
-                { LuaEnv.Episodes, episodes },
+                { LuaEnv.filename, "" },
+                //{ LuaEnv.destination, "" },
+                //{ LuaEnv.subfolder, new Dictionary<string, object>() },
+                { LuaEnv.remove_reserved_chars, false },
+                { LuaEnv.use_existing_anime_location, false },
+                { LuaEnv.animes, animes },
+                { LuaEnv.anime.N, animes[0] },
+                { LuaEnv.file.N, file },
+                { LuaEnv.episodes, episodes },
                 {
-                    LuaEnv.Episode, episodes.Where(e => (int)e["animeid"] == (int)animes[0]["id"])
-                        .OrderBy(e => (EpisodeType)e["type"] == EpisodeType.Other ? int.MinValue : (int)e["type"])
-                        .ThenBy(e => (int)e["number"])
+                    LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid] == (int)animes[0][LuaEnv.anime.id])
+                        .OrderBy(e => (EpisodeType)e[LuaEnv.episode.type] == EpisodeType.Other ? int.MinValue : (int)e[LuaEnv.episode.type])
+                        .ThenBy(e => (int)e[LuaEnv.episode.number])
                         .First()
                 },
-                { LuaEnv.ImportFolders, importfolders },
-                { LuaEnv.Groups, groups },
+                { LuaEnv.importfolders, importfolders },
+                { LuaEnv.groups, groups },
                 {
-                    LuaEnv.EpisodeNumbers, Lua.Inst.RegisterFunction(LuaEnv.EpisodeNumbers, this,
-                        GetType().GetMethod("GetEpisodesString", BindingFlags.NonPublic | BindingFlags.Instance))
+                    LuaEnv.episode_numbers, Lua.Inst.RegisterFunction(LuaEnv.episode_numbers, this,
+                        GetType().GetMethod(nameof(GetEpisodesString), BindingFlags.NonPublic | BindingFlags.Instance))
                 }
             };
         }

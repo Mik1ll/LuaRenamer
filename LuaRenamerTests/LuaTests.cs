@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using LuaRenamer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua.Exceptions;
@@ -305,6 +306,12 @@ end",
             };
             var res = renamer.GetInfo();
             Assert.AreEqual("animeTitle4episdoeTitle2", res?.filename);
+        }
+
+        [TestMethod]
+        public void TestLuaEnvNames()
+        {
+            Assert.AreEqual("file.media.sublanguages", LuaEnv.file.media.Fn(LuaEnv.file.media.sublanguages));
         }
     }
 }

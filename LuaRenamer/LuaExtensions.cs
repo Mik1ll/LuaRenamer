@@ -59,15 +59,15 @@ namespace LuaRenamer
         {
             return new Dictionary<string, object>
             {
-                { "year", dt.Year },
-                { "month", dt.Month },
-                { "day", dt.Day },
-                { "yday", dt.DayOfYear },
-                { "wday", (long)dt.DayOfWeek + 1 },
-                { "hour", dt.Hour },
-                { "min", dt.Minute },
-                { "sec", dt.Second },
-                { "isdst", dt.IsDaylightSavingTime() }
+                { LuaEnv.date.year, dt.Year },
+                { LuaEnv.date.month, dt.Month },
+                { LuaEnv.date.day, dt.Day },
+                { LuaEnv.date.yday, dt.DayOfYear },
+                { LuaEnv.date.wday, (long)dt.DayOfWeek + 1 },
+                { LuaEnv.date.hour, dt.Hour },
+                { LuaEnv.date.min, dt.Minute },
+                { LuaEnv.date.sec, dt.Second },
+                { LuaEnv.date.isdst, dt.IsDaylightSavingTime() }
             };
         }
     }

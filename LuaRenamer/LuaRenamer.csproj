@@ -6,6 +6,7 @@
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

@@ -84,12 +84,12 @@ end
 
         #region Instance Functions
 
-        private const string TitleFunction = @"
+        private const string TitleFunction = $@"
 return function (self, language, allow_unofficial)
-  local titles = from(self.titles):where(function (a) return a.language == language; end)
-                                  :orderby(function (a) if a.type == TitleType.Short then return 10; end return a.type; end)
-  local title = allow_unofficial and titles:first() or titles:where(function (a) return a.type == TitleType.None or a.type == TitleType.Main or a.type == TitleType.Official; end):first()
-  if title then return title.name end
+  local titles = from(self.{LuaEnv.anime.titles}):where(function (a) return a.{LuaEnv.title.language} == language; end)
+                                  :orderby(function (a) if a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Short)} then return 10; end return a.{LuaEnv.title.type}; end)
+  local title = allow_unofficial and titles:first() or titles:where(function (a) return a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.None)} or a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Main)} or a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Official)}; end):first()
+  if title then return title.{LuaEnv.title.name} end
 end
 ";
         public readonly LuaFunction TitleFunc;
