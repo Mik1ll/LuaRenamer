@@ -84,7 +84,7 @@ end
 
         #region Instance Functions
 
-        private const string TitleFunction = $@"
+        private readonly string _titleFunction = $@"
 return function (self, language, allow_unofficial)
   local titles = from(self.{LuaEnv.anime.titles}):where(function (a) return a.{LuaEnv.title.language} == language; end)
                                   :orderby(function (a) if a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Short)} then return 10; end return a.{LuaEnv.title.type}; end)
@@ -108,7 +108,7 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
             AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
-            TitleFunc = (LuaFunction)Inst.DoString(TitleFunction)[0];
+            TitleFunc = (LuaFunction)Inst.DoString(_titleFunction)[0];
         }
 
         private void AddGlobalReadOnlyTable(object obj, string name)
