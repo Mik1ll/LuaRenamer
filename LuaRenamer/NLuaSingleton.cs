@@ -45,6 +45,9 @@ math = { abs = math.abs, acos = math.acos, asin = math.asin,
   rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
   sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
 os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
+setmetatable = setmetatable,
+getmetatable = getmetatable,
+rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
 ";
 
         private const string LuaLinqEnv = @"
