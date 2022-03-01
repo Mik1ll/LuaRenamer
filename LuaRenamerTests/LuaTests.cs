@@ -13,7 +13,7 @@ namespace LuaRenamerTests
     [TestClass]
     public class LuaTests
     {
-        private MoveEventArgs Args()
+        private static MoveEventArgs Args()
         {
             return new MoveEventArgs
             {
@@ -138,9 +138,9 @@ namespace LuaRenamerTests
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = ""testfilename""
-destination = ""Anime""
-subfolder = {""test123""}
+                Script = $@"{LuaEnv.filename} = ""testfilename""
+{LuaEnv.destination} = ""Anime""
+{LuaEnv.subfolder} = {{""test123""}}
 ",
                 Type = nameof(LuaRenamer.LuaRenamer)
             };
@@ -158,7 +158,7 @@ subfolder = {""test123""}
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = tostring(anime.type == AnimeType.Movie)",
+                Script = $@"{LuaEnv.filename} = tostring({LuaEnv.anime.typeFn} == {LuaEnv.AnimeType}.{nameof(AnimeType.Movie)})",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -176,7 +176,7 @@ subfolder = {""test123""}
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = os.date(""%c"", os.time(file.anidb.releasedate))",
+                Script = $@"{LuaEnv.filename} = os.date(""%c"", os.time({LuaEnv.file.anidb.releasedateFn}))",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -193,8 +193,8 @@ subfolder = {""test123""}
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"local episode = episodes[1]
-filename = episode.titles[1].name .. "" "" .. episode.number .. "" "" .. episode.type",
+                Script =
+                    $@"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. "" "" .. {LuaEnv.episode.numberFn} .. "" "" .. {LuaEnv.episode.typeFn}",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -213,8 +213,8 @@ filename = episode.titles[1].name .. "" "" .. episode.number .. "" "" .. episode
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"if (importfolders[2].type & DropFolderType.Destination) then
-  destination = importfolders[2]
+                Script = $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} & {LuaEnv.DropFolderType}.{nameof(DropFolderType.Destination)}) then
+  {LuaEnv.destination} = {LuaEnv.importfolders}[2]
 end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
@@ -233,7 +233,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"TitleType.Main = 25
+                Script = $@"{LuaEnv.TitleType}.{nameof(TitleType.Main)} = 25
 ",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
@@ -260,7 +260,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = from(anime.titles):map(function(x, r) return r .. x.name; end, """")",
+                Script = $@"{LuaEnv.filename} = from({LuaEnv.anime.titlesFn}):map(function(x, r) return r .. x.{LuaEnv.title.name}; end, """")",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -278,7 +278,7 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = @"filename = episode_numbers(3)",
+                Script = $@"{LuaEnv.filename} = {LuaEnv.episode_numbers}(3)",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -296,7 +296,8 @@ end",
             var args = Args();
             args.Script = new RenameScriptImpl()
             {
-                Script = @"filename = anime:getname(Language.English) .. episode:getname(Language.English, true)",
+                Script =
+                    $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true)",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
@@ -311,7 +312,7 @@ end",
         [TestMethod]
         public void TestLuaEnvNames()
         {
-            Assert.AreEqual("file.media.sublanguages", LuaEnv.file.media.Fn(LuaEnv.file.media.sublanguages));
+            Assert.AreEqual("file.media.sublanguages", LuaEnv.file.media.sublanguagesFn);
         }
     }
 }
