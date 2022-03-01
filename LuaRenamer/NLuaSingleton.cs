@@ -16,8 +16,7 @@ namespace LuaRenamer
         private readonly LuaFunction _readonly;
         public readonly HashSet<string> BaseEnvStrings = new() { BaseEnv, LuaLinqEnv };
         private readonly LuaTable _globalEnv;
-        private readonly string _luaLinqLocation =
-            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "lualinq.lua";
+        private readonly string _luaLinqLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua", "lualinq.lua");
 
         #region Sandbox
 
