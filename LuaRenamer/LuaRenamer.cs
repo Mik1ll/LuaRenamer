@@ -36,10 +36,11 @@ namespace LuaRenamer
                 ResultCache.Clear();
                 return null;
             }
-            if (!ResultCache.TryGetValue(crc, out var res)) return null;
-            ResultCache.Remove(crc);
-            if (res.setTIme < DateTime.UtcNow + TimeSpan.FromSeconds(2))
+            if (!ResultCache.TryGetValue(crc, out var res))
+                return null;
+            if (DateTime.UtcNow < res.setTIme + TimeSpan.FromSeconds(2))
                 return (res.filename, res.destination, res.subfolder);
+            ResultCache.Remove(crc);
             return null;
         }
 
@@ -78,8 +79,10 @@ namespace LuaRenamer
             var res = CheckCache();
             if (res is not null)
                 return res;
-            var result = RunSandboxed(Args.Script.Script);
-            var env = Lua.Inst.GetTableDict(result.env);
+            var (retVal, luaEnv) = RunSandboxed(Args.Script.Script);
+            if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
+                throw new ArgumentException(errStr);
+            var env = Lua.Inst.GetTableDict(luaEnv);
             var removeReservedChars = (bool)env[LuaEnv.remove_reserved_chars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
             if (env.TryGetValue(LuaEnv.filename, out var luaFilename) && luaFilename is not (string or null))
