@@ -17,9 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="lua\*">
+        <Content Include="lua\**\*.*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="lua\.vscode\settings.json"/>
     </ItemGroup>
 </Project>
