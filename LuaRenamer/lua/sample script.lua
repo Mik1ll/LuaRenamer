@@ -1,62 +1,37 @@
-local nametable = {
-  add = function(self, str)
-    table.insert(self, str)
-  end
-}
+function rm_empty_str(table) return from(table):where(function (a) return a ~= "" end):toArray() end
 
-if file.anidb and file.anidb.releasegroup then
-  nametable:add("[" .. file.anidb.releasegroup.shortname or file.anidb.releasegroup.name .. "]")
-end
+local group = file.anidb and file.anidb.releasegroup and "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]" or ""
+
 local animename = anime:getname(Language.English) or anime:getname(Language.Romaji) or anime.preferredname
-nametable:add(animename)
+animename = string.gsub(string.sub(animename, 0, 35), "%s+$", "") .. (#animename > 35 and "..." or "")
 
-local episodename = episode:getname(Language.English)
-if not (anime.type == AnimeType.Movie and string.find(episodename, "Complete Movie")) then
-  nametable:add(episode_numbers(2))
-  if file.anidb and file.anidb.version > 1 then
-    nametable[#nametable] = nametable[#nametable] .. "v" .. file.anidb.version
+local episodename = episode:getname(Language.English) or ""
+episodename = string.gsub(string.sub(episodename, 0, 35), "%s+$", "") .. (#episodename > 35 and "..." or "")
+
+local episodenumber = ""
+if anime.type ~= AnimeType.Movie or not string.find(episodename, "Complete Movie") then
+  episodenumber = episode_numbers(2) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
+  if #episodes > 1 or string.find(episodename, "Episode") then
+    episodename = ""
   end
-  if #episodes == 1 and not string.find(episodename, "Episode") then
-    nametable:add(string.sub(episodename, 0, 35))
-  end
+else
+  episodename = ""
 end
 
-nametable:add("(" .. file.media.video.res)
-nametable:add(file.media.video.codec)
-if file.media.video.bitdepth and file.media.video.bitdepth ~= 8 then
-  nametable:add(file.media.video.bitdepth .. "bit")
-end
-if file.anidb then
-  nametable:add(file.anidb.source)
-end
-nametable[#nametable] = nametable[#nametable] .. ")"
+local res = file.media.video.res or ""
+local codec = file.media.video.codec or ""
+local bitdepth = file.media.video.bitdepth and file.media.video.bitdepth ~= 8 and file.media.video.bitdepth .. "bit" or ""
+local source = file.anidb and file.anidb.source or ""
 
-local dublangs = from(file.anidb and file.anidb.media.dublanguages or from(file.media.audio):select(function(a)
-  return a.language
-end))
+local fileinfo = "(" .. table.concat(rm_empty_str{res, codec, bitdepth, source}, " ") .. ")"
+
+local dublangs = from(file.anidb and file.anidb.media.dublanguages or from(file.media.audio):select("language"))
 local sublangs = from(file.anidb and file.anidb.media.sublanguages or file.media.sublanguages)
-if dublangs:any(function(a)
-  return a == Language.English
-end) then
-  if dublangs:any(function(a)
-    return a == Language.Japanese
-  end) then
-    nametable:add("[DUAL-AUDIO]")
-  else
-    nametable:add("[DUB]")
-  end
-elseif not sublangs:any(function(a)
-  return a == Language.English
-end) then
-  nametable:add("[RAW]")
-end
-if anime.restricted and file.anidb then
-  if file.anidb.censored then
-    nametable:add("[CEN]")
-  else
-    nametable:add("[UNCEN]")
-  end
-end
-nametable:add("[" .. file.hashes.crc .. "]")
-filename = string.sub(table.concat(nametable, " "), 0, 120)
+local audiotag = dublangs:contains(Language.English) and (dublangs:contains(Language.Japanese) and "[DUAL-AUDIO]" or "[DUB]") or ""
+local subtag = audiotag == "" and not sublangs:contains(Language.English) and "[RAW]" or ""
 
+local centag = anime.restricted and file.anidb and (file.anidb.censored and "[CEN]" or "[UNCEN]") or ""
+local hashtag = "[" .. file.hashes.crc .. "]"
+
+local nametable = rm_empty_str{group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
+filename = string.sub(table.concat(nametable, " "), 0, 120)

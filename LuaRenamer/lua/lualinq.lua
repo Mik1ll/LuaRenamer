@@ -4,28 +4,28 @@
 -- ------------------------------------------------------------------------
 -- Copyright (c) 2012, Marco Mastropaolo (Xanathar)
 -- All rights reserved.
--- 
--- Redistribution and use in source and binary forms, with or without modification, 
+--
+-- Redistribution and use in source and binary forms, with or without modification,
 -- are permitted provided that the following conditions are met:
--- 
---  o Redistributions of source code must retain the above copyright notice, 
+--
+--  o Redistributions of source code must retain the above copyright notice,
 -- 	  this list of conditions and the following disclaimer.
---  o Redistributions in binary form must reproduce the above copyright notice, 
--- 	  this list of conditions and the following disclaimer in the documentation 
+--  o Redistributions in binary form must reproduce the above copyright notice,
+-- 	  this list of conditions and the following disclaimer in the documentation
 -- 	  and/or other materials provided with the distribution.
---  o Neither the name of Marco Mastropaolo nor the names of its contributors 
--- 	  may be used to endorse or promote products derived from this software 
+--  o Neither the name of Marco Mastropaolo nor the names of its contributors
+-- 	  may be used to endorse or promote products derived from this software
 -- 	  without specific prior written permission.
--- 
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
--- ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
--- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
--- IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
--- INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
--- BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
--- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
--- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
--- OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+--
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+-- ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+-- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+-- IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+-- INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+-- BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+-- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+-- OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 -- OF THE POSSIBILITY OF SUCH DAMAGE.
 -- ------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ end
 function _dumpData(self)
 	local items = #self.m_Data
 	local dumpdata = "q{ "
-	
+
 	for i = 1, 3 do
 		if (i <= items) then
 			if (i ~= 1) then
@@ -75,13 +75,12 @@ function _dumpData(self)
 			dumpdata = dumpdata .. tostring(self.m_Data[i])
 		end
 	end
-	
+
 	if (items > 3) then
 		dumpdata = dumpdata .. ", ..." .. items .. " }"
 	else
 		dumpdata = dumpdata .. " }"
 	end
-
 	return dumpdata
 end
 
@@ -112,11 +111,11 @@ end
 function _new_lualinq(method, collection)
 	---@class Linq
 	local self = { }
-	
+
 	self.classid_71cd970f_a742_4316_938d_1998df001335 = 2
-	
+
 	self.m_Data = collection
-	
+
 	self.concat = _concat
 	self.select = _select
 	self.selectMany = _selectMany
@@ -127,8 +126,8 @@ function _new_lualinq(method, collection)
 	self.zip = _zip
 	self.orderby = _orderby
 	self.orderBy = _orderby
-	
-	self.distinct = _distinct 
+
+	self.distinct = _distinct
 	self.union = _union
 	self.except = _except
 	self.intersection = _intersection
@@ -152,7 +151,7 @@ function _new_lualinq(method, collection)
 	self.average = _average
 
 	self.dump = _dump
-	
+
 	self.map = _map
 	self.foreach = _foreach
 	self.xmap = _xmap
@@ -167,8 +166,8 @@ function _new_lualinq(method, collection)
 	self.intersect = _intersection
 	self.intersectby = _intersectionby
 	self.intersectBy = _intersectionby
-	
-	
+
+
 	logq(self, "from")
 
 	return self
@@ -216,26 +215,24 @@ end
 -- Creates a linq data structure from a dictionary (table with non-consecutive-integer keys)
 function fromDictionary(dictionary)
 	local collection = { }
-	
+
 	for k,v in pairs(dictionary) do
 		local kvp = {}
 		kvp.key = k
 		kvp.value = v
-		
+
 		table.insert(collection, kvp)
 	end
-	
 	return _new_lualinq("fromDictionary", collection)
 end
 
 -- Creates a linq data structure from an iterator returning single items
 function fromIterator(iterator)
 	local collection = { }
-	
+
 	for s in iterator do
 		table.insert(collection, s)
 	end
-	
 	return _new_lualinq("fromIterator", collection)
 end
 
@@ -248,7 +245,6 @@ function fromIteratorsArray(iteratorArray)
 			table.insert(collection, s)
 		end
 	end
-	
 	return _new_lualinq("fromIteratorsArray", collection)
 end
 
@@ -259,7 +255,6 @@ function fromSet(set)
 	for k,v in pairs(set) do
 		table.insert(collection, k)
 	end
-	
 	return _new_lualinq("fromIteratorsArray", collection)
 end
 
@@ -286,7 +281,6 @@ function _concat(self, other)
 	for idx, value in ipairs(other.m_Data) do
 		table.insert(result, value)
 	end
-	
 	return _new_lualinq(":concat", result)
 end
 
@@ -312,7 +306,7 @@ function _select(self, selector)
 		end
 	else
 		loge("select called with unknown predicate type");
-	end	
+	end
 	return _new_lualinq(":select", result)
 end
 
@@ -333,7 +327,6 @@ function _selectMany(self, selector)
 			end
 		end
 	end
-	
 	return _new_lualinq(":selectMany", result)
 end
 
@@ -350,10 +343,10 @@ function _where(self, predicate, refvalue, ...)
 			if (predicate(value, refvalue, from({...}):toTuple())) then
 				table.insert(result, value)
 			end
-		end	
+		end
 	elseif (type(predicate) == "string") then
 		local refvals = {...}
-		
+
 		if (#refvals > 0) then
 			table.insert(refvals, refvalue);
 			return _intersectionby(self, predicate, refvals);
@@ -362,18 +355,17 @@ function _where(self, predicate, refvalue, ...)
 				if (value[predicate] == refvalue) then
 					table.insert(result, value)
 				end
-			end	
+			end
 		else
 			for idx, value in ipairs(self.m_Data) do
 				if (value[predicate] ~= nil) then
 					table.insert(result, value)
 				end
-			end	
+			end
 		end
 	else
 		loge("where called with unknown predicate type");
 	end
-	
 	return _new_lualinq(":where", result)
 end
 
@@ -390,8 +382,7 @@ function _whereIndex(self, predicate)
 		if (predicate(idx, value)) then
 			table.insert(result, value)
 		end
-	end	
-	
+	end
 	return _new_lualinq(":whereIndex", result)
 end
 
@@ -416,18 +407,17 @@ end
 ---@param other Linq|table
 ---@param joiner fun(a, b):any
 function _zip(self, other, joiner)
-	other = from(other) 
+	other = from(other)
 
 	local thismax = #self.m_Data
 	local thatmax = #other.m_Data
 	local result = {}
-	
+
 	if (thatmax < thismax) then thismax = thatmax; end
-	
+
 	for i = 1, thismax do
 		result[i] = joiner(self.m_Data[i], other.m_Data[i]);
 	end
-	
 	return _new_lualinq(":zip", result)
 end
 
@@ -454,7 +444,7 @@ end
 ---@param comparator? fun(a, b):boolean
 function _distinct(self, comparator)
 	local result = {}
-	
+
 	for idx, value in ipairs(self.m_Data) do
 		local found = false
 
@@ -463,14 +453,13 @@ function _distinct(self, comparator)
 				if (value == value2) then found = true; end
 			else
 				if (comparator(value, value2)) then found = true; end
-			end			
+			end
 		end
-	
+
 		if (not found) then
 			table.insert(result, value)
 		end
 	end
-	
 	return _new_lualinq(":distinct", result)
 end
 
@@ -554,7 +543,6 @@ function _toDictionary(self, keyValueSelector)
 			result[key] = value
 		end
 	end
-	
 	return result
 end
 
@@ -606,7 +594,6 @@ function _any(self, predicate)
 			return true
 		end
 	end
-	
 	return false
 end
 
@@ -622,7 +609,6 @@ function _all(self, predicate)
 			return false
 		end
 	end
-	
 	return true
 end
 
@@ -640,7 +626,6 @@ function _count(self, predicate)
 			result = result + 1
 		end
 	end
-	
 	return result
 end
 
@@ -657,6 +642,11 @@ function _random(self, default)
 end
 
 -- Returns true if the collection contains the specified item
+---@generic T
+---@param self Linq
+---@param item T
+---@param comparator? fun(a: T, b: T):boolean
+---@return boolean
 function _contains(self, item, comparator)
 	for idx, value in ipairs(self.m_Data) do
 		if (comparator == nil) then
@@ -687,12 +677,10 @@ function _foreach(self, action, ...)
 	else
 		loge("foreach called with unknown action type");
 	end
-
-	
 	return self
 end
 
--- Calls the accumulator for each item in the collection. Accumulator takes 2 parameters: value and the previous result of 
+-- Calls the accumulator for each item in the collection. Accumulator takes 2 parameters: value and the previous result of
 -- the accumulator itself (firstvalue for the first call) and returns a new result.
 ---@generic T
 ---@param self Linq
@@ -705,12 +693,11 @@ function _map(self, accumulator, firstvalue)
 	for idx, value in ipairs(self.m_Data) do
 		result = accumulator(value, result)
 	end
-	
 	return result
 end
 
--- Calls the accumulator for each item in the collection. Accumulator takes 3 parameters: value, the previous result of 
--- the accumulator itself (nil on first call) and the previous associated-result of the accumulator(firstvalue for the first call) 
+-- Calls the accumulator for each item in the collection. Accumulator takes 3 parameters: value, the previous result of
+-- the accumulator itself (nil on first call) and the previous associated-result of the accumulator(firstvalue for the first call)
 -- and returns a new result and a new associated-result.
 ---@generic T1
 ---@generic T2
@@ -725,7 +712,6 @@ function _xmap(self, accumulator, firstvalue)
 	for idx, value in ipairs(self.m_Data) do
 		result, lastval = accumulator(value, result, lastval)
 	end
-	
 	return result
 end
 
@@ -734,7 +720,7 @@ end
 ---@param selector? fun(a):number
 ---@return number
 function _max(self, selector)
- 	if (selector == nil) then 
+ 	if (selector == nil) then
 		selector = function(n) return n; end
 	end
   	return self:xmap(function(v, r, l) local res = selector(v); if (l == nil or res > l) then return v, res; else return r, l; end; end, nil)
@@ -745,7 +731,7 @@ end
 ---@param selector? fun(a):number
 ---@return number
 function _min(self, selector)
-	if (selector == nil) then 
+	if (selector == nil) then
 		selector = function(n) return n; end
 	end
   	return self:xmap(function(v, r, l) local res = selector(v); if (l == nil or res < l) then return v, res; else return r, l; end; end, nil)
@@ -756,7 +742,7 @@ end
 ---@param selector? fun(a):number
 ---@return number
 function _sum(self, selector)
-	if (selector == nil) then 
+	if (selector == nil) then
 		selector = function(n) return n; end
 	end
 	return self:map(function(n, r) r = r + selector(n); return r; end, 0)
