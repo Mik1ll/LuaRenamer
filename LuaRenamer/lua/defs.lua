@@ -1,72 +1,72 @@
 --#region class definitions
 
 ---@class File
----@field public name string
----@field public path string
----@field public size number
----@field public hashes Hashes
----@field public anidb? AniDb
----@field public media Media
+---@field name string
+---@field path string
+---@field size number
+---@field hashes Hashes
+---@field anidb? AniDb
+---@field media Media
 local File = {}
 
 ---@class Hashes
----@field public crc string
----@field public md5 string
----@field public ed2k string
----@field public sha1 string
+---@field crc string
+---@field md5 string
+---@field ed2k string
+---@field sha1 string
 local Hashes = {}
 
 ---@class AniDb
----@field public censored boolean
----@field public source string
----@field public version number
----@field public releasedate DateTime
----@field public releasegroup ReleaseGroup
----@field public id number
----@field public media AniDbMedia
+---@field censored boolean
+---@field source string
+---@field version number
+---@field releasedate DateTime
+---@field releasegroup? ReleaseGroup
+---@field id number
+---@field media AniDbMedia
 local AniDb = {}
 
 ---@class ReleaseGroup
----@field public name string
----@field public shortname string
+---@field name string
+---@field shortname string
 local ReleaseGroup = {}
 
 ---@class AniDbMedia
----@field public videocodec string
----@field public sublanguages integer[]
----@field public dublanguages integer[]
+---@field videocodec string
+---@field sublanguages integer[]
+---@field dublanguages integer[]
 local AniDbMedia = {}
 
 ---@class Media
----@field public chaptered boolean
----@field public video Video
----@field public duration number
----@field public bitrate number
----@field public sublanguages integer[]
----@field public audio Audio[]
+---@field chaptered boolean
+---@field video Video
+---@field duration number
+---@field bitrate number
+---@field sublanguages integer[]
+---@field audio Audio[]
 local Media = {}
 
 ---@class Video
----@field public height number
----@field public width number
----@field public codec string
----@field public res string
----@field public bitrate number
----@field public bitdepth number
----@field public framerate number
+---@field height number
+---@field width number
+---@field codec string
+---@field res string
+---@field bitrate number
+---@field bitdepth number
+---@field framerate number
 local Video = {}
 
 ---@class Audio
----@field public compressionmode string
----@field public bitrate number
----@field public channels number
----@field public bitdepth number
----@field public samplingrate number
----@field public bitratemode string
----@field public simplecodec string
----@field public codec string
----@field public language integer
----@field public title string
+---@field compressionmode string
+---@field bitrate number
+---@field channels number
+---@field bitdepth number
+---@field samplingrate number
+---@field bitratemode string
+---@field simplecodec string
+---@field codec string
+---@field language integer
+---@field title string
 local Audio = {}
 
 ---@class Anime
@@ -78,7 +78,6 @@ local Audio = {}
 ---@field preferredname string
 ---@field id integer
 ---@field titles Title[]
----@field getname getname
 ---@field episodecounts table<EpisodeType, integer>
 local Anime = {}
 
@@ -110,7 +109,6 @@ local DateTime = {}
 ---@field animeid integer
 ---@field id integer
 ---@field titles Title[]
----@field getname getname
 local Episode = {}
 
 ---@class ImportFolder
@@ -125,8 +123,12 @@ local ImportFolder = {}
 ---@field seriesids integer[]
 local Group = {}
 
----Returns the anime/episode name priority Main > Official (> Synonym > Short)? if include_unofficial
----@alias getname fun(self, lang:Language, include_unofficial?:boolean):string?
+---@param self Anime|Episode
+---@param lang Language
+---@param include_unofficial? boolean
+---@return string? name
+function Episode.getname(self, lang, include_unofficial) end
+Anime.getname = Episode.getname
 
 --#endregion class definitions
 
@@ -227,8 +229,7 @@ EpisodeType = {
 ---Returns formatted episode numbers with padding
 ---@param pad integer
 ---@return string
-function episode_numbers(pad)
-end
+function episode_numbers(pad) end
 
 filename = ""
 ---@type File

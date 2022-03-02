@@ -4,9 +4,8 @@ local nametable = {
   end
 }
 
-local group = file.anidb and (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name)
-if group and group ~= "raw" then
-  nametable:add("[" .. group .. "]")
+if file.anidb and file.anidb.releasegroup then
+  nametable:add("[" .. file.anidb.releasegroup.shortname or file.anidb.releasegroup.name .. "]")
 end
 local animename = anime:getname(Language.English) or anime:getname(Language.Romaji) or anime.preferredname
 nametable:add(animename)

@@ -281,6 +281,7 @@ namespace LuaRenamer
                     { LuaEnv.file.anidb.releasedate, Args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
                     {
                         LuaEnv.file.anidb.releasegroup.N, Args.FileInfo.AniDBFileInfo.ReleaseGroup is null
+                                                          || Args.FileInfo.AniDBFileInfo.ReleaseGroup.Name == "raw/unknown"
                             ? null
                             : new Dictionary<string, object>
                             {
