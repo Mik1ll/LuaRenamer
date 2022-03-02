@@ -38,7 +38,7 @@ Subfolder defaults to your preferred language anime title.
 The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [NLuaSingleton](./LuaRenamer/NLuaSingleton.cs)
 .  
 Additionally, a modified version of [lualinq from xanathar](https://github.com/xanathar/lualinq), licensed under the BSD 3 clause, has
-been [included](./LuaRenamer/lua/lualinq.lua) for convenience.
+been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documentation](./LuaRenamer/lua/LuaLinq.pdf)
 
 See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from shoko.
 
