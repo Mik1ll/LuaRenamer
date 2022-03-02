@@ -226,12 +226,19 @@ EpisodeType = {
 
 --#endregion enumerations
 
+
+
+
 ---Returns formatted episode numbers with padding
 ---@param pad integer
 ---@return string
 function episode_numbers(pad) end
 
 filename = ""
+---@type string|table|nil
+destination = nil
+---@type table|nil
+subfolder = nil
 ---@type File
 file = {}
 ---@type Anime
@@ -246,3 +253,5 @@ episodes = {}
 importfolders = {}
 ---@type Group[]
 groups = {}
+use_existing_anime_location = false
+remove_reserved_chars = false
