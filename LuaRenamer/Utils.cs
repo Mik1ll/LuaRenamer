@@ -19,9 +19,9 @@ namespace LuaRenamer
             { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "／" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
         };
 
-        public static string ReplacePathSegmentChars(this string segment)
+        public static string ReplacePathSegmentChars(this string segment, bool withAlternate)
         {
-            return Regex.Replace(segment, string.Join('|', ReplaceMap.Keys.Select(Regex.Escape)), match => ReplaceMap[match.Value]);
+            return Regex.Replace(segment, @"[<>:""/\\|?*]", match => withAlternate ? ReplaceMap[match.Value] : "_");
         }
 
         public static string CleanPathSegment(this string segment, bool isFilename)

@@ -84,11 +84,12 @@ namespace LuaRenamer
                 throw new ArgumentException(errStr);
             var env = Lua.Inst.GetTableDict(luaEnv);
             var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
+            var removeIllegalChars = (bool)env[LuaEnv.remove_illegal_chars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
             if (env.TryGetValue(LuaEnv.filename, out var luaFilename) && luaFilename is not (string or null))
                 throw new LuaScriptException("filename must be a string or nil", string.Empty);
             var filename = luaFilename is string f
-                ? (replaceIllegalChars ? f.ReplacePathSegmentChars() : f).CleanPathSegment(true) + Path.GetExtension(Args.FileInfo.Filename)
+                ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(Args.FileInfo.Filename)
                 : Args.FileInfo.Filename;
             if (env.TryGetValue(LuaEnv.destination, out var luaDestination) && luaDestination is not (string or LuaTable or null))
                 throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
@@ -100,7 +101,7 @@ namespace LuaRenamer
             if (useExistingAnimeLocation)
                 existingAnimeLocation = GetExistingAnimeLocation();
             if (existingAnimeLocation is null)
-                (destination, subfolder) = (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars));
+                (destination, subfolder) = (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
             else
                 (destination, subfolder) = existingAnimeLocation.Value;
             if (filename is null || destination is null || subfolder is null) return null;
@@ -108,7 +109,7 @@ namespace LuaRenamer
             return (filename, destination, subfolder);
         }
 
-        private string GetNewSubfolder(object subfolder, bool replaceIllegalChars)
+        private string GetNewSubfolder(object subfolder, bool replaceIllegalChars, bool removeIllegalChars)
         {
             List<string> newSubFolderSplit;
             switch (subfolder)
@@ -133,7 +134,8 @@ namespace LuaRenamer
                 default:
                     throw new ArgumentException("subfolder was not an expected type");
             }
-            newSubFolderSplit = newSubFolderSplit.Select(f => (replaceIllegalChars ? f.ReplacePathSegmentChars() : f).CleanPathSegment(false)).ToList();
+            newSubFolderSplit = newSubFolderSplit
+                .Select(f => (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(false)).ToList();
             var newSubfolder = Path.Combine(newSubFolderSplit.ToArray()).NormPath();
             return newSubfolder;
         }
@@ -378,6 +380,7 @@ namespace LuaRenamer
                 { LuaEnv.destination, null },
                 { LuaEnv.subfolder, null },
                 { LuaEnv.replace_illegal_chars, false },
+                { LuaEnv.remove_illegal_chars, false },
                 { LuaEnv.use_existing_anime_location, false },
                 { LuaEnv.animes, animes },
                 { LuaEnv.anime.N, animes.First() },

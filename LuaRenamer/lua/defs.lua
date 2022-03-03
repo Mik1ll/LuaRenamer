@@ -235,7 +235,8 @@ Language = {
 ---@return string
 function episode_numbers(pad) end
 
-filename = ""
+---@type string|nil
+filename = nil
 ---@type string|table|nil
 destination = nil
 ---@type table|nil
@@ -256,3 +257,4 @@ importfolders = {}
 groups = {}
 use_existing_anime_location = false
 replace_illegal_chars = false
+remove_illegal_chars = false
