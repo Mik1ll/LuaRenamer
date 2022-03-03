@@ -120,7 +120,7 @@ local ImportFolder = {}
 
 ---@class Group
 ---@field name string
----@field mainSeriesid? integer
+---@field mainseriesid? integer
 ---@field seriesids integer[]
 local Group = {}
 
@@ -135,8 +135,8 @@ Anime.getname = Episode.getname
 
 --#region enumerations
 
----@class DropFolderType
-DropFolderType = {
+---@class ImportFolderType
+ImportFolderType = {
   Excluded = 0,
   Source = 1,
   Destination = 2,
@@ -151,6 +151,16 @@ AnimeType = {
   TVSpecial = 3,
   Web = 4,
   Other = 5
+}
+
+---@class EpisodeType
+EpisodeType = {
+  Episode = 1,
+  Credits = 2,
+  Special = 3,
+  Trailer = 4,
+  Parody = 5,
+  Other = 6,
 }
 
 ---@class TitleType
@@ -213,16 +223,6 @@ Language = {
   Basque = 46,
   Bengali = 47,
   Bosnian = 48
-}
-
----@class EpisodeType
-EpisodeType = {
-  Episode = 1,
-  Credits = 2,
-  Special = 3,
-  Trailer = 4,
-  Parody = 5,
-  Other = 6,
 }
 
 --#endregion enumerations

@@ -395,7 +395,7 @@ namespace LuaRenamer
             {
                 { LuaEnv.group.name, g.Name },
                 // Just give Ids, subject to change if there is ever a reason to use more.
-                { LuaEnv.group.mainSeriesid, g.MainSeries?.AnimeID },
+                { LuaEnv.group.mainseriesid, g.MainSeries?.AnimeID },
                 { LuaEnv.group.seriesids, g.Series.Select(s => s.AnimeID).ToList() }
             }).ToList();
             return new Dictionary<string, object>

@@ -1,6 +1,7 @@
 ﻿// ReSharper disable InconsistentNaming
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
+// ReSharper disable MemberHidesStaticFromOuterClass
 
 namespace LuaRenamer
 {
@@ -19,7 +20,7 @@ namespace LuaRenamer
         public const string TitleType = nameof(TitleType);
         public const string Language = nameof(Language);
         public const string EpisodeType = nameof(EpisodeType);
-        public const string DropFolderType = nameof(DropFolderType);
+        public const string ImportFolderType = nameof(ImportFolderType);
         public const string episode_numbers = nameof(episode_numbers);
 
         public static class anime
@@ -227,7 +228,7 @@ namespace LuaRenamer
         public static class group
         {
             public const string name = nameof(name);
-            public const string mainSeriesid = nameof(mainSeriesid);
+            public const string mainseriesid = nameof(mainseriesid);
             public const string seriesids = nameof(seriesids);
         }
     }

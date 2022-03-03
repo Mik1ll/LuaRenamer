@@ -109,7 +109,7 @@ end
             AddGlobalReadOnlyTable(ConvertEnum<TitleType>(), LuaEnv.TitleType);
             AddGlobalReadOnlyTable(ConvertEnum<TitleLanguage>(), LuaEnv.Language);
             AddGlobalReadOnlyTable(ConvertEnum<EpisodeType>(), LuaEnv.EpisodeType);
-            AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.DropFolderType);
+            AddGlobalReadOnlyTable(ConvertEnum<DropFolderType>(), LuaEnv.ImportFolderType);
             TitleFunc = (LuaFunction)Inst.DoString(_titleFunction)[0];
         }
 
