@@ -132,8 +132,6 @@ namespace LuaRenamer
         private IImportFolder GetNewDestination(object destination)
         {
             IImportFolder destfolder;
-            if (destination is string d && string.IsNullOrWhiteSpace(d))
-                destination = null;
             switch (destination)
             {
                 case null:
