@@ -7,6 +7,7 @@
 ---@field hashes Hashes
 ---@field anidb? AniDb
 ---@field media Media
+---@field importfolder ImportFolder
 local File = {}
 
 ---@class Hashes

@@ -350,6 +350,14 @@ namespace LuaRenamer
                         }).ToList()
                     }
                 };
+            var importfolders = Args.AvailableFolders.Select((f, i) => new Dictionary<string, object>
+            {
+                { LuaEnv.importfolder.name, f.Name },
+                { LuaEnv.importfolder.location, f.Location },
+                { LuaEnv.importfolder.type, f.DropFolderType },
+                { LuaEnv.importfolder._classid, "55138454-4A0D-45EB-8CCE-1CCF00220165" },
+                { LuaEnv.importfolder._index, i }
+            }).ToList();
             var file = new Dictionary<string, object>
             {
                 { LuaEnv.file.name, Args.FileInfo.Filename },
@@ -365,7 +373,11 @@ namespace LuaRenamer
                     }
                 },
                 { LuaEnv.file.anidb.N, anidb },
-                { LuaEnv.file.media.N, mediainfo }
+                { LuaEnv.file.media.N, mediainfo },
+                {
+                    LuaEnv.file.importfolder,
+                    importfolders.First(i => Args.FileInfo.FilePath.NormPath().StartsWith(((string)i[LuaEnv.importfolder.location]).NormPath()))
+                }
             };
             var episodes = Args.EpisodeInfo.Select(e => new Dictionary<string, object>
             {
@@ -378,12 +390,6 @@ namespace LuaRenamer
                 { LuaEnv.episode.titles, ConvertTitles(e.Titles) },
                 { LuaEnv.episode.getname, Lua.TitleFunc },
                 { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] }
-            }).ToList();
-            var importfolders = Args.AvailableFolders.Select(f => new Dictionary<string, object>
-            {
-                { LuaEnv.importfolder.name, f.Name },
-                { LuaEnv.importfolder.location, f.Location },
-                { LuaEnv.importfolder.type, f.DropFolderType }
             }).ToList();
             var groups = Args.GroupInfo.Select(g => new Dictionary<string, object>
             {

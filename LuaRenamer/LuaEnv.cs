@@ -77,6 +77,7 @@ namespace LuaRenamer
             public const string pathFn = N + "." + path;
             public const string size = nameof(size);
             public const string sizeFn = N + "." + size;
+            public const string importfolder = nameof(importfolder);
 
             public static class hashes
             {
