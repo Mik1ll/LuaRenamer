@@ -83,24 +83,24 @@ namespace LuaRenamer
             if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
                 throw new ArgumentException(errStr);
             var env = Lua.Inst.GetTableDict(luaEnv);
-            var removeReservedChars = (bool)env[LuaEnv.remove_reserved_chars];
+            var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
             if (env.TryGetValue(LuaEnv.filename, out var luaFilename) && luaFilename is not (string or null))
-                throw new LuaScriptException("filename must be a string", string.Empty);
-            var filename = !string.IsNullOrWhiteSpace((string)luaFilename)
-                ? Utils.RemoveInvalidFilenameChars(removeReservedChars ? (string)luaFilename : ((string)luaFilename).ReplaceInvalidPathCharacters()) +
-                  Path.GetExtension(Args.FileInfo.Filename)
+                throw new LuaScriptException("filename must be a string or nil", string.Empty);
+            var filename = luaFilename is string f
+                ? (replaceIllegalChars ? f.ReplacePathSegmentChars() : f).CleanPathSegment(true) + Path.GetExtension(Args.FileInfo.Filename)
                 : Args.FileInfo.Filename;
             if (env.TryGetValue(LuaEnv.destination, out var luaDestination) && luaDestination is not (string or LuaTable or null))
-                throw new LuaScriptException("destination must be an import folder name, an import folder, or an array of path segments", string.Empty);
+                throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
             IImportFolder destination;
             if (env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder) && luaSubfolder is not (LuaTable or null))
                 throw new LuaScriptException("subfolder must be an array of path segments", string.Empty);
             string subfolder;
             (IImportFolder, string)? existingAnimeLocation = null;
-            if (useExistingAnimeLocation) existingAnimeLocation = GetExistingAnimeLocation();
+            if (useExistingAnimeLocation)
+                existingAnimeLocation = GetExistingAnimeLocation();
             if (existingAnimeLocation is null)
-                (destination, subfolder) = (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, removeReservedChars));
+                (destination, subfolder) = (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars));
             else
                 (destination, subfolder) = existingAnimeLocation.Value;
             if (filename is null || destination is null || subfolder is null) return null;
@@ -108,13 +108,13 @@ namespace LuaRenamer
             return (filename, destination, subfolder);
         }
 
-        private string GetNewSubfolder(object subfolder, bool removeReservedChars)
+        private string GetNewSubfolder(object subfolder, bool replaceIllegalChars)
         {
             List<string> newSubFolderSplit;
             switch (subfolder)
             {
                 case null:
-                    newSubFolderSplit = new List<string> { Args.AnimeInfo.OrderBy(a => a.AnimeID).First().PreferredTitle };
+                    newSubFolderSplit = new List<string> { Args.AnimeInfo.First().PreferredTitle };
                     break;
                 case LuaTable subfolderTable:
                 {
@@ -133,15 +133,14 @@ namespace LuaRenamer
                 default:
                     throw new ArgumentException("subfolder was not an expected type");
             }
-            newSubFolderSplit = newSubFolderSplit.Select(f => Utils.RemoveInvalidFilenameChars(removeReservedChars ? f : f.ReplaceInvalidPathCharacters()))
-                .ToList();
-            var newSubfolder = Utils.NormPath(string.Join(Path.DirectorySeparatorChar, newSubFolderSplit));
+            newSubFolderSplit = newSubFolderSplit.Select(f => (replaceIllegalChars ? f.ReplacePathSegmentChars() : f).CleanPathSegment(false)).ToList();
+            var newSubfolder = Path.Combine(newSubFolderSplit.ToArray()).NormPath();
             return newSubfolder;
         }
 
         private IImportFolder GetNewDestination(object destination)
         {
-            IImportFolder destfolder = null;
+            IImportFolder destfolder;
             if (destination is string d && string.IsNullOrWhiteSpace(d))
                 destination = null;
             switch (destination)
@@ -149,61 +148,36 @@ namespace LuaRenamer
                 case null:
                     destfolder = Args.AvailableFolders
                         // Order by common prefix (stronger version of same drive)
-                        .OrderByDescending(f => string.Concat(Utils.NormPath(Args.FileInfo.FilePath)
-                            .TakeWhile((ch, i) => i < Utils.NormPath(f.Location).Length
-                                                  && char.ToUpperInvariant(Utils.NormPath(f.Location)[i]) == char.ToUpperInvariant(ch))).Length)
+                        .OrderByDescending(f => string.Concat(Args.FileInfo.FilePath.NormPath()
+                            .TakeWhile((ch, i) => i < f.Location.NormPath().Length
+                                                  && char.ToUpperInvariant(f.Location.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
                         .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
-                    break;
-                case string s:
-                    destfolder = Args.AvailableFolders.FirstOrDefault(f =>
-                        f.DropFolderType.HasFlag(DropFolderType.Destination)
-                        && string.Equals(f.Name, s, StringComparison.OrdinalIgnoreCase)
-                    );
                     if (destfolder is null)
-                        throw new ArgumentException(
-                            $"Could not find destination folder by name (NOTE: You must use an array of path segments if using a path): {s}");
+                        throw new ArgumentException("could not find an available destination import folder");
                     break;
-                case LuaTable destinationTable:
-                    foreach (KeyValuePair<object, object> kvp in destinationTable)
-                    {
-                        if ((string)kvp.Key == LuaEnv.importfolder.location)
-                        {
-                            destfolder = Args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                                                                   && string.Equals(Utils.NormPath(f.Location),
-                                                                                       Utils.NormPath((string)kvp.Value),
-                                                                                       StringComparison.OrdinalIgnoreCase));
-                            break;
-                        }
-                    }
-                    if (destfolder is not null)
-                        break;
-                    var destDict = new SortedDictionary<long, string>();
-                    foreach (KeyValuePair<object, object> kvp in destinationTable)
-                    {
-                        if (kvp.Key is not long key)
-                            continue;
-                        if (kvp.Value is not string val)
-                            throw new LuaScriptException("destination array must only contain strings", string.Empty);
-                        destDict[key] = val;
-                    }
-                    var newDestSplit = destDict.Values.ToList();
-                    var newDest = Utils.NormPath(string.Join(Path.DirectorySeparatorChar, newDestSplit));
-                    destfolder = Args.AvailableFolders.FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination)
-                                                                           && string.Equals(Utils.NormPath(f.Location), Utils.NormPath(newDest),
-                                                                               StringComparison.OrdinalIgnoreCase));
+                case string name:
+                    destfolder = Args.AvailableFolders.FirstOrDefault(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
                     if (destfolder is null)
-                        throw new ArgumentException($"Could not find destination folder by path: {newDest}");
+                        throw new ArgumentException($"could not find destination folder by name: {name}");
+                    break;
+                case LuaTable destTable:
+                    if ((string)destTable[LuaEnv.importfolder._classid] == "55138454-4A0D-45EB-8CCE-1CCF00220165")
+                        destfolder = Args.AvailableFolders[Convert.ToInt32(destTable[LuaEnv.importfolder._index])];
+                    else
+                        throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                     break;
                 default:
                     throw new ArgumentException("destination was not an expected type");
             }
+            if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
+                throw new ArgumentException("destination import folder is not a destination folder, check import folder type");
             return destfolder;
         }
 
         private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
         {
             IImportFolder oldFld = null;
-            var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(Args.AnimeInfo[0].AnimeID))
+            var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(Args.AnimeInfo.First().AnimeID))
                 .Where(vl => !string.Equals(vl.CRC32, Args.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(vl => vl.DateTimeUpdated)
                 .Select(vl => vl.GetBestVideoLocalPlace())
@@ -400,17 +374,17 @@ namespace LuaRenamer
             }).ToList();
             return new Dictionary<string, object>
             {
-                { LuaEnv.filename, "" },
-                //{ LuaEnv.destination, "" },
-                //{ LuaEnv.subfolder, new Dictionary<string, object>() },
-                { LuaEnv.remove_reserved_chars, false },
+                { LuaEnv.filename, null },
+                { LuaEnv.destination, null },
+                { LuaEnv.subfolder, null },
+                { LuaEnv.replace_illegal_chars, false },
                 { LuaEnv.use_existing_anime_location, false },
                 { LuaEnv.animes, animes },
-                { LuaEnv.anime.N, animes[0] },
+                { LuaEnv.anime.N, animes.First() },
                 { LuaEnv.file.N, file },
                 { LuaEnv.episodes, episodes },
                 {
-                    LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid] == (int)animes[0][LuaEnv.anime.id])
+                    LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid] == (int)animes.First()[LuaEnv.anime.id])
                         .OrderBy(e => (EpisodeType)e[LuaEnv.episode.type] == EpisodeType.Other ? int.MinValue : (int)e[LuaEnv.episode.type])
                         .ThenBy(e => (int)e[LuaEnv.episode.number])
                         .First()
@@ -425,7 +399,7 @@ namespace LuaRenamer
         }
 
         // ReSharper disable once UnusedMember.Local
-        private string GetEpisodesString(int pad) => Args.EpisodeInfo.Where(e => e.AnimeID == Args.AnimeInfo[0]?.AnimeID)
+        private string GetEpisodesString(int pad) => Args.EpisodeInfo.Where(e => e.AnimeID == Args.AnimeInfo.First().AnimeID)
             .OrderBy(e => e.Number)
             .GroupBy(e => e.Type)
             .OrderBy(g => g.Key)

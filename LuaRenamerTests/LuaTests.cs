@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using LuaRenamer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -203,7 +202,7 @@ namespace LuaRenamerTests
                 Args = args
             };
             var res = renamer.GetInfo();
-            Debug.Assert(res != null, nameof(res) + " != null");
+            Assert.IsNotNull(res);
             Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
         }
 
@@ -213,7 +212,7 @@ namespace LuaRenamerTests
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} & {LuaEnv.DropFolderType}.{nameof(DropFolderType.Destination)}) then
+                Script = $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} & {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Destination)}) then
   {LuaEnv.destination} = {LuaEnv.importfolders}[2]
 end",
                 Type = nameof(LuaRenamer.LuaRenamer),

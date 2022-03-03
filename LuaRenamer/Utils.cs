@@ -2,23 +2,37 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Shoko.Plugin.Abstractions;
+using System.Text.RegularExpressions;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer
 {
     public static class Utils
     {
-        public static string NormPath(string path)
+        public static string NormPath(this string path)
         {
             return path?.Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
         }
 
-        public static string RemoveInvalidFilenameChars(string filename)
+        private static readonly Dictionary<string, string> ReplaceMap = new()
         {
-            filename = filename.RemoveInvalidPathCharacters();
-            filename = string.Concat(filename.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
-            return filename;
+            { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "／" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
+        };
+
+        public static string ReplacePathSegmentChars(this string segment)
+        {
+            return Regex.Replace(segment, string.Join('|', ReplaceMap.Keys.Select(Regex.Escape)), match => ReplaceMap[match.Value]);
+        }
+
+        public static string CleanPathSegment(this string segment, bool isFilename)
+        {
+            segment = Regex.Replace(segment, @"[<>:""/\\|?*\x00-\x1F]+", string.Empty).Trim();
+            if (!isFilename)
+                segment = segment.TrimEnd(' ', '.');
+            var isEmpty = string.IsNullOrWhiteSpace(segment);
+            if (isEmpty || Regex.Match(segment, @"^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])$").Success)
+                throw new ArgumentException($"Illegal path segment: {(isEmpty ? "<empty/whitespace>" : segment)}");
+            return segment;
         }
 
         public static T ParseEnum<T>(string text, bool throwException = true)

@@ -255,4 +255,4 @@ importfolders = {}
 ---@type Group[]
 groups = {}
 use_existing_anime_location = false
-remove_reserved_chars = false
+replace_illegal_chars = false

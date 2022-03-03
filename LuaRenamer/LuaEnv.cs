@@ -11,7 +11,7 @@ namespace LuaRenamer
         public const string destination = nameof(destination);
         public const string subfolder = nameof(subfolder);
         public const string use_existing_anime_location = nameof(use_existing_anime_location);
-        public const string remove_reserved_chars = nameof(remove_reserved_chars);
+        public const string replace_illegal_chars = nameof(replace_illegal_chars);
         public const string animes = nameof(animes);
         public const string episodes = nameof(episodes);
         public const string importfolders = nameof(importfolders);
@@ -223,6 +223,8 @@ namespace LuaRenamer
             public const string name = nameof(name);
             public const string location = nameof(location);
             public const string type = nameof(type);
+            public const string _classid = nameof(_classid);
+            public const string _index = nameof(_index);
         }
 
         public static class group
