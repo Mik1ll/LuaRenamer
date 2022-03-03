@@ -76,9 +76,8 @@ namespace LuaRenamer
 
         public (string filename, IImportFolder destination, string subfolder)? GetInfo()
         {
-            var res = CheckCache();
-            if (res is not null)
-                return res;
+            if (CheckCache() is { } cacheHit)
+                return cacheHit;
             var (retVal, luaEnv) = RunSandboxed(Args.Script.Script);
             if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
                 throw new ArgumentException(errStr);
@@ -86,24 +85,14 @@ namespace LuaRenamer
             var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
             var removeIllegalChars = (bool)env[LuaEnv.remove_illegal_chars];
             var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
-            if (env.TryGetValue(LuaEnv.filename, out var luaFilename) && luaFilename is not (string or null))
-                throw new LuaScriptException("filename must be a string or nil", string.Empty);
+            env.TryGetValue(LuaEnv.filename, out var luaFilename);
+            env.TryGetValue(LuaEnv.destination, out var luaDestination);
+            env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
             var filename = luaFilename is string f
                 ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(Args.FileInfo.Filename)
                 : Args.FileInfo.Filename;
-            if (env.TryGetValue(LuaEnv.destination, out var luaDestination) && luaDestination is not (string or LuaTable or null))
-                throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
-            IImportFolder destination;
-            if (env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder) && luaSubfolder is not (LuaTable or null))
-                throw new LuaScriptException("subfolder must be an array of path segments", string.Empty);
-            string subfolder;
-            (IImportFolder, string)? existingAnimeLocation = null;
-            if (useExistingAnimeLocation)
-                existingAnimeLocation = GetExistingAnimeLocation();
-            if (existingAnimeLocation is null)
-                (destination, subfolder) = (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
-            else
-                (destination, subfolder) = existingAnimeLocation.Value;
+            var (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
+                                           (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
             if (filename is null || destination is null || subfolder is null) return null;
             ResultCache.Add(Args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
             return (filename, destination, subfolder);
@@ -132,7 +121,7 @@ namespace LuaRenamer
                     break;
                 }
                 default:
-                    throw new ArgumentException("subfolder was not an expected type");
+                    throw new LuaScriptException("subfolder must be an array of path segments or nil", string.Empty);
             }
             newSubFolderSplit = newSubFolderSplit
                 .Select(f => (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(false)).ToList();
@@ -169,7 +158,7 @@ namespace LuaRenamer
                         throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                     break;
                 default:
-                    throw new ArgumentException("destination was not an expected type");
+                    throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
             }
             if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
                 throw new ArgumentException("destination import folder is not a destination folder, check import folder type");
