@@ -382,6 +382,7 @@ namespace LuaRenamer
                 },
                 { LuaEnv.importfolders, importfolders },
                 { LuaEnv.groups, groups },
+                { LuaEnv.group.N, groups.FirstOrDefault() },
                 {
                     LuaEnv.episode_numbers, Lua.Inst.RegisterFunction(LuaEnv.episode_numbers, this,
                         GetType().GetMethod(nameof(GetEpisodesString), BindingFlags.NonPublic | BindingFlags.Instance))

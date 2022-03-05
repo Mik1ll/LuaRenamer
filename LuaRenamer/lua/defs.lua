@@ -251,6 +251,8 @@ episodes = {}
 importfolders = {}
 ---@type Group[]
 groups = {}
+---@type Group|nil
+group = nil
 use_existing_anime_location = false
 replace_illegal_chars = false
 remove_illegal_chars = false

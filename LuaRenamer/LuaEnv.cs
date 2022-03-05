@@ -222,6 +222,7 @@ namespace LuaRenamer
 
         public static class group
         {
+            public const string N = nameof(group);
             public const string name = nameof(name);
             public const string mainseriesid = nameof(mainseriesid);
             public const string seriesids = nameof(seriesids);
