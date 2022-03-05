@@ -297,7 +297,10 @@ namespace LuaRenamer
                         LuaEnv.file.media.audio.N, Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
                         {
                             { LuaEnv.file.media.audio.compressionmode, a.Compression_Mode },
-                            { LuaEnv.file.media.audio.channels, a.Channels },
+                            {
+                                LuaEnv.file.media.audio.channels,
+                                ((string)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels
+                            },
                             { LuaEnv.file.media.audio.samplingrate, a.SamplingRate },
                             { LuaEnv.file.media.audio.codec, ((dynamic)a).Format },
                             {
