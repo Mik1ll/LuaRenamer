@@ -203,7 +203,7 @@ namespace LuaRenamerTests
             };
             var res = renamer.GetInfo();
             Assert.IsNotNull(res);
-            Assert.AreEqual("episodeTitle1 5 1", res.Value.filename);
+            Assert.AreEqual("episodeTitle1 5 Episode", res.Value.filename);
         }
 
         [TestMethod]
@@ -212,7 +212,7 @@ namespace LuaRenamerTests
             var args = Args();
             args.Script = new RenameScriptImpl
             {
-                Script = $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} & {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Destination)}) then
+                Script = $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} == {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Destination)}) then
   {LuaEnv.destination} = {LuaEnv.importfolders}[2]
 end",
                 Type = nameof(LuaRenamer.LuaRenamer),

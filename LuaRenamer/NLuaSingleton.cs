@@ -89,8 +89,8 @@ end
         private readonly string _titleFunction = $@"
 return function (self, language, allow_unofficial)
   local titles = from(self.{LuaEnv.anime.titles}):where(function (a) return a.{LuaEnv.title.language} == language; end)
-                                  :orderby(function (a) if a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Short)} then return 10; end return a.{LuaEnv.title.type}; end)
-  local title = allow_unofficial and titles:first() or titles:where(function (a) return a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.None)} or a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Main)} or a.{LuaEnv.title.type} == {LuaEnv.TitleType}.{nameof(TitleType.Official)}; end):first()
+                                  :orderby(function (a) return ({{ {nameof(TitleType.Main)} = 0, {nameof(TitleType.Official)} = 1, {nameof(TitleType.Synonym)} = 2, {nameof(TitleType.Short)} = 3, {nameof(TitleType.None)} = 4 }})[a.{LuaEnv.title.type}] end)
+  local title = allow_unofficial and titles:first() or titles:where(function (a) return ({{ {nameof(TitleType.Main)} = true, {nameof(TitleType.Official)} = true, {nameof(TitleType.None)} = true }})[a.{LuaEnv.title.type}] end):first()
   if title then return title.{LuaEnv.title.name} end
 end
 ";
@@ -120,8 +120,8 @@ end
             BaseEnvStrings.Add($"{name} = {name},");
         }
 
-        private static Dictionary<string, T> ConvertEnum<T>() =>
-            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => a);
+        private static Dictionary<string, string> ConvertEnum<T>() =>
+            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => a.ToString());
 
         ~NLuaSingleton()
         {

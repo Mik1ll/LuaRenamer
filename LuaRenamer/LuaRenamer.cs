@@ -205,9 +205,9 @@ namespace LuaRenamer
                 return titles.Select(t => new Dictionary<string, object>
                 {
                     { LuaEnv.title.name, t.Title },
-                    { LuaEnv.title.language, t.Language },
+                    { LuaEnv.title.language, t.Language.ToString() },
                     { LuaEnv.title.languagecode, t.LanguageCode },
-                    { LuaEnv.title.type, t.Type }
+                    { LuaEnv.title.type, t.Type.ToString() }
                 }).ToList();
             }
 
@@ -217,20 +217,20 @@ namespace LuaRenamer
                 { LuaEnv.anime.enddate, a.EndDate?.ToTable() },
                 { LuaEnv.anime.rating, a.Rating },
                 { LuaEnv.anime.restricted, a.Restricted },
-                { LuaEnv.anime.type, a.Type },
+                { LuaEnv.anime.type, a.Type.ToString() },
                 { LuaEnv.anime.preferredname, a.PreferredTitle },
                 { LuaEnv.anime.id, a.AnimeID },
                 { LuaEnv.anime.titles, ConvertTitles(a.Titles) },
                 { LuaEnv.anime.getname, Lua.TitleFunc },
                 {
-                    LuaEnv.anime.episodecounts, new Dictionary<EpisodeType, int>
+                    LuaEnv.anime.episodecounts, new Dictionary<string, int>
                     {
-                        { EpisodeType.Episode, a.EpisodeCounts.Episodes },
-                        { EpisodeType.Special, a.EpisodeCounts.Specials },
-                        { EpisodeType.Credits, a.EpisodeCounts.Credits },
-                        { EpisodeType.Trailer, a.EpisodeCounts.Trailers },
-                        { EpisodeType.Other, a.EpisodeCounts.Others },
-                        { EpisodeType.Parody, a.EpisodeCounts.Parodies }
+                        { EpisodeType.Episode.ToString(), a.EpisodeCounts.Episodes },
+                        { EpisodeType.Special.ToString(), a.EpisodeCounts.Specials },
+                        { EpisodeType.Credits.ToString(), a.EpisodeCounts.Credits },
+                        { EpisodeType.Trailer.ToString(), a.EpisodeCounts.Trailers },
+                        { EpisodeType.Other.ToString(), a.EpisodeCounts.Others },
+                        { EpisodeType.Parody.ToString(), a.EpisodeCounts.Parodies }
                     }
                 }
             }).ToList();
@@ -259,11 +259,11 @@ namespace LuaRenamer
                             { LuaEnv.file.anidb.media.videocodec, Args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
                             {
                                 LuaEnv.file.anidb.media.sublanguages,
-                                Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.ToList()
+                                Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList()
                             },
                             {
                                 LuaEnv.file.anidb.media.dublanguages,
-                                Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.ToList()
+                                Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList()
                             }
                         }
                     }
@@ -289,9 +289,9 @@ namespace LuaRenamer
                     { LuaEnv.file.media.bitrate, Args.FileInfo.MediaInfo.General.OverallBitRate },
                     {
                         LuaEnv.file.media.sublanguages, Args.FileInfo.MediaInfo.Subs.Select(s =>
-                            Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                            (Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                 ? Utils.ParseEnum<TitleLanguage>(s.Title, false)
-                                : l).ToList()
+                                : l).ToString()).ToList()
                     },
                     {
                         LuaEnv.file.media.audio.N, Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
@@ -304,9 +304,9 @@ namespace LuaRenamer
                             { LuaEnv.file.media.audio.samplingrate, a.SamplingRate },
                             { LuaEnv.file.media.audio.codec, ((dynamic)a).Format },
                             {
-                                LuaEnv.file.media.audio.language, Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
+                                LuaEnv.file.media.audio.language, (Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                     ? Utils.ParseEnum<TitleLanguage>(a.Title, false)
-                                    : l
+                                    : l).ToString()
                             },
                             { LuaEnv.file.media.audio.title, a.Title }
                         }).ToList()
@@ -316,7 +316,7 @@ namespace LuaRenamer
             {
                 { LuaEnv.importfolder.name, f.Name },
                 { LuaEnv.importfolder.location, f.Location },
-                { LuaEnv.importfolder.type, f.DropFolderType },
+                { LuaEnv.importfolder.type, f.DropFolderType.ToString() },
                 { LuaEnv.importfolder._classid, "55138454-4A0D-45EB-8CCE-1CCF00220165" },
                 { LuaEnv.importfolder._index, i }
             }).ToList();
@@ -345,7 +345,7 @@ namespace LuaRenamer
             {
                 { LuaEnv.episode.duration, e.Duration },
                 { LuaEnv.episode.number, e.Number },
-                { LuaEnv.episode.type, e.Type },
+                { LuaEnv.episode.type, e.Type.ToString() },
                 { LuaEnv.episode.airdate, e.AirDate?.ToTable() },
                 { LuaEnv.episode.animeid, e.AnimeID },
                 { LuaEnv.episode.id, e.EpisodeID },
@@ -374,7 +374,9 @@ namespace LuaRenamer
                 { LuaEnv.episodes, episodes },
                 {
                     LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid] == (int)animes.First()[LuaEnv.anime.id])
-                        .OrderBy(e => (EpisodeType)e[LuaEnv.episode.type] == EpisodeType.Other ? int.MinValue : (int)e[LuaEnv.episode.type])
+                        .OrderBy(e => (string)e[LuaEnv.episode.type] == EpisodeType.Other.ToString()
+                            ? int.MinValue
+                            : (int)Enum.Parse<EpisodeType>((string)e[LuaEnv.episode.type]))
                         .ThenBy(e => (int)e[LuaEnv.episode.number])
                         .First()
                 },

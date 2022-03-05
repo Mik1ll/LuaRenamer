@@ -3,7 +3,7 @@
 ---@class File
 ---@field name string
 ---@field path string
----@field size number
+---@field size integer
 ---@field hashes Hashes
 ---@field anidb? AniDb
 ---@field media Media
@@ -20,10 +20,10 @@ local Hashes = {}
 ---@class AniDb
 ---@field censored boolean
 ---@field source string
----@field version number
+---@field version integer
 ---@field releasedate DateTime
 ---@field releasegroup? ReleaseGroup
----@field id number
+---@field id integer
 ---@field media AniDbMedia
 local AniDb = {}
 
@@ -34,35 +34,35 @@ local ReleaseGroup = {}
 
 ---@class AniDbMedia
 ---@field videocodec string
----@field sublanguages integer[]
----@field dublanguages integer[]
+---@field sublanguages string[]
+---@field dublanguages string[]
 local AniDbMedia = {}
 
 ---@class Media
 ---@field chaptered boolean
 ---@field video Video
----@field duration number
----@field bitrate number
----@field sublanguages integer[]
+---@field duration integer
+---@field bitrate integer
+---@field sublanguages string[]
 ---@field audio Audio[]
 local Media = {}
 
 ---@class Video
----@field height number
----@field width number
+---@field height integer
+---@field width integer
 ---@field codec string
 ---@field res string
----@field bitrate number
----@field bitdepth number
+---@field bitrate integer
+---@field bitdepth integer
 ---@field framerate number
 local Video = {}
 
 ---@class Audio
 ---@field compressionmode string
 ---@field channels number
----@field samplingrate number
+---@field samplingrate integer
 ---@field codec string
----@field language integer
+---@field language string
 ---@field title? string
 local Audio = {}
 
@@ -71,7 +71,7 @@ local Audio = {}
 ---@field enddate DateTime
 ---@field rating number
 ---@field restricted boolean
----@field type integer
+---@field type string
 ---@field preferredname string
 ---@field id integer
 ---@field titles Title[]
@@ -80,9 +80,9 @@ local Anime = {}
 
 ---@class Title
 ---@field name string
----@field language integer
+---@field language string
 ---@field languagecode string
----@field type integer
+---@field type string
 local Title = {}
 
 ---@class DateTime
@@ -101,7 +101,7 @@ local DateTime = {}
 ---@field duration integer
 ---@field number integer
 ---@field prefix string
----@field type integer
+---@field type string
 ---@field airdate DateTime
 ---@field animeid integer
 ---@field id integer
@@ -111,7 +111,7 @@ local Episode = {}
 ---@class ImportFolder
 ---@field name string
 ---@field location string
----@field type integer
+---@field type string
 local ImportFolder = {}
 
 ---@class Group
@@ -133,92 +133,92 @@ Anime.getname = Episode.getname
 
 ---@class ImportFolderType
 ImportFolderType = {
-  Excluded = 0,
-  Source = 1,
-  Destination = 2,
-  Both = 3
+  Excluded = "Excluded",
+  Source = "Source",
+  Destination = "Destination",
+  Both = "Both"
 }
 
 ---@class AnimeType
 AnimeType = {
-  Movie = 0,
-  OVA = 1,
-  TVSeries = 2,
-  TVSpecial = 3,
-  Web = 4,
-  Other = 5
+  Movie = "Movie",
+  OVA = "OVA",
+  TVSeries = "TVSeries",
+  TVSpecial = "TVSpecial",
+  Web = "Web",
+  Other = "Other"
 }
 
 ---@class EpisodeType
 EpisodeType = {
-  Episode = 1,
-  Credits = 2,
-  Special = 3,
-  Trailer = 4,
-  Parody = 5,
-  Other = 6,
+  Episode = "Episode",
+  Credits = "Credits",
+  Special = "Special",
+  Trailer = "Trailer",
+  Parody = "Parody",
+  Other = "Other",
 }
 
 ---@class TitleType
 TitleType = {
-  None = 0,
-  Main = 1,
-  Official = 2,
-  Short = 3,
-  Synonym = 4,
+  None = "None",
+  Main = "Main",
+  Official = "Official",
+  Short = "Short",
+  Synonym = "Synonym",
 }
 
 ---@class Language
 Language = {
-  Unknown = 0,
-  English = 1,
-  Romaji = 2,
-  Japanese = 3,
-  Afrikaans = 4,
-  Arabic = 5,
-  Bangladeshi = 6,
-  Bulgarian = 7,
-  FrenchCanadian = 8,
-  Czech = 9,
-  Danish = 10,
-  German = 11,
-  Greek = 12,
-  Spanish = 13,
-  Estonian = 14,
-  Finnish = 15,
-  French = 16,
-  Galician = 17,
-  Hebrew = 18,
-  Hungarian = 19,
-  Italian = 20,
-  Korean = 21,
-  Lithuania = 22,
-  Mongolian = 23,
-  Malaysian = 24,
-  Dutch = 25,
-  Norwegian = 26,
-  Polish = 27,
-  Portuguese = 28,
-  BrazilianPortuguese = 29,
-  Romanian = 30,
-  Russian = 31,
-  Slovak = 32,
-  Slovenian = 33,
-  Serbian = 34,
-  Swedish = 35,
-  Thai = 36,
-  Turkish = 37,
-  Ukrainian = 38,
-  Vietnamese = 39,
-  Chinese = 40,
-  ChineseSimplified = 41,
-  ChineseTraditional = 42,
-  Pinyin = 43,
-  Latin = 44,
-  Albanian = 45,
-  Basque = 46,
-  Bengali = 47,
-  Bosnian = 48
+  Unknown = "Unknown",
+  English = "English",
+  Romaji = "Romaji",
+  Japanese = "Japanese",
+  Afrikaans = "Afrikaans",
+  Arabic = "Arabic",
+  Bangladeshi = "Bangladeshi",
+  Bulgarian = "Bulgarian",
+  FrenchCanadian = "FrenchCanadian",
+  Czech = "Czech",
+  Danish = "Danish",
+  German = "German",
+  Greek = "Greek",
+  Spanish = "Spanish",
+  Estonian = "Estonian",
+  Finnish = "Finnish",
+  French = "French",
+  Galician = "Galician",
+  Hebrew = "Hebrew",
+  Hungarian = "Hungarian",
+  Italian = "Italian",
+  Korean = "Korean",
+  Lithuania = "Lithuania",
+  Mongolian = "Mongolian",
+  Malaysian = "Malaysian",
+  Dutch = "Dutch",
+  Norwegian = "Norwegian",
+  Polish = "Polish",
+  Portuguese = "Portuguese",
+  BrazilianPortuguese = "BrazilianPortuguese",
+  Romanian = "Romanian",
+  Russian = "Russian",
+  Slovak = "Slovak",
+  Slovenian = "Slovenian",
+  Serbian = "Serbian",
+  Swedish = "Swedish",
+  Thai = "Thai",
+  Turkish = "Turkish",
+  Ukrainian = "Ukrainian",
+  Vietnamese = "Vietnamese",
+  Chinese = "Chinese",
+  ChineseSimplified = "ChineseSimplified",
+  ChineseTraditional = "ChineseTraditional",
+  Pinyin = "Pinyin",
+  Latin = "Latin",
+  Albanian = "Albanian",
+  Basque = "Basque",
+  Bengali = "Bengali",
+  Bosnian = "Bosnian"
 }
 
 --#endregion enumerations
