@@ -59,15 +59,11 @@ local Video = {}
 
 ---@class Audio
 ---@field compressionmode string
----@field bitrate number
 ---@field channels number
----@field bitdepth number
 ---@field samplingrate number
----@field bitratemode string
----@field simplecodec string
 ---@field codec string
 ---@field language integer
----@field title string
+---@field title? string
 local Audio = {}
 
 ---@class Anime

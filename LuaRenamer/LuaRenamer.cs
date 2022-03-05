@@ -297,13 +297,9 @@ namespace LuaRenamer
                         LuaEnv.file.media.audio.N, Args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
                         {
                             { LuaEnv.file.media.audio.compressionmode, a.Compression_Mode },
-                            { LuaEnv.file.media.audio.bitrate, a.BitRate },
                             { LuaEnv.file.media.audio.channels, a.Channels },
-                            { LuaEnv.file.media.audio.bitdepth, a.BitDepth },
                             { LuaEnv.file.media.audio.samplingrate, a.SamplingRate },
-                            { LuaEnv.file.media.audio.bitratemode, a.BitRate_Mode },
-                            { LuaEnv.file.media.audio.simplecodec, a.SimplifiedCodec },
-                            { LuaEnv.file.media.audio.codec, a.Codec },
+                            { LuaEnv.file.media.audio.codec, ((dynamic)a).Format },
                             {
                                 LuaEnv.file.media.audio.language, Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
                                     ? Utils.ParseEnum<TitleLanguage>(a.Title, false)
