@@ -6,7 +6,7 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 
 1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
 2. Unzip the files into a folder under the install location/Shoko Server/plugins or in the application data folder C:\ProgramData\ShokoServer\plugins (Windows),
-   /home/.shoko/Shoko.CLI/plugins (Linux CLI)
+   ~~/home/.shoko/Shoko.CLI/plugins (Linux CLI)~~ Linux is not supported yet
 3. (Optional) You may COPY (not move) the lua sub-directory to a convenient location for script editing
 4. It is strongly recommened to install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The
    extension uses [EmmyLua for annotations](https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations)
