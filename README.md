@@ -1,22 +1,18 @@
 # LuaRenamer
-
 Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 
 ## Installation
-
 1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
-2. Unzip the files into a folder under the install location/Shoko Server/plugins or in the application data folder C:\ProgramData\ShokoServer\plugins (Windows),
-   ~~/home/.shoko/Shoko.CLI/plugins (Linux CLI)~~ Linux is not supported yet
+2. Unzip the files into C:\ProgramData\ShokoServer\plugins (Windows) or /home/.shoko/Shoko.CLI/plugins (Linux/Docker)
 3. (Optional) You may COPY (not move) the lua sub-directory to a convenient location for script editing
 4. It is strongly recommened to install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The
    extension uses [EmmyLua for annotations](https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations)
 5. Follow instructions in the next section to add your script
 
 ## Usage
-
 1. Open the lua folder under the directory you extracted, in VS Code
 2. Look at the sample script and the bottom of defs.lua to get an idea of available variables
-3. Create a new file or modify the sample script to fit your needs
+3. Create a new file or modify the sample script to fit your needs. NOTE: 'sample script.lua' is not read by the renamer, you must save it as a script within shoko, see next steps
 4. Open Shoko Desktop
 5. Navigate to Utilities/File Renaming
 6. Use the Default script or create a new one and set the type of the script to LuaRenamer in the drop-down menu
@@ -26,24 +22,21 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 10. You may manually rename and move the files (if checked) of your collection in the utility
 
 ### Important Notes for File Moving
-
-If 'use_existing_anime_location' is set to true, the last added file's location from the same anime will be used if it exists. The only destination folders
-settable by the renamer are import folders with Drop Type of Destination or Both.  
-The final destination MUST match the name or absolute path of a drop folder in order to move the file.  
 Destination defaults to the first destination folder it can find.  
-Subfolder defaults to your preferred language anime title.
+If destination is set, it must be set to the name(in shoko) of an import folder, or an import folder table, which are found in the importfolders array or file.importfolder for the current file's folder  
+The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
+Subfolder defaults to your preferred language anime title.  
+If subfolder is set, it must be set to an array-table of path segments () e.g. subfolder = {"parent dir name", "subdir name", "..."}  
+If 'use_existing_anime_location' is set to true, the last added file's location from the same anime will be used if it exists.  
 
 ## Script Environment
-
-The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [NLuaSingleton](./LuaRenamer/NLuaSingleton.cs)
-.  
+The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [NLuaSingleton](./LuaRenamer/NLuaSingleton.cs).  
 Additionally, a modified version of [lualinq from xanathar](https://github.com/xanathar/lualinq), licensed under the BSD 3 clause, has
 been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documentation](./LuaRenamer/lua/LuaLinq.pdf)
 
 See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from shoko.
 
 ## Sample Script
-
 ```lua
 function rm_empty_str(table) return from(table):where(function (a) return a ~= "" end):toArray() end
 
@@ -85,5 +78,4 @@ filename = string.sub(table.concat(nametable, " "), 0, 120)
 ```
 
 ### Snippets
-
 WIP
