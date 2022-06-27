@@ -46,7 +46,16 @@ namespace LuaRenamer
 
         public string GetFilename(RenameEventArgs args)
         {
-            Args = RenameArgsToMoveArgs(args);
+            Args = new MoveEventArgs
+            {
+                Cancel = args.Cancel,
+                AvailableFolders = new List<IImportFolder>(),
+                FileInfo = args.FileInfo,
+                AnimeInfo = args.AnimeInfo,
+                GroupInfo = args.GroupInfo,
+                EpisodeInfo = args.EpisodeInfo,
+                Script = args.Script
+            };
             CheckBadArgs();
             var result = GetInfo();
             return result?.filename;
@@ -60,24 +69,11 @@ namespace LuaRenamer
             return (result?.destination, result?.subfolder);
         }
 
-        private static MoveEventArgs RenameArgsToMoveArgs(RenameEventArgs args) => new()
-        {
-            Cancel = args.Cancel,
-            AvailableFolders = ImportFolderRepo is not null
-                ? ((IEnumerable)ImportFolderRepo.GetAll()).Cast<IImportFolder>()
-                .Where(a => a.DropFolderType != DropFolderType.Excluded).ToList()
-                : new List<IImportFolder>(),
-            FileInfo = args.FileInfo,
-            AnimeInfo = args.AnimeInfo,
-            GroupInfo = args.GroupInfo,
-            EpisodeInfo = args.EpisodeInfo,
-            Script = args.Script
-        };
-
         public (string filename, IImportFolder destination, string subfolder)? GetInfo()
         {
             if (CheckCache() is { } cacheHit)
                 return cacheHit;
+            Args.AvailableFolders = ((IEnumerable)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? Args.AvailableFolders;
             var (retVal, luaEnv) = RunSandboxed(Args.Script.Script);
             if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
                 throw new ArgumentException(errStr);
@@ -159,7 +155,7 @@ namespace LuaRenamer
                     throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
             }
             if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
-                throw new ArgumentException("destination import folder is not a destination folder, check import folder type");
+                throw new ArgumentException($"selected import folder \"{destfolder.Location}\" is not a destination folder, check import folder type");
             return destfolder;
         }
 
