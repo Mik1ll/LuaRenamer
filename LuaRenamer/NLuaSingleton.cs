@@ -121,7 +121,7 @@ end
         }
 
         private static Dictionary<string, string> ConvertEnum<T>() =>
-            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a.ToString(), a => a.ToString());
+            Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
         ~NLuaSingleton()
         {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
@@ -16,16 +17,26 @@ namespace LuaRenamer
     // ReSharper disable once ClassNeverInstantiated.Global
     public class LuaRenamer : IRenamer
     {
+        private readonly ILogger<LuaRenamer>? _logger;
         private const string RenamerId = nameof(LuaRenamer);
-        private static readonly Type Repofact = Utils.GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
-        private static readonly dynamic VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
-        private static readonly dynamic ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
+        private static readonly Type? Repofact = Utils.GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
+        private static readonly dynamic? VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
+        private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
         private static readonly NLuaSingleton Lua = new();
 
-        private static string _scriptCache;
+        private static string _scriptCache = string.Empty;
         private static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
-        public MoveEventArgs Args;
+        public MoveEventArgs Args = null!;
+
+        public LuaRenamer(ILogger<LuaRenamer> logger)
+        {
+            _logger = logger;
+        }
+
+        public LuaRenamer()
+        {
+        }
 
         private (string filename, IImportFolder destination, string subfolder)? CheckCache()
         {
@@ -44,7 +55,7 @@ namespace LuaRenamer
             return null;
         }
 
-        public string GetFilename(RenameEventArgs args)
+        public string? GetFilename(RenameEventArgs args)
         {
             Args = new MoveEventArgs
             {
@@ -61,7 +72,7 @@ namespace LuaRenamer
             return result?.filename;
         }
 
-        public (IImportFolder destination, string subfolder) GetDestination(MoveEventArgs args)
+        public (IImportFolder? destination, string? subfolder) GetDestination(MoveEventArgs args)
         {
             Args = args;
             CheckBadArgs();
@@ -73,7 +84,7 @@ namespace LuaRenamer
         {
             if (CheckCache() is { } cacheHit)
                 return cacheHit;
-            Args.AvailableFolders = ((IEnumerable)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? Args.AvailableFolders;
+            Args.AvailableFolders = ((IEnumerable?)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? Args.AvailableFolders;
             var (retVal, luaEnv) = RunSandboxed(Args.Script.Script);
             if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
                 throw new ArgumentException(errStr);
@@ -89,12 +100,12 @@ namespace LuaRenamer
                 : Args.FileInfo.Filename;
             var (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                            (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
-            if (filename is null || destination is null || subfolder is null) return null;
+            if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
             ResultCache.Add(Args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
             return (filename, destination, subfolder);
         }
 
-        private string GetNewSubfolder(object subfolder, bool replaceIllegalChars, bool removeIllegalChars)
+        private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars)
         {
             List<string> newSubFolderSplit;
             switch (subfolder)
@@ -125,9 +136,9 @@ namespace LuaRenamer
             return newSubfolder;
         }
 
-        private IImportFolder GetNewDestination(object destination)
+        private IImportFolder GetNewDestination(object? destination)
         {
-            IImportFolder destfolder;
+            IImportFolder? destfolder;
             switch (destination)
             {
                 case null:
@@ -161,7 +172,8 @@ namespace LuaRenamer
 
         private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
         {
-            IImportFolder oldFld = null;
+            if (VideoLocalRepo is null || ImportFolderRepo is null) return null;
+            IImportFolder? oldFld = null;
             var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(Args.AnimeInfo.First().AnimeID))
                 .Where(vl => !string.Equals(vl.CRC32, Args.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(vl => vl.DateTimeUpdated)
@@ -170,7 +182,8 @@ namespace LuaRenamer
                                        (oldFld.DropFolderType.HasFlag(DropFolderType.Destination) ||
                                         oldFld.DropFolderType.HasFlag(DropFolderType.Excluded)));
             if (oldFld is null || lastFileLocation is null) return null;
-            var subFld = Path.GetDirectoryName(lastFileLocation.FilePath);
+            var subFld = Path.GetDirectoryName((string)lastFileLocation.FilePath);
+            if (subFld is null) return null;
             return (oldFld, subFld);
         }
 
@@ -194,11 +207,11 @@ namespace LuaRenamer
             return (Lua.LuaRunSandboxed.Call(code, luaEnv), luaEnv);
         }
 
-        private Dictionary<string, object> CreateLuaEnv()
+        private Dictionary<string, object?> CreateLuaEnv()
         {
-            List<Dictionary<string, object>> ConvertTitles(IEnumerable<AnimeTitle> titles)
+            List<Dictionary<string, object?>> ConvertTitles(IEnumerable<AnimeTitle> titles)
             {
-                return titles.Select(t => new Dictionary<string, object>
+                return titles.Select(t => new Dictionary<string, object?>
                 {
                     { LuaEnv.title.name, t.Title },
                     { LuaEnv.title.language, t.Language.ToString() },
@@ -207,7 +220,7 @@ namespace LuaRenamer
                 }).ToList();
             }
 
-            var animes = Args.AnimeInfo.Select(a => new Dictionary<string, object>
+            var animes = Args.AnimeInfo.Select(a => new Dictionary<string, object?>
             {
                 { LuaEnv.anime.airdate, a.AirDate?.ToTable() },
                 { LuaEnv.anime.enddate, a.EndDate?.ToTable() },
@@ -232,7 +245,7 @@ namespace LuaRenamer
             }).ToList();
             var anidb = Args.FileInfo.AniDBFileInfo is null
                 ? null
-                : new Dictionary<string, object>
+                : new Dictionary<string, object?>
                 {
                     { LuaEnv.file.anidb.censored, Args.FileInfo.AniDBFileInfo.Censored },
                     { LuaEnv.file.anidb.source, Args.FileInfo.AniDBFileInfo.Source },
@@ -295,7 +308,7 @@ namespace LuaRenamer
                             { LuaEnv.file.media.audio.compressionmode, a.Compression_Mode },
                             {
                                 LuaEnv.file.media.audio.channels,
-                                ((string)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels
+                                ((string?)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels
                             },
                             { LuaEnv.file.media.audio.samplingrate, a.SamplingRate },
                             { LuaEnv.file.media.audio.codec, ((dynamic)a).Format },
@@ -316,7 +329,7 @@ namespace LuaRenamer
                 { LuaEnv.importfolder._classid, "55138454-4A0D-45EB-8CCE-1CCF00220165" },
                 { LuaEnv.importfolder._index, i }
             }).ToList();
-            var file = new Dictionary<string, object>
+            var file = new Dictionary<string, object?>
             {
                 { LuaEnv.file.name, Args.FileInfo.Filename },
                 { LuaEnv.file.path, Args.FileInfo.FilePath },
@@ -337,7 +350,7 @@ namespace LuaRenamer
                     importfolders.First(i => Args.FileInfo.FilePath.NormPath().StartsWith(((string)i[LuaEnv.importfolder.location]).NormPath()))
                 }
             };
-            var episodes = Args.EpisodeInfo.Select(e => new Dictionary<string, object>
+            var episodes = Args.EpisodeInfo.Select(e => new Dictionary<string, object?>
             {
                 { LuaEnv.episode.duration, e.Duration },
                 { LuaEnv.episode.number, e.Number },
@@ -349,14 +362,14 @@ namespace LuaRenamer
                 { LuaEnv.episode.getname, Lua.TitleFunc },
                 { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] }
             }).ToList();
-            var groups = Args.GroupInfo.Select(g => new Dictionary<string, object>
+            var groups = Args.GroupInfo.Select(g => new Dictionary<string, object?>
             {
                 { LuaEnv.group.name, g.Name },
                 // Just give Ids, subject to change if there is ever a reason to use more.
                 { LuaEnv.group.mainseriesid, g.MainSeries?.AnimeID },
                 { LuaEnv.group.seriesids, g.Series.Select(s => s.AnimeID).ToList() }
             }).ToList();
-            return new Dictionary<string, object>
+            return new Dictionary<string, object?>
             {
                 { LuaEnv.filename, null },
                 { LuaEnv.destination, null },
@@ -369,11 +382,11 @@ namespace LuaRenamer
                 { LuaEnv.file.N, file },
                 { LuaEnv.episodes, episodes },
                 {
-                    LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid] == (int)animes.First()[LuaEnv.anime.id])
-                        .OrderBy(e => (string)e[LuaEnv.episode.type] == EpisodeType.Other.ToString()
+                    LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid]! == (int)animes.First()[LuaEnv.anime.id]!)
+                        .OrderBy(e => (string)e[LuaEnv.episode.type]! == EpisodeType.Other.ToString()
                             ? int.MinValue
-                            : (int)Enum.Parse<EpisodeType>((string)e[LuaEnv.episode.type]))
-                        .ThenBy(e => (int)e[LuaEnv.episode.number])
+                            : (int)Enum.Parse<EpisodeType>((string)e[LuaEnv.episode.type]!))
+                        .ThenBy(e => (int)e[LuaEnv.episode.number]!)
                         .First()
                 },
                 { LuaEnv.importfolders, importfolders },

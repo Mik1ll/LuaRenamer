@@ -11,7 +11,7 @@ namespace LuaRenamer
     {
         public static string NormPath(this string path)
         {
-            return path?.Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
+            return path.Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
         }
 
         private static readonly Dictionary<string, string> ReplaceMap = new()
@@ -35,7 +35,7 @@ namespace LuaRenamer
             return segment;
         }
 
-        public static T ParseEnum<T>(string text, bool throwException = true)
+        public static T? ParseEnum<T>(string text, bool throwException = true)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace LuaRenamer
             }
         }
 
-        public static Type GetTypeFromAssemblies(string typeName)
+        public static Type? GetTypeFromAssemblies(string typeName)
         {
             return AppDomain.CurrentDomain.GetAssemblies().Select(currentassembly => currentassembly.GetType(typeName, false, true))
                 .FirstOrDefault(t => t is not null);

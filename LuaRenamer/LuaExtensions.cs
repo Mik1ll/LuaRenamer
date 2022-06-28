@@ -7,14 +7,14 @@ namespace LuaRenamer
 {
     public static class LuaExtensions
     {
-        public static void AddObject(this Lua lua, LuaTable env, object obj, string name, Dictionary<object, LuaTable> cache = null)
+        public static void AddObject(this Lua lua, LuaTable env, object? obj, string name, Dictionary<object, LuaTable>? cache = null)
         {
             cache ??= new Dictionary<object, LuaTable>();
             env[name] = AddHelper(lua, cache, obj);
         }
 
         // TODO: convert enum to a unique string
-        private static object AddHelper(Lua lua, Dictionary<object, LuaTable> cache, object obj) => obj switch
+        private static object? AddHelper(Lua lua, Dictionary<object, LuaTable> cache, object? obj) => obj switch
         {
             IDictionary d => DictIteration(lua, cache, d),
             IList e => ListIteration(lua, cache, e),

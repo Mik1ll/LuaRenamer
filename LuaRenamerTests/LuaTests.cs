@@ -7,6 +7,9 @@ using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
+// ReSharper disable PossibleUnintendedReferenceComparison
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 namespace LuaRenamerTests
 {
     [TestClass]
@@ -183,7 +186,7 @@ namespace LuaRenamerTests
             {
                 Args = args
             };
-            var res = renamer.GetInfo();
+            renamer.GetInfo();
         }
 
         [TestMethod]
@@ -243,7 +246,7 @@ end",
                 {
                     Args = args
                 };
-                var res = renamer.GetInfo();
+                renamer.GetInfo();
             }
             catch (LuaException ex)
             {
