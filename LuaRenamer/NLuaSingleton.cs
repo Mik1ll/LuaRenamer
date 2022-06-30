@@ -48,6 +48,7 @@ os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date 
 setmetatable = setmetatable,
 getmetatable = getmetatable,
 rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
+utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset }, 
 ";
 
         private const string LuaLinqEnv = @"
