@@ -23,6 +23,9 @@ namespace LuaRenamer
         public const string EpisodeType = nameof(EpisodeType);
         public const string ImportFolderType = nameof(ImportFolderType);
         public const string episode_numbers = nameof(episode_numbers);
+        public const string log = nameof(log);
+        public const string logwarn = nameof(logwarn);
+        public const string logerror = nameof(logerror);
 
         public static class anime
         {

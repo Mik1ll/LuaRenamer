@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LuaRenamer;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua.Exceptions;
@@ -133,6 +134,7 @@ namespace LuaRenamerTests
             };
         }
 
+        private static readonly ILogger<LuaRenamer.LuaRenamer> Logmock = Mock.Of<ILogger<LuaRenamer.LuaRenamer>>();
 
         [TestMethod]
         public void TestScriptRuns()
@@ -146,7 +148,7 @@ namespace LuaRenamerTests
 ",
                 Type = nameof(LuaRenamer.LuaRenamer)
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -164,7 +166,7 @@ namespace LuaRenamerTests
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -182,7 +184,7 @@ namespace LuaRenamerTests
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -200,7 +202,7 @@ namespace LuaRenamerTests
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -221,7 +223,7 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -242,7 +244,7 @@ end",
             };
             try
             {
-                var renamer = new LuaRenamer.LuaRenamer
+                var renamer = new LuaRenamer.LuaRenamer(Logmock)
                 {
                     Args = args
                 };
@@ -266,7 +268,7 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -284,7 +286,7 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -303,7 +305,7 @@ end",
                 Type = nameof(LuaRenamer.LuaRenamer),
                 ExtraData = null
             };
-            var renamer = new LuaRenamer.LuaRenamer
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
             {
                 Args = args
             };
@@ -315,6 +317,24 @@ end",
         public void TestLuaEnvNames()
         {
             Assert.AreEqual("file.media.sublanguages", LuaEnv.file.media.sublanguagesFn);
+        }
+
+        [TestMethod]
+        public void TestLogging()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl()
+            {
+                Script =
+                    $"log(\"test\")",
+                Type = nameof(LuaRenamer.LuaRenamer),
+                ExtraData = null
+            };
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
         }
     }
 }

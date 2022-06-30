@@ -23,6 +23,11 @@ namespace LuaRenamer
         private static readonly dynamic? VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
         private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
         private static readonly NLuaSingleton Lua = new();
+        private static readonly MethodInfo LogMethod = typeof(LuaRenamer).GetMethod(nameof(Log), BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo LogWarnMethod = typeof(LuaRenamer).GetMethod(nameof(LogWarn), BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo LogErrorMethod = typeof(LuaRenamer).GetMethod(nameof(LogError), BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo EpNumsMethod =
+            typeof(LuaRenamer).GetMethod(nameof(GetEpisodesString), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
         private static string _scriptCache = string.Empty;
         private static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
@@ -34,9 +39,9 @@ namespace LuaRenamer
             _logger = logger;
         }
 
-        public LuaRenamer()
-        {
-        }
+        private void Log(string message) => _logger.LogInformation(message);
+        private void LogWarn(string message) => _logger.LogWarning(message);
+        private void LogError(string message) => _logger.LogError(message);
 
         private (string filename, IImportFolder destination, string subfolder)? CheckCache()
         {
@@ -392,10 +397,10 @@ namespace LuaRenamer
                 { LuaEnv.importfolders, importfolders },
                 { LuaEnv.groups, groups },
                 { LuaEnv.group.N, groups.FirstOrDefault() },
-                {
-                    LuaEnv.episode_numbers, Lua.Inst.RegisterFunction(LuaEnv.episode_numbers, this,
-                        GetType().GetMethod(nameof(GetEpisodesString), BindingFlags.NonPublic | BindingFlags.Instance))
-                }
+                { LuaEnv.episode_numbers, Lua.Inst.RegisterFunction(LuaEnv.episode_numbers, this, EpNumsMethod) },
+                { LuaEnv.log, Lua.Inst.RegisterFunction(LuaEnv.log, this, LogMethod) },
+                { LuaEnv.logwarn, Lua.Inst.RegisterFunction(LuaEnv.log, this, LogWarnMethod) },
+                { LuaEnv.logerror, Lua.Inst.RegisterFunction(LuaEnv.log, this, LogErrorMethod) }
             };
         }
 
