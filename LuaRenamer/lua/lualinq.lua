@@ -286,7 +286,7 @@ end
 
 -- Replaces items with those returned by the selector function or properties with name selector
 ---@param self Linq
----@param selector fun(a):any
+---@param selector string|fun(a):any
 function _select(self, selector)
 	local result = { }
 

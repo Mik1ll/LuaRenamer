@@ -34,8 +34,8 @@ local ReleaseGroup = {}
 
 ---@class AniDbMedia
 ---@field videocodec string
----@field sublanguages string[]
----@field dublanguages string[]
+---@field sublanguages Language[]
+---@field dublanguages Language[]
 local AniDbMedia = {}
 
 ---@class Media
@@ -71,7 +71,7 @@ local Audio = {}
 ---@field enddate DateTime
 ---@field rating number
 ---@field restricted boolean
----@field type string
+---@field type AnimeType
 ---@field preferredname string
 ---@field id integer
 ---@field titles Title[]
@@ -80,9 +80,9 @@ local Anime = {}
 
 ---@class Title
 ---@field name string
----@field language string
+---@field language Language
 ---@field languagecode string
----@field type string
+---@field type TitleType
 local Title = {}
 
 ---@class DateTime
@@ -101,7 +101,7 @@ local DateTime = {}
 ---@field duration integer
 ---@field number integer
 ---@field prefix string
----@field type string
+---@field type EpisodeType
 ---@field airdate DateTime
 ---@field animeid integer
 ---@field id integer
@@ -111,7 +111,7 @@ local Episode = {}
 ---@class ImportFolder
 ---@field name string
 ---@field location string
----@field type string
+---@field type ImportFolderType
 local ImportFolder = {}
 
 ---@class Group
@@ -131,7 +131,7 @@ Anime.getname = Episode.getname
 
 --#region enumerations
 
----@class ImportFolderType
+---@alias ImportFolderType "'Excluded'" | "'Source'" | "'Destination'" | "'Both'"
 ImportFolderType = {
   Excluded = "Excluded",
   Source = "Source",
@@ -139,7 +139,7 @@ ImportFolderType = {
   Both = "Both"
 }
 
----@class AnimeType
+---@alias AnimeType "'Movie'" | "'OVA'" | "'TVSeries'" | "'TVSpecial'" | "'Web'" | "'Other'"
 AnimeType = {
   Movie = "Movie",
   OVA = "OVA",
@@ -149,26 +149,26 @@ AnimeType = {
   Other = "Other"
 }
 
----@class EpisodeType
+---@alias EpisodeType "'Episode'" | "'Credits'" | "'Special'" | "'Trailer'" | "'Parody'" | "'Other'"
 EpisodeType = {
   Episode = "Episode",
   Credits = "Credits",
   Special = "Special",
   Trailer = "Trailer",
   Parody = "Parody",
-  Other = "Other",
+  Other = "Other"
 }
 
----@class TitleType
+---@alias TitleType "'None'" | "'Main'" | "'Official'" | "'Short'" | "'Synonym'"
 TitleType = {
   None = "None",
   Main = "Main",
   Official = "Official",
   Short = "Short",
-  Synonym = "Synonym",
+  Synonym = "Synonym"
 }
 
----@class Language
+---@alias Language "'Unknown'" | "'English'" | "'Romaji'" | "'Japanese'" | "'Afrikaans'" | "'Arabic'" | "'Bangladeshi'" | "'Bulgarian'" | "'FrenchCanadian'" | "'Czech'" | "'Danish'" | "'German'" | "'Greek'" | "'Spanish'" | "'Estonian'" | "'Finnish'" | "'French'" | "'Galician'" | "'Hebrew'" | "'Hungarian'" | "'Italian'" | "'Korean'" | "'Lithuania'" | "'Mongolian'" | "'Malaysian'" | "'Dutch'" | "'Norwegian'" | "'Polish'" | "'Portuguese'" | "'BrazilianPortuguese'" | "'Romanian'" | "'Russian'" | "'Slovak'" | "'Slovenian'" | "'Serbian'" | "'Swedish'" | "'Thai'" | "'Turkish'" | "'Ukrainian'" | "'Vietnamese'" | "'Chinese'" | "'ChineseSimplified'" | "'ChineseTraditional'" | "'Pinyin'" | "'Latin'" | "'Albanian'" | "'Basque'" | "'Bengali'" | "'Bosnian'"
 Language = {
   Unknown = "Unknown",
   English = "English",
@@ -230,6 +230,21 @@ Language = {
 ---@param pad integer
 ---@return string
 function episode_numbers(pad) end
+
+---Log with Information log level
+---@param message string
+---@return nil
+function log(message) end
+
+---Log with Warning log level
+---@param message string
+---@return nil
+function logwarn(message) end
+
+---Log with Error log level
+---@param message string
+---@return nil
+function logerror(message) end
 
 ---@type string|nil
 filename = nil
