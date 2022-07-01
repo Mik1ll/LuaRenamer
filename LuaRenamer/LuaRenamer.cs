@@ -156,10 +156,12 @@ namespace LuaRenamer
                     if (destfolder is null)
                         throw new ArgumentException("could not find an available destination import folder");
                     break;
-                case string name:
-                    destfolder = Args.AvailableFolders.FirstOrDefault(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
+                case string str:
+                    destfolder = Args.AvailableFolders.FirstOrDefault(f =>
+                        string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(f.Location.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
                     if (destfolder is null)
-                        throw new ArgumentException($"could not find destination folder by name: {name}");
+                        throw new ArgumentException($"could not find destination folder by name or path: {str}");
                     break;
                 case LuaTable destTable:
                     if ((string)destTable[LuaEnv.importfolder._classid] == "55138454-4A0D-45EB-8CCE-1CCF00220165")
@@ -168,7 +170,9 @@ namespace LuaRenamer
                         throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                     break;
                 default:
-                    throw new LuaScriptException("destination must be an import folder name, an import folder or nil", string.Empty);
+                    throw new LuaScriptException(
+                        $"destination must be nil or an existing import folder string (name/path), or table (see {LuaEnv.importfolders} variable)",
+                        string.Empty);
             }
             if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
                 throw new ArgumentException($"selected import folder \"{destfolder.Location}\" is not a destination folder, check import folder type");

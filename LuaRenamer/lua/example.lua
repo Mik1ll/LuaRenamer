@@ -1,3 +1,4 @@
+remove_illegal_chars = false
 replace_illegal_chars = true
 
 local maxnamelen = 35
@@ -16,9 +17,9 @@ local episodename = ""
 local engepname = episode:getname(Language.English) or ""
 local episodenumber = ""
 if anime.type ~= AnimeType.Movie or not engepname:find("^Complete Movie") then
-  local maxepnum = #tostring(fromDictionary(anime.episodecounts):select(function(kvp) return kvp.value; end):max())
-  episodenumber = episode_numbers(maxepnum) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
-  if #episodes == 1 and not engepname:find("^Episode") then
+  local maxepnum = fromDictionary(anime.episodecounts):select("value"):max()
+  episodenumber = episode_numbers(#tostring(maxepnum)) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
+  if #episodes == 1 and not engepname:find("^Episode") and not engepname:find("^OVA") then
     episodename = episode:getname(episodelanguage) or ""
     if utf8.len(episodename) > maxnamelen then
         episodename = episodename:sub(1, utf8.offset(episodename, maxnamelen+1, 1)-1):gsub("%s+$", "") .. "..."
@@ -44,3 +45,4 @@ local hashtag = "[" .. file.hashes.crc .. "]"
 
 local nametable = rm_empty_str{group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
 filename = table.concat(nametable, " ")
+subfolder = {animename}

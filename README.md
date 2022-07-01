@@ -11,8 +11,8 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 
 ## Usage
 1. Open the lua folder under the directory you extracted, in VS Code
-2. Look at the sample script and the bottom of defs.lua to get an idea of available variables
-3. Create a new file or modify the sample script to fit your needs. NOTE: 'sample script.lua' is not read by the renamer, you must save it as a script within shoko, see next steps
+2. Look at the example script and the bottom of defs.lua to get an idea of available variables
+3. Create a new file or modify the example script to fit your needs. NOTE: 'example.lua' is not read by the renamer, you must save it as a script within shoko, see next steps
 4. Open Shoko Desktop
 5. Navigate to Utilities/File Renaming
 6. Use the Default script or create a new one and set the type of the script to LuaRenamer in the drop-down menu
@@ -21,12 +21,13 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 9. Check run on import, and save the script (next to the script type drop-down)
 10. You may manually rename and move the files (if checked) of your collection in the utility
 
-### Important Notes for File Moving
-Destination defaults to the first destination folder it can find.  
-If destination is set, it must be set to the name(in shoko) of an import folder, or an import folder table, which are found in the importfolders array or file.importfolder for the current file's folder  
+## Important Notes for File Moving
+Destination defaults to the nearest (longest matching prefix) destination folder it can find.  
+If destination is set, it must be set to an existing import folder using the name or path (string), or an import folder table
+If destination set to a path, it is compared to import folder path with converted directory seperators but no other special handling (relative path or expansion)  
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 Subfolder defaults to your preferred language anime title.  
-If subfolder is set, it must be set to an array-table of path segments () e.g. subfolder = {"parent dir name", "subdir name", "..."}  
+If subfolder is set, it must be set to an array-table of path segments e.g. subfolder = {"parent dir name", "subdir name", "..."}  
 If 'use_existing_anime_location' is set to true, the last added file's location from the same anime will be used if it exists.  
 
 ## Script Environment
@@ -36,46 +37,27 @@ been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documen
 
 See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from shoko.
 
-## Sample Script
+## [Example Script](./LuaRenamer/lua/example.lua)
+
+## Snippets
+Choosing a destination (picks folders by name, or folder path of existing import folder)
 ```lua
-function rm_empty_str(table) return from(table):where(function (a) return a ~= "" end):toArray() end
-
-local group = file.anidb and file.anidb.releasegroup and "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]" or ""
-
-local animename = anime:getname(Language.English) or anime:getname(Language.Romaji) or anime.preferredname
-animename = string.gsub(string.sub(animename, 0, 35), "%s+$", "") .. (#animename > 35 and "..." or "")
-
-local episodename = episode:getname(Language.English) or ""
-episodename = string.gsub(string.sub(episodename, 0, 35), "%s+$", "") .. (#episodename > 35 and "..." or "")
-
-local episodenumber = ""
-if anime.type ~= AnimeType.Movie or not string.find(episodename, "Complete Movie") then
-  episodenumber = episode_numbers(2) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
-  if #episodes > 1 or string.find(episodename, "Episode") then
-    episodename = ""
-  end
+if anime.restricted then
+  destination = "hentai"
 else
-  episodename = ""
+  destination = "anime"
 end
-
-local res = file.media.video.res or ""
-local codec = file.media.video.codec or ""
-local bitdepth = file.media.video.bitdepth and file.media.video.bitdepth ~= 8 and file.media.video.bitdepth .. "bit" or ""
-local source = file.anidb and file.anidb.source or ""
-
-local fileinfo = "(" .. table.concat(rm_empty_str{res, codec, bitdepth, source}, " ") .. ")"
-
-local dublangs = from(file.anidb and file.anidb.media.dublanguages or from(file.media.audio):select("language"))
-local sublangs = from(file.anidb and file.anidb.media.sublanguages or file.media.sublanguages)
-local audiotag = dublangs:contains(Language.English) and (dublangs:contains(Language.Japanese) and "[DUAL-AUDIO]" or "[DUB]") or ""
-local subtag = audiotag == "" and not sublangs:contains(Language.English) and "[RAW]" or ""
-
-local centag = anime.restricted and file.anidb and (file.anidb.censored and "[CEN]" or "[UNCEN]") or ""
-local hashtag = "[" .. file.hashes.crc .. "]"
-
-local nametable = rm_empty_str{group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
-filename = string.sub(table.concat(nametable, " "), 0, 120)
 ```
-
-### Snippets
-WIP
+Choosing a destination by table (complex), edit second line to add conditions
+```lua
+destination = from(importfolders):where(function (importfld) ---@param importfld ImportFolder
+  return importfld.type == ImportFolderType.Destination or importfld.type == ImportFolderType.Both
+end):first()
+```
+Adding Shoko group name to subfolder path when there are multiple series in group.  
+Warning: adding new series to a group with one entry will not move the old series into a subfolder, so you should probably use it when batch renaming/moving existing series
+```lua
+if #groups == 1 and #groups[1].seriesids > 1 then
+  subfolder = {groups[1].name, anime.preferredname}
+end
+```
