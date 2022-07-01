@@ -16,7 +16,7 @@ namespace LuaRenamer
 
         private static readonly Dictionary<string, string> ReplaceMap = new()
         {
-            { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "／" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
+            { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
         };
 
         public static string ReplacePathSegmentChars(this string segment, bool withAlternate)
