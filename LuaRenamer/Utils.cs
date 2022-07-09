@@ -19,18 +19,23 @@ namespace LuaRenamer
             { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
         };
 
+        private static readonly Regex ReplacePathSegmentCharsCompiledRegex = new(@"[<>:""/\\|?*]", RegexOptions.Compiled);
+
         public static string ReplacePathSegmentChars(this string segment, bool withAlternate)
         {
-            return Regex.Replace(segment, @"[<>:""/\\|?*]", match => withAlternate ? ReplaceMap[match.Value] : "_");
+            return ReplacePathSegmentCharsCompiledRegex.Replace(segment, match => withAlternate ? ReplaceMap[match.Value] : "_");
         }
+
+        private static readonly Regex CleanPathSegmentRegex1 = new(@"[<>:""/\\|?*\x00-\x1F]+", RegexOptions.Compiled);
+        private static readonly Regex CleanPathSegmentRegex2 = new(@"^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])$", RegexOptions.Compiled);
 
         public static string CleanPathSegment(this string segment, bool isFilename)
         {
-            segment = Regex.Replace(segment, @"[<>:""/\\|?*\x00-\x1F]+", string.Empty).Trim();
+            segment = CleanPathSegmentRegex1.Replace(segment, string.Empty).Trim();
             if (!isFilename)
                 segment = segment.TrimEnd(' ', '.');
             var isEmpty = string.IsNullOrWhiteSpace(segment);
-            if (isEmpty || Regex.Match(segment, @"^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])$").Success)
+            if (isEmpty || CleanPathSegmentRegex2.Match(segment).Success)
                 throw new ArgumentException($"Illegal path segment: {(isEmpty ? "<empty/whitespace>" : segment)}");
             return segment;
         }
