@@ -6,13 +6,24 @@ local animelanguage = Language.English
 local episodelanguage = Language.English
 local spacechar = " "
 
+--#region Utility functions
+
+---Trims string, removes extra spaces, and replaces with given character or space
+---@param self string
+---@param char string?
+---@return string
+function string:clean_spaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
+
+---Returns truncated string, supporting unicode characters
+---@param self string
+---@param len integer
+---@return string
+function string:truncate(len) return utf8.len(self) > len and self:sub(1, utf8.offset(self, len + 1, 1) - 1):gsub("%s+$", "") .. "..." or self end
+--#endregion
 
 local group = file.anidb and file.anidb.releasegroup and "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]" or ""
 
 local animename = anime:getname(animelanguage) or anime.preferredname
-if utf8.len(animename) > maxnamelen then
-  animename = animename:sub(1, utf8.offset(animename, maxnamelen+1, 1)-1):gsub("%s+$", "") .. "..."
-end
 
 local episodename = ""
 local engepname = episode:getname(Language.English) or ""
@@ -22,16 +33,8 @@ if anime.type ~= AnimeType.Movie or not engepname:find("^Complete Movie") then
   episodenumber = episode_numbers(#tostring(maxepnum)) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
   if #episodes == 1 and not engepname:find("^Episode") and not engepname:find("^OVA") then
     episodename = episode:getname(episodelanguage) or ""
-    if utf8.len(episodename) > maxnamelen then
-        episodename = episodename:sub(1, utf8.offset(episodename, maxnamelen+1, 1)-1):gsub("%s+$", "") .. "..."
-    end
   end
 end
-
---- Trims string, removes extra spaces, and replaces with given character or space
---- @param char string?
---- @return string
-function string:clean_spaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
 
 local res = file.media.video.res or ""
 local codec = file.media.video.codec or ""
@@ -48,6 +51,6 @@ local subtag = audiotag == "" and not sublangs:contains(Language.English) and "[
 local centag = anime.restricted and file.anidb and (file.anidb.censored and "[CEN]" or "[UNCEN]") or ""
 local hashtag = "[" .. file.hashes.crc .. "]"
 
-local nametable = {group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
+local nametable = {group, animename:truncate(maxnamelen), episodenumber, episodename:truncate(maxnamelen), fileinfo, audiotag, subtag, centag, hashtag}
 filename = table.concat(nametable, " "):clean_spaces(spacechar)
 subfolder = {animename}
