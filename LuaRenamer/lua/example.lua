@@ -4,6 +4,7 @@ replace_illegal_chars = true
 local maxnamelen = 35
 local animelanguage = Language.English
 local episodelanguage = Language.English
+local spacechar = " "
 
 
 local group = file.anidb and file.anidb.releasegroup and "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]" or ""
@@ -27,22 +28,26 @@ if anime.type ~= AnimeType.Movie or not engepname:find("^Complete Movie") then
   end
 end
 
+--- Trims string, removes extra spaces, and replaces with given character or space
+--- @param char string?
+--- @return string
+function string:clean_spaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
+
 local res = file.media.video.res or ""
 local codec = file.media.video.codec or ""
 local bitdepth = file.media.video.bitdepth and file.media.video.bitdepth ~= 8 and file.media.video.bitdepth .. "bit" or ""
 local source = file.anidb and file.anidb.source or ""
-
-function rm_empty_str(table) return from(table):where(function (a) return a ~= "" end):toArray() end
-local fileinfo = "(" .. table.concat(rm_empty_str{res, codec, bitdepth, source}, " ") .. ")"
+local fileinfo = "(" .. tostring(table.concat({res, codec, bitdepth, source}, " ")):clean_spaces(spacechar) .. ")"
 
 local dublangs = from(file.anidb and file.anidb.media.dublanguages or from(file.media.audio):select("language"))
-local sublangs = from(file.anidb and file.anidb.media.sublanguages or file.media.sublanguages)
 local audiotag = dublangs:contains(Language.English) and (dublangs:contains(Language.Japanese) and "[DUAL-AUDIO]" or "[DUB]") or ""
+
+local sublangs = from(file.anidb and file.anidb.media.sublanguages or file.media.sublanguages)
 local subtag = audiotag == "" and not sublangs:contains(Language.English) and "[RAW]" or ""
 
 local centag = anime.restricted and file.anidb and (file.anidb.censored and "[CEN]" or "[UNCEN]") or ""
 local hashtag = "[" .. file.hashes.crc .. "]"
 
-local nametable = rm_empty_str{group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
-filename = table.concat(nametable, " ")
+local nametable = {group, animename, episodenumber, episodename, fileinfo, audiotag, subtag, centag, hashtag}
+filename = table.concat(nametable, " "):clean_spaces(spacechar)
 subfolder = {animename}

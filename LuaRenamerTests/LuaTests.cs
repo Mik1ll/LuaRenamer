@@ -336,5 +336,25 @@ end",
             };
             var res = renamer.GetInfo();
         }
+
+        [TestMethod]
+        public void TestStringMethod()
+        {
+            var args = Args();
+            args.Script = new RenameScriptImpl()
+            {
+                Script =
+                    @"function string:clean_spaces(char) return (self:match(""^%s*(.-)%s*$""):gsub(""%s+"", char or "" "")) end
+                filename = ((""blah  sdhow  wh ""):clean_spaces())",
+                Type = nameof(LuaRenamer.LuaRenamer),
+                ExtraData = null
+            };
+            var renamer = new LuaRenamer.LuaRenamer(Logmock)
+            {
+                Args = args
+            };
+            var res = renamer.GetInfo();
+            Assert.AreEqual("blah sdhow wh", res?.filename);
+        }
     }
 }

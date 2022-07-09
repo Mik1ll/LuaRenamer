@@ -53,7 +53,7 @@ namespace LuaRenamer
         }
 
         public static LuaTable CreateEnv(this Lua lua, IEnumerable<string> envBuilder) =>
-            (LuaTable)lua.DoString($"return {{{string.Join("", envBuilder)}}}")[0];
+            (LuaTable)lua.DoString($"r = {{{string.Join("", envBuilder)}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
 
         public static Dictionary<string, object> ToTable(this DateTime dt)
         {

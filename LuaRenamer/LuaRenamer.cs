@@ -210,7 +210,6 @@ namespace LuaRenamer
         {
             var env = CreateLuaEnv();
             var luaEnv = Lua.Inst.CreateEnv(Lua.BaseEnvStrings);
-            Lua.Inst["env"] = luaEnv;
             var objCache = new Dictionary<object, LuaTable>();
             foreach (var (k, v) in env) Lua.Inst.AddObject(luaEnv, v, k, objCache);
             return (Lua.LuaRunSandboxed.Call(code, luaEnv), luaEnv);
