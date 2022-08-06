@@ -10,16 +10,28 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 5. Follow instructions in the next section to add your script
 
 ## Usage
+### With Shoko Desktop
 1. Open Shoko Desktop
 2. Navigate to Utilities/File Renaming
 3. Use the Default script or create a new one and set the type of the script to LuaRenamer in the drop-down menu
-4. (Optional) Open the lua folder in VS Code
-   1. Look at the example script and the bottom of defs.lua to get an idea of available variables
-   2. Edit the example script
-5. Copy the [example script](./LuaRenamer/lua/example.lua) or your own script and paste it in the text box
-6. Test your script by adding files and clicking preview in the utility under the text box until you are satisfied
-7. Check run on import, and save the script (next to the script type drop-down)
-8. You may manually rename and move the files (if checked) of your collection in the utility
+4. (Optional) Open the lua subfolder of the extracted plugin in VS Code
+5. Look at the [example script](./LuaRenamer/lua/example.lua) and the bottom of [defs.lua](./LuaRenamer/lua/defs.lua) to get an idea of available variables
+   1. (Optional) Check out [The lualinq docs](./LuaRenamer/lua/LuaLinq.pdf) for info on uses of 'from()'
+6. Create a script or copy and edit the [example script](./LuaRenamer/lua/example.lua)
+7. Paste the script in the text box in Shoko Desktop
+8. Test your script by adding files and clicking preview in the utility under the text box until you are satisfied
+9. Check run on import, and save the script (next to the script type drop-down)
+10. You may manually rename and move the files (if checked) of your collection in the utility
+
+### Linux/Without Shoko Desktop
+1. Copy/download [the linux scripts](./Linux%20Scripts)
+2. (Optional) Open the lua subfolder of the extracted plugin in VS Code
+3. Look at the [example script](./LuaRenamer/lua/example.lua) and the bottom of [defs.lua](./LuaRenamer/lua/defs.lua) to get an idea of available variables
+   1. (Optional) Check out [The lualinq docs](./LuaRenamer/lua/LuaLinq.pdf) for info on uses of 'from()'
+4. Create a script or copy and edit the [example script](./LuaRenamer/lua/example.lua)
+5. Preview the results with [the preview script](./Linux%20Scripts/preview_rename_script.sh) `./preview_rename_script.sh <script filename> [# results]`
+6. Add your script to Shoko with [the add script](./Linux%20Scripts/add_rename_script.sh) `./add_rename_script.sh <script filename>`
+7. If you want to rename and move all existing files use [the rename script](./Linux%20Scripts/rename_and_move_all.sh) `./rename_and_move_all.sh <script name>`
 
 ## Important Notes for File Moving
 Destination defaults to the nearest (longest matching prefix) destination folder it can find.  
