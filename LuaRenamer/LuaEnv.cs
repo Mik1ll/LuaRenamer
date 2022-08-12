@@ -110,6 +110,8 @@ namespace LuaRenamer
                 public const string versionFn = Fn + "." + version;
                 public const string releasedate = nameof(releasedate);
                 public const string releasedateFn = Fn + "." + releasedate;
+                public const string description = nameof(description);
+                public const string descriptionFn = Fn + "." + description;
 
                 public static class releasegroup
                 {

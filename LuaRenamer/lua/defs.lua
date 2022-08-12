@@ -24,6 +24,7 @@ local Hashes = {}
 ---@field releasedate DateTime
 ---@field releasegroup? ReleaseGroup
 ---@field id integer
+---@field description string
 ---@field media AniDbMedia
 local AniDb = {}
 

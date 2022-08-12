@@ -283,7 +283,8 @@ namespace LuaRenamer
                                 Args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList()
                             }
                         }
-                    }
+                    },
+                    { LuaEnv.file.anidb.description, Args.FileInfo.AniDBFileInfo.Description }
                 };
             var mediainfo = Args.FileInfo.MediaInfo is null
                 ? null
