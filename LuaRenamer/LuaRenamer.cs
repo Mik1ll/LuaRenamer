@@ -273,7 +273,6 @@ namespace LuaRenamer
                     {
                         LuaEnv.file.anidb.media.N, new Dictionary<string, object>
                         {
-                            { LuaEnv.file.anidb.media.videocodec, Args.FileInfo.AniDBFileInfo.MediaInfo.VideoCodec },
                             {
                                 LuaEnv.file.anidb.media.sublanguages,
                                 Args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList()

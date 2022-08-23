@@ -130,8 +130,6 @@ namespace LuaRenamer
                 {
                     public const string N = nameof(media);
                     public const string Fn = file.anidb.Fn + "." + N;
-                    public const string videocodec = nameof(videocodec);
-                    public const string videocodecFn = Fn + "." + videocodec;
                     public const string sublanguages = nameof(sublanguages);
                     public const string sublanguagesFn = Fn + "." + sublanguages;
                     public const string dublanguages = nameof(dublanguages);

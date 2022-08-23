@@ -34,7 +34,6 @@ local AniDb = {}
 local ReleaseGroup = {}
 
 ---@class AniDbMedia
----@field videocodec string
 ---@field sublanguages Language[]
 ---@field dublanguages Language[]
 local AniDbMedia = {}
@@ -160,13 +159,15 @@ EpisodeType = {
   Other = "Other"
 }
 
----@alias TitleType "'None'" | "'Main'" | "'Official'" | "'Short'" | "'Synonym'"
+---@alias TitleType "'None'" | "'Main'" | "'Official'" | "'Short'" | "'Synonym'" | "'TitleCard'" | "'KanjiReading'"
 TitleType = {
   None = "None",
   Main = "Main",
   Official = "Official",
   Short = "Short",
-  Synonym = "Synonym"
+  Synonym = "Synonym",
+  TitleCard = "TitleCard",
+  KanjiReading = "KanjiReading"
 }
 
 ---@alias Language "'Unknown'" | "'English'" | "'Romaji'" | "'Japanese'" | "'Afrikaans'" | "'Arabic'" | "'Bangladeshi'" | "'Bulgarian'" | "'FrenchCanadian'" | "'Czech'" | "'Danish'" | "'German'" | "'Greek'" | "'Spanish'" | "'Estonian'" | "'Finnish'" | "'French'" | "'Galician'" | "'Hebrew'" | "'Hungarian'" | "'Italian'" | "'Korean'" | "'Lithuania'" | "'Mongolian'" | "'Malaysian'" | "'Dutch'" | "'Norwegian'" | "'Polish'" | "'Portuguese'" | "'BrazilianPortuguese'" | "'Romanian'" | "'Russian'" | "'Slovak'" | "'Slovenian'" | "'Serbian'" | "'Swedish'" | "'Thai'" | "'Turkish'" | "'Ukrainian'" | "'Vietnamese'" | "'Chinese'" | "'ChineseSimplified'" | "'ChineseTraditional'" | "'Pinyin'" | "'Latin'" | "'Albanian'" | "'Basque'" | "'Bengali'" | "'Bosnian'"
