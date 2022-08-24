@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using LuaRenamer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -81,7 +82,6 @@ namespace LuaRenamerTests
                         af.Source == "DVD" &&
                         af.Version == 2 &&
                         af.MediaInfo == Mock.Of<AniDBMediaData>(md =>
-                            md.AudioCodecs == new List<string> { "mp3", "FLAC", "opus" } &&
                             md.AudioLanguages == new List<TitleLanguage> { TitleLanguage.English, TitleLanguage.Japanese } &&
                             md.SubLanguages == new List<TitleLanguage>())) &&
                     file.FilePath == @"C:\Users\Mike\Desktop\Anime\testfile.mp4" &&
@@ -334,7 +334,7 @@ end",
             {
                 Args = args
             };
-            var res = renamer.GetInfo();
+            renamer.GetInfo();
         }
 
         [TestMethod]
@@ -355,6 +355,12 @@ end",
             };
             var res = renamer.GetInfo();
             Assert.AreEqual("blah sdhow wh", res?.filename);
+        }
+
+        [TestMethod]
+        public void TestLogAbstractionVersion()
+        {
+            Assert.AreEqual("2.1.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
         }
     }
 }

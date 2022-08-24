@@ -29,8 +29,7 @@ local episodename = ""
 local engepname = episode:getname(Language.English) or ""
 local episodenumber = ""
 if anime.type ~= AnimeType.Movie or not engepname:find("^Complete Movie") then
-  local maxepnum = fromDictionary(anime.episodecounts):select("value"):max()
-  episodenumber = episode_numbers(#tostring(maxepnum)) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
+  episodenumber = episode_numbers(#tostring(math.max(anime.episodecounts[episode.type], 10))) .. (file.anidb and file.anidb.version > 1 and "v" .. file.anidb.version or "")
   if #episodes == 1 and not engepname:find("^Episode") and not engepname:find("^OVA") then
     episodename = episode:getname(episodelanguage) or ""
   end
