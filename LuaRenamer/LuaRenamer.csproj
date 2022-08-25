@@ -33,4 +33,8 @@
         <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
     </Target>
 
+    <Target Name="UpdateAssemblyInfo" BeforeTargets="Build">
+        <Exec Command="pwsh UpdateAssemblyVersion.ps1 $(GeneratedAssemblyInfoFile)" ContinueOnError="true"/>
+    </Target>
+
 </Project>
