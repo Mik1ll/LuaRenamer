@@ -45,7 +45,7 @@
         <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
         <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
 
-        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(OutDir)LuaRenamer_$(GitVerTag)_Win.zip" Overwrite="true"/>
-        <ZipDirectory SourceDirectory="$(OutDir)LinuxOut" DestinationFile="$(OutDir)LuaRenamer_$(GitVerTag)_Linux.zip" Overwrite="true"/>
+        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win.zip" Overwrite="true"/>
+        <ZipDirectory SourceDirectory="$(OutDir)LinuxOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Linux.zip" Overwrite="true"/>
     </Target>
 </Project>

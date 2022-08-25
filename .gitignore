@@ -338,4 +338,5 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
-/ScriptRenamer/Properties/launchSettings.json
+
+/LuaRenamer*.zip
