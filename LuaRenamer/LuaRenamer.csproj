@@ -6,21 +6,31 @@
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="KeraLua" Version="1.3.3"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.0"/>
-        <PackageReference Include="NLua" Version="1.6.0" />
+        <PackageReference Include="NLua" Version="1.6.0"/>
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.4.0-alpha3">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="lua\**\*.*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
+    <Target Name="PackageForRelease" AfterTargets="Build">
+        <ItemGroup>
+            <LuaOut Include="lua/**/*.*"/>
+            <WindowsOut Include="$(OutDir)runtimes/win-x64/native/lua54.dll"/>
+            <LinuxOut Include="docker_build/liblua54.so"/>
+            <SharedOut Include="$(OutDir)LuaRenamer.*;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" Exclude="$(OutDir)LuaRenamer.run*;$(OutDir)LuaRenamer.deps*"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LinuxOut);@(SharedOut)" DestinationFolder="$(OutDir)LinuxOut" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
+    </Target>
+
 </Project>

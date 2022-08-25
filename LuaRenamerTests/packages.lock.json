@@ -59,8 +59,8 @@
       },
       "KeraLua": {
         "type": "Transitive",
-        "resolved": "1.3.1",
-        "contentHash": "DSZkJx3+9YmJONylrJY2xvjmBBT6oPZO1Iv+MBZh4Ta8KsYewKmpp5n+yW2J5vkIxkJ1yxiQuHE+iKw25Kw6GA=="
+        "resolved": "1.3.3",
+        "contentHash": "/0pik4ActHYW5SKeJRbEukYQWlhAkAa289e4hpaFWXWJrFAy70cPTU8JYR6tKlhEIMkHCFMAhyiF30Cxje/Hyg=="
       },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
@@ -1233,6 +1233,7 @@
       "luarenamer": {
         "type": "Project",
         "dependencies": {
+          "KeraLua": "1.3.3",
           "Microsoft.Extensions.Logging.Abstractions": "2.1.0",
           "NLua": "1.6.0",
           "Shoko.Plugin.Abstractions": "2.4.0-alpha3"
