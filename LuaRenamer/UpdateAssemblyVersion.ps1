@@ -11,8 +11,9 @@ function getVersion()
 }
 
 
-function SetVersion ($file, $version)
+function SetVersion ($version)
 {
+    $file = "AssemblyInfo.cs"
     "Changing version in $file to $version"
     $fileObject = get-item $file
 
@@ -29,4 +30,4 @@ function SetVersion ($file, $version)
 
 # First get tag from Git
 $version = getVersion
-Setversion $args[0] $version
+Setversion $version
