@@ -57,7 +57,7 @@
             <LuaOut Include="lua/**/*.*"/>
             <WindowsOut Include="$(OutDir)runtimes/win-x64/native/lua54.dll"/>
             <LinuxOut Include="docker_build/liblua54.so"/>
-            <SharedOut Include="$(OutDir)LuaRenamer.*;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" Exclude="$(OutDir)LuaRenamer.run*;$(OutDir)LuaRenamer.deps*"/>
+            <SharedOut Include="$(OutDir)LuaRenamer.dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll"/>
         </ItemGroup>
         <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut" SkipUnchangedFiles="true"/>
         <Copy SourceFiles="@(LinuxOut);@(SharedOut)" DestinationFolder="$(OutDir)LinuxOut" SkipUnchangedFiles="true"/>
@@ -66,5 +66,10 @@
 
         <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win.zip" Overwrite="true"/>
         <ZipDirectory SourceDirectory="$(OutDir)LinuxOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Linux.zip" Overwrite="true"/>
+        <RemoveDir Directories="$(OutDir)WindowsOut;$(OutDir)LinuxOut"/>
+    </Target>
+
+    <Target Name="Cleaner" AfterTargets="AfterClean">
+        <RemoveDir Directories="$(OutDir)"/>
     </Target>
 </Project>
