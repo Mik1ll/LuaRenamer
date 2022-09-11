@@ -60,10 +60,10 @@
             <LinuxOut Include="docker_build/liblua54.so"/>
             <SharedOut Include="$(OutDir)LuaRenamer.dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll"/>
         </ItemGroup>
-        <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut" SkipUnchangedFiles="true"/>
-        <Copy SourceFiles="@(LinuxOut);@(SharedOut)" DestinationFolder="$(OutDir)LinuxOut" SkipUnchangedFiles="true"/>
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LinuxOut);@(SharedOut)" DestinationFolder="$(OutDir)LinuxOut/LuaRenamer" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true"/>
 
         <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win.zip" Overwrite="true"/>
         <ZipDirectory SourceDirectory="$(OutDir)LinuxOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Linux.zip" Overwrite="true"/>
