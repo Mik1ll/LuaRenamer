@@ -72,17 +72,31 @@ namespace LuaRenamer
                 EpisodeInfo = args.EpisodeInfo,
                 Script = args.Script
             };
-            CheckBadArgs();
-            var result = GetInfo();
-            return result?.filename;
+            try
+            {
+                CheckBadArgs();
+                var result = GetInfo();
+                return result?.filename;
+            }
+            catch (Exception e)
+            {
+                return $"*Error: {e.Message}";
+            }
         }
 
         public (IImportFolder? destination, string? subfolder) GetDestination(MoveEventArgs args)
         {
             Args = args;
-            CheckBadArgs();
-            var result = GetInfo();
-            return (result?.destination, result?.subfolder);
+            try
+            {
+                CheckBadArgs();
+                var result = GetInfo();
+                return (result?.destination, result?.subfolder);
+            }
+            catch (Exception e)
+            {
+                return (null, $"*Error: {e.Message}");
+            }
         }
 
         public (string filename, IImportFolder destination, string subfolder)? GetInfo()
