@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using LuaRenamer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -232,33 +232,6 @@ end",
         }
 
         [TestMethod]
-        public void TestSandbox()
-        {
-            var args = Args();
-            args.Script = new RenameScriptImpl
-            {
-                Script = $@"{LuaEnv.TitleType}.{nameof(TitleType.Main)} = 25
-",
-                Type = nameof(LuaRenamer.LuaRenamer),
-                ExtraData = null
-            };
-            try
-            {
-                var renamer = new LuaRenamer.LuaRenamer(Logmock)
-                {
-                    Args = args
-                };
-                renamer.GetInfo();
-            }
-            catch (LuaException ex)
-            {
-                Assert.IsTrue(ex.Message.Contains("attempt to update a read-only table"));
-                return;
-            }
-            Assert.Fail("Should have thrown an LuaException with access readonly error");
-        }
-
-        [TestMethod]
         public void TestLuaLinq()
         {
             var args = Args();
@@ -361,6 +334,16 @@ end",
         public void TestLogAbstractionVersion()
         {
             Assert.AreEqual("2.1.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
+        }
+
+
+        [TestMethod]
+        public void TestBenchmark()
+        {
+            foreach (var i in Enumerable.Range(0, 1000))
+            {
+                TestStringMethod();
+            }
         }
     }
 }

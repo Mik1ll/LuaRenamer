@@ -7,22 +7,20 @@ namespace LuaRenamer
 {
     public static class LuaExtensions
     {
-        public static void AddObject(this Lua lua, LuaTable env, object? obj, string name, Dictionary<object, LuaTable>? cache = null)
+        public static void AddObject(this LuaContext lua, LuaTable env, object? obj, string name, Dictionary<object, LuaTable>? cache = null)
         {
             cache ??= new Dictionary<object, LuaTable>();
             env[name] = AddHelper(lua, cache, obj);
         }
 
-        // TODO: convert enum to a unique string
-        private static object? AddHelper(Lua lua, Dictionary<object, LuaTable> cache, object? obj) => obj switch
+        private static object? AddHelper(LuaContext lua, Dictionary<object, LuaTable> cache, object? obj) => obj switch
         {
             IDictionary d => DictIteration(lua, cache, d),
             IList e => ListIteration(lua, cache, e),
-            Enum e => Convert.ToInt64(e),
             _ => obj
         };
 
-        private static LuaTable DictIteration(Lua lua, Dictionary<object, LuaTable> cache, IDictionary dict)
+        private static LuaTable DictIteration(LuaContext lua, Dictionary<object, LuaTable> cache, IDictionary dict)
         {
             if (cache.TryGetValue(dict, out var luaTable))
                 return luaTable;
@@ -31,12 +29,12 @@ namespace LuaRenamer
             cache[dict] = tab;
             foreach (DictionaryEntry entry in dict)
             {
-                tab[entry.Key is Enum e ? Convert.ToInt64(e) : entry.Key] = AddHelper(lua, cache, entry.Value);
+                tab[entry.Key] = AddHelper(lua, cache, entry.Value);
             }
             return tab;
         }
 
-        private static LuaTable ListIteration(Lua lua, Dictionary<object, LuaTable> cache, IEnumerable list)
+        private static LuaTable ListIteration(LuaContext lua, Dictionary<object, LuaTable> cache, IEnumerable list)
         {
             if (cache.TryGetValue(list, out var luaTable))
                 return luaTable;
@@ -51,9 +49,6 @@ namespace LuaRenamer
             }
             return tab;
         }
-
-        public static LuaTable CreateEnv(this Lua lua, IEnumerable<string> envBuilder) =>
-            (LuaTable)lua.DoString($"r = {{{string.Join("", envBuilder)}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
 
         public static Dictionary<string, object> ToTable(this DateTime dt)
         {
