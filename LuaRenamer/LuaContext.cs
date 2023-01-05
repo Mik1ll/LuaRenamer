@@ -161,8 +161,13 @@ end
             Dictionary<string, string> ConvertEnum<T>() =>
                 Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
+            var traversed = new List<int>{};
             Dictionary<string, object?> ConvertAnime(IAnime anime)
             {
+                if (traversed.Contains(anime.AnimeID)) {
+                    return new Dictionary<string, object?>{};
+                }
+                traversed.Add(anime.AnimeID);
                 return new Dictionary<string, object?>
                 {
                     { LuaEnv.anime.airdate, anime.AirDate?.ToTable() },
