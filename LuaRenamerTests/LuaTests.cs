@@ -56,6 +56,48 @@ namespace LuaRenamerTests
                                 Language = TitleLanguage.English,
                                 Type = TitleType.Main
                             }
+                        } &&
+                        a.Relations == new List<IRelatedAnime>
+                        {
+                            Mock.Of<IRelatedAnime>(ira =>
+                                ira.RelatedAnime == Mock.Of<IAnime>(ra => 
+                                    ra.AnimeID == 643 &&
+                                    ra.PreferredTitle == "prefSequelTitle" &&
+                                    ra.Restricted &&
+                                    a.Type == AnimeType.Movie &&
+                                    a.EpisodeCounts == new EpisodeCounts { Episodes = 4 } &&
+                                    a.AirDate == new DateTime(2002, 2, 24) &&
+                                    a.Titles == new List<AnimeTitle>
+                                    {
+                                        new()
+                                        {
+                                            Title = "sequelTitle1",
+                                            Language = TitleLanguage.English,
+                                            Type = TitleType.Short
+                                        },
+                                        new()
+                                        {
+                                            Title = "sequelTitle2",
+                                            Language = TitleLanguage.Japanese,
+                                            Type = TitleType.Official
+                                        },
+                                        new()
+                                        {
+                                            Title = "sequelTitle3",
+                                            Language = TitleLanguage.Romaji,
+                                            Type = TitleType.Synonym
+                                        },
+                                        new()
+                                        {
+                                            Title = "sequelTitle4",
+                                            Language = TitleLanguage.English,
+                                            Type = TitleType.Main
+                                        }
+                                    } &&
+                                    a.Relations == new List<IRelatedAnime>{}
+                                ) &&
+                                ira.RelationType == RelationType.Sequel
+                            )
                         }
                     )
                 },

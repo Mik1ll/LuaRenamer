@@ -50,6 +50,14 @@ namespace LuaRenamer
             public const string getnameFn = N + ":" + getname;
             public const string episodecounts = nameof(episodecounts);
             public const string episodecountsFn = N + "." + episodecounts;
+            public const string relations = nameof(relations);
+            public const string relationsFn = N + "." + relations;
+        }
+
+        public static class relatedanime
+        {
+            public const string anime = nameof(anime);
+            public const string relationtype = nameof(relationtype);
         }
 
         public static class title

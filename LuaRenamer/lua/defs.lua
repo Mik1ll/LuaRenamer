@@ -76,7 +76,13 @@ local Audio = {}
 ---@field id integer
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
+---@field relations RelatedAnime[]
 local Anime = {}
+
+---@class RelatedAnime
+---@field anime Anime
+---@field relationtype RelationType
+local RelatedAnime = {}
 
 ---@class Title
 ---@field name string
@@ -147,6 +153,21 @@ AnimeType = {
   TVSpecial = "TVSpecial",
   Web = "Web",
   Other = "Other"
+}
+
+---@alias RelationType "'Other'" | "'SameSetting'" | "'AlternativeSetting'" | "'AlternativeVersion'" | "'SharedCharacters'" | "'Prequel'" | "'MainStory'" | "'FullStory'" | "'Sequel'" | "'SideStory'" | "'Summary'"
+RelationType = {
+  Other = "Other",
+  SameSetting = "SameSetting",
+  AlternativeSetting = "AlternativeSetting",
+  AlternativeVersion = "AlternativeVersion",
+  SharedCharacters = "SharedCharacters",
+  Prequel = "Prequel",
+  MainStory = "MainStory",
+  FullStory = "FullStory",
+  Sequel = "Sequel",
+  SideStory = "SideStory",
+  Summary = "Summary"
 }
 
 ---@alias EpisodeType "'Episode'" | "'Credits'" | "'Special'" | "'Trailer'" | "'Parody'" | "'Other'"
