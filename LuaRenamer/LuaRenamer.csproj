@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -45,9 +45,7 @@
             </AssemblyAttributes>
         </ItemGroup>
         <MakeDir Directories="$(IntermediateOutputPath)" />
-        <WriteCodeFragment Language="C#"
-                           OutputFile="$(GeneratedAssemblyInfoFile)"
-                           AssemblyAttributes="@(AssemblyAttributes)" />
+        <WriteCodeFragment Language="C#" OutputFile="$(GeneratedAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
         <ItemGroup>
             <Compile Include="$(GeneratedAssemblyInfoFile)" />
         </ItemGroup>

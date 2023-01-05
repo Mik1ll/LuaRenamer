@@ -76,6 +76,7 @@ local Audio = {}
 ---@field id integer
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
+---@field relations Relation[]
 local Anime = {}
 
 ---@class Title
@@ -116,9 +117,14 @@ local ImportFolder = {}
 
 ---@class Group
 ---@field name string
----@field mainseriesid? integer
----@field seriesids integer[]
+---@field mainanime? Anime
+---@field animes Anime[]
 local Group = {}
+
+---@class Relation
+---@field type RelationType
+---@field anime Anime
+local Relation = {}
 
 ---@param self Anime|Episode
 ---@param lang Language
@@ -221,6 +227,21 @@ Language = {
   Basque = "Basque",
   Bengali = "Bengali",
   Bosnian = "Bosnian"
+}
+
+---@alias RelationType "'Other'" | "'SameSetting'" | "'AlternativeSetting'" | "'AlternativeVersion'" | "'SharedCharacters'" | "'Prequel'" | "'MainStory'" | "'FullStory'" | "'Sequel'" | "'SideStory'" | "'Summary'"
+RelationType = {
+  Other = "Other",
+  SameSetting = "SameSetting",
+  AlternativeSetting = "AlternativeSetting",
+  AlternativeVersion = "AlternativeVersion",
+  SharedCharacters = "SharedCharacters",
+  Prequel = "Prequel",
+  MainStory = "MainStory",
+  FullStory = "FullStory",
+  Sequel = "Sequel",
+  SideStory = "SideStory",
+  Summary = "Summary"
 }
 
 --#endregion enumerations

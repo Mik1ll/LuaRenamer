@@ -161,29 +161,47 @@ end
             Dictionary<string, string> ConvertEnum<T>() =>
                 Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
-            var animes = _args.AnimeInfo.Select(a => new Dictionary<string, object?>
+            Dictionary<int, Dictionary<string, object?>?> animeCache = new();
+
+            Dictionary<string, object?> AnimeToDict(IAnime a)
             {
-                { LuaEnv.anime.airdate, a.AirDate?.ToTable() },
-                { LuaEnv.anime.enddate, a.EndDate?.ToTable() },
-                { LuaEnv.anime.rating, a.Rating },
-                { LuaEnv.anime.restricted, a.Restricted },
-                { LuaEnv.anime.type, a.Type.ToString() },
-                { LuaEnv.anime.preferredname, a.PreferredTitle },
-                { LuaEnv.anime.id, a.AnimeID },
-                { LuaEnv.anime.titles, ConvertTitles(a.Titles) },
-                { LuaEnv.anime.getname, _functions.Title },
+                if (a == null) throw new ArgumentNullException(nameof(a));
+                if (animeCache.TryGetValue(a.AnimeID, out var val) && val is not null) return val;
+                animeCache[a.AnimeID] = null;
+                return animeCache[a.AnimeID] = new Dictionary<string, object?>
                 {
-                    LuaEnv.anime.episodecounts, new Dictionary<string, int>
+                    { LuaEnv.anime.airdate, a.AirDate?.ToTable() },
+                    { LuaEnv.anime.enddate, a.EndDate?.ToTable() },
+                    { LuaEnv.anime.rating, a.Rating },
+                    { LuaEnv.anime.restricted, a.Restricted },
+                    { LuaEnv.anime.type, a.Type.ToString() },
+                    { LuaEnv.anime.preferredname, a.PreferredTitle },
+                    { LuaEnv.anime.id, a.AnimeID },
+                    { LuaEnv.anime.titles, ConvertTitles(a.Titles) },
+                    { LuaEnv.anime.getname, _functions.Title },
                     {
-                        { EpisodeType.Episode.ToString(), a.EpisodeCounts.Episodes },
-                        { EpisodeType.Special.ToString(), a.EpisodeCounts.Specials },
-                        { EpisodeType.Credits.ToString(), a.EpisodeCounts.Credits },
-                        { EpisodeType.Trailer.ToString(), a.EpisodeCounts.Trailers },
-                        { EpisodeType.Other.ToString(), a.EpisodeCounts.Others },
-                        { EpisodeType.Parody.ToString(), a.EpisodeCounts.Parodies }
+                        LuaEnv.anime.episodecounts, new Dictionary<string, int>
+                        {
+                            { EpisodeType.Episode.ToString(), a.EpisodeCounts.Episodes },
+                            { EpisodeType.Special.ToString(), a.EpisodeCounts.Specials },
+                            { EpisodeType.Credits.ToString(), a.EpisodeCounts.Credits },
+                            { EpisodeType.Trailer.ToString(), a.EpisodeCounts.Trailers },
+                            { EpisodeType.Other.ToString(), a.EpisodeCounts.Others },
+                            { EpisodeType.Parody.ToString(), a.EpisodeCounts.Parodies }
+                        }
+                    },
+                    {
+                        LuaEnv.anime.relations.N, a.Relations.Where(r => r.RelatedAnime is not null && r.RelatedAnime.AnimeID != a.AnimeID)
+                            .Select(r => new Dictionary<string, object?>
+                            {
+                                { LuaEnv.anime.relations.type, r.RelationType.ToString() },
+                                { LuaEnv.anime.relations.anime, AnimeToDict(r.RelatedAnime) }
+                            }).ToList()
                     }
-                }
-            }).ToList();
+                };
+            }
+
+            var animes = _args.AnimeInfo.Select(AnimeToDict).ToList();
             var anidb = _args.FileInfo.AniDBFileInfo is null
                 ? null
                 : new Dictionary<string, object?>
@@ -306,9 +324,8 @@ end
             var groups = _args.GroupInfo.Select(g => new Dictionary<string, object?>
             {
                 { LuaEnv.group.name, g.Name },
-                // Just give Ids, subject to change if there is ever a reason to use more.
-                { LuaEnv.group.mainseriesid, g.MainSeries?.AnimeID },
-                { LuaEnv.group.seriesids, g.Series.Select(s => s.AnimeID).ToList() }
+                { LuaEnv.group.mainanime, g.MainSeries is null ? null : AnimeToDict(g.MainSeries) },
+                { LuaEnv.group.animes, g.Series.Select(AnimeToDict) }
             }).ToList();
             return new Dictionary<string, object?>
             {
@@ -343,6 +360,7 @@ end
                 { LuaEnv.Language, ConvertEnum<TitleLanguage>() },
                 { LuaEnv.EpisodeType, ConvertEnum<EpisodeType>() },
                 { LuaEnv.ImportFolderType, ConvertEnum<DropFolderType>() },
+                { LuaEnv.RelationType, ConvertEnum<RelationType>() }
             };
         }
     }

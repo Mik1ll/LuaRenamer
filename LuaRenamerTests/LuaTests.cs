@@ -19,45 +19,49 @@ namespace LuaRenamerTests
     {
         private static MoveEventArgs Args()
         {
+            var animeMock = Mock.Of<IAnime>(a =>
+                a.AnimeID == 532 &&
+                a.PreferredTitle == "prefTitle" &&
+                a.Restricted &&
+                a.Type == AnimeType.Movie &&
+                a.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
+                a.AirDate == new DateTime(2001, 1, 20) &&
+                a.Titles == new List<AnimeTitle>
+                {
+                    new()
+                    {
+                        Title = "animeTitle1",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Short
+                    },
+                    new()
+                    {
+                        Title = "animeTitle2",
+                        Language = TitleLanguage.Japanese,
+                        Type = TitleType.Official
+                    },
+                    new()
+                    {
+                        Title = "animeTitle3",
+                        Language = TitleLanguage.Romaji,
+                        Type = TitleType.Synonym
+                    },
+                    new()
+                    {
+                        Title = "animeTitle4",
+                        Language = TitleLanguage.English,
+                        Type = TitleType.Main
+                    }
+                } &&
+                a.Relations == new List<IRelatedAnime>()
+            );
+            ((List<IRelatedAnime>)animeMock.Relations).Add(Mock.Of<IRelatedAnime>(r => r.RelationType == RelationType.Other &&
+                                                                                       r.RelatedAnime == animeMock));
             return new MoveEventArgs
             {
                 AnimeInfo = new List<IAnime>
                 {
-                    Mock.Of<IAnime>(a =>
-                        a.AnimeID == 532 &&
-                        a.PreferredTitle == "prefTitle" &&
-                        a.Restricted &&
-                        a.Type == AnimeType.Movie &&
-                        a.EpisodeCounts == new EpisodeCounts { Episodes = 20 } &&
-                        a.AirDate == new DateTime(2001, 1, 20) &&
-                        a.Titles == new List<AnimeTitle>
-                        {
-                            new()
-                            {
-                                Title = "animeTitle1",
-                                Language = TitleLanguage.English,
-                                Type = TitleType.Short
-                            },
-                            new()
-                            {
-                                Title = "animeTitle2",
-                                Language = TitleLanguage.Japanese,
-                                Type = TitleType.Official
-                            },
-                            new()
-                            {
-                                Title = "animeTitle3",
-                                Language = TitleLanguage.Romaji,
-                                Type = TitleType.Synonym
-                            },
-                            new()
-                            {
-                                Title = "animeTitle4",
-                                Language = TitleLanguage.English,
-                                Type = TitleType.Main
-                            }
-                        }
-                    )
+                    animeMock
                 },
                 FileInfo = Mock.Of<IVideoFile>(file =>
                     file.Hashes == Mock.Of<IHashes>(hashes =>
@@ -129,7 +133,7 @@ namespace LuaRenamerTests
                 },
                 GroupInfo = new List<IGroup>
                 {
-                    Mock.Of<IGroup>(x => x.Name == "groupname" && x.MainSeries == Mock.Of<IAnime>(a => a.AnimeID == 3523) && x.Series == new List<IAnime>())
+                    Mock.Of<IGroup>(x => x.Name == "groupname" && x.MainSeries == animeMock && x.Series == new List<IAnime> { animeMock })
                 }
             };
         }

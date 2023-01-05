@@ -3,6 +3,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberHidesStaticFromOuterClass
 
+#pragma warning disable CS8981
 namespace LuaRenamer
 {
     public static class LuaEnv
@@ -22,6 +23,7 @@ namespace LuaRenamer
         public const string Language = nameof(Language);
         public const string EpisodeType = nameof(EpisodeType);
         public const string ImportFolderType = nameof(ImportFolderType);
+        public const string RelationType = nameof(RelationType);
         public const string episode_numbers = nameof(episode_numbers);
         public const string log = nameof(log);
         public const string logwarn = nameof(logwarn);
@@ -50,7 +52,18 @@ namespace LuaRenamer
             public const string getnameFn = N + ":" + getname;
             public const string episodecounts = nameof(episodecounts);
             public const string episodecountsFn = N + "." + episodecounts;
+
+            public static class relations
+            {
+                public const string N = nameof(relations);
+                public const string Fn = LuaEnv.anime.N + "." + N;
+                public const string anime = nameof(anime);
+                public const string animeFn = Fn + "." + anime;
+                public const string type = nameof(type);
+                public const string typeFn = Fn + "." + type;
+            }
         }
+
 
         public static class title
         {
@@ -227,8 +240,8 @@ namespace LuaRenamer
         {
             public const string N = nameof(group);
             public const string name = nameof(name);
-            public const string mainseriesid = nameof(mainseriesid);
-            public const string seriesids = nameof(seriesids);
+            public const string mainanime = nameof(mainanime);
+            public const string animes = nameof(animes);
         }
     }
 }
