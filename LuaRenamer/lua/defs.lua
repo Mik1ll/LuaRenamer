@@ -1,4 +1,12 @@
+---@meta
+
 --#region class definitions
+
+---@param self Anime|Episode
+---@param lang Language
+---@param include_unofficial? boolean
+---@return string?
+function getname(self, lang, include_unofficial) end
 
 ---@class File
 ---@field name string
@@ -77,7 +85,9 @@ local Audio = {}
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
 ---@field relations Relation[]
-local Anime = {}
+local Anime = {
+  getname = getname
+}
 
 ---@class Title
 ---@field name string
@@ -107,7 +117,9 @@ local DateTime = {}
 ---@field animeid integer
 ---@field id integer
 ---@field titles Title[]
-local Episode = {}
+local Episode = {
+  getname = getname
+}
 
 ---@class ImportFolder
 ---@field name string
@@ -126,18 +138,11 @@ local Group = {}
 ---@field anime Anime
 local Relation = {}
 
----@param self Anime|Episode
----@param lang Language
----@param include_unofficial? boolean
----@return string? name
-function Episode.getname(self, lang, include_unofficial) end
-Anime.getname = Episode.getname
-
 --#endregion class definitions
 
 --#region enumerations
 
----@alias ImportFolderType "'Excluded'" | "'Source'" | "'Destination'" | "'Both'"
+---@enum ImportFolderType
 ImportFolderType = {
   Excluded = "Excluded",
   Source = "Source",
@@ -145,7 +150,7 @@ ImportFolderType = {
   Both = "Both"
 }
 
----@alias AnimeType "'Movie'" | "'OVA'" | "'TVSeries'" | "'TVSpecial'" | "'Web'" | "'Other'"
+---@enum AnimeType
 AnimeType = {
   Movie = "Movie",
   OVA = "OVA",
@@ -155,7 +160,7 @@ AnimeType = {
   Other = "Other"
 }
 
----@alias EpisodeType "'Episode'" | "'Credits'" | "'Special'" | "'Trailer'" | "'Parody'" | "'Other'"
+---@enum EpisodeType
 EpisodeType = {
   Episode = "Episode",
   Credits = "Credits",
@@ -165,7 +170,7 @@ EpisodeType = {
   Other = "Other"
 }
 
----@alias TitleType "'None'" | "'Main'" | "'Official'" | "'Short'" | "'Synonym'" | "'TitleCard'" | "'KanjiReading'"
+---@enum TitleType
 TitleType = {
   None = "None",
   Main = "Main",
@@ -176,7 +181,7 @@ TitleType = {
   KanjiReading = "KanjiReading"
 }
 
----@alias Language "'Unknown'" | "'English'" | "'Romaji'" | "'Japanese'" | "'Afrikaans'" | "'Arabic'" | "'Bangladeshi'" | "'Bulgarian'" | "'FrenchCanadian'" | "'Czech'" | "'Danish'" | "'German'" | "'Greek'" | "'Spanish'" | "'Estonian'" | "'Finnish'" | "'French'" | "'Galician'" | "'Hebrew'" | "'Hungarian'" | "'Italian'" | "'Korean'" | "'Lithuania'" | "'Mongolian'" | "'Malaysian'" | "'Dutch'" | "'Norwegian'" | "'Polish'" | "'Portuguese'" | "'BrazilianPortuguese'" | "'Romanian'" | "'Russian'" | "'Slovak'" | "'Slovenian'" | "'Serbian'" | "'Swedish'" | "'Thai'" | "'Turkish'" | "'Ukrainian'" | "'Vietnamese'" | "'Chinese'" | "'ChineseSimplified'" | "'ChineseTraditional'" | "'Pinyin'" | "'Latin'" | "'Albanian'" | "'Basque'" | "'Bengali'" | "'Bosnian'"
+---@enum Language
 Language = {
   Unknown = "Unknown",
   English = "English",
@@ -229,7 +234,7 @@ Language = {
   Bosnian = "Bosnian"
 }
 
----@alias RelationType "'Other'" | "'SameSetting'" | "'AlternativeSetting'" | "'AlternativeVersion'" | "'SharedCharacters'" | "'Prequel'" | "'MainStory'" | "'FullStory'" | "'Sequel'" | "'SideStory'" | "'Summary'"
+---@enum RelationType
 RelationType = {
   Other = "Other",
   SameSetting = "SameSetting",

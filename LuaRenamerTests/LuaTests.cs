@@ -344,7 +344,7 @@ end",
         [TestMethod]
         public void TestBenchmark()
         {
-            foreach (var i in Enumerable.Range(0, 1000))
+            foreach (var _ in Enumerable.Range(0, 1000))
             {
                 TestStringMethod();
             }
