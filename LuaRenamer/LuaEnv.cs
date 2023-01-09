@@ -88,7 +88,7 @@ public static class LuaEnv
         public const string isdst = nameof(isdst);
     }
 
-    public static class file
+    public static class @file
     {
         public const string N = nameof(file);
         public const string Fn = N;
