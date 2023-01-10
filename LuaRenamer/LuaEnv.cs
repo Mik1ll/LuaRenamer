@@ -3,6 +3,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberHidesStaticFromOuterClass
 
+#pragma warning disable CS8981
 namespace LuaRenamer;
 
 public static class LuaEnv
