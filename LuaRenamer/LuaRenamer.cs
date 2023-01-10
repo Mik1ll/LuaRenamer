@@ -166,7 +166,7 @@ namespace LuaRenamer
                         throw new ArgumentException($"could not find destination folder by name or path: {str}");
                     break;
                 case LuaTable destTable:
-                    if ((string)destTable[LuaEnv.importfolder._classid] == "55138454-4A0D-45EB-8CCE-1CCF00220165")
+                    if ((string)destTable[LuaEnv.importfolder._classid] == LuaEnv.importfolder._classidVal)
                         destfolder = Args.AvailableFolders[Convert.ToInt32(destTable[LuaEnv.importfolder._index])];
                     else
                         throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");

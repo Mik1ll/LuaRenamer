@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -74,7 +75,8 @@ end
 
         #region Lua Function Bindings
 
-        private record LuaFunctions(LuaFunction RunSandbox, LuaFunction Title, LuaFunction Log, LuaFunction LogWarn, LuaFunction LogError, LuaFunction EpNums);
+        private record LuaFunctions(LuaFunction RunSandbox, LuaFunction GetName, LuaFunction Log, LuaFunction LogWarn, LuaFunction LogError,
+            LuaFunction EpNums);
 
         #region Logger Binding
 
@@ -87,14 +89,25 @@ end
 
         #endregion
 
-        private static readonly string TitleFunction = $@"
-return function (self, language, allow_unofficial)
-  local titles = from(self.{LuaEnv.anime.titles}):where(function (a) return a.{LuaEnv.title.language} == language; end)
-                                  :orderby(function (a) return ({{ {nameof(TitleType.Main)} = 0, {nameof(TitleType.Official)} = 1, {nameof(TitleType.Synonym)} = 2, {nameof(TitleType.Short)} = 3, {nameof(TitleType.None)} = 4 }})[a.{LuaEnv.title.type}] end)
-  local title = allow_unofficial and titles:first() or titles:where(function (a) return ({{ {nameof(TitleType.Main)} = true, {nameof(TitleType.Official)} = true, {nameof(TitleType.None)} = true }})[a.{LuaEnv.title.type}] end):first()
-  if title then return title.{LuaEnv.title.name} end
-end
-";
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        private string? GetName(LuaTable anime_or_episode, string language, bool allow_unofficial = false)
+        {
+            var titles = (string)anime_or_episode[LuaEnv.anime._classid] switch
+            {
+                LuaEnv.anime._classidVal => _args.AnimeInfo.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.AnimeID).Titles,
+                LuaEnv.episode._classidVal => _args.EpisodeInfo.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.EpisodeID).Titles,
+                _ => throw new ArgumentException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
+            };
+            var lang = Enum.Parse<TitleLanguage>(language);
+            var title = titles
+                .OrderBy(t => t.Type == TitleType.None ? int.MaxValue : (int)t.Type)
+                .Where(t => t.Language == lang && t.Type is TitleType.Main or TitleType.Official or TitleType.None ||
+                            allow_unofficial && t.Type is TitleType.Synonym).Select(t => t.Title).FirstOrDefault();
+            return title;
+        }
+
+        private static readonly MethodInfo GetNameMethod =
+            typeof(LuaContext).GetMethod(nameof(GetName), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
         private string EpNums(int pad) => _args.EpisodeInfo.Where(e => e.AnimeID == _args.AnimeInfo.First().AnimeID)
             .OrderBy(e => e.Number)
@@ -126,7 +139,7 @@ end
             DoFile(LuaLinqLocation);
             _functions = new LuaFunctions(
                 (LuaFunction)DoString(SandboxFunction)[0],
-                (LuaFunction)DoString(TitleFunction)[0],
+                RegisterFunction(LuaEnv.anime.getname, this, GetNameMethod),
                 RegisterFunction(LuaEnv.log, this, LogMethod),
                 RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod),
                 RegisterFunction(LuaEnv.logerror, this, LogErrorMethod),
@@ -178,7 +191,8 @@ end
                     { LuaEnv.anime.preferredname, a.PreferredTitle },
                     { LuaEnv.anime.id, a.AnimeID },
                     { LuaEnv.anime.titles, ConvertTitles(a.Titles) },
-                    { LuaEnv.anime.getname, _functions.Title },
+                    { LuaEnv.anime.getname, _functions.GetName },
+                    { LuaEnv.anime._classid, LuaEnv.anime._classidVal },
                     {
                         LuaEnv.anime.episodecounts, new Dictionary<string, int>
                         {
@@ -285,7 +299,7 @@ end
                 { LuaEnv.importfolder.name, f.Name },
                 { LuaEnv.importfolder.location, f.Location },
                 { LuaEnv.importfolder.type, f.DropFolderType.ToString() },
-                { LuaEnv.importfolder._classid, "55138454-4A0D-45EB-8CCE-1CCF00220165" },
+                { LuaEnv.importfolder._classid, LuaEnv.importfolder._classidVal },
                 { LuaEnv.importfolder._index, i }
             }).ToList();
             var file = new Dictionary<string, object?>
@@ -318,8 +332,9 @@ end
                 { LuaEnv.episode.animeid, e.AnimeID },
                 { LuaEnv.episode.id, e.EpisodeID },
                 { LuaEnv.episode.titles, ConvertTitles(e.Titles) },
-                { LuaEnv.episode.getname, _functions.Title },
-                { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] }
+                { LuaEnv.episode.getname, _functions.GetName },
+                { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] },
+                { LuaEnv.episode._classid, LuaEnv.episode._classidVal }
             }).ToList();
             var groups = _args.GroupInfo.Select(g => new Dictionary<string, object?>
             {

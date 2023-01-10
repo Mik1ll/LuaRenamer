@@ -54,6 +54,10 @@ public static class LuaEnv
         public const string getnameFn = Fn + ":" + getname;
         public const string episodecounts = nameof(episodecounts);
         public const string episodecountsFn = Fn + "." + episodecounts;
+        public const string _classid = nameof(_classid);
+        public const string _classidFn = Fn + "." + _classid;
+        public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
+
 
         public static class relations
         {
@@ -238,6 +242,9 @@ public static class LuaEnv
         public const string getnameFn = Fn + ":" + getname;
         public const string prefix = nameof(prefix);
         public const string prefixFn = Fn + "." + prefix;
+        public const string _classid = nameof(_classid);
+        public const string _classidFn = Fn + "." + _classid;
+        public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
     }
 
     public static class importfolder
@@ -246,6 +253,7 @@ public static class LuaEnv
         public const string location = nameof(location);
         public const string type = nameof(type);
         public const string _classid = nameof(_classid);
+        public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
         public const string _index = nameof(_index);
     }
 
