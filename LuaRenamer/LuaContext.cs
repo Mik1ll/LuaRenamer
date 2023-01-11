@@ -174,13 +174,12 @@ end
             Dictionary<string, string> ConvertEnum<T>() =>
                 Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
-            Dictionary<int, Dictionary<string, object?>?> animeCache = new();
+            Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
-            Dictionary<string, object?> AnimeToDict(IAnime a)
+            Dictionary<string, object?> AnimeToDict(IAnime a, bool ignoreRelations = false)
             {
                 if (a == null) throw new ArgumentNullException(nameof(a));
-                if (animeCache.TryGetValue(a.AnimeID, out var val) && val is not null) return val;
-                animeCache[a.AnimeID] = null;
+                if (animeCache.TryGetValue(a.AnimeID, out var val)) return val;
                 return animeCache[a.AnimeID] = new Dictionary<string, object?>
                 {
                     { LuaEnv.anime.airdate, a.AirDate?.ToTable() },
@@ -205,17 +204,19 @@ end
                         }
                     },
                     {
-                        LuaEnv.anime.relations.N, a.Relations.Where(r => r.RelatedAnime is not null && r.RelatedAnime.AnimeID != a.AnimeID)
-                            .Select(r => new Dictionary<string, object?>
-                            {
-                                { LuaEnv.anime.relations.type, r.RelationType.ToString() },
-                                { LuaEnv.anime.relations.anime, AnimeToDict(r.RelatedAnime) }
-                            }).ToList()
+                        LuaEnv.anime.relations.N, ignoreRelations
+                            ? new List<Dictionary<string, object?>>()
+                            : a.Relations.Where(r => r.RelatedAnime is not null && r.RelatedAnime.AnimeID != a.AnimeID)
+                                .Select(r => new Dictionary<string, object?>
+                                {
+                                    { LuaEnv.anime.relations.type, r.RelationType.ToString() },
+                                    { LuaEnv.anime.relations.anime, AnimeToDict(r.RelatedAnime, true) }
+                                }).ToList()
                     }
                 };
             }
 
-            var animes = _args.AnimeInfo.Select(AnimeToDict).ToList();
+            var animes = _args.AnimeInfo.Select(a => AnimeToDict(a)).ToList();
             var anidb = _args.FileInfo.AniDBFileInfo is null
                 ? null
                 : new Dictionary<string, object?>
@@ -340,7 +341,7 @@ end
             {
                 { LuaEnv.group.name, g.Name },
                 { LuaEnv.group.mainanime, g.MainSeries is null ? null : AnimeToDict(g.MainSeries) },
-                { LuaEnv.group.animes, g.Series.Select(AnimeToDict) }
+                { LuaEnv.group.animes, g.Series.Select(a => AnimeToDict(a)) }
             }).ToList();
             return new Dictionary<string, object?>
             {
