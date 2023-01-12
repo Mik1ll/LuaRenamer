@@ -19,18 +19,6 @@ public class LuaTests
 {
     private static readonly ILogger<LuaRenamer.LuaRenamer> Logmock = Mock.Of<ILogger<LuaRenamer.LuaRenamer>>();
 
-    [TestMethod]
-    public void TestScriptRuns()
-    {
-        var args = MinimalArgs($@"{LuaEnv.filename} = ""testfilename""");
-        var renamer = new LuaRenamer.LuaRenamer(Logmock)
-        {
-            Args = args
-        };
-        var res = renamer.GetInfo();
-        Assert.AreEqual("testfilename.mp4", res?.filename);
-    }
-
     private static MoveEventArgs MinimalArgs(string script)
     {
         return new MoveEventArgs
@@ -57,6 +45,18 @@ public class LuaTests
     }
 
     [TestMethod]
+    public void TestScriptRuns()
+    {
+        var args = MinimalArgs($@"{LuaEnv.filename} = 'testfilename'");
+        var renamer = new LuaRenamer.LuaRenamer(Logmock)
+        {
+            Args = args
+        };
+        var res = renamer.GetInfo();
+        Assert.AreEqual("testfilename.mp4", res?.filename);
+    }
+
+    [TestMethod]
     public void TestAnime()
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = tostring({LuaEnv.anime.typeFn} == {LuaEnv.AnimeType}.{nameof(AnimeType.Movie)})");
@@ -76,7 +76,7 @@ public class LuaTests
     [TestMethod]
     public void TestDateTime()
     {
-        var args = MinimalArgs($@"{LuaEnv.filename} = os.date(""%c"", os.time({LuaEnv.file.anidb.releasedateFn}))");
+        var args = MinimalArgs($@"{LuaEnv.filename} = os.date('%c', os.time({LuaEnv.file.anidb.releasedateFn}))");
         args.FileInfo = Mock.Of<IVideoFile>(file =>
             file.Hashes.CRC == args.FileInfo.Hashes.CRC &&
             file.FilePath == args.FileInfo.FilePath &&
@@ -95,7 +95,7 @@ public class LuaTests
     public void TestEpisodes()
     {
         var args = MinimalArgs(
-            $@"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. "" "" .. {LuaEnv.episode.numberFn} .. "" "" .. {LuaEnv.episode.typeFn}");
+            $@"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.numberFn} .. ' ' .. {LuaEnv.episode.typeFn}");
         args.EpisodeInfo[0] = Mock.Of<IEpisode>(e =>
             e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
             e.Number == 5 &&
@@ -126,7 +126,7 @@ public class LuaTests
     [TestMethod]
     public void TestLuaLinq()
     {
-        var args = MinimalArgs($@"{LuaEnv.filename} = from({LuaEnv.anime.titlesFn}):map(function(x, r) return r .. x.{LuaEnv.title.name}; end, """")");
+        var args = MinimalArgs($@"{LuaEnv.filename} = from({LuaEnv.anime.titlesFn}):map(function(x, r) return r .. x.{LuaEnv.title.name}; end, '')");
         ((List<AnimeTitle>)args.AnimeInfo[0].Titles).AddRange(new AnimeTitle[]
         {
             new()
@@ -249,8 +249,8 @@ public class LuaTests
     public void TestStringMethod()
     {
         var args = MinimalArgs(
-            @"function string:clean_spaces(char) return (self:match(""^%s*(.-)%s*$""):gsub(""%s+"", char or "" "")) end
-                filename = ((""blah  sdhow  wh ""):clean_spaces())");
+            $@"function string:clean_spaces(char) return (self:match('^%s*(.-)%s*$'):gsub('%s+', char or ' ')) end
+                {LuaEnv.filename} = (('blah  sdhow  wh '):clean_spaces())");
         var renamer = new LuaRenamer.LuaRenamer(Logmock)
         {
             Args = args
@@ -265,7 +265,6 @@ public class LuaTests
         Assert.AreEqual("2.1.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
     }
 
-
     [TestMethod]
     public void TestBenchmark()
     {
@@ -273,5 +272,37 @@ public class LuaTests
         {
             TestStringMethod();
         }
+    }
+
+    [TestMethod]
+    public void TestLanguageEnum()
+    {
+        var args = MinimalArgs($@"titles = from({LuaEnv.anime.titlesFn}):select('{LuaEnv.title.language}'):toDictionary(function (l) return l, true end)
+for key, lang in pairs({LuaEnv.Language}) do
+  if key ~= lang then
+    error('key value mismatch in defs')
+  elseif titles[lang] == nil then
+    error('lua language missing in C#')
+  end
+end
+for lang in pairs(titles) do
+  if {LuaEnv.Language}[lang] == nil then
+    error('C# language missing in lua')
+  end
+end");
+        var titles = (List<AnimeTitle>)args.AnimeInfo.First().Titles;
+        titles.Clear();
+        titles.AddRange(Enum.GetValues<TitleLanguage>().Select(t => new AnimeTitle
+        {
+            Title = "",
+            Language = t,
+            Type = TitleType.Main,
+            LanguageCode = ""
+        }));
+        var renamer = new LuaRenamer.LuaRenamer(Logmock)
+        {
+            Args = args
+        };
+        renamer.GetInfo();
     }
 }
