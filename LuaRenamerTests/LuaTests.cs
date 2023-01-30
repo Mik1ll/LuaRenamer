@@ -223,12 +223,6 @@ public class LuaTests
     }
 
     [TestMethod]
-    public void TestLuaEnvNames()
-    {
-        Assert.AreEqual("file.media.sublanguages", LuaEnv.file.media.sublanguagesFn);
-    }
-
-    [TestMethod]
     public void TestLogging()
     {
         var args = MinimalArgs("log(\"test\")");
@@ -290,5 +284,31 @@ public class LuaTests
         CompareEnums((LuaTable)defsEnv[LuaEnv.EpisodeType], (LuaTable)sandboxEnv[LuaEnv.EpisodeType]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.ImportFolderType], (LuaTable)sandboxEnv[LuaEnv.ImportFolderType]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.RelationType], (LuaTable)sandboxEnv[LuaEnv.RelationType]);
+    }
+
+    [TestMethod]
+    public void TestRelations()
+    {
+        var args = MinimalArgs(
+            $"{LuaEnv.filename} = {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.preferredname} .. {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.type} .. #{LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.relations.N}");
+        ((List<IRelatedAnime>)args.AnimeInfo[0].Relations).Add(Mock.Of<IRelatedAnime>(r =>
+            r.RelationType == RelationType.AlternativeSetting &&
+            r.RelatedAnime == Mock.Of<IAnime>(a =>
+                a.AnimeID == 1 &&
+                a.PreferredTitle == "blah2" &&
+                a.Titles == new List<AnimeTitle>() &&
+                a.EpisodeCounts == new EpisodeCounts() &&
+                a.Relations == new List<IRelatedAnime>
+                {
+                    Mock.Of<IRelatedAnime>(r2 => r2.RelatedAnime == args.AnimeInfo[0] &&
+                                                 r2.RelationType == RelationType.Prequel)
+                })
+        ));
+        var renamer = new LuaRenamer.LuaRenamer(Logmock)
+        {
+            Args = args
+        };
+        var res = renamer.GetInfo();
+        Assert.AreEqual("blah2AlternativeSetting0.mp4", res?.filename);
     }
 }
