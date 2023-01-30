@@ -17,7 +17,7 @@ public class LuaContext : Lua
     private readonly ILogger _logger;
     private readonly MoveEventArgs _args;
     private readonly LuaFunctions _functions;
-    private static readonly string LuaLinqLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua", "lualinq.lua");
+    public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
 
     #region Sandbox
 
@@ -137,7 +137,7 @@ end
         _logger = logger;
         _args = args;
         State.Encoding = Encoding.UTF8;
-        DoFile(LuaLinqLocation);
+        DoFile(Path.Combine(LuaPath, "lualinq.lua"));
         _functions = new LuaFunctions(
             (LuaFunction)DoString(SandboxFunction)[0],
             RegisterFunction(LuaEnv.anime.getname, this, GetNameMethod),

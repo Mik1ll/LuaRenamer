@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using LuaRenamer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NLua;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
@@ -265,44 +267,28 @@ public class LuaTests
         Assert.AreEqual("2.1.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
     }
 
-    [TestMethod]
-    public void TestBenchmark()
-    {
-        foreach (var _ in Enumerable.Range(0, 1000))
-        {
-            TestStringMethod();
-        }
-    }
 
     [TestMethod]
-    public void TestLanguageEnum()
+    public void TestEnumDefs()
     {
-        var args = MinimalArgs($@"titles = from({LuaEnv.anime.titlesFn}):select('{LuaEnv.title.language}'):toDictionary(function (l) return l, true end)
-for key, lang in pairs({LuaEnv.Language}) do
-  if key ~= lang then
-    error('key value mismatch in defs')
-  elseif titles[lang] == nil then
-    error('lua language missing in C#')
-  end
-end
-for lang in pairs(titles) do
-  if {LuaEnv.Language}[lang] == nil then
-    error('C# language missing in lua')
-  end
-end");
-        var titles = (List<AnimeTitle>)args.AnimeInfo.First().Titles;
-        titles.Clear();
-        titles.AddRange(Enum.GetValues<TitleLanguage>().Select(t => new AnimeTitle
+        void CompareEnums(LuaTable enum1, LuaTable enum2)
         {
-            Title = "",
-            Language = t,
-            Type = TitleType.Main,
-            LanguageCode = ""
-        }));
-        var renamer = new LuaRenamer.LuaRenamer(Logmock)
-        {
-            Args = args
-        };
-        renamer.GetInfo();
+            foreach (var (e1, e2) in new[] { (enum1, enum2), (enum2, enum1) })
+                foreach (KeyValuePair<object, object> kvp in e1)
+                {
+                    Assert.AreEqual(kvp.Key, kvp.Value);
+                    Assert.IsTrue(e2.Keys.Cast<string>().Contains(kvp.Key));
+                }
+        }
+
+        var defsEnv = new Lua();
+        defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "defs.lua"));
+        var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
+        CompareEnums((LuaTable)defsEnv[LuaEnv.Language], (LuaTable)sandboxEnv[LuaEnv.Language]);
+        CompareEnums((LuaTable)defsEnv[LuaEnv.AnimeType], (LuaTable)sandboxEnv[LuaEnv.AnimeType]);
+        CompareEnums((LuaTable)defsEnv[LuaEnv.TitleType], (LuaTable)sandboxEnv[LuaEnv.TitleType]);
+        CompareEnums((LuaTable)defsEnv[LuaEnv.EpisodeType], (LuaTable)sandboxEnv[LuaEnv.EpisodeType]);
+        CompareEnums((LuaTable)defsEnv[LuaEnv.ImportFolderType], (LuaTable)sandboxEnv[LuaEnv.ImportFolderType]);
+        CompareEnums((LuaTable)defsEnv[LuaEnv.RelationType], (LuaTable)sandboxEnv[LuaEnv.RelationType]);
     }
 }
