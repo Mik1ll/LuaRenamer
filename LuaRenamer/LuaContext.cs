@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NLua;
-using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer;
@@ -15,7 +14,7 @@ namespace LuaRenamer;
 public class LuaContext : Lua
 {
     private readonly ILogger _logger;
-    private readonly MoveEventArgs _args;
+    private readonly LuaRenamer _renamer;
     private readonly LuaFunctions _functions;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
 
@@ -95,8 +94,8 @@ end
     {
         var titles = (string)anime_or_episode[LuaEnv.anime._classid] switch
         {
-            LuaEnv.anime._classidVal => _args.AnimeInfo.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.AnimeID).Titles,
-            LuaEnv.episode._classidVal => _args.EpisodeInfo.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.EpisodeID).Titles,
+            LuaEnv.anime._classidVal => _renamer.AnimeInfo.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.AnimeID).Titles,
+            LuaEnv.episode._classidVal => _renamer.EpisodeInfo.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.EpisodeID).Titles,
             _ => throw new ArgumentException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
         };
         var lang = Enum.Parse<TitleLanguage>(language);
@@ -110,7 +109,7 @@ end
     private static readonly MethodInfo GetNameMethod =
         typeof(LuaContext).GetMethod(nameof(GetName), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private string EpNums(int pad) => _args.EpisodeInfo.Where(e => e.AnimeID == _args.AnimeInfo.First().AnimeID)
+    private string EpNums(int pad) => _renamer.EpisodeInfo.Where(e => e.AnimeID == _renamer.AnimeInfo.First().AnimeID)
         .OrderBy(e => e.Number)
         .GroupBy(e => e.Type)
         .OrderBy(g => g.Key)
@@ -132,10 +131,10 @@ end
 
     #endregion
 
-    public LuaContext(ILogger logger, MoveEventArgs args)
+    public LuaContext(ILogger logger, LuaRenamer renamer)
     {
         _logger = logger;
-        _args = args;
+        _renamer = renamer;
         State.Encoding = Encoding.UTF8;
         DoFile(Path.Combine(LuaPath, "lualinq.lua"));
         _functions = new LuaFunctions(
@@ -153,7 +152,7 @@ end
         var env = CreateLuaEnv();
         var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}{LuaLinqEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = _functions.RunSandbox.Call(_args.Script.Script, luaEnv);
+        var retVal = _functions.RunSandbox.Call(_renamer.Script.Script, luaEnv);
         if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
             throw new ArgumentException(errStr);
         return GetTableDict(luaEnv);
@@ -217,68 +216,68 @@ end
             };
         }
 
-        var animes = _args.AnimeInfo.Select(a => AnimeToDict(a)).ToList();
-        var anidb = _args.FileInfo.AniDBFileInfo is null
+        var animes = _renamer.AnimeInfo.Select(a => AnimeToDict(a)).ToList();
+        var anidb = _renamer.FileInfo.AniDBFileInfo is null
             ? null
             : new Dictionary<string, object?>
             {
-                { LuaEnv.file.anidb.censored, _args.FileInfo.AniDBFileInfo.Censored },
-                { LuaEnv.file.anidb.source, _args.FileInfo.AniDBFileInfo.Source },
-                { LuaEnv.file.anidb.version, _args.FileInfo.AniDBFileInfo.Version },
-                { LuaEnv.file.anidb.releasedate, _args.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
+                { LuaEnv.file.anidb.censored, _renamer.FileInfo.AniDBFileInfo.Censored },
+                { LuaEnv.file.anidb.source, _renamer.FileInfo.AniDBFileInfo.Source },
+                { LuaEnv.file.anidb.version, _renamer.FileInfo.AniDBFileInfo.Version },
+                { LuaEnv.file.anidb.releasedate, _renamer.FileInfo.AniDBFileInfo.ReleaseDate?.ToTable() },
                 {
-                    LuaEnv.file.anidb.releasegroup.N, _args.FileInfo.AniDBFileInfo.ReleaseGroup is null
-                                                      || _args.FileInfo.AniDBFileInfo.ReleaseGroup.Name == "raw/unknown"
+                    LuaEnv.file.anidb.releasegroup.N, _renamer.FileInfo.AniDBFileInfo.ReleaseGroup is null
+                                                      || _renamer.FileInfo.AniDBFileInfo.ReleaseGroup.Name == "raw/unknown"
                         ? null
                         : new Dictionary<string, object>
                         {
-                            { LuaEnv.file.anidb.releasegroup.name, _args.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
-                            { LuaEnv.file.anidb.releasegroup.shortname, _args.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
+                            { LuaEnv.file.anidb.releasegroup.name, _renamer.FileInfo.AniDBFileInfo.ReleaseGroup.Name },
+                            { LuaEnv.file.anidb.releasegroup.shortname, _renamer.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName }
                         }
                 },
-                { LuaEnv.file.anidb.id, _args.FileInfo.AniDBFileInfo.AniDBFileID },
+                { LuaEnv.file.anidb.id, _renamer.FileInfo.AniDBFileInfo.AniDBFileID },
                 {
                     LuaEnv.file.anidb.media.N, new Dictionary<string, object>
                     {
                         {
                             LuaEnv.file.anidb.media.sublanguages,
-                            _args.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList()
+                            _renamer.FileInfo.AniDBFileInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList()
                         },
                         {
                             LuaEnv.file.anidb.media.dublanguages,
-                            _args.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList()
+                            _renamer.FileInfo.AniDBFileInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList()
                         }
                     }
                 },
-                { LuaEnv.file.anidb.description, _args.FileInfo.AniDBFileInfo.Description }
+                { LuaEnv.file.anidb.description, _renamer.FileInfo.AniDBFileInfo.Description }
             };
-        var mediainfo = _args.FileInfo.MediaInfo is null
+        var mediainfo = _renamer.FileInfo.MediaInfo is null
             ? null
             : new Dictionary<string, object>
             {
-                { LuaEnv.file.media.chaptered, _args.FileInfo.MediaInfo.Chaptered },
+                { LuaEnv.file.media.chaptered, _renamer.FileInfo.MediaInfo.Chaptered },
                 {
                     LuaEnv.file.media.video.N, new Dictionary<string, object>
                     {
-                        { LuaEnv.file.media.video.height, _args.FileInfo.MediaInfo.Video.Height },
-                        { LuaEnv.file.media.video.width, _args.FileInfo.MediaInfo.Video.Width },
-                        { LuaEnv.file.media.video.codec, _args.FileInfo.MediaInfo.Video.SimplifiedCodec },
-                        { LuaEnv.file.media.video.res, _args.FileInfo.MediaInfo.Video.StandardizedResolution },
-                        { LuaEnv.file.media.video.bitrate, _args.FileInfo.MediaInfo.Video.BitRate },
-                        { LuaEnv.file.media.video.bitdepth, _args.FileInfo.MediaInfo.Video.BitDepth },
-                        { LuaEnv.file.media.video.framerate, _args.FileInfo.MediaInfo.Video.FrameRate }
+                        { LuaEnv.file.media.video.height, _renamer.FileInfo.MediaInfo.Video.Height },
+                        { LuaEnv.file.media.video.width, _renamer.FileInfo.MediaInfo.Video.Width },
+                        { LuaEnv.file.media.video.codec, _renamer.FileInfo.MediaInfo.Video.SimplifiedCodec },
+                        { LuaEnv.file.media.video.res, _renamer.FileInfo.MediaInfo.Video.StandardizedResolution },
+                        { LuaEnv.file.media.video.bitrate, _renamer.FileInfo.MediaInfo.Video.BitRate },
+                        { LuaEnv.file.media.video.bitdepth, _renamer.FileInfo.MediaInfo.Video.BitDepth },
+                        { LuaEnv.file.media.video.framerate, _renamer.FileInfo.MediaInfo.Video.FrameRate }
                     }
                 },
-                { LuaEnv.file.media.duration, _args.FileInfo.MediaInfo.General.Duration },
-                { LuaEnv.file.media.bitrate, _args.FileInfo.MediaInfo.General.OverallBitRate },
+                { LuaEnv.file.media.duration, _renamer.FileInfo.MediaInfo.General.Duration },
+                { LuaEnv.file.media.bitrate, _renamer.FileInfo.MediaInfo.General.OverallBitRate },
                 {
-                    LuaEnv.file.media.sublanguages, _args.FileInfo.MediaInfo.Subs.Select(s =>
+                    LuaEnv.file.media.sublanguages, _renamer.FileInfo.MediaInfo.Subs.Select(s =>
                         (Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
                             ? Utils.ParseEnum<TitleLanguage>(s.Title, false)
                             : l).ToString()).ToList()
                 },
                 {
-                    LuaEnv.file.media.audio.N, _args.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
+                    LuaEnv.file.media.audio.N, _renamer.FileInfo.MediaInfo.Audio.Select(a => new Dictionary<string, object>
                     {
                         { LuaEnv.file.media.audio.compressionmode, a.Compression_Mode },
                         {
@@ -296,7 +295,7 @@ end
                     }).ToList()
                 }
             };
-        var importfolders = _args.AvailableFolders.Select((f, i) => new Dictionary<string, object>
+        var importfolders = _renamer.AvailableFolders.Select((f, i) => new Dictionary<string, object>
         {
             { LuaEnv.importfolder.name, f.Name },
             { LuaEnv.importfolder.location, f.Location },
@@ -306,26 +305,26 @@ end
         }).ToList();
         var file = new Dictionary<string, object?>
         {
-            { LuaEnv.file.name, _args.FileInfo.Filename },
-            { LuaEnv.file.path, _args.FileInfo.FilePath },
-            { LuaEnv.file.size, _args.FileInfo.FileSize },
+            { LuaEnv.file.name, _renamer.FileInfo.Filename },
+            { LuaEnv.file.path, _renamer.FileInfo.FilePath },
+            { LuaEnv.file.size, _renamer.FileInfo.FileSize },
             {
                 LuaEnv.file.hashes.N, new Dictionary<string, object>
                 {
-                    { LuaEnv.file.hashes.crc, _args.FileInfo.Hashes.CRC },
-                    { LuaEnv.file.hashes.md5, _args.FileInfo.Hashes.MD5 },
-                    { LuaEnv.file.hashes.ed2k, _args.FileInfo.Hashes.ED2K },
-                    { LuaEnv.file.hashes.sha1, _args.FileInfo.Hashes.SHA1 },
+                    { LuaEnv.file.hashes.crc, _renamer.FileInfo.Hashes.CRC },
+                    { LuaEnv.file.hashes.md5, _renamer.FileInfo.Hashes.MD5 },
+                    { LuaEnv.file.hashes.ed2k, _renamer.FileInfo.Hashes.ED2K },
+                    { LuaEnv.file.hashes.sha1, _renamer.FileInfo.Hashes.SHA1 },
                 }
             },
             { LuaEnv.file.anidb.N, anidb },
             { LuaEnv.file.media.N, mediainfo },
             {
                 LuaEnv.file.importfolder,
-                importfolders.First(i => _args.FileInfo.FilePath.NormPath().StartsWith(((string)i[LuaEnv.importfolder.location]).NormPath()))
+                importfolders.First(i => _renamer.FileInfo.FilePath.NormPath().StartsWith(((string)i[LuaEnv.importfolder.location]).NormPath()))
             }
         };
-        var episodes = _args.EpisodeInfo.Select(e => new Dictionary<string, object?>
+        var episodes = _renamer.EpisodeInfo.Select(e => new Dictionary<string, object?>
         {
             { LuaEnv.episode.duration, e.Duration },
             { LuaEnv.episode.number, e.Number },
@@ -338,7 +337,7 @@ end
             { LuaEnv.episode.prefix, Utils.EpPrefix[e.Type] },
             { LuaEnv.episode._classid, LuaEnv.episode._classidVal }
         }).ToList();
-        var groups = _args.GroupInfo.Select(g => new Dictionary<string, object?>
+        var groups = _renamer.GroupInfo.Select(g => new Dictionary<string, object?>
         {
             { LuaEnv.group.name, g.Name },
             { LuaEnv.group.mainanime, g.MainSeries is null ? null : AnimeToDict(g.MainSeries) },

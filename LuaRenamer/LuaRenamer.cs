@@ -17,7 +17,7 @@ namespace LuaRenamer;
 public class LuaRenamer : IRenamer
 {
     private readonly ILogger<LuaRenamer> _logger;
-    private const string RenamerId = nameof(LuaRenamer);
+    public const string RenamerId = nameof(LuaRenamer);
     private static readonly Type? Repofact = Utils.GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
     private static readonly dynamic? VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
     private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
@@ -25,7 +25,13 @@ public class LuaRenamer : IRenamer
     private static string _scriptCache = string.Empty;
     private static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
-    public MoveEventArgs Args = null!;
+    public IVideoFile FileInfo { get; private set; } = null!;
+    public IRenameScript Script { get; private set; } = null!;
+    public IList<IGroup> GroupInfo { get; private set; } = null!;
+    public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
+    public IList<IAnime> AnimeInfo { get; private set; } = null!;
+    public List<IImportFolder> AvailableFolders { get; private set; } = null!;
+
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
     {
@@ -34,10 +40,10 @@ public class LuaRenamer : IRenamer
 
     private (string filename, IImportFolder destination, string subfolder)? CheckCache()
     {
-        var crc = Args.FileInfo.Hashes.CRC;
-        if (Args.Script.Script != _scriptCache)
+        var crc = FileInfo.Hashes.CRC;
+        if (Script.Script != _scriptCache)
         {
-            _scriptCache = Args.Script.Script;
+            _scriptCache = Script.Script;
             ResultCache.Clear();
             return null;
         }
@@ -51,16 +57,7 @@ public class LuaRenamer : IRenamer
 
     public string? GetFilename(RenameEventArgs args)
     {
-        Args = new MoveEventArgs
-        {
-            Cancel = args.Cancel,
-            AvailableFolders = new List<IImportFolder>(),
-            FileInfo = args.FileInfo,
-            AnimeInfo = args.AnimeInfo,
-            GroupInfo = args.GroupInfo,
-            EpisodeInfo = args.EpisodeInfo,
-            Script = args.Script
-        };
+        SetupArgs(args);
         try
         {
             CheckBadArgs();
@@ -75,7 +72,7 @@ public class LuaRenamer : IRenamer
 
     public (IImportFolder? destination, string? subfolder) GetDestination(MoveEventArgs args)
     {
-        Args = args;
+        SetupArgs(args);
         try
         {
             CheckBadArgs();
@@ -88,6 +85,28 @@ public class LuaRenamer : IRenamer
         }
     }
 
+    private void SetupArgs(RenameEventArgs args)
+    {
+        FileInfo = args.FileInfo;
+        AnimeInfo = args.AnimeInfo;
+        EpisodeInfo = args.EpisodeInfo;
+        GroupInfo = args.GroupInfo;
+        Script = args.Script;
+        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+        AvailableFolders ??= new List<IImportFolder>();
+    }
+
+    public void SetupArgs(MoveEventArgs args)
+    {
+        FileInfo = args.FileInfo;
+        AnimeInfo = args.AnimeInfo;
+        EpisodeInfo = args.EpisodeInfo;
+        GroupInfo = args.GroupInfo;
+        Script = args.Script;
+        AvailableFolders = args.AvailableFolders;
+    }
+
+
     public (string filename, IImportFolder destination, string subfolder)? GetInfo()
     {
         if (CheckCache() is { } cacheHit)
@@ -95,8 +114,8 @@ public class LuaRenamer : IRenamer
             _logger.LogInformation("Returning rename/move result from cache");
             return cacheHit;
         }
-        Args.AvailableFolders = ((IEnumerable?)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? Args.AvailableFolders;
-        using var lua = new LuaContext(_logger, Args);
+        AvailableFolders = ((IEnumerable?)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? AvailableFolders;
+        using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
         var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
         var removeIllegalChars = (bool)env[LuaEnv.remove_illegal_chars];
@@ -106,12 +125,12 @@ public class LuaRenamer : IRenamer
         env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
 
         var filename = luaFilename is string f
-            ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(Args.FileInfo.Filename)
-            : Args.FileInfo.Filename;
+            ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.Filename)
+            : FileInfo.Filename;
         var (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
         if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
-        ResultCache.Add(Args.FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
+        ResultCache.Add(FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
 
@@ -121,7 +140,7 @@ public class LuaRenamer : IRenamer
         switch (subfolder)
         {
             case null:
-                newSubFolderSplit = new List<string> { Args.AnimeInfo.First().PreferredTitle };
+                newSubFolderSplit = new List<string> { AnimeInfo.First().PreferredTitle };
                 break;
             case LuaTable subfolderTable:
             {
@@ -152,9 +171,9 @@ public class LuaRenamer : IRenamer
         switch (destination)
         {
             case null:
-                destfolder = Args.AvailableFolders
+                destfolder = AvailableFolders
                     // Order by common prefix (stronger version of same drive)
-                    .OrderByDescending(f => string.Concat(Args.FileInfo.FilePath.NormPath()
+                    .OrderByDescending(f => string.Concat(FileInfo.FilePath.NormPath()
                         .TakeWhile((ch, i) => i < f.Location.NormPath().Length
                                               && char.ToUpperInvariant(f.Location.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
                     .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
@@ -162,7 +181,7 @@ public class LuaRenamer : IRenamer
                     throw new ArgumentException("could not find an available destination import folder");
                 break;
             case string str:
-                destfolder = Args.AvailableFolders.FirstOrDefault(f =>
+                destfolder = AvailableFolders.FirstOrDefault(f =>
                     string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(f.Location.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
                 if (destfolder is null)
@@ -170,7 +189,7 @@ public class LuaRenamer : IRenamer
                 break;
             case LuaTable destTable:
                 if ((string)destTable[LuaEnv.importfolder._classid] == LuaEnv.importfolder._classidVal)
-                    destfolder = Args.AvailableFolders[Convert.ToInt32(destTable[LuaEnv.importfolder._index])];
+                    destfolder = AvailableFolders[Convert.ToInt32(destTable[LuaEnv.importfolder._index])];
                 else
                     throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                 break;
@@ -188,8 +207,8 @@ public class LuaRenamer : IRenamer
     {
         if (VideoLocalRepo is null || ImportFolderRepo is null) return null;
         IImportFolder? oldFld = null;
-        var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(Args.AnimeInfo.First().AnimeID))
-            .Where(vl => !string.Equals(vl.CRC32, Args.FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
+        var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(AnimeInfo.First().AnimeID))
+            .Where(vl => !string.Equals(vl.CRC32, FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(vl => vl.DateTimeUpdated)
             .Select(vl => vl.GetBestVideoLocalPlace())
             .FirstOrDefault(vlp => (oldFld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
@@ -203,11 +222,11 @@ public class LuaRenamer : IRenamer
 
     private void CheckBadArgs()
     {
-        if (string.IsNullOrWhiteSpace(Args.Script?.Script))
+        if (string.IsNullOrWhiteSpace(Script.Script))
             throw new ArgumentException("Script is empty or null");
-        if (Args.Script.Type != RenamerId)
+        if (Script.Type != RenamerId)
             throw new ArgumentException($"Script doesn't match {RenamerId}");
-        if (Args.AnimeInfo.Count == 0 || Args.EpisodeInfo.Count == 0)
+        if (AnimeInfo.Count == 0 || EpisodeInfo.Count == 0)
             throw new ArgumentException("No anime and/or episode info");
     }
 }
