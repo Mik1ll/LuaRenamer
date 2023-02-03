@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using LuaRenamer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,6 +21,14 @@ namespace LuaRenamerTests;
 public class LuaTests
 {
     private static readonly ILogger<LuaRenamer.LuaRenamer> Logmock = Mock.Of<ILogger<LuaRenamer.LuaRenamer>>();
+
+
+    [TestInitialize]
+    public void InitializeTest()
+    {
+        LuaRenamer.LuaRenamer.ResultCache.Clear();
+        LuaRenamer.LuaRenamer.ScriptCache = string.Empty;
+    }
 
     private static MoveEventArgs MinimalArgs(string script)
     {

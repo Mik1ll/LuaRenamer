@@ -22,8 +22,8 @@ public class LuaRenamer : IRenamer
     private static readonly dynamic? VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
     private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
 
-    private static string _scriptCache = string.Empty;
-    private static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
+    internal static string ScriptCache = string.Empty;
+    internal static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
     public IVideoFile FileInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
@@ -41,9 +41,9 @@ public class LuaRenamer : IRenamer
     private (string filename, IImportFolder destination, string subfolder)? CheckCache()
     {
         var crc = FileInfo.Hashes.CRC;
-        if (Script.Script != _scriptCache)
+        if (Script.Script != ScriptCache)
         {
-            _scriptCache = Script.Script;
+            ScriptCache = Script.Script;
             ResultCache.Clear();
             return null;
         }

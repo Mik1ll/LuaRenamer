@@ -43,6 +43,9 @@
             <AssemblyAttributes Include="AssemblyTitle">
                 <_Parameter1>LuaRenamer</_Parameter1>
             </AssemblyAttributes>
+            <AssemblyAttributes Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+                <_Parameter1>LuaRenamerTests</_Parameter1>
+            </AssemblyAttributes>
         </ItemGroup>
         <MakeDir Directories="$(IntermediateOutputPath)" />
         <WriteCodeFragment Language="C#" OutputFile="$(GeneratedAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
