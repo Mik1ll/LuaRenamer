@@ -36,7 +36,7 @@
         </Exec>
         <ItemGroup>
             <AssemblyAttributes Include="AssemblyVersion">
-                <_Parameter1>$(GitVerTag.Substring(1))</_Parameter1>
+                <_Parameter1>$([System.Text.RegularExpressions.Regex]::Match("$(GitVerTag)", "\d+\.\d+\.\d+"))</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyInformationalVersion">
                 <_Parameter1>$(GitInfo)</_Parameter1>

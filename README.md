@@ -1,9 +1,11 @@
-# LuaRenamer
+## LuaRenamer
 Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 
 ## Installation
 1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
-2. Unzip the files into (Windows) C:\ProgramData\ShokoServer\plugins or (Docker, depends on config folder mounting location) /home/.shoko/Shoko.CLI/plugins
+2. Unzip the files into destination
+   * (Windows) `C:\ProgramData\ShokoServer\plugins`
+   * (Docker) wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted
 3. Restart Shoko Server
 4. (Optional) Install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The
    extension uses [EmmyLua for annotations](https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations)
@@ -35,11 +37,11 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 
 ## Important Notes for File Moving
 Destination defaults to the nearest (longest matching prefix) destination folder it can find.  
-If destination is set, it must be set to an existing import folder using the name or path (string), or an import folder table
-If destination set to a path, it is compared to import folder path with converted directory seperators but no other special handling (relative path or expansion)  
+If destination is set, it must be set to an existing import folder using the name or path (string), or an import folder table.  
+If destination set to a path, it is compared to import folder path with converted directory seperators but no other special handling (relative path or expansion).  
 The only destination folders settable by the renamer are import folders with Drop Type of Destination or Both.  
 Subfolder defaults to your preferred language anime title.  
-If subfolder is set, it must be set to an array-table of path segments e.g. subfolder = {"parent dir name", "subdir name", "..."}  
+If subfolder is set, it must be set to an array-table of path segments e.g. `subfolder = {"parent dir name", "subdir name", "..."}`  
 If 'use_existing_anime_location' is set to true, the last added file's location from the same anime will be used if it exists.  
 
 ## Script Environment
@@ -51,7 +53,7 @@ See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/struc
 
 ## [Example Script](./LuaRenamer/lua/example.lua)
 
-## Snippets
+## Useful Snippets
 Choosing a destination (picks folders by name, or folder path of existing import folder)
 ```lua
 if anime.restricted then
