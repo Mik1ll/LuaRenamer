@@ -43,7 +43,7 @@ If subfolder is set, it must be set to an array-table of path segments e.g. subf
 If 'use_existing_anime_location' is set to true, the last added file's location from the same anime will be used if it exists.  
 
 ## Script Environment
-The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [NLuaSingleton](./LuaRenamer/NLuaSingleton.cs).  
+The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
 Additionally, a modified version of [lualinq from xanathar](https://github.com/xanathar/lualinq), licensed under the BSD 3 clause, has
 been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documentation](./LuaRenamer/lua/LuaLinq.pdf)
 

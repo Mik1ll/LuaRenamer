@@ -26,16 +26,22 @@
         </None>
     </ItemGroup>
 
-    <Target Name="UpdateAssemblyInfo" BeforeTargets="BeforeBuild">
+    <Target Name="UpdateAssemblyInfo" BeforeTargets="BeforeCompile">
         <Exec Command="git describe --match=v[0-9]%2A --abbrev=0 --tags --always" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitVerTag" />
         </Exec>
+        <Exec Command="git describe --long --always --exclude=%2A --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
+        </Exec>
+        <Exec Command="git describe --always --long --tags --match=v[0-9]%2A --abbrev=7 --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
+        </Exec>
         <ItemGroup>
             <AssemblyAttributes Include="AssemblyVersion">
-                <_Parameter1>$(GitVerTag.Substring(1,5))</_Parameter1>
+                <_Parameter1>$(GitVerTag.Substring(1))</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyInformationalVersion">
-                <_Parameter1>$(GitVerTag.Substring(1,5))</_Parameter1>
+                <_Parameter1>$(GitInfo)</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyProduct">
                 <_Parameter1>LuaRenamer</_Parameter1>
@@ -58,17 +64,17 @@
         <ItemGroup>
             <LuaOut Include="lua/**/*.*" />
             <WindowsOut Include="$(OutDir)runtimes/win-x64/native/lua54.dll" />
-            <LinuxOut Include="docker_build/liblua54.so" />
+            <DockerOut Include="docker_build/liblua54.so" />
             <SharedOut Include="$(OutDir)LuaRenamer.dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" />
         </ItemGroup>
         <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LinuxOut);@(SharedOut)" DestinationFolder="$(OutDir)LinuxOut/LuaRenamer" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(DockerOut);@(SharedOut)" DestinationFolder="$(OutDir)DockerOut/LuaRenamer" SkipUnchangedFiles="true" />
         <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)LinuxOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)DockerOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
 
-        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win.zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(OutDir)LinuxOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Linux.zip" Overwrite="true" />
-        <RemoveDir Directories="$(OutDir)WindowsOut;$(OutDir)LinuxOut" />
+        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win_$(GitHash).zip" Overwrite="true" />
+        <ZipDirectory SourceDirectory="$(OutDir)DockerOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Docker_$(GitHash).zip" Overwrite="true" />
+        <RemoveDir Directories="$(OutDir)WindowsOut;$(OutDir)DockerOut" />
     </Target>
 
     <Target Name="Cleaner" AfterTargets="AfterClean">
