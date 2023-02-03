@@ -9,6 +9,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
+        <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,13 +28,10 @@
     </ItemGroup>
 
     <Target Name="UpdateAssemblyInfo" BeforeTargets="BeforeCompile">
-        <Exec Command="git describe --match=v[0-9]%2A --abbrev=0 --tags --always" ConsoleToMSBuild="true">
+        <Exec Command="git describe --match=v[0-9]%2A --tags --abbrev=0 --always" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitVerTag" />
         </Exec>
-        <Exec Command="git describe --long --always --exclude=%2A --dirty" ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
-        </Exec>
-        <Exec Command="git describe --always --long --tags --match=v[0-9]%2A --abbrev=7 --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git describe --match=v[0-9]%2A --tags --abbrev=7 --always --long --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
         </Exec>
         <ItemGroup>
@@ -44,10 +42,10 @@
                 <_Parameter1>$(GitInfo)</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyProduct">
-                <_Parameter1>LuaRenamer</_Parameter1>
+                <_Parameter1>$(ProjectName)</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyTitle">
-                <_Parameter1>LuaRenamer</_Parameter1>
+                <_Parameter1>$(ProjectName)</_Parameter1>
             </AssemblyAttributes>
             <AssemblyAttributes Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
                 <_Parameter1>LuaRenamerTests</_Parameter1>
@@ -65,15 +63,14 @@
             <LuaOut Include="lua/**/*.*" />
             <WindowsOut Include="$(OutDir)runtimes/win-x64/native/lua54.dll" />
             <DockerOut Include="docker_build/liblua54.so" />
-            <SharedOut Include="$(OutDir)LuaRenamer.dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" />
+            <SharedOut Include="$(OutDir)$(ProjectName).dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" />
         </ItemGroup>
-        <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(DockerOut);@(SharedOut)" DestinationFolder="$(OutDir)DockerOut/LuaRenamer" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)DockerOut/LuaRenamer/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-
-        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Win_$(GitHash).zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(OutDir)DockerOut" DestinationFile="$(SolutionDir)LuaRenamer_$(GitVerTag)_Docker_$(GitHash).zip" Overwrite="true" />
+        <Copy SourceFiles="@(WindowsOut);@(SharedOut)" DestinationFolder="$(OutDir)WindowsOut/$(ProjectName)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(DockerOut);@(SharedOut)" DestinationFolder="$(OutDir)DockerOut/$(ProjectName)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)WindowsOut/$(ProjectName)/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(OutDir)DockerOut/$(ProjectName)/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
+        <ZipDirectory SourceDirectory="$(OutDir)WindowsOut" DestinationFile="$(SolutionDir)$(ProjectName)_Win_$(GitInfo).zip" Overwrite="true" />
+        <ZipDirectory SourceDirectory="$(OutDir)DockerOut" DestinationFile="$(SolutionDir)$(ProjectName)_Docker_$(GitInfo).zip" Overwrite="true" />
         <RemoveDir Directories="$(OutDir)WindowsOut;$(OutDir)DockerOut" />
     </Target>
 
