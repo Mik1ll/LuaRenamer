@@ -330,4 +330,20 @@ public class LuaTests
         Assert.IsNotNull(moveres.destination);
         Assert.AreEqual("blah", moveres.subfolder);
     }
+
+    [TestMethod]
+    public void TestCache()
+    {
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var args = MinimalArgs("filename = 'blah'");
+        renamer.SetupArgs(args);
+        renamer.GetFilename(RenameArgs(args));
+        Assert.IsTrue(LuaRenamer.LuaRenamer.ResultCache.Count == 1);
+        var setTime = LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme;
+        renamer.GetFilename(RenameArgs(args));
+        Assert.IsTrue(setTime == LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme);
+        Thread.Sleep(2500);
+        renamer.GetFilename(RenameArgs(args));
+        Assert.IsTrue(setTime != LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme);
+    }
 }
