@@ -109,20 +109,21 @@ end
     private static readonly MethodInfo GetNameMethod =
         typeof(LuaContext).GetMethod(nameof(GetName), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private string EpNums(int pad) => _renamer.EpisodeInfo.Where(e => e.AnimeID == _renamer.AnimeInfo.First().AnimeID)
+    private string EpNums(int pad) => _renamer.EpisodeInfo.Where(e => e.AnimeID == _renamer.AnimeInfo.First().AnimeID) // All episodes with same anime id
         .OrderBy(e => e.Number)
         .GroupBy(e => e.Type)
         .OrderBy(g => g.Key)
-        .Aggregate("", (s, g) =>
-            s + " " + g.Aggregate(
-                (InRun: false, Seq: -1, Str: ""),
-                (tup, ep) => ep.Number == tup.Seq + 1
-                    ? (true, ep.Number, tup.Str)
-                    : tup.InRun
-                        ? (false, ep.Number,
-                            $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')} {Utils.EpPrefix[g.Key]}{ep.Number.ToString().PadLeft(pad, '0')}")
-                        : (false, ep.Number, $"{tup.Str} {Utils.EpPrefix[g.Key]}{ep.Number.ToString().PadLeft(pad, '0')}"),
-                tup => tup.InRun ? $"{tup.Str}-{tup.Seq.ToString().PadLeft(pad, '0')}" : tup.Str
+        .Aggregate("", (epString, epTypeGroup) =>
+            epString + " " + epTypeGroup.Aggregate( // Combine substring for each episode type
+                (InRange: false, LastNum: -1, EpSubstring: ""),
+                (tuple, ep) => (ep.Number == tuple.LastNum + 1, ep.Number,
+                        tuple.EpSubstring +
+                        (ep.Number != tuple.LastNum + 1 // Append to string if not in a range
+                            ? (tuple.InRange ? "-" + tuple.LastNum.ToString($"d{pad}") : "") + // If a range ended, append the last number
+                              " " + Utils.EpPrefix[epTypeGroup.Key] + ep.Number.ToString($"d{pad}") // Add current prefix and number
+                            : "")
+                    ),
+                tuple => tuple.EpSubstring + (tuple.InRange ? "-" + tuple.LastNum.ToString($"d{pad}") : "") // If a range ended, append the last number
             ).Trim()
         ).Trim();
 

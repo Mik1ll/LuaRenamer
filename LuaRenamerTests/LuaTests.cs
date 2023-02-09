@@ -166,11 +166,23 @@ public class LuaTests
     public void TestEpisodeNumbers()
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = {LuaEnv.episode_numbers}(3)");
-        args.EpisodeInfo[0] = Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 5 && e.Type == EpisodeType.Episode);
+        args.EpisodeInfo = new List<IEpisode>
+        {
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 6 && e.Type == EpisodeType.Episode),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 12 && e.Type == EpisodeType.Other),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 5 && e.Type == EpisodeType.Episode),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 2 && e.Type == EpisodeType.Special),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 5 && e.Type == EpisodeType.Credits),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 7 && e.Type == EpisodeType.Episode),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 1 && e.Type == EpisodeType.Other),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 9 && e.Type == EpisodeType.Other),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 3 && e.Type == EpisodeType.Episode),
+            Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 2 && e.Type == EpisodeType.Other),
+        };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
-        Assert.AreEqual("005.mp4", res?.filename);
+        Assert.AreEqual("003 005-007 C005 S002 O001-002 O009 O012.mp4", res?.filename);
     }
 
     [TestMethod]
