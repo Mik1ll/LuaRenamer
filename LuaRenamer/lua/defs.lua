@@ -84,7 +84,6 @@ local Audio = {}
 ---@field id integer
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
----@field relations Relation[]
 local Anime = {
   getname = getname
 }
@@ -133,11 +132,6 @@ local ImportFolder = {}
 ---@field animes Anime[]
 local Group = {}
 
----@class Relation
----@field type RelationType
----@field anime Anime
-local Relation = {}
-
 --#endregion class definitions
 
 --#region enumerations
@@ -176,9 +170,7 @@ TitleType = {
   Main = "Main",
   Official = "Official",
   Short = "Short",
-  Synonym = "Synonym",
-  TitleCard = "TitleCard",
-  KanjiReading = "KanjiReading"
+  Synonym = "Synonym"
 }
 
 ---@enum Language
@@ -232,21 +224,6 @@ Language = {
   Basque = "Basque",
   Bengali = "Bengali",
   Bosnian = "Bosnian"
-}
-
----@enum RelationType
-RelationType = {
-  Other = "Other",
-  SameSetting = "SameSetting",
-  AlternativeSetting = "AlternativeSetting",
-  AlternativeVersion = "AlternativeVersion",
-  SharedCharacters = "SharedCharacters",
-  Prequel = "Prequel",
-  MainStory = "MainStory",
-  FullStory = "FullStory",
-  Sequel = "Sequel",
-  SideStory = "SideStory",
-  Summary = "Summary"
 }
 
 --#endregion enumerations

@@ -46,8 +46,7 @@ public class LuaTests
                 Mock.Of<IAnime>(a =>
                     a.PreferredTitle == "blah" &&
                     a.Titles == new List<AnimeTitle>() &&
-                    a.EpisodeCounts == new EpisodeCounts() &&
-                    a.Relations == new List<IRelatedAnime>())
+                    a.EpisodeCounts == new EpisodeCounts())
             },
             AvailableFolders = new List<IImportFolder>
             {
@@ -90,8 +89,7 @@ public class LuaTests
         args.AnimeInfo[0] = Mock.Of<IAnime>(a => a.Type == AnimeType.Movie &&
                                                  a.PreferredTitle == "blah" &&
                                                  a.Titles == new List<AnimeTitle>() &&
-                                                 a.EpisodeCounts == new EpisodeCounts() &&
-                                                 a.Relations == new List<IRelatedAnime>());
+                                                 a.EpisodeCounts == new EpisodeCounts());
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
@@ -257,7 +255,7 @@ public class LuaTests
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((o, t) => o.ToString() == "test"),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
             Times.Once);
     }
 
@@ -276,7 +274,7 @@ public class LuaTests
     [TestMethod]
     public void TestLogAbstractionVersion()
     {
-        Assert.AreEqual("6.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
+        Assert.AreEqual("5.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
     }
 
 
@@ -303,31 +301,6 @@ public class LuaTests
         CompareEnums((LuaTable)defsEnv[LuaEnv.TitleType], (LuaTable)sandboxEnv[LuaEnv.TitleType]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.EpisodeType], (LuaTable)sandboxEnv[LuaEnv.EpisodeType]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.ImportFolderType], (LuaTable)sandboxEnv[LuaEnv.ImportFolderType]);
-        CompareEnums((LuaTable)defsEnv[LuaEnv.RelationType], (LuaTable)sandboxEnv[LuaEnv.RelationType]);
-    }
-
-    [TestMethod]
-    public void TestRelations()
-    {
-        var args = MinimalArgs(
-            $"{LuaEnv.filename} = {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.preferredname} .. {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.type} .. #{LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.relations.N}");
-        ((List<IRelatedAnime>)args.AnimeInfo[0].Relations).Add(Mock.Of<IRelatedAnime>(r =>
-            r.RelationType == RelationType.AlternativeSetting &&
-            r.RelatedAnime == Mock.Of<IAnime>(a =>
-                a.AnimeID == 1 &&
-                a.PreferredTitle == "blah2" &&
-                a.Titles == new List<AnimeTitle>() &&
-                a.EpisodeCounts == new EpisodeCounts() &&
-                a.Relations == new List<IRelatedAnime>
-                {
-                    Mock.Of<IRelatedAnime>(r2 => r2.RelatedAnime == args.AnimeInfo[0] &&
-                                                 r2.RelationType == RelationType.Prequel)
-                })
-        ));
-        var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
-        Assert.AreEqual("blah2AlternativeSetting0.mp4", res?.filename);
     }
 
     [TestMethod]

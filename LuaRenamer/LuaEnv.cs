@@ -23,7 +23,6 @@ public static class LuaEnv
     public const string Language = nameof(Language);
     public const string EpisodeType = nameof(EpisodeType);
     public const string ImportFolderType = nameof(ImportFolderType);
-    public const string RelationType = nameof(RelationType);
     public const string episode_numbers = nameof(episode_numbers);
     public const string log = nameof(log);
     public const string logwarn = nameof(logwarn);
@@ -57,18 +56,6 @@ public static class LuaEnv
         public const string _classid = nameof(_classid);
         public const string _classidFn = Fn + "." + _classid;
         public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
-
-
-        public static class relations
-        {
-            public const string N = nameof(relations);
-            public const string Fn = LuaEnv.anime.Fn + "." + N;
-
-            public const string anime = nameof(anime);
-            public const string animeFn = Fn + "." + anime;
-            public const string type = nameof(type);
-            public const string typeFn = Fn + "." + type;
-        }
     }
 
 

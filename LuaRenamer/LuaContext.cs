@@ -203,16 +203,6 @@ end
                         { EpisodeType.Other.ToString(), a.EpisodeCounts.Others },
                         { EpisodeType.Parody.ToString(), a.EpisodeCounts.Parodies }
                     }
-                },
-                {
-                    LuaEnv.anime.relations.N, ignoreRelations
-                        ? new List<Dictionary<string, object?>>()
-                        : a.Relations.Where(r => r.RelatedAnime is not null && r.RelatedAnime.AnimeID != a.AnimeID)
-                            .Select(r => new Dictionary<string, object?>
-                            {
-                                { LuaEnv.anime.relations.type, r.RelationType.ToString() },
-                                { LuaEnv.anime.relations.anime, AnimeToDict(r.RelatedAnime, true) }
-                            }).ToList()
                 }
             };
         }
@@ -377,7 +367,6 @@ end
             { LuaEnv.Language, ConvertEnum<TitleLanguage>() },
             { LuaEnv.EpisodeType, ConvertEnum<EpisodeType>() },
             { LuaEnv.ImportFolderType, ConvertEnum<DropFolderType>() },
-            { LuaEnv.RelationType, ConvertEnum<RelationType>() }
         };
     }
 }
