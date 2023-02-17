@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="KeraLua" Version="1.3.3" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
         <PackageReference Include="NLua" Version="1.6.0" />
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.4.0-alpha3">
             <ExcludeAssets>runtime</ExcludeAssets>

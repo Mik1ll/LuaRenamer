@@ -92,8 +92,8 @@
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Transitive",
-        "resolved": "2.1.0",
-        "contentHash": "GfD2VtvN9z1W+m6pZZe98yh9VWTSdNY2dZSxtca9uFIY6aBI6twvskMvLO/ktClBOTQmAov/7Em+IWFlHepa0A=="
+        "resolved": "6.0.0",
+        "contentHash": "/HggWBbTwy8TgebGSX5DBZ24ndhzi93sHUBDvP1IxbZD7FDokYzdAr6+vbWGjw2XAfR2EJ1sfKUotpjHnFWPxA=="
       },
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",
@@ -1206,7 +1206,7 @@
         "type": "Project",
         "dependencies": {
           "KeraLua": "[1.3.3, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[2.1.0, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[6.0.0, )",
           "NLua": "[1.6.0, )",
           "Shoko.Plugin.Abstractions": "[2.4.0-alpha3, )"
         }

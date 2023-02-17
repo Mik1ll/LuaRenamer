@@ -257,7 +257,7 @@ public class LuaTests
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((o, t) => o.ToString() == "test"),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
@@ -276,7 +276,7 @@ public class LuaTests
     [TestMethod]
     public void TestLogAbstractionVersion()
     {
-        Assert.AreEqual("2.1.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
+        Assert.AreEqual("6.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
     }
 
 
