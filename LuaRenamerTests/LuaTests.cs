@@ -187,7 +187,7 @@ public class LuaTests
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true)");
+            $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.Romaji)}, true)");
         ((List<AnimeTitle>)args.AnimeInfo[0].Titles).AddRange(new AnimeTitle[]
         {
             new()
@@ -233,13 +233,13 @@ public class LuaTests
             {
                 Title = "episodeTitle3",
                 Language = TitleLanguage.Romaji,
-                Type = TitleType.Short
+                Type = TitleType.Synonym
             }
         });
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
-        Assert.AreEqual("animeTitle4episdoeTitle2.mp4", res?.filename);
+        Assert.AreEqual("animeTitle4episdoeTitle2episodeTitle3.mp4", res?.filename);
     }
 
     [TestMethod]
