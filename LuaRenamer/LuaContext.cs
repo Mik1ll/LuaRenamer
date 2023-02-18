@@ -101,8 +101,8 @@ end
         var lang = Enum.Parse<TitleLanguage>(language);
         var title = titles
             .OrderBy(t => t.Type == TitleType.None ? int.MaxValue : (int)t.Type)
-            .Where(t => t.Language == lang && t.Type is TitleType.Main or TitleType.Official or TitleType.None ||
-                        allow_unofficial && t.Type is TitleType.Synonym).Select(t => t.Title).FirstOrDefault();
+            .Where(t => t.Language == lang && (t.Type is TitleType.Main or TitleType.Official or TitleType.None ||
+                                               allow_unofficial && t.Type is TitleType.Synonym)).Select(t => t.Title).FirstOrDefault();
         return title;
     }
 
