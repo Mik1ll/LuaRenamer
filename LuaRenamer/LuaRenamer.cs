@@ -23,7 +23,7 @@ public class LuaRenamer : IRenamer
     private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
 
     internal static string ScriptCache = string.Empty;
-    internal static readonly Dictionary<string, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
+    internal static readonly Dictionary<int, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
     public IVideoFile FileInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
@@ -40,18 +40,18 @@ public class LuaRenamer : IRenamer
 
     private (string filename, IImportFolder destination, string subfolder)? CheckCache()
     {
-        var crc = FileInfo.Hashes.CRC;
+        var videoFileId = FileInfo.VideoFileID;
         if (Script.Script != ScriptCache)
         {
             ScriptCache = Script.Script;
             ResultCache.Clear();
             return null;
         }
-        if (!ResultCache.TryGetValue(crc, out var res))
+        if (!ResultCache.TryGetValue(videoFileId, out var res))
             return null;
         if (DateTime.UtcNow < res.setTIme + TimeSpan.FromSeconds(2))
             return (res.filename, res.destination, res.subfolder);
-        ResultCache.Remove(crc);
+        ResultCache.Remove(videoFileId);
         return null;
     }
 
@@ -130,7 +130,7 @@ public class LuaRenamer : IRenamer
         var (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
         if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
-        ResultCache.Add(FileInfo.Hashes.CRC, (DateTime.UtcNow, filename, destination, subfolder));
+        ResultCache.Add(FileInfo.VideoFileID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
 

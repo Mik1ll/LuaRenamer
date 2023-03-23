@@ -40,7 +40,10 @@ public class LuaTests
                 Type = LuaRenamer.LuaRenamer.RenamerId
             },
             FileInfo = Mock.Of<IVideoFile>(file =>
-                file.Hashes.CRC == "abc123" && file.FilePath == "C:\\testimportfolder\\testsubfolder" && file.Filename == "testfilename.mp4"),
+                file.Hashes.CRC == "abc123" &&
+                file.FilePath == "C:\\testimportfolder\\testsubfolder" &&
+                file.Filename == "testfilename.mp4" &&
+                file.VideoFileID == 25),
             AnimeInfo = new List<IAnime>
             {
                 Mock.Of<IAnime>(a =>
@@ -351,11 +354,11 @@ public class LuaTests
         renamer.SetupArgs(args);
         renamer.GetFilename(RenameArgs(args));
         Assert.IsTrue(LuaRenamer.LuaRenamer.ResultCache.Count == 1);
-        var setTime = LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme;
+        var setTime = LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoFileID].setTIme;
         renamer.GetFilename(RenameArgs(args));
-        Assert.IsTrue(setTime == LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme);
+        Assert.IsTrue(setTime == LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoFileID].setTIme);
         Thread.Sleep(2500);
         renamer.GetFilename(RenameArgs(args));
-        Assert.IsTrue(setTime != LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.Hashes.CRC].setTIme);
+        Assert.IsTrue(setTime != LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoFileID].setTIme);
     }
 }

@@ -19,10 +19,10 @@ function getname(self, lang, include_unofficial) end
 local File = {}
 
 ---@class Hashes
----@field crc string
----@field md5 string
+---@field crc? string
+---@field md5? string
 ---@field ed2k string
----@field sha1 string
+---@field sha1? string
 local Hashes = {}
 
 ---@class AniDb
