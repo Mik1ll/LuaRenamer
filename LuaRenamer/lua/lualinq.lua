@@ -30,40 +30,56 @@
 -- ------------------------------------------------------------------------
 
 -- how much log information is printed: 3 => verbose, 2 => info, 1 => only warning and errors, 0 => only errors, -1 => silent
-LOG_LEVEL = 1
+local LOG_LEVEL = 1
 
 -- prefix for the printed logs
-LOG_PREFIX = "LuaLinq: "
+local LOG_PREFIX = "LuaLinq: "
 
 
 -- support lua 5.2+
 local unpack = table.unpack
 
 
+---@class Linq
+---@field m_Data table
+local Linq = {}
+Linq.__index = Linq
+Linq.classid_71cd970f_a742_4316_938d_1998df001335 = 2
+
+
 -- ============================================================
 -- DEBUG TRACER
 -- ============================================================
 
-LIB_VERSION_TEXT = "1.5.1"
-LIB_VERSION = 151
+local LIB_VERSION_TEXT = "1.5.1"
+local LIB_VERSION = 151
 
-function setLogLevel(level)
+-- forward declare
+local function logv(txt) end
+local function logi(txt) end
+local function logw(txt) end
+local function loge(txt) end
+
+function linqSetLogLevel(level)
 	LOG_LEVEL = level;
 end
 
-function _log(level, prefix, text)
+local function log(level, prefix, text)
 	if (level <= LOG_LEVEL) then
 		print(prefix .. LOG_PREFIX .. text)
 	end
 end
 
-function logq(self, method)
+---@param linq Linq
+---@param method string
+local function logq(linq, method)
 	if (LOG_LEVEL >= 3) then
-		logv("after " .. method .. " => " .. #self.m_Data .. " items : " .. _dumpData(self))
+		logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dumpData())
 	end
 end
 
-function _dumpData(self)
+-- Returns dumped data
+function Linq:dumpData()
 	local items = #self.m_Data
 	local dumpdata = "q{ "
 
@@ -84,22 +100,20 @@ function _dumpData(self)
 	return dumpdata
 end
 
-
-
 function logv(txt)
-	_log(3, "[..] ", txt)
+	log(3, "[..] ", txt)
 end
 
 function logi(txt)
-	_log(2, "[ii] ", txt)
+	log(2, "[ii] ", txt)
 end
 
 function logw(txt)
-	_log(1, "[W?] ", txt)
+	log(1, "[W?] ", txt)
 end
 
 function loge(txt)
-	_log(0, "[E!] ", txt)
+	log(0, "[E!] ", txt)
 end
 
 
@@ -108,70 +122,16 @@ end
 -- ============================================================
 
 -- [private] Creates a linq data structure from an array without copying the data for efficiency
-function _new_lualinq(method, collection)
-	---@class Linq
-	local self = { }
-
-	self.classid_71cd970f_a742_4316_938d_1998df001335 = 2
+local function newLinq(method, collection)
+	local self = setmetatable({}, Linq)
 
 	self.m_Data = collection
-
-	self.concat = _concat
-	self.select = _select
-	self.selectMany = _selectMany
-	self.where = _where
-	self.whereIndex = _whereIndex
-	self.take = _take
-	self.skip = _skip
-	self.zip = _zip
-	self.orderby = _orderby
-	self.orderBy = _orderby
-
-	self.distinct = _distinct
-	self.union = _union
-	self.except = _except
-	self.intersection = _intersection
-	self.exceptby = _exceptby
-	self.intersectionby = _intersectionby
-	self.exceptBy = _exceptby
-	self.intersectionBy = _intersectionby
-
-	self.first = _first
-	self.last = _last
-	self.min = _min
-	self.max = _max
-	self.random = _random
-
-	self.any = _any
-	self.all = _all
-	self.contains = _contains
-
-	self.count = _count
-	self.sum = _sum
-	self.average = _average
-
-	self.dump = _dump
-
-	self.map = _map
-	self.foreach = _foreach
-	self.xmap = _xmap
-
-	self.toArray = _toArray
-	self.toDictionary = _toDictionary
-	self.toIterator = _toIterator
-	self.toTuple = _toTuple
-
-	-- shortcuts
-	self.each = _foreach
-	self.intersect = _intersection
-	self.intersectby = _intersectionby
-	self.intersectBy = _intersectionby
-
 
 	logq(self, "from")
 
 	return self
 end
+
 -- ============================================================
 -- GENERATORS
 -- ============================================================
@@ -199,69 +159,68 @@ end
 
 -- Creates a linq data structure from an array without copying the data for efficiency
 function fromArrayInstance(collection)
-	return _new_lualinq("fromArrayInstance", collection)
+	return newLinq("fromArrayInstance", collection)
 end
 
 -- Creates a linq data structure from an array copying the data first (so that changes in the original
 -- table do not reflect here)
 function fromArray(array)
-	local collection = { }
-	for k,v in ipairs(array) do
+	local collection = {}
+	for k, v in ipairs(array) do
 		table.insert(collection, v)
 	end
-	return _new_lualinq("fromArray", collection)
+	return newLinq("fromArray", collection)
 end
 
 -- Creates a linq data structure from a dictionary (table with non-consecutive-integer keys)
 function fromDictionary(dictionary)
-	local collection = { }
+	local collection = {}
 
-	for k,v in pairs(dictionary) do
+	for k, v in pairs(dictionary) do
 		local kvp = {}
 		kvp.key = k
 		kvp.value = v
 
 		table.insert(collection, kvp)
 	end
-	return _new_lualinq("fromDictionary", collection)
+	return newLinq("fromDictionary", collection)
 end
 
 -- Creates a linq data structure from an iterator returning single items
 function fromIterator(iterator)
-	local collection = { }
+	local collection = {}
 
 	for s in iterator do
 		table.insert(collection, s)
 	end
-	return _new_lualinq("fromIterator", collection)
+	return newLinq("fromIterator", collection)
 end
 
 -- Creates a linq data structure from an array of iterators each returning single items
 function fromIteratorsArray(iteratorArray)
-	local collection = { }
+	local collection = {}
 
 	for _, iterator in ipairs(iteratorArray) do
 		for s in iterator do
 			table.insert(collection, s)
 		end
 	end
-	return _new_lualinq("fromIteratorsArray", collection)
+	return newLinq("fromIteratorsArray", collection)
 end
 
 -- Creates a linq data structure from a table of keys, values ignored
 function fromSet(set)
-	local collection = { }
+	local collection = {}
 
-	for k,v in pairs(set) do
+	for k, v in pairs(set) do
 		table.insert(collection, k)
 	end
-	return _new_lualinq("fromIteratorsArray", collection)
+	return newLinq("fromIteratorsArray", collection)
 end
-
 
 -- Creates an empty linq data structure
 function fromNothing()
-	return _new_lualinq("fromNothing", { } )
+	return newLinq("fromNothing", {})
 end
 
 -- ============================================================
@@ -271,8 +230,8 @@ end
 -- Concatenates two collections together
 ---@param other Linq|table
 ---@return Linq
-function _concat(self, other)
-	local result = { }
+function Linq:concat(other)
+	local result = {}
 	other = from(other)
 
 	for idx, value in ipairs(self.m_Data) do
@@ -281,14 +240,13 @@ function _concat(self, other)
 	for idx, value in ipairs(other.m_Data) do
 		table.insert(result, value)
 	end
-	return _new_lualinq(":concat", result)
+	return newLinq(":concat", result)
 end
 
 -- Replaces items with those returned by the selector function or properties with name selector
----@param self Linq
----@param selector string|fun(a):any
-function _select(self, selector)
-	local result = { }
+---@param selector string|fun(value):any
+function Linq:select(selector)
+	local result = {}
 
 	if (type(selector) == "function") then
 		for idx, value in ipairs(self.m_Data) do
@@ -307,15 +265,13 @@ function _select(self, selector)
 	else
 		loge("select called with unknown predicate type");
 	end
-	return _new_lualinq(":select", result)
+	return newLinq(":select", result)
 end
 
-
 -- Replaces items with those contained in arrays returned by the selector function
----@param self Linq
----@param selector fun(a):table
-function _selectMany(self, selector)
-	local result = { }
+---@param selector fun(value):table
+function Linq:selectMany(selector)
+	local result = {}
 
 	for idx, value in ipairs(self.m_Data) do
 		local newvalue = selector(value)
@@ -327,29 +283,28 @@ function _selectMany(self, selector)
 			end
 		end
 	end
-	return _new_lualinq(":selectMany", result)
+	return newLinq(":selectMany", result)
 end
 
-
 -- Returns a linq data structure where only items for whose the predicate has returned true are included
----@param self Linq
----@param predicate string|fun(a):boolean
----@param refvalue? any
-function _where(self, predicate, refvalue, ...)
-	local result = { }
+---@param predicate string|fun(value, ...):boolean @ String: dictionary only, matches the key. Function: either array or dictionary, value will be a key-value-pair if dictionary
+---@param refvalue? any @ String predicate: matches the value in the dictionary. Function predicate: Passed as additional argument
+---@param ... any @ String predicate: additional values to match. Function predicate: passed as additional arguments
+function Linq:where(predicate, refvalue, ...)
+	local result = {}
 
 	if (type(predicate) == "function") then
 		for idx, value in ipairs(self.m_Data) do
-			if (predicate(value, refvalue, from({...}):toTuple())) then
+			if (predicate(value, refvalue, from({ ... }):toTuple())) then
 				table.insert(result, value)
 			end
 		end
 	elseif (type(predicate) == "string") then
-		local refvals = {...}
+		local refvals = { ... }
 
 		if (#refvals > 0) then
 			table.insert(refvals, refvalue);
-			return _intersectionby(self, predicate, refvals);
+			return self:intersectionby(predicate, refvals);
 		elseif (refvalue ~= nil) then
 			for idx, value in ipairs(self.m_Data) do
 				if (value[predicate] == refvalue) then
@@ -366,47 +321,40 @@ function _where(self, predicate, refvalue, ...)
 	else
 		loge("where called with unknown predicate type");
 	end
-	return _new_lualinq(":where", result)
+	return newLinq(":where", result)
 end
 
-
-
-
 -- Returns a linq data structure where only items for whose the predicate has returned true are included, indexed version
----@param self Linq
----@param predicate fun(a):boolean
-function _whereIndex(self, predicate)
-	local result = { }
+---@param predicate fun(index:integer, value):boolean
+function Linq:whereIndex(predicate)
+	local result = {}
 
 	for idx, value in ipairs(self.m_Data) do
 		if (predicate(idx, value)) then
 			table.insert(result, value)
 		end
 	end
-	return _new_lualinq(":whereIndex", result)
+	return newLinq(":whereIndex", result)
 end
 
 -- Return a linq data structure with at most the first howmany elements
----@param self Linq
 ---@param howmany integer
 ---@return Linq
-function _take(self, howmany)
+function Linq:take(howmany)
 	return self:whereIndex(function(i, v) return i <= howmany; end)
 end
 
 -- Return a linq data structure skipping the first howmany elements
----@param self Linq
 ---@param howmany integer
 ---@return Linq
-function _skip(self, howmany)
+function Linq:skip(howmany)
 	return self:whereIndex(function(i, v) return i > howmany; end)
 end
 
 -- Zips two collections together, using the specified join function
----@param self Linq
 ---@param other Linq|table
 ---@param joiner fun(a, b):any
-function _zip(self, other, joiner)
+function Linq:zip(other, joiner)
 	other = from(other)
 
 	local thismax = #self.m_Data
@@ -418,13 +366,13 @@ function _zip(self, other, joiner)
 	for i = 1, thismax do
 		result[i] = joiner(self.m_Data[i], other.m_Data[i]);
 	end
-	return _new_lualinq(":zip", result)
+	return newLinq(":zip", result)
 end
 
 ---Returns ordered items according to pipeline of key selectors.
 ---@vararg fun(a):number|string @ Key selector
-function _orderby(self, ...)
-	local funcs = {...}
+function Linq:orderby(...)
+	local funcs = { ... }
 	local result = {}
 	for idx, value in ipairs(self.m_Data) do
 		result[idx] = value
@@ -436,13 +384,14 @@ function _orderby(self, ...)
 		return false
 	end
 	table.sort(result, compfunc)
-	return _new_lualinq(":orderby", result)
+	return newLinq(":orderby", result)
 end
 
+Linq.orderBy = Linq.orderby
+
 -- Returns only distinct items, using an optional comparator
----@param self Linq
 ---@param comparator? fun(a, b):boolean
-function _distinct(self, comparator)
+function Linq:distinct(comparator)
 	local result = {}
 
 	for idx, value in ipairs(self.m_Data) do
@@ -460,82 +409,85 @@ function _distinct(self, comparator)
 			table.insert(result, value)
 		end
 	end
-	return _new_lualinq(":distinct", result)
+	return newLinq(":distinct", result)
 end
 
 -- Returns the union of two collections, using an optional comparator
----@param self Linq
 ---@param other Linq|table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
-function _union(self, other, comparator)
+function Linq:union(other, comparator)
 	return self:concat(from(other)):distinct(comparator)
 end
 
 -- Returns the difference of two collections, using an optional comparator
----@param self Linq
 ---@param other Linq|table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
-function _except(self, other, comparator)
+function Linq:except(other, comparator)
 	other = from(other)
-	return self:where(function (v) return not other:contains(v, comparator) end)
+	return self:where(function(v) return not other:contains(v, comparator) end)
 end
 
 -- Returns the intersection of two collections, using an optional comparator
----@param self Linq
 ---@param other Linq|table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
-function _intersection(self, other, comparator)
+function Linq:intersection(other, comparator)
 	other = from(other)
-	return self:where(function (v) return other:contains(v, comparator) end)
+	return self:where(function(v) return other:contains(v, comparator) end)
 end
+
+Linq.intersect = Linq.intersection
 
 -- Returns the difference of two collections, using a property accessor
----@param self Linq
 ---@param property any
 ---@param other Linq|table
 ---@return Linq
-function _exceptby(self, property, other)
+function Linq:exceptby(property, other)
 	other = from(other)
-	return self:where(function (v) return not other:contains(v[property]) end)
+	return self:where(function(v) return not other:contains(v[property]) end)
 end
 
+Linq.exceptBy = Linq.exceptby
+
 -- Returns the intersection of two collections, using a property accessor
----@param self Linq
 ---@param property any
 ---@param other Linq|table
 ---@return Linq
-function _intersectionby(self, property, other)
+function Linq:intersectionby(property, other)
 	other = from(other)
-	return self:where(function (v) return other:contains(v[property]) end)
+	return self:where(function(v) return other:contains(v[property]) end)
 end
+
+Linq.intersectionBy = Linq.intersectionby
+Linq.intersectby = Linq.intersectionby
+Linq.intersectBy = Linq.intersectionby
 
 -- ============================================================
 -- CONVERSION METHODS
 -- ============================================================
 
 -- Converts the collection to an iterator
-function _toIterator(self)
+function Linq:toIterator()
 	local i = 0
 	local n = #self.m_Data
-	return function ()
-			i = i + 1
-			if i <= n then return self.m_Data[i] end
-		end
+	return function()
+		i = i + 1
+		if i <= n then return self.m_Data[i] end
+	end
 end
 
 -- Converts the collection to an array
 ---@return table
-function _toArray(self)
+function Linq:toArray()
 	return self.m_Data
 end
 
 -- Converts the collection to a table using a selector functions which returns key and value for each item
 ---@return table
-function _toDictionary(self, keyValueSelector)
-	local result = { }
+function Linq:toDictionary(keyValueSelector)
+	local result = {}
 
 	for idx, value in ipairs(self.m_Data) do
 		local key, value = keyValueSelector(value)
@@ -547,22 +499,18 @@ function _toDictionary(self, keyValueSelector)
 end
 
 -- Converts the lualinq struct to a tuple
-function _toTuple(self)
+function Linq:toTuple()
 	return unpack(self.m_Data)
 end
-
-
-
 
 -- ============================================================
 -- TERMINATING METHODS
 -- ============================================================
 
 -- Return the first item or default if no items in the colelction
----@param self Linq
 ---@param default? any
 ---@return any
-function _first(self, default)
+function Linq:first(default)
 	if (#self.m_Data > 0) then
 		return self.m_Data[1]
 	else
@@ -571,10 +519,9 @@ function _first(self, default)
 end
 
 -- Return the last item or default if no items in the colelction
----@param self Linq
 ---@param default? any
 ---@return any
-function _last(self, default)
+function Linq:last(default)
 	if (#self.m_Data > 0) then
 		return self.m_Data[#self.m_Data]
 	else
@@ -583,10 +530,9 @@ function _last(self, default)
 end
 
 -- Returns true if any item satisfies the predicate. If predicate is null, it returns true if the collection has at least one item.
----@param self Linq
 ---@param predicate? fun(a):boolean
 ---@return boolean
-function _any(self, predicate)
+function Linq:any(predicate)
 	if (predicate == nil) then return #self.m_Data > 0; end
 
 	for idx, value in ipairs(self.m_Data) do
@@ -598,10 +544,9 @@ function _any(self, predicate)
 end
 
 -- Returns true if all items satisfy the predicate. If predicate is null, it returns true if the collection is empty.
----@param self Linq
 ---@param predicate? fun(a):boolean
 ---@return boolean
-function _all(self, predicate)
+function Linq:all(predicate)
 	if (predicate == nil) then return #self.m_Data == 0; end
 
 	for idx, value in ipairs(self.m_Data) do
@@ -613,10 +558,9 @@ function _all(self, predicate)
 end
 
 -- Returns the number of items satisfying the predicate. If predicate is null, it returns the number of items in the collection.
----@param self Linq
 ---@param predicate? fun(a):boolean
 ---@return integer
-function _count(self, predicate)
+function Linq:count(predicate)
 	if (predicate == nil) then return #self.m_Data; end
 
 	local result = 0
@@ -629,25 +573,23 @@ function _count(self, predicate)
 	return result
 end
 
-
 -- Prints debug data.
-function _dump(self)
-	print(_dumpData(self));
+function Linq:dump()
+	print(self:dumpData());
 end
 
 -- Returns a random item in the collection, or default if no items are present
-function _random(self, default)
+function Linq:random(default)
 	if (#self.m_Data == 0) then return default; end
 	return self.m_Data[math.random(1, #self.m_Data)]
 end
 
 -- Returns true if the collection contains the specified item
 ---@generic T
----@param self Linq
 ---@param item T
 ---@param comparator? fun(a: T, b: T):boolean
 ---@return boolean
-function _contains(self, item, comparator)
+function Linq:contains(item, comparator)
 	for idx, value in ipairs(self.m_Data) do
 		if (comparator == nil) then
 			if (value == item) then return true; end
@@ -658,21 +600,19 @@ function _contains(self, item, comparator)
 	return false
 end
 
-
 -- Calls the action for each item in the collection. Action takes 1 parameter: the item value.
 -- If the action is a string, it calls that method with the additional parameters
----@param self Linq
----@param action string|fun(a)
+---@param action string|fun(value)
 ---@param ... any
 ---@return Linq
-function _foreach(self, action, ...)
+function Linq:foreach(action, ...)
 	if (type(action) == "function") then
 		for idx, value in ipairs(self.m_Data) do
-			action(value, from({...}):toTuple())
+			action(value, from({ ... }):toTuple())
 		end
 	elseif (type(action) == "string") then
 		for idx, value in ipairs(self.m_Data) do
-			value[action](value, from({...}):toTuple())
+			value[action](value, from({ ... }):toTuple())
 		end
 	else
 		loge("foreach called with unknown action type");
@@ -680,14 +620,15 @@ function _foreach(self, action, ...)
 	return self
 end
 
+Linq.each = Linq.foreach
+
 -- Calls the accumulator for each item in the collection. Accumulator takes 2 parameters: value and the previous result of
 -- the accumulator itself (firstvalue for the first call) and returns a new result.
 ---@generic T
----@param self Linq
----@param accumulator fun(a, r:T):T
+---@param accumulator fun(value, result:T):T
 ---@param firstvalue T
 ---@return T
-function _map(self, accumulator, firstvalue)
+function Linq:map(accumulator, firstvalue)
 	local result = firstvalue
 
 	for idx, value in ipairs(self.m_Data) do
@@ -701,11 +642,10 @@ end
 -- and returns a new result and a new associated-result.
 ---@generic T1
 ---@generic T2
----@param self Linq
----@param accumulator fun(val, lastres:T1, lastval:T2):T1, T2
+---@param accumulator fun(value, lastresult:T1, lastvalue:T2):T1, T2
 ---@param firstvalue? T2
 ---@return T1
-function _xmap(self, accumulator, firstvalue)
+function Linq:xmap(accumulator, firstvalue)
 	local result = nil
 	local lastval = firstvalue
 
@@ -716,43 +656,52 @@ function _xmap(self, accumulator, firstvalue)
 end
 
 -- Returns the max of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param self Linq
 ---@param selector? fun(a):number
 ---@return number
-function _max(self, selector)
- 	if (selector == nil) then
+function Linq:max(selector)
+	if (selector == nil) then
 		selector = function(n) return n; end
 	end
-  	return self:xmap(function(v, r, l) local res = selector(v); if (l == nil or res > l) then return v, res; else return r, l; end; end, nil)
+	return self:xmap(
+		function(v, r, l)
+			local res = selector(v);
+			if (l == nil or res > l) then return v, res; else return r, l; end
+			;
+		end, nil)
 end
 
 -- Returns the min of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param self Linq
 ---@param selector? fun(a):number
 ---@return number
-function _min(self, selector)
+function Linq:min(selector)
 	if (selector == nil) then
 		selector = function(n) return n; end
 	end
-  	return self:xmap(function(v, r, l) local res = selector(v); if (l == nil or res < l) then return v, res; else return r, l; end; end, nil)
+	return self:xmap(
+		function(v, r, l)
+			local res = selector(v);
+			if (l == nil or res < l) then return v, res; else return r, l; end
+			;
+		end, nil)
 end
 
 -- Returns the sum of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param self Linq
 ---@param selector? fun(a):number
 ---@return number
-function _sum(self, selector)
+function Linq:sum(selector)
 	if (selector == nil) then
 		selector = function(n) return n; end
 	end
-	return self:map(function(n, r) r = r + selector(n); return r; end, 0)
+	return self:map(function(n, r)
+		r = r + selector(n);
+		return r;
+	end, 0)
 end
 
 -- Returns the average of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param self Linq
 ---@param selector? fun(a):number
 ---@return number
-function _average(self, selector)
+function Linq:average(selector)
 	local count = self:count()
 	if (count > 0) then
 		return self:sum(selector) / count
