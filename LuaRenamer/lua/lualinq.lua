@@ -54,12 +54,6 @@ Linq.classid_71cd970f_a742_4316_938d_1998df001335 = 2
 local LIB_VERSION_TEXT = "1.5.1"
 local LIB_VERSION = 151
 
--- forward declare
-local function logv(txt) end
-local function logi(txt) end
-local function logw(txt) end
-local function loge(txt) end
-
 function linqSetLogLevel(level)
 	LOG_LEVEL = level;
 end
@@ -70,12 +64,26 @@ local function log(level, prefix, text)
 	end
 end
 
+local function logv(txt)
+	log(3, "[..] ", txt)
+end
+
+local function logi(txt)
+	log(2, "[ii] ", txt)
+end
+
+local function logw(txt)
+	log(1, "[W?] ", txt)
+end
+
+local function loge(txt)
+	log(0, "[E!] ", txt)
+end
+
 ---@param linq Linq
 ---@param method string
 local function logq(linq, method)
-	if (LOG_LEVEL >= 3) then
-		logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dumpData())
-	end
+	logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dumpData())
 end
 
 -- Returns dumped data
@@ -100,23 +108,6 @@ function Linq:dumpData()
 	return dumpdata
 end
 
-function logv(txt)
-	log(3, "[..] ", txt)
-end
-
-function logi(txt)
-	log(2, "[ii] ", txt)
-end
-
-function logw(txt)
-	log(1, "[W?] ", txt)
-end
-
-function loge(txt)
-	log(0, "[E!] ", txt)
-end
-
-
 -- ============================================================
 -- CONSTRUCTOR
 -- ============================================================
@@ -127,7 +118,7 @@ local function newLinq(method, collection)
 
 	self.m_Data = collection
 
-	logq(self, "from")
+	logq(self, method)
 
 	return self
 end
@@ -499,6 +490,7 @@ function Linq:toDictionary(keyValueSelector)
 end
 
 -- Converts the lualinq struct to a tuple
+---@return any ...
 function Linq:toTuple()
 	return unpack(self.m_Data)
 end
@@ -530,7 +522,7 @@ function Linq:last(default)
 end
 
 -- Returns true if any item satisfies the predicate. If predicate is null, it returns true if the collection has at least one item.
----@param predicate? fun(a):boolean
+---@param predicate? fun(value):boolean
 ---@return boolean
 function Linq:any(predicate)
 	if (predicate == nil) then return #self.m_Data > 0; end
@@ -544,7 +536,7 @@ function Linq:any(predicate)
 end
 
 -- Returns true if all items satisfy the predicate. If predicate is null, it returns true if the collection is empty.
----@param predicate? fun(a):boolean
+---@param predicate? fun(value):boolean
 ---@return boolean
 function Linq:all(predicate)
 	if (predicate == nil) then return #self.m_Data == 0; end
@@ -558,7 +550,7 @@ function Linq:all(predicate)
 end
 
 -- Returns the number of items satisfying the predicate. If predicate is null, it returns the number of items in the collection.
----@param predicate? fun(a):boolean
+---@param predicate? fun(value):boolean
 ---@return integer
 function Linq:count(predicate)
 	if (predicate == nil) then return #self.m_Data; end
@@ -571,11 +563,6 @@ function Linq:count(predicate)
 		end
 	end
 	return result
-end
-
--- Prints debug data.
-function Linq:dump()
-	print(self:dumpData());
 end
 
 -- Returns a random item in the collection, or default if no items are present
@@ -601,7 +588,7 @@ function Linq:contains(item, comparator)
 end
 
 -- Calls the action for each item in the collection. Action takes 1 parameter: the item value.
--- If the action is a string, it calls that method with the additional parameters
+-- If the action is a string, it calls that method on each value with the additional parameters
 ---@param action string|fun(value)
 ---@param ... any
 ---@return Linq
@@ -656,7 +643,7 @@ function Linq:xmap(accumulator, firstvalue)
 end
 
 -- Returns the max of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param selector? fun(a):number
+---@param selector? fun(value):number
 ---@return number
 function Linq:max(selector)
 	if (selector == nil) then
@@ -671,7 +658,7 @@ function Linq:max(selector)
 end
 
 -- Returns the min of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param selector? fun(a):number
+---@param selector? fun(value):number
 ---@return number
 function Linq:min(selector)
 	if (selector == nil) then
@@ -686,7 +673,7 @@ function Linq:min(selector)
 end
 
 -- Returns the sum of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param selector? fun(a):number
+---@param selector? fun(value):number
 ---@return number
 function Linq:sum(selector)
 	if (selector == nil) then
@@ -699,7 +686,7 @@ function Linq:sum(selector)
 end
 
 -- Returns the average of a collection. Selector is called with values and should return a number. Can be nil if collection is of numbers.
----@param selector? fun(a):number
+---@param selector? fun(value):number
 ---@return number
 function Linq:average(selector)
 	local count = self:count()
