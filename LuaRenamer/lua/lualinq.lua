@@ -83,11 +83,11 @@ end
 ---@param linq Linq
 ---@param method string
 local function logq(linq, method)
-	logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dumpData())
+	logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dump())
 end
 
 -- Returns dumped data
-function Linq:dumpData()
+function Linq:dump()
 	local items = #self.m_Data
 	local dumpdata = "q{ "
 
@@ -316,7 +316,7 @@ function Linq:where(predicate, refvalue, ...)
 end
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included, indexed version
----@param predicate fun(index:integer, value):boolean
+---@param predicate fun(index:integer, value:any):boolean
 function Linq:whereIndex(predicate)
 	local result = {}
 
@@ -587,9 +587,9 @@ function Linq:contains(item, comparator)
 	return false
 end
 
--- Calls the action for each item in the collection. Action takes 1 parameter: the item value.
--- If the action is a string, it calls that method on each value with the additional parameters
----@param action string|fun(value)
+-- Calls the action for each item in the collection. Action's first parameter is the value, any more are provided by var args.
+-- If the action is a string, it calls that method on each value plus additional provided arguments
+---@param action string|fun(value:any, ...:any)
 ---@param ... any
 ---@return Linq
 function Linq:foreach(action, ...)

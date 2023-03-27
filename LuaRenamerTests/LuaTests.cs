@@ -145,24 +145,30 @@ public class LuaTests
     }
 
     [TestMethod]
-    public void TestLuaLinq()
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = from(array):select(function(v) return #v; end):dump()", "q{ 4, 5, 9 }")]
+    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, }\n" +
+             "filename = from(array):select(\"say\"):dump()", "q{ ciao, hello }")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = from(array):selectMany(function(v) return { v, #v }; end):dump()  ", "q{ ciao, 4, hello, ...6 }")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = ''\n" +
+             "from(array):foreach(function (a, blah) filename = filename .. a .. blah end, 'blah')", "ciaoblahhelloblahau revoirblah")]
+    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, { say=\"au revoir\", lang=\"fre\" }}\n" +
+             "array = from(array):where(\"lang\", \"ita\", \"fre\"):toArray()\n" +
+             "filename = array[1].say .. array[2].say .. (array[3] and array[3].say or '')", "ciaoau revoir")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = tostring(from(array):whereIndex(function (i, v) return ((i % 2)~=0); end):count())", "2")]
+    [DataRow("filename = table.concat(from({'a', 'b', 'c'}):concat({'d', 'e'}):toArray())", "abcde")]
+    [DataRow("filename = table.concat(from({'ablah', 'blahb', 'blac'}):where(function(a, extra) return string.find(a, extra) end, 'blah'):toArray())",
+        "ablahblahb")]
+    public void TestLuaLinq(string lua, string expected)
     {
-        var args = MinimalArgs($@"{LuaEnv.filename} = from({LuaEnv.anime.titlesFn}):map(function(x, r) return r .. x.{LuaEnv.title.name}; end, '')");
-        ((List<AnimeTitle>)args.AnimeInfo[0].Titles).AddRange(new AnimeTitle[]
-        {
-            new()
-            {
-                Title = "animeTitle1"
-            },
-            new()
-            {
-                Title = "animeTitle2"
-            }
-        });
+        var args = MinimalArgs(lua);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
-        Assert.AreEqual("animeTitle1animeTitle2.mp4", res?.filename);
+        Assert.AreEqual(expected + ".mp4", res?.filename);
     }
 
     [TestMethod]
