@@ -344,9 +344,10 @@ end
 
 -- Zips two collections together, using the specified join function
 ---@param other Linq|table
----@param joiner fun(a, b):any
+---@param joiner? fun(a, b):any
 function Linq:zip(other, joiner)
 	other = from(other)
+	joiner = joiner or function(a, b) return { a, b } end
 
 	local thismax = #self.m_Data
 	local thatmax = #other.m_Data
@@ -361,7 +362,7 @@ function Linq:zip(other, joiner)
 end
 
 ---Returns ordered items according to pipeline of key selectors.
----@vararg fun(a):number|string @ Key selector
+---@vararg fun(value):number|string @ Key selector
 function Linq:orderby(...)
 	local funcs = { ... }
 	local result = {}
@@ -370,7 +371,10 @@ function Linq:orderby(...)
 	end
 	local function compfunc(a, b)
 		for idx, value in ipairs(funcs) do
-			if value(a) < value(b) then return true end
+			local ares = value(a)
+			local bres = value(b)
+			if ares < bres then return true end
+			if ares > bres then return false end
 		end
 		return false
 	end

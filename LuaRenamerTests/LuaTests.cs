@@ -162,6 +162,10 @@ public class LuaTests
     [DataRow("filename = table.concat(from({'a', 'b', 'c'}):concat({'d', 'e'}):toArray())", "abcde")]
     [DataRow("filename = table.concat(from({'ablah', 'blahb', 'blac'}):where(function(a, extra) return string.find(a, extra) end, 'blah'):toArray())",
         "ablahblahb")]
+    [DataRow("filename = table.concat(from({ 1, 2, 3 }):zip({4, 5, 6, 7}):selectMany(function(v) return v end):toArray())", "142536")]
+    [DataRow(
+        "filename = table.concat(from({{5, 'c'},{1, 'g'},{3, 'c'},{2, 'f'}}):orderBy(function(v) return v[2] end, function(v) return v[1] end):selectMany(function(v) return v end):toArray())",
+        "3c5c2f1g")]
     public void TestLuaLinq(string lua, string expected)
     {
         var args = MinimalArgs(lua);
