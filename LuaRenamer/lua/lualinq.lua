@@ -435,7 +435,7 @@ end
 
 Linq.intersect = Linq.intersection
 
--- Returns the difference of two collections, using a property accessor
+-- Returns the collection excluding items in the other collection using a property accessor
 ---@param property any
 ---@param other Linq|table
 ---@return Linq
@@ -446,7 +446,7 @@ end
 
 Linq.exceptBy = Linq.exceptby
 
--- Returns the intersection of two collections, using a property accessor
+-- Returns the collection only including items in the other collection using a property accessor
 ---@param property any
 ---@param other Linq|table
 ---@return Linq
