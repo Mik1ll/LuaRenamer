@@ -41,7 +41,8 @@ local unpack = table.unpack
 
 
 ---@class Linq
----@field m_Data table
+---@field private m_Data table
+---@field private chained_compare? fun()
 local Linq = {}
 Linq.__index = Linq
 Linq.classid_71cd970f_a742_4316_938d_1998df001335 = 2
@@ -361,28 +362,82 @@ function Linq:zip(other, joiner)
 	return newLinq(":zip", result)
 end
 
----Returns ordered items according to pipeline of key selectors.
----@vararg fun(value):number|string @ Key selector
-function Linq:orderby(...)
-	local funcs = { ... }
+---@param array table
+---@param comparator? fun(a, b):int|boolean
+local function insertionsort(array, comparator)
+	comp = function(a, b)
+		if (comparator == nil) then
+			return a < b
+		else
+			local res = comparator(a, b)
+			return res == true or res < 0
+		end
+	end
+	for i = 2, #array do
+		j = i
+		while j > 1 and not comp(array[j - 1], array[j]) do
+			array[j], array[j - 1] = array[j - 1], array[j]
+			j = j - 1
+		end
+	end
+end
+
+local function compare(a, b)
+	if (a < b) then
+		return -1
+	elseif (a > b) then
+		return 1
+	else
+		return 0
+	end
+end
+
+---Returns ordered items according a selector and comparer (must return -1, 0, 1)
+---@param selector fun(value):any @ Key selector
+---@param comparator? fun(a, b):int @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+function Linq:orderby(selector, comparator)
+	comparator = comparator or compare
 	local result = {}
 	for idx, value in ipairs(self.m_Data) do
 		result[idx] = value
 	end
 	local function compfunc(a, b)
-		for idx, value in ipairs(funcs) do
-			local ares = value(a)
-			local bres = value(b)
-			if ares < bres then return true end
-			if ares > bres then return false end
-		end
-		return false
+		local ares = selector(a)
+		local bres = selector(b)
+		return comparator(ares, bres)
 	end
-	table.sort(result, compfunc)
-	return newLinq(":orderby", result)
+	insertionsort(result, compfunc)
+	result = newLinq(":orderby", result)
+	result.chained_compare = compfunc
+	return result
 end
 
 Linq.orderBy = Linq.orderby
+
+---Used after orderBy or another thenBy, adds a lower priority ordering
+---@param selector fun(value):any @ Key selector
+---@param comparator? fun(a, b):int @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+function Linq:thenby(selector, comparator)
+	comparator = comparator or compare
+	if (self.chained_compare == nil) then
+		error("thenby called without orderby first")
+	end
+	local function compfunc(a, b)
+		local baseres = self.chained_compare(a, b)
+		if (baseres ~= 0) then
+			return baseres
+		end
+		local ares = selector(a)
+		local bres = selector(b)
+		return comparator(ares, bres)
+	end
+	insertionsort(self.m_Data, compfunc)
+	local result = newLinq(":thenby", self.m_Data)
+	result.chained_compare = compfunc
+	return result
+end
+
+Linq.thenBy = Linq.thenby
 
 -- Returns only distinct items, using an optional comparator
 ---@param comparator? fun(a, b):boolean

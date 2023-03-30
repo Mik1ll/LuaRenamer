@@ -164,7 +164,7 @@ public class LuaTests
         "ablahblahb")]
     [DataRow("filename = table.concat(from({ 1, 2, 3 }):zip({4, 5, 6, 7}):selectMany(function(v) return v end):toArray())", "142536")]
     [DataRow(
-        "filename = table.concat(from({{5, 'c'},{1, 'g'},{3, 'c'},{2, 'f'}}):orderBy(function(v) return v[2] end, function(v) return v[1] end):selectMany(function(v) return v end):toArray())",
+        "filename = table.concat(from({{5, 'c'},{1, 'g'},{3, 'c'},{2, 'f'}}):orderBy(function(v) return v[2] end):thenBy(function(v) return v[1] end):selectMany(function(v) return v end):toArray())",
         "3c5c2f1g")]
     [DataRow("filename = table.concat(from({2,3,12,14,4,21,3,1,24}):distinct(function(a,b) return a % 4 == b % 4 end):toArray(), ' ')",
         "2 3 12 21")]
@@ -173,6 +173,11 @@ public class LuaTests
     [DataRow("filename = table.concat(from({2,6,5,3}):intersection({1,2,4,3}):toArray())", "23")]
     [DataRow("filename = table.concat(from({{a=5,b=3},{a=2,b=2},{a=3,b=5}}):exceptBy('b', {5,3,4}):selectMany(function(v) return {v.a,v.b} end):toArray())",
         "22")]
+    [DataRow("filename = table.concat(from({5,3,2,7,54,3}):orderBy(function(v) return v end):toArray())",
+        "2335754")]
+    [DataRow(
+        "filename = table.concat(from({{c='I',b='C',a='H'},{c='I',b='K',a='D'},{c='E',b='G',a='G'},{c='A',b='K',a='I'},{c='B',b='H',a='J'},{c='K',b='A',a='C'},{c='B',b='K',a='G'},{c='D',b='C',a='B'},{c='G',b='H',a='B'},{c='C',b='D',a='J'}}):orderBy(function(v) return v.a end):thenBy(function(v) return v.b end):thenBy(function(v) return v.c end):selectMany(function(v) return {v.c, v.b, v.a} end):toArray())",
+        "DCBGHBKACIKDEGGBKGICHAKICDJBHJ")]
     public void TestLuaLinq(string lua, string expected)
     {
         var args = MinimalArgs(lua);
