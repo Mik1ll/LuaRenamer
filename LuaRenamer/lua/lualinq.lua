@@ -279,7 +279,7 @@ function Linq:selectMany(selector)
 end
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included
----@param predicate string|fun(value, ...):boolean @ String: matches the table key. Function: optional additional arguments can be passed 
+---@param predicate string|fun(value, ...):boolean @ String: matches the table key. Function: optional additional arguments can be passed
 ---@param refvalue? any @ String predicate: matches the value in the dictionary. Function predicate: Passed as additional argument
 ---@param ... any @ String predicate: additional values to match. Function predicate: passed as additional arguments
 function Linq:where(predicate, refvalue, ...)
@@ -393,10 +393,16 @@ local function compare(a, b)
 end
 
 ---Returns ordered items according a selector and comparer (must return -1, 0, 1)
----@param selector fun(value):any @ Key selector
----@param comparator? fun(a, b):int @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+---@param selector string|fun(value):any @ Key selector
+---@param comparator? fun(a, b):integer @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
 function Linq:orderby(selector, comparator)
 	comparator = comparator or compare
+	if (type(selector) == "string") then
+		local key = selector
+		selector = function(value)
+			return value[key]
+		end
+	end
 	local result = {}
 	for idx, value in ipairs(self.m_Data) do
 		result[idx] = value
@@ -415,12 +421,18 @@ end
 Linq.orderBy = Linq.orderby
 
 ---Used after orderBy or another thenBy, adds a lower priority ordering
----@param selector fun(value):any @ Key selector
----@param comparator? fun(a, b):int @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+---@param selector string|fun(value):any @ Key selector
+---@param comparator? fun(a, b):integer @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
 function Linq:thenby(selector, comparator)
-	comparator = comparator or compare
 	if (self.chained_compare == nil) then
 		error("thenby called without orderby first")
+	end
+	comparator = comparator or compare
+	if (type(selector) == "string") then
+		local key = selector
+		selector = function(value)
+			return value[key]
+		end
 	end
 	local function compfunc(a, b)
 		local baseres = self.chained_compare(a, b)
