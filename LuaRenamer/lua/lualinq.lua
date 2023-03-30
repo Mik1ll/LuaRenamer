@@ -260,7 +260,7 @@ function Linq:select(selector)
 	return newLinq(":select", result)
 end
 
--- Replaces items with those contained in arrays returned by the selector function
+-- Returns merged array of the arrays returned by the selector function
 ---@param selector fun(value):table
 function Linq:selectMany(selector)
 	local result = {}
@@ -279,7 +279,7 @@ function Linq:selectMany(selector)
 end
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included
----@param predicate string|fun(value, ...):boolean @ String: dictionary only, matches the key. Function: either array or dictionary, value will be a key-value-pair if dictionary
+---@param predicate string|fun(value, ...):boolean @ String: matches the table key. Function: optional additional arguments can be passed 
 ---@param refvalue? any @ String predicate: matches the value in the dictionary. Function predicate: Passed as additional argument
 ---@param ... any @ String predicate: additional values to match. Function predicate: passed as additional arguments
 function Linq:where(predicate, refvalue, ...)

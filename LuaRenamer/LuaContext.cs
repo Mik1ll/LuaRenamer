@@ -137,6 +137,7 @@ end
         _logger = logger;
         _renamer = renamer;
         State.Encoding = Encoding.UTF8;
+        DoFile(Path.Combine(LuaPath, "utils.lua"));
         DoFile(Path.Combine(LuaPath, "lualinq.lua"));
         _functions = new LuaFunctions(
             (LuaFunction)DoString(SandboxFunction)[0],
