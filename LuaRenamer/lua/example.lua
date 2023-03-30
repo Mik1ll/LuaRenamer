@@ -6,21 +6,6 @@ local animelanguage = Language.English
 local episodelanguage = Language.English
 local spacechar = " "
 
---#region Utility functions
-
----Trims string, removes extra spaces, and replaces with given character or space
----@param self string
----@param char string?
----@return string
-function string:clean_spaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
-
----Returns truncated string, supporting unicode characters
----@param self string
----@param len integer
----@return string
-function string:truncate(len) return utf8.len(self) > len and self:sub(1, utf8.offset(self, len + 1, 1) - 1):gsub("%s+$", "") .. "..." or self end
---#endregion
-
 local group = file.anidb and file.anidb.releasegroup and "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]" or ""
 
 local animename = anime:getname(animelanguage) or anime.preferredname
