@@ -145,24 +145,46 @@ public class LuaTests
     }
 
     [TestMethod]
-    public void TestLuaLinq()
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = from(array):select(function(v) return #v; end):dump()", "q{ 4, 5, 9 }")]
+    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, }\n" +
+             "filename = from(array):select(\"say\"):dump()", "q{ ciao, hello }")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = from(array):selectMany(function(v) return { v, #v }; end):dump()  ", "q{ ciao, 4, hello, ...6 }")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = ''\n" +
+             "from(array):foreach(function (a, blah) filename = filename .. a .. blah end, 'blah')", "ciaoblahhelloblahau revoirblah")]
+    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, { say=\"au revoir\", lang=\"fre\" }}\n" +
+             "array = from(array):where(\"lang\", \"ita\", \"fre\"):toArray()\n" +
+             "filename = array[1].say .. array[2].say .. (array[3] and array[3].say or '')", "ciaoau revoir")]
+    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+             "filename = tostring(from(array):whereIndex(function (i, v) return ((i % 2)~=0); end):count())", "2")]
+    [DataRow("filename = table.concat(from({'a', 'b', 'c'}):concat({'d', 'e'}):toArray())", "abcde")]
+    [DataRow("filename = table.concat(from({'ablah', 'blahb', 'blac'}):where(function(a, extra) return string.find(a, extra) end, 'blah'):toArray())",
+        "ablahblahb")]
+    [DataRow("filename = table.concat(from({ 1, 2, 3 }):zip({4, 5, 6, 7}):selectMany(function(v) return v end):toArray())", "142536")]
+    [DataRow(
+        "filename = table.concat(from({{5, 'c'},{1, 'g'},{3, 'c'},{2, 'f'}}):orderBy(function(v) return v[2] end):thenBy(function(v) return v[1] end):selectMany(function(v) return v end):toArray())",
+        "3c5c2f1g")]
+    [DataRow("filename = table.concat(from({2,3,12,14,4,21,3,1,24}):distinct(function(a,b) return a % 4 == b % 4 end):toArray(), ' ')",
+        "2 3 12 21")]
+    [DataRow("filename = table.concat(from({0,3,5,2,3,0}):union({3,4,5,7}):toArray())", "035247")]
+    [DataRow("filename = table.concat(from({2,4,6,3,2}):except({3,6,5}):toArray())", "242")]
+    [DataRow("filename = table.concat(from({2,6,5,3}):intersection({1,2,4,3}):toArray())", "23")]
+    [DataRow("filename = table.concat(from({{a=5,b=3},{a=2,b=2},{a=3,b=5}}):exceptBy('b', {5,3,4}):selectMany(function(v) return {v.a,v.b} end):toArray())",
+        "22")]
+    [DataRow("filename = table.concat(from({5,3,2,7,54,3}):orderBy(function(v) return v end):toArray())",
+        "2335754")]
+    [DataRow(
+        "filename = table.concat(from({{c='I',b='C',a='H'},{c='I',b='K',a='D'},{c='E',b='G',a='G'},{c='A',b='K',a='I'},{c='B',b='H',a='J'},{c='K',b='A',a='C'},{c='B',b='K',a='G'},{c='D',b='C',a='B'},{c='G',b='H',a='B'},{c='C',b='D',a='J'}}):orderBy(function(v) return v.a end):thenBy(function(v) return v.b end):thenBy(function(v) return v.c end):selectMany(function(v) return {v.c, v.b, v.a} end):toArray())",
+        "DCBGHBKACIKDEGGBKGICHAKICDJBHJ")]
+    public void TestLuaLinq(string lua, string expected)
     {
-        var args = MinimalArgs($@"{LuaEnv.filename} = from({LuaEnv.anime.titlesFn}):map(function(x, r) return r .. x.{LuaEnv.title.name}; end, '')");
-        ((List<AnimeTitle>)args.AnimeInfo[0].Titles).AddRange(new AnimeTitle[]
-        {
-            new()
-            {
-                Title = "animeTitle1"
-            },
-            new()
-            {
-                Title = "animeTitle2"
-            }
-        });
+        var args = MinimalArgs(lua);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
-        Assert.AreEqual("animeTitle1animeTitle2.mp4", res?.filename);
+        Assert.AreEqual(expected + ".mp4", res?.filename);
     }
 
     [TestMethod]
