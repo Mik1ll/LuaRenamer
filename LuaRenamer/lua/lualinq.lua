@@ -392,7 +392,7 @@ local function compare(a, b)
 	end
 end
 
----Returns ordered items according a selector and comparer (must return -1, 0, 1)
+---Returns ordered items according to a selector and comparer (must return -1, 0, 1)
 ---@param selector string|fun(value):any @ Key selector
 ---@param comparator? fun(a, b):integer @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
 function Linq:orderby(selector, comparator)
@@ -419,6 +419,21 @@ function Linq:orderby(selector, comparator)
 end
 
 Linq.orderBy = Linq.orderby
+
+---Returns ordered items in descending order according to a selector and comparer (must return -1, 0, 1)
+---@param selector string|fun(value):any @ Key selector
+---@param comparator? fun(a, b):integer @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+function Linq:orderbyDescending(selector, comparator)
+	comparator = comparator or compare
+	newcomp = function(a, b)
+		return -comparator(a, b)
+	end
+	return self:orderby(selector, newcomp)
+end
+
+Linq.orderByDescending = Linq.orderbyDescending
+Linq.orderbyDesc = Linq.orderbyDescending
+Linq.orderByDesc = Linq.orderbyDescending
 
 ---Used after orderBy or another thenBy, adds a lower priority ordering
 ---@param selector string|fun(value):any @ Key selector
@@ -450,6 +465,21 @@ function Linq:thenby(selector, comparator)
 end
 
 Linq.thenBy = Linq.thenby
+
+---Used after orderBy or another thenBy, adds a lower priority ordering in descending order
+---@param selector string|fun(value):any @ Key selector
+---@param comparator? fun(a, b):integer @ Key comparer, -1(a<b), 0(a==b), 1(a>b)
+function Linq:thenbyDescending(selector, comparator)
+	comparator = comparator or compare
+	newcomp = function(a, b)
+		return -comparator(a, b)
+	end
+	return self:thenby(selector, newcomp)
+end
+
+Linq.thenByDescending = Linq.thenbyDescending
+Linq.thenbyDesc = Linq.thenbyDescending
+Linq.thenByDesc = Linq.thenbyDescending
 
 -- Returns only distinct items, using an optional comparator
 ---@param comparator? fun(a, b):boolean
