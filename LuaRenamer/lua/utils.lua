@@ -2,7 +2,7 @@
 ---@param self string
 ---@param char string?
 ---@return string
-function string:clean_spaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
+function string:cleanspaces(char) return (self:match("^%s*(.-)%s*$"):gsub("%s+", char or " ")) end
 
 ---Returns truncated string, supporting unicode characters
 ---@param self string

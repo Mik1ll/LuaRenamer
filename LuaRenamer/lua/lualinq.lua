@@ -363,7 +363,7 @@ function Linq:zip(other, joiner)
 end
 
 ---@param array table
----@param comparator? fun(a, b):int|boolean
+---@param comparator? fun(a, b):integer|boolean
 local function insertionsort(array, comparator)
 	comp = function(a, b)
 		if (comparator == nil) then
