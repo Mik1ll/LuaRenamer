@@ -4,25 +4,26 @@
 
 ---@param self Anime|Episode
 ---@param lang Language
----@param include_unofficial? boolean
----@return string?
-function getname(self, lang, include_unofficial) end
+---@param include_unofficial boolean|nil
+---@return string|nil
+function getname(self, lang, include_unofficial)
+end
 
 ---@class File
 ---@field name string
 ---@field path string
 ---@field size integer
 ---@field hashes Hashes
----@field anidb? AniDb
+---@field anidb AniDb|nil
 ---@field media Media
 ---@field importfolder ImportFolder
 local File = {}
 
 ---@class Hashes
----@field crc? string
----@field md5? string
+---@field crc string|nil
+---@field md5 string|nil
 ---@field ed2k string
----@field sha1? string
+---@field sha1 string|nil
 local Hashes = {}
 
 ---@class AniDb
@@ -30,7 +31,7 @@ local Hashes = {}
 ---@field source string
 ---@field version integer
 ---@field releasedate DateTime
----@field releasegroup? ReleaseGroup
+---@field releasegroup ReleaseGroup|nil
 ---@field id integer
 ---@field description string
 ---@field media AniDbMedia
@@ -71,7 +72,7 @@ local Video = {}
 ---@field samplingrate integer
 ---@field codec string
 ---@field language string
----@field title? string
+---@field title string|nil
 local Audio = {}
 
 ---@class Anime
@@ -129,7 +130,7 @@ local ImportFolder = {}
 
 ---@class Group
 ---@field name string
----@field mainanime? Anime
+---@field mainanime Anime|nil
 ---@field animes Anime[]
 local Group = {}
 
@@ -205,7 +206,7 @@ Language = {
   Hungarian = "Hungarian",
   Italian = "Italian",
   Korean = "Korean",
-  Lithuania = "Lithuania",
+  Lithuanian = "Lithuanian",
   Mongolian = "Mongolian",
   Malaysian = "Malaysian",
   Dutch = "Dutch",
@@ -231,7 +232,68 @@ Language = {
   Albanian = "Albanian",
   Basque = "Basque",
   Bengali = "Bengali",
-  Bosnian = "Bosnian"
+  Bosnian = "Bosnian",
+  Amharic = "Amharic",
+  Armenian = "Armenian",
+  Azerbaijani = "Azerbaijani",
+  Belarusian = "Belarusian",
+  Catalan = "Catalan",
+  Chichewa = "Chichewa",
+  Corsican = "Corsican",
+  Croatian = "Croatian",
+  Divehi = "Divehi",
+  Esperanto = "Esperanto",
+  Fijian = "Fijian",
+  Georgian = "Georgian",
+  Gujarati = "Gujarati",
+  HaitianCreole = "HaitianCreole",
+  Hausa = "Hausa",
+  Icelandic = "Icelandic",
+  Igbo = "Igbo",
+  Indonesian = "Indonesian",
+  Irish = "Irish",
+  Javanese = "Javanese",
+  Kannada = "Kannada",
+  Kazakh = "Kazakh",
+  Khmer = "Khmer",
+  Kurdish = "Kurdish",
+  Kyrgyz = "Kyrgyz",
+  Lao = "Lao",
+  Latvian = "Latvian",
+  Luxembourgish = "Luxembourgish",
+  Macedonian = "Macedonian",
+  Malagasy = "Malagasy",
+  Malayalam = "Malayalam",
+  Maltese = "Maltese",
+  Maori = "Maori",
+  Marathi = "Marathi",
+  MyanmarBurmese = "MyanmarBurmese",
+  Nepali = "Nepali",
+  Oriya = "Oriya",
+  Pashto = "Pashto",
+  Persian = "Persian",
+  Punjabi = "Punjabi",
+  Quechua = "Quechua",
+  Samoan = "Samoan",
+  ScotsGaelic = "ScotsGaelic",
+  Sesotho = "Sesotho",
+  Shona = "Shona",
+  Sindhi = "Sindhi",
+  Sinhala = "Sinhala",
+  Somali = "Somali",
+  Swahili = "Swahili",
+  Tajik = "Tajik",
+  Tamil = "Tamil",
+  Tatar = "Tatar",
+  Telugu = "Telugu",
+  Turkmen = "Turkmen",
+  Uighur = "Uighur",
+  Uzbek = "Uzbek",
+  Welsh = "Welsh",
+  Xhosa = "Xhosa",
+  Yiddish = "Yiddish",
+  Yoruba = "Yoruba",
+  Zulu = "Zulu",
 }
 
 ---@enum RelationType
@@ -257,22 +319,26 @@ RelationType = {
 ---Returns formatted episode numbers with padding
 ---@param pad integer
 ---@return string
-function episode_numbers(pad) end
+function episode_numbers(pad)
+end
 
 ---Log with Information log level
 ---@param message string
 ---@return nil
-function log(message) end
+function log(message)
+end
 
 ---Log with Warning log level
 ---@param message string
 ---@return nil
-function logwarn(message) end
+function logwarn(message)
+end
 
 ---Log with Error log level
 ---@param message string
 ---@return nil
-function logerror(message) end
+function logerror(message)
+end
 
 ---@type string|nil
 filename = nil
