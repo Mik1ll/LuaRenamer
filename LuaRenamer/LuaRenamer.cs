@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
@@ -66,7 +67,9 @@ public class LuaRenamer : IRenamer
         }
         catch (Exception e)
         {
-            return $"*Error: {e.Message}";
+            var st = new StackTrace(e, true);
+            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
+            return $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}";
         }
     }
 

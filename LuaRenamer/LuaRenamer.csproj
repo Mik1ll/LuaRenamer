@@ -10,6 +10,7 @@
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
         <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
+        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
     </PropertyGroup>
 
     <ItemGroup>
@@ -61,7 +62,7 @@
     <Target Name="PackageForRelease" AfterTargets="AfterBuild">
         <ItemGroup>
             <LuaOut Include="lua/**/*.*" />
-            <DebugOut Condition="'$(Configuration)' == 'Debug'" Include="$(OutDir)$(ProjectName).pdb" />
+            <DebugOut Include="$(OutDir)$(ProjectName).pdb" />
             <SharedOut Include="$(OutDir)$(ProjectName).dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll;$(OutDir)runtimes/win-x64/native/lua54.dll;$(ProjectDir)docker_build/liblua54.so" />
         </ItemGroup>
         <Copy SourceFiles="@(SharedOut);@(DebugOut)" DestinationFolder="$(OutDir)ZipDir/$(ProjectName)" SkipUnchangedFiles="true" />
