@@ -368,16 +368,18 @@ end
         {
             mediainfo = new Dictionary<string, object?>();
             mediainfo.Add(LuaEnv.file.media.chaptered, _renamer.FileInfo.MediaInfo.Chaptered);
-            Dictionary<string, object>? videodict;
-            videodict = new Dictionary<string, object>();
-            videodict.Add(LuaEnv.file.media.video.height, _renamer.FileInfo.MediaInfo.Video.Height);
-            videodict.Add(LuaEnv.file.media.video.width, _renamer.FileInfo.MediaInfo.Video.Width);
-            videodict.Add(LuaEnv.file.media.video.codec, _renamer.FileInfo.MediaInfo.Video.SimplifiedCodec);
-            videodict.Add(LuaEnv.file.media.video.res, _renamer.FileInfo.MediaInfo.Video.StandardizedResolution);
-            videodict.Add(LuaEnv.file.media.video.bitrate, _renamer.FileInfo.MediaInfo.Video.BitRate);
-            videodict.Add(LuaEnv.file.media.video.bitdepth, _renamer.FileInfo.MediaInfo.Video.BitDepth);
-            videodict.Add(LuaEnv.file.media.video.framerate, _renamer.FileInfo.MediaInfo.Video.FrameRate);
-
+            Dictionary<string, object>? videodict = null;
+            if (_renamer.FileInfo.MediaInfo.Video is not null)
+            {
+                videodict = new Dictionary<string, object>();
+                videodict.Add(LuaEnv.file.media.video.height, _renamer.FileInfo.MediaInfo.Video.Height);
+                videodict.Add(LuaEnv.file.media.video.width, _renamer.FileInfo.MediaInfo.Video.Width);
+                videodict.Add(LuaEnv.file.media.video.codec, _renamer.FileInfo.MediaInfo.Video.SimplifiedCodec);
+                videodict.Add(LuaEnv.file.media.video.res, _renamer.FileInfo.MediaInfo.Video.StandardizedResolution);
+                videodict.Add(LuaEnv.file.media.video.bitrate, _renamer.FileInfo.MediaInfo.Video.BitRate);
+                videodict.Add(LuaEnv.file.media.video.bitdepth, _renamer.FileInfo.MediaInfo.Video.BitDepth);
+                videodict.Add(LuaEnv.file.media.video.framerate, _renamer.FileInfo.MediaInfo.Video.FrameRate);
+            }
             mediainfo.Add(LuaEnv.file.media.video.N, videodict);
             mediainfo.Add(LuaEnv.file.media.duration, _renamer.FileInfo.MediaInfo.General.Duration);
             mediainfo.Add(LuaEnv.file.media.bitrate, _renamer.FileInfo.MediaInfo.General.OverallBitRate);
