@@ -40,7 +40,7 @@ public class LuaTests
                 Type = LuaRenamer.LuaRenamer.RenamerId
             },
             FileInfo = Mock.Of<IVideoFile>(file =>
-                file.Hashes.CRC == "abc123" &&
+                file.Hashes.ED2K == "abc123" &&
                 file.FilePath == "C:\\testimportfolder\\testsubfolder" &&
                 file.Filename == "testfilename.mp4" &&
                 file.VideoFileID == 25),
@@ -106,7 +106,6 @@ public class LuaTests
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = os.date('%c', os.time({LuaEnv.file.anidb.releasedateFn}))");
         args.FileInfo = Mock.Of<IVideoFile>(file =>
-            file.Hashes.CRC == args.FileInfo.Hashes.CRC &&
             file.FilePath == args.FileInfo.FilePath &&
             file.Filename == args.FileInfo.Filename &&
             file.AniDBFileInfo.ReleaseDate == new DateTime(2022, 02, 03, 5, 3, 2) &&
