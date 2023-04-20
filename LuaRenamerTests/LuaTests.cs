@@ -108,6 +108,7 @@ public class LuaTests
         args.FileInfo = Mock.Of<IVideoFile>(file =>
             file.FilePath == args.FileInfo.FilePath &&
             file.Filename == args.FileInfo.Filename &&
+            file.Hashes == Mock.Of<IHashes>() &&
             file.AniDBFileInfo.ReleaseDate == new DateTime(2022, 02, 03, 5, 3, 2) &&
             file.AniDBFileInfo.MediaInfo == new AniDBMediaData { AudioLanguages = new List<TitleLanguage>(), SubLanguages = new List<TitleLanguage>() });
         var renamer = new LuaRenamer.LuaRenamer(Logmock);

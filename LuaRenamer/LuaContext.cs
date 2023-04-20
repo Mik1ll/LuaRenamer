@@ -331,7 +331,7 @@ end
         file.Add(LuaEnv.file.name, _renamer.FileInfo.Filename);
         file.Add(LuaEnv.file.path, _renamer.FileInfo.FilePath);
         file.Add(LuaEnv.file.size, _renamer.FileInfo.FileSize);
-        var hashdict = new Dictionary<string, object>();
+        var hashdict = new Dictionary<string, object?>();
         hashdict.Add(LuaEnv.file.hashes.crc, _renamer.FileInfo.Hashes.CRC);
         hashdict.Add(LuaEnv.file.hashes.md5, _renamer.FileInfo.Hashes.MD5);
         hashdict.Add(LuaEnv.file.hashes.ed2k, _renamer.FileInfo.Hashes.ED2K);
