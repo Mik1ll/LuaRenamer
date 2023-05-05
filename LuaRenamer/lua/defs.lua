@@ -76,8 +76,8 @@ local Video = {}
 local Audio = {}
 
 ---@class Anime
----@field airdate DateTime
----@field enddate DateTime
+---@field airdate DateTime|nil
+---@field enddate DateTime|nil
 ---@field rating number
 ---@field restricted boolean
 ---@field type AnimeType
