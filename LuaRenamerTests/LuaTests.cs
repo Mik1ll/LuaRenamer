@@ -41,7 +41,7 @@ public class LuaTests
             },
             FileInfo = Mock.Of<IVideoFile>(file =>
                 file.Hashes.ED2K == "abc123" &&
-                file.FilePath == "C:\\testimportfolder\\testsubfolder\\testfilename.mp4" &&
+                file.FilePath == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
                 file.Filename == "testfilename.mp4" &&
                 file.VideoFileID == 25),
             AnimeInfo = new List<IAnime>
@@ -54,7 +54,7 @@ public class LuaTests
             },
             AvailableFolders = new List<IImportFolder>
             {
-                Mock.Of<IImportFolder>(i => i.Location == "C:\\testimportfolder" &&
+                Mock.Of<IImportFolder>(i => i.Location == Path.Combine("C:", "testimportfolder") &&
                                             i.DropFolderType == DropFolderType.Destination &&
                                             i.Name == "testimport")
             },
