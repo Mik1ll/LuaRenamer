@@ -14,6 +14,8 @@ public static class LuaEnv
     public const string use_existing_anime_location = nameof(use_existing_anime_location);
     public const string replace_illegal_chars = nameof(replace_illegal_chars);
     public const string remove_illegal_chars = nameof(remove_illegal_chars);
+    public const string skip_rename = nameof(skip_rename);
+    public const string skip_move = nameof(skip_move);
     public const string animes = nameof(animes);
     public const string episodes = nameof(episodes);
     public const string importfolders = nameof(importfolders);

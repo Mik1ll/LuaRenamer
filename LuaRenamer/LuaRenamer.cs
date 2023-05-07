@@ -33,6 +33,9 @@ public class LuaRenamer : IRenamer
     public IList<IAnime> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
 
+    public bool SkipRename { get; private set; }
+    public bool SkipMove { get; private set; }
+
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
     {
@@ -109,7 +112,6 @@ public class LuaRenamer : IRenamer
         AvailableFolders = args.AvailableFolders;
     }
 
-
     public (string filename, IImportFolder destination, string subfolder)? GetInfo()
     {
         if (CheckCache() is { } cacheHit)
@@ -126,12 +128,30 @@ public class LuaRenamer : IRenamer
         env.TryGetValue(LuaEnv.filename, out var luaFilename);
         env.TryGetValue(LuaEnv.destination, out var luaDestination);
         env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
+        env.TryGetValue(LuaEnv.skip_rename, out var luaSkipRename);
+        SkipRename = (bool?)luaSkipRename ?? false;
+        env.TryGetValue(LuaEnv.skip_move, out var luaSkipMove);
+        SkipMove = (bool?)luaSkipMove ?? false;
 
-        var filename = luaFilename is string f
-            ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.Filename)
-            : FileInfo.Filename;
-        var (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
+        IImportFolder? destination;
+        string? subfolder;
+        string filename;
+        if (SkipMove)
+        {
+            destination = AvailableFolders.First(f => FileInfo.FilePath.NormPath().StartsWith(f.Location.NormPath()));
+            subfolder = Path.GetDirectoryName(FileInfo.FilePath)!.Substring(destination.Location.NormPath().Length + 1);
+        }
+        else
+            (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
+
+        if (SkipRename)
+            filename = FileInfo.Filename;
+        else
+            filename = luaFilename is string f
+                ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.Filename)
+                : FileInfo.Filename;
+
         if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
         ResultCache.Add(FileInfo.VideoFileID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);

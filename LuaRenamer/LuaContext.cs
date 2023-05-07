@@ -180,6 +180,8 @@ end
         env.Add(LuaEnv.replace_illegal_chars, false);
         env.Add(LuaEnv.remove_illegal_chars, false);
         env.Add(LuaEnv.use_existing_anime_location, false);
+        env.Add(LuaEnv.skip_rename, false);
+        env.Add(LuaEnv.skip_move, false);
         env.Add(LuaEnv.animes, animes);
         env.Add(LuaEnv.anime.N, animes.First());
         env.Add(LuaEnv.file.N, file);

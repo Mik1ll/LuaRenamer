@@ -365,3 +365,5 @@ group = nil
 use_existing_anime_location = false
 replace_illegal_chars = false
 remove_illegal_chars = false
+skip_rename = false
+skip_move = false

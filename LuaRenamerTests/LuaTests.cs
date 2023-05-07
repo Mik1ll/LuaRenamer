@@ -41,7 +41,7 @@ public class LuaTests
             },
             FileInfo = Mock.Of<IVideoFile>(file =>
                 file.Hashes.ED2K == "abc123" &&
-                file.FilePath == "C:\\testimportfolder\\testsubfolder" &&
+                file.FilePath == "C:\\testimportfolder\\testsubfolder\\testfilename.mp4" &&
                 file.Filename == "testfilename.mp4" &&
                 file.VideoFileID == 25),
             AnimeInfo = new List<IAnime>
@@ -385,5 +385,17 @@ public class LuaTests
         Thread.Sleep(2500);
         renamer.GetFilename(RenameArgs(args));
         Assert.IsTrue(setTime != LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoFileID].setTIme);
+    }
+
+    [TestMethod]
+    public void TestSkipping()
+    {
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var args = MinimalArgs("filename = 'blah'\nsubfolder = {'blah'}\nskip_rename = true\nskip_move = true");
+        renamer.SetupArgs(args);
+        var result = renamer.GetFilename(RenameArgs(args));
+        Assert.AreEqual(args.FileInfo.Filename, result);
+        var dstResult = renamer.GetDestination(args);
+        Assert.AreEqual("testsubfolder", dstResult.subfolder);
     }
 }
