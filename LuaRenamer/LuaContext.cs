@@ -218,7 +218,7 @@ end
             var groupdict = new Dictionary<string, object?>();
             groupdict.Add(LuaEnv.group.name, g.Name);
             groupdict.Add(LuaEnv.group.mainanime, g.MainSeries is null ? null : AnimeToDict(g.MainSeries, animeCache));
-            groupdict.Add(LuaEnv.group.animes, g.Series.Select(a => AnimeToDict(a, animeCache)));
+            groupdict.Add(LuaEnv.group.animes, g.Series.Select(a => AnimeToDict(a, animeCache)).ToList());
             return groupdict;
         }).ToList();
         return groups;
