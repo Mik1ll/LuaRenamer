@@ -71,7 +71,7 @@ end):first()
 Adding Shoko group name to subfolder path when there are multiple series in group.  
 Warning: adding new series to a group with one entry will not move the old series into a subfolder, so you should probably use it when batch renaming/moving existing series
 ```lua
-if #groups == 1 and #groups[1].seriesids > 1 then
+if #groups == 1 and #groups[1].animes > 1 then
   subfolder = {groups[1].name, anime.preferredname}
 end
 ```
