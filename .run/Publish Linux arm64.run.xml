@@ -1,0 +1,8 @@
+﻿<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Publish Linux arm64" type="DotNetFolderPublish" factoryName="Publish to folder">
+        <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU" runtime="linux-arm64"
+                      target_folder="$PROJECT_DIR$/LuaRenamer/bin/Release/net6.0/linux-arm64/publish" target_framework="net6.0" uuid_high="-7231564228443681272"
+                      uuid_low="-7584279782353970681" />
+        <method v="2" />
+    </configuration>
+</component>
