@@ -17,9 +17,7 @@
         <PackageReference Include="KeraLua" Version="1.3.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
         <PackageReference Include="NLua" Version="1.6.0" />
-        <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.4.1">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
+        <PackageReference Include="Shoko.Plugin.Abstractions" Version="2.4.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -59,41 +57,7 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="PackageForRelease" AfterTargets="AfterBuild">
-        <PropertyGroup>
-            <WinZipDir>$(OutDir)WinZipDir/</WinZipDir>
-            <DockerAmdDir>$(OutDir)DockerAmdZipDir/</DockerAmdDir>
-            <DockerArmDir>$(OutDir)DockerArmZipDir/</DockerArmDir>
-        </PropertyGroup>
-        <ItemGroup>
-            <LuaOut Include="lua/**/*.*" />
-            <DebugOut Include="$(OutDir)$(ProjectName).pdb" />
-            <SharedOut Include="$(OutDir)$(ProjectName).dll;$(OutDir)KeraLua.dll;$(OutDir)NLua.dll" />
-            <WinOut Include="$(OutDir)runtimes/win-x64/native/lua54.dll" />
-            <DockerAmd64Out Include="$(ProjectDir)docker_build/amd64/liblua54.so" />
-            <DockerArm64Out Include="$(ProjectDir)docker_build/arm64/liblua54.so" />
-        </ItemGroup>
-
-        <Copy SourceFiles="@(SharedOut);@(DebugOut)" DestinationFolder="$(WinZipDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(SharedOut);@(DebugOut)" DestinationFolder="$(DockerAmdDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(SharedOut);@(DebugOut)" DestinationFolder="$(DockerArmDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(WinZipDir)$(ProjectName)/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(DockerAmdDir)$(ProjectName)/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="@(LuaOut)" DestinationFolder="$(DockerArmDir)$(ProjectName)/lua/%(LuaOut.RecursiveDir)" SkipUnchangedFiles="true" />
-
-        <Copy SourceFiles="@(WinOut)" DestinationFolder="$(WinZipDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <ZipDirectory SourceDirectory="$(WinZipDir)" DestinationFile="$(OutDir)$(ProjectName)_Windows_AMD64_$(GitInfo).zip" Overwrite="true" />
-
-        <Copy SourceFiles="@(DockerAmd64Out)" DestinationFolder="$(DockerAmdDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <ZipDirectory SourceDirectory="$(DockerAmdDir)" DestinationFile="$(OutDir)$(ProjectName)_Docker_AMD64_$(GitInfo).zip" Overwrite="true" />
-
-        <Copy SourceFiles="@(DockerArm64Out)" DestinationFolder="$(DockerArmDir)$(ProjectName)" SkipUnchangedFiles="true" />
-        <ZipDirectory SourceDirectory="$(DockerArmDir)" DestinationFile="$(OutDir)$(ProjectName)_Docker_ARM64_$(GitInfo).zip" Overwrite="true" />
-
-        <RemoveDir Directories="$(WinZipDir);$(DockerAmdDir);$(DockerArmDir)" />
-    </Target>
-
-    <Target Name="Cleaner" AfterTargets="AfterClean">
-        <RemoveDir Directories="$(OutDir)" />
+    <Target Name="PackageForRelease" AfterTargets="Publish">
+        <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(PublishDir)../$(ProjectName)_$(NETCoreSdkRuntimeIdentifier)_$(GitInfo).zip" Overwrite="true" />
     </Target>
 </Project>
