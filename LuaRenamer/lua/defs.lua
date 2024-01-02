@@ -2,51 +2,45 @@
 
 --#region class definitions
 
----@param self Anime|Episode
----@param lang Language
----@param include_unofficial boolean|nil
----@return string|nil
-local function getname(self, lang, include_unofficial) end
-
----@class File
+---@class (exact) File
 ---@field name string
 ---@field path string
 ---@field size integer
 ---@field hashes Hashes
----@field anidb AniDb|nil
+---@field anidb AniDb?
 ---@field media Media
 ---@field importfolder ImportFolder
 local File = {}
 
----@class Hashes
----@field crc string|nil
----@field md5 string|nil
+---@class (exact) Hashes
+---@field crc string?
+---@field md5 string?
 ---@field ed2k string
----@field sha1 string|nil
+---@field sha1 string?
 local Hashes = {}
 
----@class AniDb
+---@class (exact) AniDb
 ---@field censored boolean
 ---@field source string
 ---@field version integer
 ---@field releasedate DateTime
----@field releasegroup ReleaseGroup|nil
+---@field releasegroup ReleaseGroup?
 ---@field id integer
 ---@field description string
 ---@field media AniDbMedia
 local AniDb = {}
 
----@class ReleaseGroup
+---@class (exact) ReleaseGroup
 ---@field name string
 ---@field shortname string
 local ReleaseGroup = {}
 
----@class AniDbMedia
+---@class (exact) AniDbMedia
 ---@field sublanguages Language[]
 ---@field dublanguages Language[]
 local AniDbMedia = {}
 
----@class Media
+---@class (exact) Media
 ---@field chaptered boolean
 ---@field video Video
 ---@field duration integer
@@ -55,7 +49,7 @@ local AniDbMedia = {}
 ---@field audio Audio[]
 local Media = {}
 
----@class Video
+---@class (exact) Video
 ---@field height integer
 ---@field width integer
 ---@field codec string
@@ -65,18 +59,18 @@ local Media = {}
 ---@field framerate number
 local Video = {}
 
----@class Audio
+---@class (exact) Audio
 ---@field compressionmode string
 ---@field channels number
 ---@field samplingrate integer
 ---@field codec string
 ---@field language string
----@field title string|nil
+---@field title string?
 local Audio = {}
 
----@class Anime
----@field airdate DateTime|nil
----@field enddate DateTime|nil
+---@class (exact) Anime
+---@field airdate DateTime?
+---@field enddate DateTime?
 ---@field rating number
 ---@field restricted boolean
 ---@field type AnimeType
@@ -85,18 +79,22 @@ local Audio = {}
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
 ---@field relations Relation[]
-local Anime = {
-  getname = getname
-}
+local Anime = {}
 
----@class Title
+---@param lang Language
+---@param include_unofficial boolean?
+---@return string?
+function Anime:getname(lang, include_unofficial)
+end
+
+---@class (exact) Title
 ---@field name string
 ---@field language Language
 ---@field languagecode string
 ---@field type TitleType
 local Title = {}
 
----@class DateTime
+---@class (exact) DateTime
 ---@field year integer
 ---@field month integer
 ---@field day integer
@@ -108,7 +106,7 @@ local Title = {}
 ---@field isdst boolean
 local DateTime = {}
 
----@class Episode
+---@class (exact) Episode
 ---@field duration integer
 ---@field number integer
 ---@field prefix string
@@ -117,23 +115,27 @@ local DateTime = {}
 ---@field animeid integer
 ---@field id integer
 ---@field titles Title[]
-local Episode = {
-  getname = getname
-}
+local Episode = {}
 
----@class ImportFolder
+---@param lang Language
+---@param include_unofficial boolean?
+---@return string?
+function Episode:getname(lang, include_unofficial)
+end
+
+---@class (exact) ImportFolder
 ---@field name string
 ---@field location string
 ---@field type ImportFolderType
 local ImportFolder = {}
 
----@class Group
+---@class (exact) Group
 ---@field name string
----@field mainanime Anime|nil
+---@field mainanime Anime?
 ---@field animes Anime[]
 local Group = {}
 
----@class Relation
+---@class (exact) Relation
 ---@field type RelationType
 ---@field anime Anime
 local Relation = {}
