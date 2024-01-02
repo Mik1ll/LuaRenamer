@@ -6,8 +6,7 @@
 ---@param lang Language
 ---@param include_unofficial boolean|nil
 ---@return string|nil
-function getname(self, lang, include_unofficial)
-end
+local function getname(self, lang, include_unofficial) end
 
 ---@class File
 ---@field name string
@@ -319,26 +318,22 @@ RelationType = {
 ---Returns formatted episode numbers with padding
 ---@param pad integer
 ---@return string
-function episode_numbers(pad)
-end
+function episode_numbers(pad) end
 
 ---Log with Information log level
 ---@param message string
 ---@return nil
-function log(message)
-end
+function log(message) end
 
 ---Log with Warning log level
 ---@param message string
 ---@return nil
-function logwarn(message)
-end
+function logwarn(message) end
 
 ---Log with Error log level
 ---@param message string
 ---@return nil
-function logerror(message)
-end
+function logerror(message) end
 
 ---@type string|nil
 filename = nil
@@ -347,19 +342,19 @@ destination = nil
 ---@type table|nil
 subfolder = nil
 ---@type File
-file = {}
+file = nil
 ---@type Anime
-anime = {}
+anime = nil
 ---@type Episode
-episode = {}
+episode = Episode
 ---@type Anime[]
-animes = {}
+animes = nil
 ---@type Episode[]
-episodes = {}
+episodes = nil
 ---@type ImportFolder[]
 importfolders = {}
 ---@type Group[]
-groups = {}
+groups = nil
 ---@type Group|nil
 group = nil
 use_existing_anime_location = false

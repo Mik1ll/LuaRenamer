@@ -35,6 +35,8 @@ local LOG_LEVEL = 1
 -- prefix for the printed logs
 local LOG_PREFIX = "LuaLinq: "
 
+local CLASS_ID = "classid_71cd970f_a742_4316_938d_1998df001335"
+
 
 -- support lua 5.2+
 local unpack = table.unpack
@@ -45,7 +47,7 @@ local unpack = table.unpack
 ---@field private chained_compare? fun()
 local Linq = {}
 Linq.__index = Linq
-Linq.classid_71cd970f_a742_4316_938d_1998df001335 = 2
+Linq[CLASS_ID] = 2
 
 
 -- ============================================================
@@ -136,7 +138,7 @@ function from(auto)
 	elseif (type(auto) == "function") then
 		return fromIterator(auto)
 	elseif (type(auto) == "table") then
-		if (auto["classid_71cd970f_a742_4316_938d_1998df001335"] ~= nil) then
+		if (auto[CLASS_ID] ~= nil) then
 			return auto
 		elseif (auto[1] == nil) then
 			return fromDictionary(auto)
@@ -220,7 +222,7 @@ end
 -- ============================================================
 
 -- Concatenates two collections together
----@param other Linq|table
+---@param other table
 ---@return Linq
 function Linq:concat(other)
 	local result = {}
@@ -344,7 +346,7 @@ function Linq:skip(howmany)
 end
 
 -- Zips two collections together, using the specified join function
----@param other Linq|table
+---@param other table
 ---@param joiner? fun(a, b):any
 function Linq:zip(other, joiner)
 	other = from(other)
@@ -505,7 +507,7 @@ function Linq:distinct(comparator)
 end
 
 -- Returns the union of two collections, using an optional comparator
----@param other Linq|table
+---@param other table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
 function Linq:union(other, comparator)
@@ -513,7 +515,7 @@ function Linq:union(other, comparator)
 end
 
 -- Returns the difference of two collections, using an optional comparator
----@param other Linq|table
+---@param other table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
 function Linq:except(other, comparator)
@@ -522,7 +524,7 @@ function Linq:except(other, comparator)
 end
 
 -- Returns the intersection of two collections, using an optional comparator
----@param other Linq|table
+---@param other table
 ---@param comparator? fun(a, b):boolean
 ---@return Linq
 function Linq:intersection(other, comparator)
@@ -534,7 +536,7 @@ Linq.intersect = Linq.intersection
 
 -- Returns the collection excluding items in the other collection using a property accessor
 ---@param property any
----@param other Linq|table
+---@param other table
 ---@return Linq
 function Linq:exceptby(property, other)
 	other = from(other)
@@ -545,7 +547,7 @@ Linq.exceptBy = Linq.exceptby
 
 -- Returns the collection only including items in the other collection using a property accessor
 ---@param property any
----@param other Linq|table
+---@param other table
 ---@return Linq
 function Linq:intersectionby(property, other)
 	other = from(other)
