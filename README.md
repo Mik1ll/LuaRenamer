@@ -8,7 +8,7 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
    * (Docker) wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted
 3. Restart Shoko Server
 4. (Optional) Install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The
-   extension uses [EmmyLua for annotations](https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations)
+   extension uses [LuaCATS annotations](https://luals.github.io/wiki/annotations/)
 5. Follow instructions in the next section to add your script
 
 ## Usage
