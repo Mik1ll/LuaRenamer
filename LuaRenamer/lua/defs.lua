@@ -337,11 +337,11 @@ function logwarn(message) end
 ---@return nil
 function logerror(message) end
 
----@type string|nil
+---@type string?
 filename = nil
----@type string|table|nil
+---@type (string|string[])?
 destination = nil
----@type table|nil
+---@type string[]?
 subfolder = nil
 ---@type File
 file = nil
@@ -357,7 +357,7 @@ episodes = nil
 importfolders = {}
 ---@type Group[]
 groups = nil
----@type Group|nil
+---@type Group?
 group = nil
 use_existing_anime_location = false
 replace_illegal_chars = false
