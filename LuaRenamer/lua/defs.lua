@@ -339,7 +339,7 @@ function logerror(message) end
 
 ---@type string?
 filename = nil
----@type (string|string[])?
+---@type (string|ImportFolder)?
 destination = nil
 ---@type string[]?
 subfolder = nil

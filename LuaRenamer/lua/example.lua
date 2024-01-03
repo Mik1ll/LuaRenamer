@@ -7,7 +7,7 @@ local episodelanguage = Language.English
 local spacechar = " "
 
 local group = ""
-if (file.anidb and file.anidb.releasegroup) then
+if file.anidb and file.anidb.releasegroup then
   group = "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]"
 end
 local animename = anime:getname(animelanguage) or anime.preferredname
@@ -35,7 +35,7 @@ end
 local res = file.media.video.res or ""
 local codec = file.media.video.codec or ""
 local bitdepth = ""
-if (file.media.video.bitdepth and file.media.video.bitdepth ~= 8) then
+if file.media.video.bitdepth and file.media.video.bitdepth ~= 8 then
   bitdepth = file.media.video.bitdepth .. "bit"
 end
 
@@ -43,11 +43,11 @@ local dublangs = from(file.media.audio):select("language"):distinct()
 local sublangs = from(file.media.sublanguages):distinct()
 local source = ""
 local centag = ""
-if (file.anidb) then
+if file.anidb then
   source = file.anidb.source
   -- Censorship is only relevent if the anime is age restricted
-  if (anime.restricted) then
-    if (file.anidb.censored) then
+  if anime.restricted then
+    if file.anidb.censored then
       centag = "[CEN]"
     else
       centag = "[UNCEN]"
@@ -61,18 +61,18 @@ end
 
 local langtag = ""
 local nonnativedublangs = dublangs:except({ Language.Japanese, Language.Chinese, Language.Korean, Language.Unknown })
-if (nonnativedublangs:count() == 1 and dublangs:count() == 2) then
+if nonnativedublangs:count() == 1 and dublangs:count() == 2 then
   langtag = "[DUAL-AUDIO]"
-elseif (dublangs:count() > 2) then
+elseif dublangs:count() > 2 then
   langtag = "[MULTI-AUDIO]"
-elseif (nonnativedublangs:count() > 0) then
+elseif nonnativedublangs:count() > 0 then
   langtag = "[DUB]"
 end
 
 
 local crchash = ""
 -- CRC can be null if disabled in Shoko settings, so need to check it
-if (file.hashes.crc) then
+if file.hashes.crc then
   crchash = "[" .. file.hashes.crc .. "]"
 end
 
