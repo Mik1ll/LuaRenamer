@@ -52,7 +52,7 @@ Destination is set via:
 
 If destination set via path, it is matched to import folder path with converted directory seperators but no other special handling (relative path or expansion).
 
-Subfolder defaults to the anime title in your preferred language.
+Subfolder defaults to the anime title in your preferred language.  
 Subfolder is set via:
 
 * Subfolder name (string)
