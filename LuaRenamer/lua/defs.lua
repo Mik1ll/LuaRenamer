@@ -82,7 +82,7 @@ local Audio = {}
 local Anime = {}
 
 ---@param lang Language
----@param include_unofficial boolean?
+---@param include_unofficial? boolean
 ---@return string?
 function Anime:getname(lang, include_unofficial)
 end
@@ -118,7 +118,7 @@ local DateTime = {}
 local Episode = {}
 
 ---@param lang Language
----@param include_unofficial boolean?
+---@param include_unofficial? boolean
 ---@return string?
 function Episode:getname(lang, include_unofficial)
 end
