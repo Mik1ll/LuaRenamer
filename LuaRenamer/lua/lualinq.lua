@@ -44,7 +44,7 @@ local unpack = table.unpack
 
 ---@class Linq
 ---@field private m_Data table
----@field private chained_compare? fun()
+---@field private chained_compare? fun(a, b):integer
 local Linq = {}
 Linq.__index = Linq
 Linq[CLASS_ID] = 2

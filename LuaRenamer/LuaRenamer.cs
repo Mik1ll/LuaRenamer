@@ -51,6 +51,7 @@ public class LuaRenamer : IRenamer
             ResultCache.Clear();
             return null;
         }
+
         if (!ResultCache.TryGetValue(videoFileId, out var res))
             return null;
         if (DateTime.UtcNow < res.setTIme + TimeSpan.FromSeconds(2))
@@ -119,6 +120,7 @@ public class LuaRenamer : IRenamer
             _logger.LogInformation("Returning rename/move result from cache");
             return cacheHit;
         }
+
         AvailableFolders = ((IEnumerable?)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? AvailableFolders;
         using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
@@ -165,6 +167,9 @@ public class LuaRenamer : IRenamer
             case null:
                 newSubFolderSplit = new List<string> { AnimeInfo.First().PreferredTitle };
                 break;
+            case string str:
+                newSubFolderSplit = new List<string> { str };
+                break;
             case LuaTable subfolderTable:
             {
                 var subfolderDict = new SortedDictionary<long, string>();
@@ -176,12 +181,14 @@ public class LuaRenamer : IRenamer
                         throw new LuaScriptException("subfolder array must only contain strings", string.Empty);
                     subfolderDict[key] = val;
                 }
+
                 newSubFolderSplit = subfolderDict.Values.ToList();
                 break;
             }
             default:
-                throw new LuaScriptException("subfolder must be an array of path segments or nil", string.Empty);
+                throw new LuaScriptException("subfolder returned a value of an unexpected type", string.Empty);
         }
+
         newSubFolderSplit = newSubFolderSplit
             .Select(f => (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(false)).ToList();
         var newSubfolder = Path.Combine(newSubFolderSplit.ToArray()).NormPath();
@@ -221,6 +228,7 @@ public class LuaRenamer : IRenamer
                     $"destination must be nil or an existing import folder string (name/path), or table (see {LuaEnv.importfolders} variable)",
                     string.Empty);
         }
+
         if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
             throw new ArgumentException($"selected import folder \"{destfolder.Location}\" is not a destination folder, check import folder type");
         return destfolder;
