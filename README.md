@@ -17,25 +17,21 @@
 2. Navigate to Utilities/File Renaming
 3. Use the Default script or create a new one and set the type of the script to LuaRenamer in the drop-down menu
 4. (Optional) Open the lua subfolder of the extracted plugin in VS Code
-5. Look at the [example script](./LuaRenamer/lua/example.lua) and the bottom of [defs.lua](./LuaRenamer/lua/defs.lua) to get an idea of available variables
-    1. (Optional) Check out [The lualinq docs](./LuaRenamer/lua/LuaLinq.pdf) for info on uses of 'from()'
-6. Create a script or copy and edit the [example script](./LuaRenamer/lua/example.lua)
-7. Paste the script in the text box in Shoko Desktop
-8. Add the files you wish to rename
-9. Test your script before renaming by pressing Preview. (There is no preview for file moving, only renaming)
-10. Pressing Rename does not move files by default, the checkbox to move must also be checked
-11. Save your script
+5. [Create a script](#script-writing)
+6. Paste the script in the text box in Shoko Desktop
+7. Add the files you wish to rename
+8. Test your script before renaming by pressing Preview. (There is no preview for file moving, only renaming)
+9. Pressing Rename does not move files by default, the checkbox to move must also be checked
+10. Save your script
 
 ### Linux/Without Shoko Desktop
 
 1. Copy/download [the linux scripts](./Linux%20Scripts)
 2. (Optional) Open the lua subfolder of the extracted plugin in VS Code
-3. Look at the [example script](./LuaRenamer/lua/example.lua) and the bottom of [defs.lua](./LuaRenamer/lua/defs.lua) to get an idea of available variables
-    1. (Optional) Check out [The lualinq docs](./LuaRenamer/lua/LuaLinq.pdf) for info on uses of 'from()'
-4. Create a script or copy and edit the [example script](./LuaRenamer/lua/example.lua)
-5. Preview the results with [the preview script](./Linux%20Scripts/preview_rename_script.sh) `./preview_rename_script.sh <script filename> [# results]`
-6. Add your script to Shoko with [the add script](./Linux%20Scripts/add_rename_script.sh) `./add_rename_script.sh <script filename>`
-7. If you want to rename and move all existing files use [the rename script](./Linux%20Scripts/rename_and_move_all.sh) `./rename_and_move_all.sh <script name>`
+3. [Create a script](#script-writing)
+4. Preview the results with [the preview script](./Linux%20Scripts/preview_rename_script.sh) `./preview_rename_script.sh <script filename> [# results]`
+5. Add your script to Shoko with [the add script](./Linux%20Scripts/add_rename_script.sh) `./add_rename_script.sh <script filename>`
+6. If you want to rename and move all existing files use [the rename script](./Linux%20Scripts/rename_and_move_all.sh) `./rename_and_move_all.sh <script name>`
 
 ### Renaming on Import
 
@@ -45,7 +41,25 @@ If you wish to rename/move your files on import you must do two things:
 2. Ensure your script is saved with the run on import setting true
     1. Check that it is the only script with the setting enabled
 
-## Notes for File Moving
+## Script Writing
+
+VS Code + [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) is recommended for script editing.  
+The script environment utilizes [LuaCATS annotations](https://luals.github.io/wiki/annotations/), allowing the extension to provide type linting.
+
+### The Environment
+
+The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
+The script is run in a fresh environment for every file.
+
+* [defs.lua](./LuaRenamer/lua/defs.lua): All exposed data definitions/structure available from Shoko
+* [lualinq.lua](./LuaRenamer/lua/lualinq.lua): A modified utility
+  library ([original](https://github.com/xanathar/lualinq), [docs](./LuaRenamer/lua/LuaLinq.pdf)) that adds functional query methods similar
+  to [LINQ](https://learn.microsoft.com/en-us/dotnet/csharp/linq/)
+* [utils.lua](./LuaRenamer/lua/utils.lua): Additional utility functions can be defined here
+
+### [The Example Script](./LuaRenamer/lua/example.lua)
+
+### Notes for File Moving
 
 Import folders are only valid destination candidates if they exist and have either the 'Destination' or 'Both' Drop Type.  
 Destination defaults to the nearest (to the file) valid import folder.  
@@ -66,16 +80,6 @@ Subfolder is set via:
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
 If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists.
 This takes precedence over the subfolder set in the script.
-
-## Script Environment
-
-The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
-Additionally, a modified version of [lualinq from xanathar](https://github.com/xanathar/lualinq), licensed under the BSD 3 clause, has
-been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documentation](./LuaRenamer/lua/LuaLinq.pdf)
-
-See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from Shoko.
-
-## [Example Script](./LuaRenamer/lua/example.lua)
 
 ## Useful Snippets
 
