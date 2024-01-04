@@ -1,7 +1,3 @@
-## LuaRenamer
-
-Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
-
 ## Installation
 
 1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
@@ -25,9 +21,10 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
     1. (Optional) Check out [The lualinq docs](./LuaRenamer/lua/LuaLinq.pdf) for info on uses of 'from()'
 6. Create a script or copy and edit the [example script](./LuaRenamer/lua/example.lua)
 7. Paste the script in the text box in Shoko Desktop
-8. Test your script by adding files and clicking preview in the utility under the text box until you are satisfied
-9. Check run on import, and save the script (next to the script type drop-down)
-10. You may manually rename and move the files (if checked) of your collection in the utility
+8. Add the files you wish to rename
+9. Test your script before renaming by pressing Preview. (There is no preview for file moving, only renaming)
+10. Pressing Rename does not move files by default, the checkbox to move must also be checked
+11. Save your script
 
 ### Linux/Without Shoko Desktop
 
@@ -39,6 +36,14 @@ Lua file renaming and moving plugin for Shoko. Uses Lua 5.4.
 5. Preview the results with [the preview script](./Linux%20Scripts/preview_rename_script.sh) `./preview_rename_script.sh <script filename> [# results]`
 6. Add your script to Shoko with [the add script](./Linux%20Scripts/add_rename_script.sh) `./add_rename_script.sh <script filename>`
 7. If you want to rename and move all existing files use [the rename script](./Linux%20Scripts/rename_and_move_all.sh) `./rename_and_move_all.sh <script name>`
+
+### Renaming on Import
+
+If you wish to rename/move your files on import you must do two things:
+
+1. Set Rename/Move On Import to true in Shoko settings
+2. Ensure your script is saved with the run on import setting true
+    1. Check that it is the only script with the setting enabled
 
 ## Notes for File Moving
 
@@ -59,7 +64,7 @@ Subfolder is set via:
 * Path segments (array-table, e.g. `{"parent dir name", "subdir name", "..."}`)
 
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
-If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists. 
+If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists.
 This takes precedence over the subfolder set in the script.
 
 ## Script Environment
@@ -68,7 +73,7 @@ The lua environment is sandboxed, removing operations from standard libraries su
 Additionally, a modified version of [lualinq from xanathar](https://github.com/xanathar/lualinq), licensed under the BSD 3 clause, has
 been [included](./LuaRenamer/lua/lualinq.lua) for convenience. [Original Documentation](./LuaRenamer/lua/LuaLinq.pdf)
 
-See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from shoko.
+See [defs.lua](./LuaRenamer/lua/defs.lua) for all exposed data definitions/structure available from Shoko.
 
 ## [Example Script](./LuaRenamer/lua/example.lua)
 
