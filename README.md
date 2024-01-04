@@ -49,13 +49,18 @@ The script environment utilizes [LuaCATS annotations](https://luals.github.io/wi
 ### The Environment
 
 The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
-The script is run in a fresh environment for every file.
+The script is run in a fresh environment for every file.  
+Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will have any effect outside of the script.
 
-* [defs.lua](./LuaRenamer/lua/defs.lua): All exposed data definitions/structure available from Shoko
+* [env.lua](./LuaRenamer/lua/env.lua)*: The starting environment, output variable values will change renaming/moving behaviour
+* [defs.lua](./LuaRenamer/lua/defs.lua)*: Table definitions available from Shoko
+* [enums.lua](./LuaRenamer/lua/enums.lua)*: Enumeration definitions
 * [lualinq.lua](./LuaRenamer/lua/lualinq.lua): A modified utility
   library ([original](https://github.com/xanathar/lualinq), [docs](./LuaRenamer/lua/LuaLinq.pdf)) that adds functional query methods similar
   to [LINQ](https://learn.microsoft.com/en-us/dotnet/csharp/linq/)
 * [utils.lua](./LuaRenamer/lua/utils.lua): Additional utility functions can be defined here
+
+&#8291;* This file is not executed, it serves as documentation/annotations
 
 ### [The Example Script](./LuaRenamer/lua/example.lua)
 

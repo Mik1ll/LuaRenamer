@@ -314,15 +314,15 @@ public class LuaTests
         void CompareEnums(LuaTable enum1, LuaTable enum2)
         {
             foreach (var (e1, e2) in new[] { (enum1, enum2), (enum2, enum1) })
-                foreach (KeyValuePair<object, object> kvp in e1)
-                {
-                    Assert.AreEqual(kvp.Key, kvp.Value);
-                    Assert.IsTrue(e2.Keys.Cast<string>().Contains(kvp.Key));
-                }
+            foreach (KeyValuePair<object, object> kvp in e1)
+            {
+                Assert.AreEqual(kvp.Key, kvp.Value);
+                Assert.IsTrue(e2.Keys.Cast<string>().Contains(kvp.Key));
+            }
         }
 
         var defsEnv = new Lua();
-        defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "defs.lua"));
+        defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(MinimalArgs(""));
         var sandboxEnv = new LuaContext(Logmock, renamer).RunSandboxed();
