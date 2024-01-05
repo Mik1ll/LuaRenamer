@@ -5,8 +5,7 @@
     * (Windows) `C:\ProgramData\ShokoServer\plugins`
     * (Docker) wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted
 3. Restart Shoko Server
-4. (Optional) Install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The
-   extension uses [LuaCATS annotations](https://luals.github.io/wiki/annotations/)
+4. (Optional) Install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The extension uses [LuaCATS annotations](https://luals.github.io/wiki/annotations/)
 5. Follow instructions in the next section to add your script
 
 ## Usage
@@ -55,14 +54,10 @@ Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will ha
 * [env.lua](./LuaRenamer/lua/env.lua)*: The starting environment, output variable values will change renaming/moving behaviour
 * [defs.lua](./LuaRenamer/lua/defs.lua)*: Table definitions available from Shoko
 * [enums.lua](./LuaRenamer/lua/enums.lua)*: Enumeration definitions
-* [lualinq.lua](./LuaRenamer/lua/lualinq.lua): A modified utility
-  library ([original](https://github.com/xanathar/lualinq), [docs](./LuaRenamer/lua/LuaLinq.pdf)) that adds functional query methods similar
-  to [LINQ](https://learn.microsoft.com/en-us/dotnet/csharp/linq/)
+* [lualinq.lua](./LuaRenamer/lua/lualinq.lua): A modified utility library ([original](https://github.com/xanathar/lualinq), [docs](./LuaRenamer/lua/LuaLinq.pdf)) that adds functional query methods similar to [LINQ](https://learn.microsoft.com/en-us/dotnet/csharp/linq/)
 * [utils.lua](./LuaRenamer/lua/utils.lua): Additional utility functions can be defined here
 
-&#8291;* This file is not executed, it serves as documentation/annotations
-
-### [The Example Script](./LuaRenamer/lua/example.lua)
+&ast; This file is not executed, it serves as documentation/annotations
 
 ### Notes for File Moving
 
@@ -83,12 +78,17 @@ Subfolder is set via:
 * Path segments (array-table, e.g. `{"parent dir name", "subdir name", "..."}`)
 
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
-If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists.
-This takes precedence over the subfolder set in the script.
+If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists. This takes precedence over the subfolder set in the script.
 
-## Useful Snippets
+### [The Example Script](./LuaRenamer/lua/example.lua)
 
-Choosing a destination (picks folders by name, or folder path of existing import folder)
+The example script provides a sensible default renaming template. Some variables may be customized at the top of the file, and can serve as a good base for your own script.
+
+### Common Scenarios
+
+#### I want to split my collection across import folders
+
+The easiest option is to set the destination by import folder name. Keep in mind the import folder must have the Destination or Both drop type. You may also specify the destination by the full path of the import folder on the server or by referencing it directly via `importfolders`.
 
 ```lua
 if anime.restricted then
@@ -98,17 +98,20 @@ else
 end
 ```
 
-Choosing a destination by table (complex), edit second line to add conditions
+#### I want to split my collection across subfolders
 
 ```lua
-destination = from(importfolders):where(function (importfld) ---@param importfld ImportFolder
-  return importfld.type == ImportFolderType.Destination or importfld.type == ImportFolderType.Both
-end):first()
+if anime.type == AnimeType.Movie then
+    subfolder = { "Anime Movies", anime.preferredname }
+else
+    subfolder = { "Anime", anime.preferredname }
+end
 ```
 
+#### I want my anime to be grouped according to Shoko
+
 Adding Shoko group name to subfolder path when there are multiple series in group.  
-Warning: adding new series to a group with one entry will not move the old series into a subfolder, so you should probably use it when batch renaming/moving
-existing series
+Warning: adding new series to a group with one entry will not move the old series into a subfolder, so you should probably use this when batch renaming/moving existing series
 
 ```lua
 if #groups == 1 and #groups[1].animes > 1 then

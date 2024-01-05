@@ -237,7 +237,7 @@ function Linq:concat(other)
 	return newLinq(":concat", result)
 end
 
--- Replaces items with those returned by the selector function or properties with name selector
+-- Projects items returned by the selector function or the values of fields by name
 ---@param selector string|fun(value):any
 function Linq:select(selector)
 	local result = {}
@@ -262,7 +262,7 @@ function Linq:select(selector)
 	return newLinq(":select", result)
 end
 
--- Returns merged array of the arrays returned by the selector function
+-- Returns merged projection of the arrays returned by the selector function
 ---@param selector fun(value):table
 function Linq:selectMany(selector)
 	local result = {}

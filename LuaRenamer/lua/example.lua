@@ -7,6 +7,7 @@ local episodelanguage = Language.English
 local spacechar = " "
 
 local group = ""
+-- Check if anidb and release group keys exist before trying to access them (they may be nil)
 if file.anidb and file.anidb.releasegroup then
   group = "[" .. (file.anidb.releasegroup.shortname or file.anidb.releasegroup.name) .. "]"
 end
@@ -15,7 +16,7 @@ local animename = anime:getname(animelanguage) or anime.preferredname
 local episodename = ""
 local engepname = episode:getname(Language.English) or ""
 local episodenumber = ""
--- If the episode is not a complete movie then add an episode number
+-- If the episode is not a complete movie then add an episode number/name
 if anime.type ~= AnimeType.Movie or not engepname:find("^Complete Movie") then
   local fileversion = ""
   if (file.anidb and file.anidb.version > 1) then
@@ -43,6 +44,7 @@ local dublangs = from(file.media.audio):select("language"):distinct()
 local sublangs = from(file.media.sublanguages):distinct()
 local source = ""
 local centag = ""
+-- Check if anidb key exists before accessing (it may be nil)
 if file.anidb then
   source = file.anidb.source
   -- Censorship is only relevent if the anime is age restricted
