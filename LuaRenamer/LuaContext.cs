@@ -75,15 +75,25 @@ end
 
     #region Lua Function Bindings
 
-    private record LuaFunctions(LuaFunction RunSandbox, LuaFunction GetName, LuaFunction Log, LuaFunction LogWarn, LuaFunction LogError,
+    private record LuaFunctions(
+        LuaFunction RunSandbox,
+        LuaFunction GetName,
+        LuaFunction Log,
+        LuaFunction LogWarn,
+        LuaFunction LogError,
         LuaFunction EpNums);
 
     #region Logger Binding
 
+    // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void Log(string message) => _logger.LogInformation(message);
     private static readonly MethodInfo LogMethod = typeof(LuaContext).GetMethod(nameof(Log), BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void LogWarn(string message) => _logger.LogWarning(message);
     private static readonly MethodInfo LogWarnMethod = typeof(LuaContext).GetMethod(nameof(LogWarn), BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void LogError(string message) => _logger.LogError(message);
     private static readonly MethodInfo LogErrorMethod = typeof(LuaContext).GetMethod(nameof(LogError), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
@@ -279,6 +289,7 @@ end
                 groupdict.Add(LuaEnv.file.anidb.releasegroup.name, _renamer.FileInfo.AniDBFileInfo.ReleaseGroup.Name);
                 groupdict.Add(LuaEnv.file.anidb.releasegroup.shortname, _renamer.FileInfo.AniDBFileInfo.ReleaseGroup.ShortName);
             }
+
             anidb.Add(LuaEnv.file.anidb.releasegroup.N, groupdict);
             anidb.Add(LuaEnv.file.anidb.id, _renamer.FileInfo.AniDBFileInfo.AniDBFileID);
             var mediadict = new Dictionary<string, object>();
@@ -287,6 +298,7 @@ end
             anidb.Add(LuaEnv.file.anidb.media.N, mediadict);
             anidb.Add(LuaEnv.file.anidb.description, _renamer.FileInfo.AniDBFileInfo.Description);
         }
+
         return anidb;
     }
 
@@ -382,6 +394,7 @@ end
                 videodict.Add(LuaEnv.file.media.video.bitdepth, _renamer.FileInfo.MediaInfo.Video.BitDepth);
                 videodict.Add(LuaEnv.file.media.video.framerate, _renamer.FileInfo.MediaInfo.Video.FrameRate);
             }
+
             mediainfo.Add(LuaEnv.file.media.video.N, videodict);
             mediainfo.Add(LuaEnv.file.media.duration, _renamer.FileInfo.MediaInfo.General.Duration);
             mediainfo.Add(LuaEnv.file.media.bitrate, _renamer.FileInfo.MediaInfo.General.OverallBitRate);
@@ -404,6 +417,7 @@ end
                 return audiodict;
             }).ToList());
         }
+
         return mediainfo;
     }
 }
