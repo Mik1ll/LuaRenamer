@@ -1,3 +1,5 @@
+# LuaRenamer
+
 ## Installation
 
 1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
@@ -59,6 +61,16 @@ Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will ha
 
 &ast; This file is not executed, it serves as documentation/annotations
 
+### Script Settings
+
+In addition to the `filename`, `destination` and `subfolder` output variables, these variables affect the result of your script.
+
+* `use_existing_anime_location`<a id="eAnimeLocation"></a> If true, the subfolder of the most recent file of the same anime is reused if one exists. This takes precedence over the subfolder set in the script (default: false)
+* `replace_illegal_chars` If true, replaces all illegal path characters in subfolder and file name with alternatives. See [ReplaceMap in Utils.cs](./LuaRenamer/Utils.cs) (default: false)
+* `remove_illegal_chars` If true, removes all illegal path characters in subfolder and file name. If false, illegal characters are replaced with underscores or replaced if `replace_illegal_chars` is true. (default: false)
+* `skip_rename` If true, the result of running the script is discarded when renaming. (default: false)
+* `skip_move` If true, the result of running the script is discarded when moving. (default: false)
+
 ### Notes for File Moving
 
 Import folders are only valid destination candidates if they exist and have either the 'Destination' or 'Both' Drop Type.  
@@ -78,7 +90,7 @@ Subfolder is set via:
 * Path segments (array-table, e.g. `{"parent dir name", "subdir name", "..."}`)
 
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
-If 'use_existing_anime_location' is set to true, the subfolder of the most recent file of the same anime is reused if one exists. This takes precedence over the subfolder set in the script.
+Also see [use_existing_anime_location in Script Settings](#eAnimeLocation)
 
 ### [The Example Script](./LuaRenamer/lua/example.lua)
 
