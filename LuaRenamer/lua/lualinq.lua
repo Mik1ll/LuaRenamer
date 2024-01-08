@@ -29,32 +29,21 @@
 -- OF THE POSSIBILITY OF SUCH DAMAGE.
 -- ------------------------------------------------------------------------
 
--- how much log information is printed: 3 => debug, 2 => info, 1 => only warning and errors, 0 => only errors, -1 => silent
-local LOG_LEVEL = 1
-
--- prefix for the printed logs
-local LOG_PREFIX = "LuaLinq: "
-
-local CLASS_ID = "classid_71cd970f_a742_4316_938d_1998df001335"
+local LIB_VERSION_TEXT = "1.5.1"
+local LIB_VERSION = 151
 
 -- support lua 5.2+
 local unpack = table.unpack
-
-
----@class Linq
----@field private m_Data table
----@field private chained_compare? fun(a, b):integer
-local Linq = {}
-Linq.__index = Linq
-Linq[CLASS_ID] = 2
-
 
 -- ============================================================
 -- DEBUG TRACER
 -- ============================================================
 
-local LIB_VERSION_TEXT = "1.5.1"
-local LIB_VERSION = 151
+-- how much log information is printed: 3 => debug, 2 => info, 1 => only warning and errors, 0 => only errors, -1 => silent
+local LOG_LEVEL = 1
+
+-- prefix for the printed logs
+local LOG_PREFIX = "LuaLinq: "
 
 function linqSetLogLevel(level)
 	LOG_LEVEL = level;
@@ -84,6 +73,30 @@ local function logerror(txt)
 	end
 end
 
+-- ============================================================
+-- CLASS
+-- ============================================================
+
+local CLASS_ID = "classid_71cd970f_a742_4316_938d_1998df001335"
+---@class Linq
+---@field private m_Data table
+---@field private chained_compare? fun(a, b):integer
+local Linq = {}
+Linq.__index = Linq
+Linq[CLASS_ID] = 2
+
+-- Creates a linq data structure from an array without copying the data for efficiency
+---@private
+function Linq.new(method, collection)
+	local instance = setmetatable({}, Linq)
+
+	instance.m_Data = collection
+
+	logdebug("after " .. method .. " => " .. #instance.m_Data .. " items : " .. instance:dump())
+
+	return instance
+end
+
 -- Returns dumped data
 function Linq:dump()
 	local items = #self.m_Data
@@ -104,21 +117,6 @@ function Linq:dump()
 		dumpdata = dumpdata .. " }"
 	end
 	return dumpdata
-end
-
--- ============================================================
--- CONSTRUCTOR
--- ============================================================
-
--- [private] Creates a linq data structure from an array without copying the data for efficiency
-local function newLinq(method, collection)
-	local self = setmetatable({}, Linq)
-
-	self.m_Data = collection
-
-	logdebug("after " .. method .. " => " .. #self.m_Data .. " items : " .. self:dump())
-
-	return self
 end
 
 -- ============================================================
@@ -148,7 +146,7 @@ end
 
 -- Creates a linq data structure from an array without copying the data for efficiency
 function fromArrayInstance(collection)
-	return newLinq("fromArrayInstance", collection)
+	return Linq.new("fromArrayInstance", collection)
 end
 
 -- Creates a linq data structure from an array copying the data first (so that changes in the original
@@ -158,7 +156,7 @@ function fromArray(array)
 	for k, v in ipairs(array) do
 		table.insert(collection, v)
 	end
-	return newLinq("fromArray", collection)
+	return Linq.new("fromArray", collection)
 end
 
 -- Creates a linq data structure from a dictionary (table with non-consecutive-integer keys)
@@ -172,7 +170,7 @@ function fromDictionary(dictionary)
 
 		table.insert(collection, kvp)
 	end
-	return newLinq("fromDictionary", collection)
+	return Linq.new("fromDictionary", collection)
 end
 
 -- Creates a linq data structure from an iterator returning single items
@@ -182,7 +180,7 @@ function fromIterator(iterator)
 	for s in iterator do
 		table.insert(collection, s)
 	end
-	return newLinq("fromIterator", collection)
+	return Linq.new("fromIterator", collection)
 end
 
 -- Creates a linq data structure from an array of iterators each returning single items
@@ -194,7 +192,7 @@ function fromIteratorsArray(iteratorArray)
 			table.insert(collection, s)
 		end
 	end
-	return newLinq("fromIteratorsArray", collection)
+	return Linq.new("fromIteratorsArray", collection)
 end
 
 -- Creates a linq data structure from a table of keys, values ignored
@@ -204,12 +202,12 @@ function fromSet(set)
 	for k, v in pairs(set) do
 		table.insert(collection, k)
 	end
-	return newLinq("fromIteratorsArray", collection)
+	return Linq.new("fromIteratorsArray", collection)
 end
 
 -- Creates an empty linq data structure
 function fromNothing()
-	return newLinq("fromNothing", {})
+	return Linq.new("fromNothing", {})
 end
 
 -- ============================================================
@@ -229,7 +227,7 @@ function Linq:concat(other)
 	for idx, value in ipairs(other.m_Data) do
 		table.insert(result, value)
 	end
-	return newLinq(":concat", result)
+	return Linq.new(":concat", result)
 end
 
 -- Projects items returned by the selector function or the values of fields by name
@@ -254,7 +252,7 @@ function Linq:select(selector)
 	else
 		error("select called with unknown predicate type");
 	end
-	return newLinq(":select", result)
+	return Linq.new(":select", result)
 end
 
 -- Returns merged projection of the arrays returned by the selector function
@@ -272,7 +270,7 @@ function Linq:selectMany(selector)
 			end
 		end
 	end
-	return newLinq(":selectMany", result)
+	return Linq.new(":selectMany", result)
 end
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included
@@ -310,7 +308,7 @@ function Linq:where(predicate, refvalue, ...)
 	else
 		error("where called with unknown predicate type");
 	end
-	return newLinq(":where", result)
+	return Linq.new(":where", result)
 end
 
 -- Returns a linq data structure where only items for whose the predicate has returned true are included, indexed version
@@ -323,7 +321,7 @@ function Linq:whereIndex(predicate)
 			table.insert(result, value)
 		end
 	end
-	return newLinq(":whereIndex", result)
+	return Linq.new(":whereIndex", result)
 end
 
 -- Return a linq data structure with at most the first howmany elements
@@ -356,7 +354,7 @@ function Linq:zip(other, joiner)
 	for i = 1, thismax do
 		result[i] = joiner(self.m_Data[i], other.m_Data[i]);
 	end
-	return newLinq(":zip", result)
+	return Linq.new(":zip", result)
 end
 
 ---@param array table
@@ -410,7 +408,7 @@ function Linq:orderby(selector, comparator)
 		return comparator(ares, bres)
 	end
 	insertionsort(result, compfunc)
-	result = newLinq(":orderby", result)
+	result = Linq.new(":orderby", result)
 	result.chained_compare = compfunc
 	return result
 end
@@ -456,7 +454,7 @@ function Linq:thenby(selector, comparator)
 		return comparator(ares, bres)
 	end
 	insertionsort(self.m_Data, compfunc)
-	local result = newLinq(":thenby", self.m_Data)
+	local result = Linq.new(":thenby", self.m_Data)
 	result.chained_compare = compfunc
 	return result
 end
@@ -498,7 +496,7 @@ function Linq:distinct(comparator)
 			table.insert(result, value)
 		end
 	end
-	return newLinq(":distinct", result)
+	return Linq.new(":distinct", result)
 end
 
 -- Returns the union of two collections, using an optional comparator
