@@ -61,6 +61,7 @@ fromIterator = fromIterator,
 fromIteratorsArray = fromIteratorsArray,
 fromSet = fromSet,
 fromNothing = fromNothing,
+linqSetLogLevel = linqSetLogLevel,
 ";
 
     private const string SandboxFunction = @"
@@ -78,12 +79,17 @@ end
     private record LuaFunctions(
         LuaFunction RunSandbox,
         LuaFunction GetName,
+        LuaFunction LogDebug,
         LuaFunction Log,
         LuaFunction LogWarn,
         LuaFunction LogError,
         LuaFunction EpNums);
 
     #region Logger Binding
+
+    // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
+    private void LogDebug(string message) => _logger.LogDebug(message);
+    private static readonly MethodInfo LogDebugMethod = typeof(LuaContext).GetMethod(nameof(LogDebug), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void Log(string message) => _logger.LogInformation(message);
@@ -152,6 +158,7 @@ end
         _functions = new LuaFunctions(
             (LuaFunction)DoString(SandboxFunction)[0],
             RegisterFunction(LuaEnv.anime.getname, this, GetNameMethod),
+            RegisterFunction(LuaEnv.logdebug, this, LogDebugMethod),
             RegisterFunction(LuaEnv.log, this, LogMethod),
             RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod),
             RegisterFunction(LuaEnv.logerror, this, LogErrorMethod),
@@ -206,6 +213,7 @@ end
         env.Add(LuaEnv.groups, groups);
         env.Add(LuaEnv.group.N, groups.FirstOrDefault());
         env.Add(LuaEnv.episode_numbers, _functions.EpNums);
+        env.Add(LuaEnv.logdebug, _functions.LogDebug);
         env.Add(LuaEnv.log, _functions.Log);
         env.Add(LuaEnv.logwarn, _functions.LogWarn);
         env.Add(LuaEnv.logerror, _functions.LogError);

@@ -29,14 +29,13 @@
 -- OF THE POSSIBILITY OF SUCH DAMAGE.
 -- ------------------------------------------------------------------------
 
--- how much log information is printed: 3 => verbose, 2 => info, 1 => only warning and errors, 0 => only errors, -1 => silent
+-- how much log information is printed: 3 => debug, 2 => info, 1 => only warning and errors, 0 => only errors, -1 => silent
 local LOG_LEVEL = 1
 
 -- prefix for the printed logs
 local LOG_PREFIX = "LuaLinq: "
 
 local CLASS_ID = "classid_71cd970f_a742_4316_938d_1998df001335"
-
 
 -- support lua 5.2+
 local unpack = table.unpack
@@ -61,32 +60,28 @@ function linqSetLogLevel(level)
 	LOG_LEVEL = level;
 end
 
-local function log(level, prefix, text)
-	if (level <= LOG_LEVEL) then
-		print(prefix .. LOG_PREFIX .. text)
+local function logdebug(txt)
+	if (3 <= LOG_LEVEL) then
+		_ENV.logdebug(LOG_PREFIX .. txt)
 	end
 end
 
-local function logv(txt)
-	log(3, "[..] ", txt)
+local function log(txt)
+	if (2 <= LOG_LEVEL) then
+		_ENV.log(LOG_PREFIX .. txt)
+	end
 end
 
-local function logi(txt)
-	log(2, "[ii] ", txt)
+local function logwarn(txt)
+	if (1 <= LOG_LEVEL) then
+		_ENV.logwarn(LOG_PREFIX .. txt)
+	end
 end
 
-local function logw(txt)
-	log(1, "[W?] ", txt)
-end
-
-local function loge(txt)
-	log(0, "[E!] ", txt)
-end
-
----@param linq Linq
----@param method string
-local function logq(linq, method)
-	logv("after " .. method .. " => " .. #linq.m_Data .. " items : " .. linq:dump())
+local function logerror(txt)
+	if (0 <= LOG_LEVEL) then
+		_ENV.logerror(LOG_PREFIX .. txt)
+	end
 end
 
 -- Returns dumped data
@@ -121,7 +116,7 @@ local function newLinq(method, collection)
 
 	self.m_Data = collection
 
-	logq(self, method)
+	logdebug("after " .. method .. " => " .. #self.m_Data .. " items : " .. self:dump())
 
 	return self
 end
@@ -257,7 +252,7 @@ function Linq:select(selector)
 			end
 		end
 	else
-		loge("select called with unknown predicate type");
+		error("select called with unknown predicate type");
 	end
 	return newLinq(":select", result)
 end
@@ -313,7 +308,7 @@ function Linq:where(predicate, refvalue, ...)
 			end
 		end
 	else
-		loge("where called with unknown predicate type");
+		error("where called with unknown predicate type");
 	end
 	return newLinq(":where", result)
 end
@@ -705,7 +700,7 @@ function Linq:foreach(action, ...)
 			value[action](value, from({ ... }):toTuple())
 		end
 	else
-		loge("foreach called with unknown action type");
+		error("foreach called with unknown action type");
 	end
 	return self
 end

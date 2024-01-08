@@ -398,4 +398,21 @@ public class LuaTests
         var dstResult = renamer.GetDestination(args);
         Assert.AreEqual("testsubfolder", dstResult.subfolder);
     }
+
+    [TestMethod]
+    public void TestLinqLog()
+    {
+        var args = MinimalArgs("linqSetLogLevel(3); from({'test1', 'test2'})");
+        var logmock = new Mock<ILogger<LuaRenamer.LuaRenamer>>();
+        var renamer = new LuaRenamer.LuaRenamer(logmock.Object);
+        renamer.SetupArgs(args);
+        renamer.GetInfo();
+
+        logmock.Verify(l => l.Log(It.Is<LogLevel>(ll => ll == LogLevel.Debug),
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.StartsWith("LuaLinq: after fromArrayInstance => 2 items : q{ test1, test2 }")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }

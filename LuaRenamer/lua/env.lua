@@ -5,6 +5,11 @@
 ---@return string
 function episode_numbers(pad) end
 
+---Log with Debug log level
+---@param message string
+---@return nil
+function logdebug(message) end
+
 ---Log with Information log level
 ---@param message string
 ---@return nil
