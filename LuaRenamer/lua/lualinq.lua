@@ -77,13 +77,11 @@ end
 -- CLASS
 -- ============================================================
 
-local CLASS_ID = "classid_71cd970f_a742_4316_938d_1998df001335"
 ---@class Linq
 ---@field private m_Data table
 ---@field private chained_compare? fun(a, b):integer
 local Linq = {}
 Linq.__index = Linq
-Linq[CLASS_ID] = 2
 
 -- Creates a linq data structure from an array without copying the data for efficiency
 ---@private
@@ -131,7 +129,7 @@ function from(auto)
 	elseif (type(auto) == "function") then
 		return fromIterator(auto)
 	elseif (type(auto) == "table") then
-		if (auto[CLASS_ID] ~= nil) then
+		if (getmetatable(auto) == Linq) then
 			return auto
 		elseif (auto[1] == nil) then
 			return fromDictionary(auto)
