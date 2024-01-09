@@ -96,7 +96,7 @@ Also see [use_existing_anime_location in Script Settings](#eAnimeLocation)
 
 The example script provides a sensible default renaming template. Some variables may be customized at the top of the file, and can serve as a good base for your own script.
 
-### Common Scenarios
+### Common Questions/Scenarios
 
 #### I want to split my collection across import folders
 
@@ -130,3 +130,12 @@ if #groups == 1 and #groups[1].animes > 1 then
   subfolder = {groups[1].name, anime.preferredname}
 end
 ```
+
+#### I want to move/rename my anime collection into seasons
+
+AniDB, Shoko's metadata provider does not have the concept of seasons. Therefore the metadata available cannot be cleanly mapped. I recommend using Shoko Metadata for Plex or Shokofin for Jellyfin as your client instead of depending on other metadata providers.
+
+#### I want to hard link my files
+
+Neither Shoko nor this plugin has the ability to create file links. I recommend creating any links before the file is processed by Shoko. Usually download clients have the option to run a script on download completion. You can create a script to link files to a Shoko drop source folder. Feel free to contact me if you need help with this.  
+Note: If you hard link your files you will need to create an import folder for each file system/volume used.
