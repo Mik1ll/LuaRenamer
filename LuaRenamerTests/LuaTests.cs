@@ -32,46 +32,35 @@ public class LuaTests
 
     private static MoveEventArgs MinimalArgs(string script)
     {
-        return new MoveEventArgs
-        {
-            Script = new RenameScriptImpl
+        return new MoveEventArgs(new RenameScriptImpl
             {
                 Script = script,
                 Type = LuaRenamer.LuaRenamer.RenamerId
-            },
-            FileInfo = Mock.Of<IVideoFile>(file =>
+            }, new List<IImportFolder>
+            {
+                Mock.Of<IImportFolder>(i => i.Location == Path.Combine("C:", "testimportfolder") &&
+                                            i.DropFolderType == DropFolderType.Destination &&
+                                            i.Name == "testimport")
+            }, Mock.Of<IVideoFile>(file =>
                 file.Hashes.ED2K == "abc123" &&
                 file.FilePath == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
                 file.Filename == "testfilename.mp4" &&
-                file.VideoFileID == 25),
-            AnimeInfo = new List<IAnime>
+                file.VideoFileID == 25), Mock.Of<IVideo>(),
+            new List<IEpisode> { Mock.Of<IEpisode>(e => e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode) },
+            new List<IAnime>
             {
                 Mock.Of<IAnime>(a =>
                     a.PreferredTitle == "blah" &&
                     a.Titles == new List<AnimeTitle>() &&
                     a.EpisodeCounts == new EpisodeCounts() &&
                     a.Relations == new List<IRelatedAnime>())
-            },
-            AvailableFolders = new List<IImportFolder>
-            {
-                Mock.Of<IImportFolder>(i => i.Location == Path.Combine("C:", "testimportfolder") &&
-                                            i.DropFolderType == DropFolderType.Destination &&
-                                            i.Name == "testimport")
-            },
-            EpisodeInfo = new List<IEpisode> { Mock.Of<IEpisode>(e => e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode) },
-            GroupInfo = new List<IGroup>()
-        };
+            }, new List<IGroup>());
     }
 
     private static RenameEventArgs RenameArgs(MoveEventArgs args)
     {
-        return new RenameEventArgs
+        return new RenameEventArgs(args.Script, args.FileInfo, args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo)
         {
-            FileInfo = args.FileInfo,
-            AnimeInfo = args.AnimeInfo,
-            GroupInfo = args.GroupInfo,
-            EpisodeInfo = args.EpisodeInfo,
-            Script = args.Script,
             Cancel = args.Cancel
         };
     }
@@ -89,12 +78,15 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($@"{LuaEnv.filename} = tostring({LuaEnv.anime.typeFn} == {LuaEnv.AnimeType}.{nameof(AnimeType.Movie)})");
-        args.AnimeInfo[0] = Mock.Of<IAnime>(a => a.Type == AnimeType.Movie &&
-                                                 a.PreferredTitle == "blah" &&
-                                                 a.Titles == new List<AnimeTitle>() &&
-                                                 a.EpisodeCounts == new EpisodeCounts() &&
-                                                 a.Relations == new List<IRelatedAnime>());
+        var args = MinimalArgs($"{LuaEnv.filename} = tostring({LuaEnv.anime.typeFn} == {LuaEnv.AnimeType}.{nameof(AnimeType.Movie)})");
+        args = new MoveEventArgs(args.Script, args.AvailableFolders, args.FileInfo, args.VideoInfo, args.EpisodeInfo, new[]
+        {
+            Mock.Of<IAnime>(a => a.Type == AnimeType.Movie &&
+                                 a.PreferredTitle == "blah" &&
+                                 a.Titles == new List<AnimeTitle>() &&
+                                 a.EpisodeCounts == new EpisodeCounts() &&
+                                 a.Relations == new List<IRelatedAnime>())
+        }, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
@@ -105,12 +97,13 @@ public class LuaTests
     public void TestDateTime()
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = os.date('%c', os.time({LuaEnv.file.anidb.releasedateFn}))");
-        args.FileInfo = Mock.Of<IVideoFile>(file =>
-            file.FilePath == args.FileInfo.FilePath &&
-            file.Filename == args.FileInfo.Filename &&
-            file.Hashes == Mock.Of<IHashes>() &&
-            file.AniDBFileInfo.ReleaseDate == new DateTime(2022, 02, 03, 5, 3, 2) &&
-            file.AniDBFileInfo.MediaInfo == new AniDBMediaData { AudioLanguages = new List<TitleLanguage>(), SubLanguages = new List<TitleLanguage>() });
+        args = new MoveEventArgs(args.Script, args.AvailableFolders, Mock.Of<IVideoFile>(file =>
+                file.FilePath == args.FileInfo.FilePath &&
+                file.Filename == args.FileInfo.Filename &&
+                file.Hashes == Mock.Of<IHashes>() &&
+                file.AniDBFileInfo.ReleaseDate == new DateTime(2022, 02, 03, 5, 3, 2) &&
+                file.AniDBFileInfo.MediaInfo == new AniDBMediaData { AudioLanguages = new List<TitleLanguage>(), SubLanguages = new List<TitleLanguage>() }),
+            args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
@@ -121,11 +114,14 @@ public class LuaTests
     public void TestEpisodes()
     {
         var args = MinimalArgs(
-            $@"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.numberFn} .. ' ' .. {LuaEnv.episode.typeFn}");
-        args.EpisodeInfo[0] = Mock.Of<IEpisode>(e =>
-            e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
-            e.Number == 5 &&
-            e.Type == EpisodeType.Episode);
+            $"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.numberFn} .. ' ' .. {LuaEnv.episode.typeFn}");
+        args = new MoveEventArgs(args.Script, args.AvailableFolders, args.FileInfo, args.VideoInfo, new[]
+        {
+            Mock.Of<IEpisode>(e =>
+                e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
+                e.Number == 5 &&
+                e.Type == EpisodeType.Episode)
+        }, args.AnimeInfo, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
@@ -137,7 +133,9 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} == {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Destination)}) then {LuaEnv.destination} = {LuaEnv.importfolders}[2] end");
-        args.AvailableFolders.Add(Mock.Of<IImportFolder>(i => i.DropFolderType == DropFolderType.Destination && i.Name == "testimport"));
+        args = new MoveEventArgs(args.Script,
+            args.AvailableFolders.Append(Mock.Of<IImportFolder>(i => i.DropFolderType == DropFolderType.Destination && i.Name == "testimport")), args.FileInfo,
+            args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
@@ -194,7 +192,7 @@ public class LuaTests
     public void TestEpisodeNumbers()
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = {LuaEnv.episode_numbers}(3)");
-        args.EpisodeInfo = new List<IEpisode>
+        args = new MoveEventArgs(args.Script, args.AvailableFolders, args.FileInfo, args.VideoInfo, new List<IEpisode>
         {
             Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 6 && e.Type == EpisodeType.Episode),
             Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 12 && e.Type == EpisodeType.Other),
@@ -206,7 +204,7 @@ public class LuaTests
             Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 9 && e.Type == EpisodeType.Other),
             Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 3 && e.Type == EpisodeType.Episode),
             Mock.Of<IEpisode>(e => e.Titles == args.EpisodeInfo[0].Titles && e.Number == 2 && e.Type == EpisodeType.Other),
-        };
+        }, args.AnimeInfo, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
         var res = renamer.GetInfo();
