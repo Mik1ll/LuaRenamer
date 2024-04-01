@@ -19,9 +19,9 @@
       },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
-        "requested": "[2.4.1, )",
-        "resolved": "2.4.1",
-        "contentHash": "A3/PGarWHwq9l8lAUUROplPpNLzqcytokKEKis9QxxW6wocff7iNsqhIsuFBarJRY1Rb4TSYu008h7xMEyuKuw=="
+        "requested": "[3.0.0-alpha.1, )",
+        "resolved": "3.0.0-alpha1",
+        "contentHash": "iIYsOVnYhKt2O+DtpQEMO4Ygi7TgJQEVFJpqJA+GHArFTPxHmnn4Ke+K2paiP6FvdLbdxJ7MB4uqfah2EoT8VA=="
       },
       "KeraLua": {
         "type": "Transitive",
