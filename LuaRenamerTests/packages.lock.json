@@ -119,7 +119,7 @@
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[6.0.0, )",
           "NLua": "[1.6.3, )",
-          "Shoko.Plugin.Abstractions": "[2.4.1, )"
+          "Shoko.Plugin.Abstractions": "[3.0.0-alpha.1, )"
         }
       }
     }

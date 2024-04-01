@@ -95,9 +95,9 @@ public class LuaRenamer : IRenamer
     private void SetupArgs(RenameEventArgs args)
     {
         FileInfo = args.FileInfo;
-        AnimeInfo = args.AnimeInfo;
-        EpisodeInfo = args.EpisodeInfo;
-        GroupInfo = args.GroupInfo;
+        AnimeInfo = args.AnimeInfo.ToList();
+        EpisodeInfo = args.EpisodeInfo.ToList();
+        GroupInfo = args.GroupInfo.ToList();
         Script = args.Script;
         // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         AvailableFolders ??= new List<IImportFolder>();
@@ -106,11 +106,11 @@ public class LuaRenamer : IRenamer
     public void SetupArgs(MoveEventArgs args)
     {
         FileInfo = args.FileInfo;
-        AnimeInfo = args.AnimeInfo;
-        EpisodeInfo = args.EpisodeInfo;
-        GroupInfo = args.GroupInfo;
+        AnimeInfo = args.AnimeInfo.ToList();
+        EpisodeInfo = args.EpisodeInfo.ToList();
+        GroupInfo = args.GroupInfo.ToList();
         Script = args.Script;
-        AvailableFolders = args.AvailableFolders;
+        AvailableFolders = args.AvailableFolders.ToList();
     }
 
     public (string filename, IImportFolder destination, string subfolder)? GetInfo()
