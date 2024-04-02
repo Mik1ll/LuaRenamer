@@ -44,7 +44,7 @@ public class LuaRenamer : IRenamer
 
     private (string filename, IImportFolder destination, string subfolder)? CheckCache()
     {
-        var videoFileId = FileInfo.VideoFileID;
+        var videoFileId = FileInfo.VideoID;
         if (Script.Script != ScriptCache)
         {
             ScriptCache = Script.Script;
@@ -140,22 +140,22 @@ public class LuaRenamer : IRenamer
         string filename;
         if (SkipMove)
         {
-            destination = AvailableFolders.First(f => FileInfo.FilePath.NormPath().StartsWith(f.Location.NormPath()));
-            subfolder = Path.GetDirectoryName(FileInfo.FilePath)!.Substring(destination.Location.NormPath().Length + 1);
+            destination = AvailableFolders.First(f => FileInfo.Path.NormPath().StartsWith(f.Path.NormPath()));
+            subfolder = Path.GetDirectoryName(FileInfo.Path)!.Substring(destination.Path.NormPath().Length + 1);
         }
         else
             (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
 
         if (SkipRename)
-            filename = FileInfo.Filename;
+            filename = FileInfo.FileName;
         else
             filename = luaFilename is string f
-                ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.Filename)
-                : FileInfo.Filename;
+                ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.FileName)
+                : FileInfo.FileName;
 
         if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
-        ResultCache.Add(FileInfo.VideoFileID, (DateTime.UtcNow, filename, destination, subfolder));
+        ResultCache.Add(FileInfo.VideoID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
 
@@ -203,9 +203,9 @@ public class LuaRenamer : IRenamer
             case null:
                 destfolder = AvailableFolders
                     // Order by common prefix (stronger version of same drive)
-                    .OrderByDescending(f => string.Concat(FileInfo.FilePath.NormPath()
-                        .TakeWhile((ch, i) => i < f.Location.NormPath().Length
-                                              && char.ToUpperInvariant(f.Location.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
+                    .OrderByDescending(f => string.Concat(FileInfo.Path.NormPath()
+                        .TakeWhile((ch, i) => i < f.Path.NormPath().Length
+                                              && char.ToUpperInvariant(f.Path.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
                     .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
                 if (destfolder is null)
                     throw new ArgumentException("could not find an available destination import folder");
@@ -213,7 +213,7 @@ public class LuaRenamer : IRenamer
             case string str:
                 destfolder = AvailableFolders.FirstOrDefault(f =>
                     string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(f.Location.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
+                    string.Equals(f.Path.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
                 if (destfolder is null)
                     throw new ArgumentException($"could not find destination folder by name or path: {str}");
                 break;
@@ -230,7 +230,7 @@ public class LuaRenamer : IRenamer
         }
 
         if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
-            throw new ArgumentException($"selected import folder \"{destfolder.Location}\" is not a destination folder, check import folder type");
+            throw new ArgumentException($"selected import folder \"{destfolder.Path}\" is not a destination folder, check import folder type");
         return destfolder;
     }
 
@@ -238,8 +238,8 @@ public class LuaRenamer : IRenamer
     {
         if (VideoLocalRepo is null || ImportFolderRepo is null) return null;
         IImportFolder? oldFld = null;
-        var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(AnimeInfo.First().AnimeID))
-            .Where(vl => !string.Equals(vl.CRC32, FileInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
+        var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(AnimeInfo.First().ID))
+            .Where(vl => !string.Equals(vl.CRC32, FileInfo.VideoInfo?.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(vl => vl.DateTimeUpdated)
             .Select(vl => vl.GetBestVideoLocalPlace())
             .FirstOrDefault(vlp => (oldFld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
