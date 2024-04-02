@@ -57,6 +57,30 @@
     </Target>
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
-        <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(PublishDir)../$(ProjectName)_$(RuntimeIdentifier)_$(GitInfo).zip" Overwrite="true" />
+        <PropertyGroup>
+            <WinZipDir>$(PublishDir)WinZipDir/</WinZipDir>
+            <DockerAmdDir>$(PublishDir)DockerAmdZipDir/</DockerAmdDir>
+            <DockerArmDir>$(PublishDir)DockerArmZipDir/</DockerArmDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <SharedOut Include="$(PublishDir)/**/*.*" Exclude="$(PublishDir)/runtimes/**/*.*" />
+            <WinOut Include="$(PublishDir)runtimes/win-x64/native/lua54.dll" />
+            <DockerAmd64Out Include="$(ProjectDir)docker_build/amd64/liblua54.so" />
+            <DockerArm64Out Include="$(ProjectDir)docker_build/arm64/liblua54.so" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(SharedOut);@(WinOut)" DestinationFolder="$(WinZipDir)$(ProjectName)/%(RecursiveDir)" />
+        <Copy SourceFiles="@(SharedOut);@(DockerAmd64Out)" DestinationFolder="$(DockerAmdDir)$(ProjectName)/%(RecursiveDir)" />
+        <Copy SourceFiles="@(SharedOut);@(DockerArm64Out)" DestinationFolder="$(DockerArmDir)$(ProjectName)/%(RecursiveDir)" />
+
+        <ZipDirectory SourceDirectory="$(WinZipDir)" DestinationFile="$(OutDir)$(ProjectName)_Windows_AMD64_$(GitInfo).zip" Overwrite="true" />
+        <ZipDirectory SourceDirectory="$(DockerAmdDir)" DestinationFile="$(OutDir)$(ProjectName)_Docker_AMD64_$(GitInfo).zip" Overwrite="true" />
+        <ZipDirectory SourceDirectory="$(DockerArmDir)" DestinationFile="$(OutDir)$(ProjectName)_Docker_ARM64_$(GitInfo).zip" Overwrite="true" />
+
+        <RemoveDir Directories="$(WinZipDir);$(DockerAmdDir);$(DockerArmDir)" />
+    </Target>
+
+    <Target Name="Cleaner" AfterTargets="AfterClean">
+        <RemoveDir Directories="$(OutDir)" />
     </Target>
 </Project>
