@@ -88,7 +88,9 @@ public class LuaRenamer : IRenamer
         }
         catch (Exception e)
         {
-            return (null, $"*Error: {e.Message}");
+            var st = new StackTrace(e, true);
+            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
+            return (null, $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}");
         }
     }
 
@@ -154,7 +156,7 @@ public class LuaRenamer : IRenamer
                 ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.FileName)
                 : FileInfo.FileName;
 
-        if (filename is null || string.IsNullOrWhiteSpace(subfolder)) return null;
+        if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(subfolder)) return null;
         ResultCache.Add(FileInfo.VideoID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
