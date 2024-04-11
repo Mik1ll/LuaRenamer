@@ -103,6 +103,8 @@ public static class LuaEnv
 
         public const string name = nameof(name);
         public const string nameFn = Fn + "." + name;
+        public const string extension = nameof(extension);
+        public const string extensionFn = Fn + "." + extension;
         public const string path = nameof(path);
         public const string pathFn = Fn + "." + path;
         public const string size = nameof(size);

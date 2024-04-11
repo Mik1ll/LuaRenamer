@@ -305,7 +305,7 @@ end
             mediadict.Add(LuaEnv.file.anidb.media.dublanguages, aniDbInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
             anidb.Add(LuaEnv.file.anidb.media.N, mediadict);
             anidb.Add(LuaEnv.file.anidb.description, aniDbInfo.Description);
-            anidb.Add(LuaEnv.file.anidb.originalname, aniDbInfo.OriginalFilename);
+            anidb.Add(LuaEnv.file.anidb.originalname, Path.GetFileNameWithoutExtension(aniDbInfo.OriginalFilename));
         }
 
         return anidb;
@@ -351,10 +351,11 @@ end
         List<Dictionary<string, object>> importfolders)
     {
         var file = new Dictionary<string, object?>();
-        file.Add(LuaEnv.file.name, _renamer.FileInfo.FileName);
+        file.Add(LuaEnv.file.name, Path.GetFileNameWithoutExtension(_renamer.FileInfo.FileName));
+        file.Add(LuaEnv.file.extension, Path.GetExtension(_renamer.FileInfo.FileName));
         file.Add(LuaEnv.file.path, _renamer.FileInfo.Path);
         file.Add(LuaEnv.file.size, _renamer.FileInfo.Size);
-        file.Add(LuaEnv.file.earliestname, _renamer.VideoInfo.EarliestKnownName);
+        file.Add(LuaEnv.file.earliestname, Path.GetFileNameWithoutExtension(_renamer.VideoInfo.EarliestKnownName));
         var hashdict = new Dictionary<string, object?>();
         hashdict.Add(LuaEnv.file.hashes.crc, _renamer.VideoInfo.Hashes.CRC);
         hashdict.Add(LuaEnv.file.hashes.md5, _renamer.VideoInfo.Hashes.MD5);
