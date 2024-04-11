@@ -27,6 +27,7 @@ public class LuaRenamer : IRenamer
     internal static readonly Dictionary<int, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
 
     public IVideoFile FileInfo { get; private set; } = null!;
+    public IVideo VideoInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
     public IList<IGroup> GroupInfo { get; private set; } = null!;
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
@@ -97,6 +98,7 @@ public class LuaRenamer : IRenamer
     private void SetupArgs(RenameEventArgs args)
     {
         FileInfo = args.FileInfo;
+        VideoInfo = args.VideoInfo;
         AnimeInfo = args.AnimeInfo.ToList();
         EpisodeInfo = args.EpisodeInfo.ToList();
         GroupInfo = args.GroupInfo.ToList();
@@ -105,9 +107,11 @@ public class LuaRenamer : IRenamer
         AvailableFolders ??= new List<IImportFolder>();
     }
 
+
     public void SetupArgs(MoveEventArgs args)
     {
         FileInfo = args.FileInfo;
+        VideoInfo = args.VideoInfo;
         AnimeInfo = args.AnimeInfo.ToList();
         EpisodeInfo = args.EpisodeInfo.ToList();
         GroupInfo = args.GroupInfo.ToList();
@@ -241,7 +245,7 @@ public class LuaRenamer : IRenamer
         if (VideoLocalRepo is null || ImportFolderRepo is null) return null;
         IImportFolder? oldFld = null;
         var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(AnimeInfo.First().ID))
-            .Where(vl => !string.Equals(vl.CRC32, FileInfo.VideoInfo?.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
+            .Where(vl => !string.Equals(vl.CRC32, VideoInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(vl => vl.DateTimeUpdated)
             .Select(vl => vl.GetBestVideoLocalPlace())
             .FirstOrDefault(vlp => (oldFld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&

@@ -109,6 +109,8 @@ public static class LuaEnv
         public const string sizeFn = Fn + "." + size;
         public const string importfolder = nameof(importfolder);
         public const string importfolderFn = Fn + "." + importfolder;
+        public const string earliestname = nameof(earliestname);
+        public const string earliestnameFn = Fn + "." + earliestname;
 
         public static class hashes
         {
@@ -148,7 +150,7 @@ public static class LuaEnv
             public static class releasegroup
             {
                 public const string N = nameof(releasegroup);
-                public const string Fn = file.anidb.Fn + "." + N;
+                public const string Fn = anidb.Fn + "." + N;
 
                 public const string name = nameof(name);
                 public const string nameFn = Fn + "." + name;
@@ -159,7 +161,7 @@ public static class LuaEnv
             public static class media
             {
                 public const string N = nameof(media);
-                public const string Fn = file.anidb.Fn + "." + N;
+                public const string Fn = anidb.Fn + "." + N;
 
                 public const string sublanguages = nameof(sublanguages);
                 public const string sublanguagesFn = Fn + "." + sublanguages;
@@ -185,7 +187,7 @@ public static class LuaEnv
             public static class video
             {
                 public const string N = nameof(video);
-                public const string Fn = file.media.Fn + "." + N;
+                public const string Fn = media.Fn + "." + N;
 
                 public const string height = nameof(height);
                 public const string heightFn = Fn + "." + height;
@@ -206,7 +208,7 @@ public static class LuaEnv
             public static class audio
             {
                 public const string N = nameof(audio);
-                public const string Fn = file.media.Fn + "." + N;
+                public const string Fn = media.Fn + "." + N;
 
                 public const string compressionmode = nameof(compressionmode);
                 public const string compressionmodeFn = Fn + "." + compressionmode;

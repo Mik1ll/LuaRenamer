@@ -283,7 +283,7 @@ end
     private Dictionary<string, object?>? AniDbFileToDict()
     {
         Dictionary<string, object?>? anidb = null;
-        if (_renamer.FileInfo.VideoInfo?.AniDB is { } aniDbInfo)
+        if (_renamer.VideoInfo.AniDB is { } aniDbInfo)
         {
             anidb = new Dictionary<string, object?>();
             anidb.Add(LuaEnv.file.anidb.censored, aniDbInfo.Censored);
@@ -354,11 +354,12 @@ end
         file.Add(LuaEnv.file.name, _renamer.FileInfo.FileName);
         file.Add(LuaEnv.file.path, _renamer.FileInfo.Path);
         file.Add(LuaEnv.file.size, _renamer.FileInfo.Size);
+        file.Add(LuaEnv.file.earliestname, _renamer.VideoInfo.EarliestKnownName);
         var hashdict = new Dictionary<string, object?>();
-        hashdict.Add(LuaEnv.file.hashes.crc, _renamer.FileInfo.VideoInfo?.Hashes.CRC);
-        hashdict.Add(LuaEnv.file.hashes.md5, _renamer.FileInfo.VideoInfo?.Hashes.MD5);
-        hashdict.Add(LuaEnv.file.hashes.ed2k, _renamer.FileInfo.VideoInfo?.Hashes.ED2K);
-        hashdict.Add(LuaEnv.file.hashes.sha1, _renamer.FileInfo.VideoInfo?.Hashes.SHA1);
+        hashdict.Add(LuaEnv.file.hashes.crc, _renamer.VideoInfo.Hashes.CRC);
+        hashdict.Add(LuaEnv.file.hashes.md5, _renamer.VideoInfo.Hashes.MD5);
+        hashdict.Add(LuaEnv.file.hashes.ed2k, _renamer.VideoInfo.Hashes.ED2K);
+        hashdict.Add(LuaEnv.file.hashes.sha1, _renamer.VideoInfo.Hashes.SHA1);
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
@@ -387,7 +388,7 @@ end
     private Dictionary<string, object?>? MediaInfoToDict()
     {
         Dictionary<string, object?>? mediainfo = null;
-        if (_renamer.FileInfo.VideoInfo?.MediaInfo is { } mediaInfo)
+        if (_renamer.VideoInfo.MediaInfo is { } mediaInfo)
         {
             mediainfo = new Dictionary<string, object?>();
             mediainfo.Add(LuaEnv.file.media.chaptered, mediaInfo.Chaptered);

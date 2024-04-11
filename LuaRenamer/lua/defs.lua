@@ -2,6 +2,7 @@
 
 ---@class (exact) File
 ---@field name string
+---@field earliestname string?
 ---@field path string
 ---@field size integer
 ---@field hashes Hashes
