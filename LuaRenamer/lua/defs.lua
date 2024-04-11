@@ -40,7 +40,7 @@ local AniDbMedia = {}
 
 ---@class (exact) Media
 ---@field chaptered boolean
----@field video Video
+---@field video Video?
 ---@field duration integer
 ---@field bitrate integer
 ---@field sublanguages string[]
@@ -116,7 +116,7 @@ local DateTime = {}
 local Episode = {}
 
 ---@param lang Language
----@param include_unofficial? boolean
+---@param include_unofficial boolean?
 ---@return string?
 function Episode:getname(lang, include_unofficial)
 end
@@ -129,7 +129,7 @@ local ImportFolder = {}
 
 ---@class (exact) Group
 ---@field name string
----@field mainanime Anime?
+---@field mainanime Anime
 ---@field animes Anime[]
 local Group = {}
 
