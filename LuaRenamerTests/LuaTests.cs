@@ -132,9 +132,12 @@ public class LuaTests
     public void TestImportFolder()
     {
         var args = MinimalArgs(
-            $@"if ({LuaEnv.importfolders}[2].{LuaEnv.importfolder.type} == {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Destination)}) then {LuaEnv.destination} = {LuaEnv.importfolders}[2] end");
+            $@"
+local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {LuaEnv.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
+{LuaEnv.destination} = fld");
         args = new MoveEventArgs(args.Script,
-            args.AvailableFolders.Append(Mock.Of<IImportFolder>(i => i.DropFolderType == DropFolderType.Destination && i.Name == "testimport")), args.FileInfo,
+            args.AvailableFolders.Append(Mock.Of<IImportFolder>(i => i.ID == 1 && i.DropFolderType == DropFolderType.Both && i.Name == "testimport")),
+            args.FileInfo,
             args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
