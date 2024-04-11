@@ -305,6 +305,7 @@ end
             mediadict.Add(LuaEnv.file.anidb.media.dublanguages, aniDbInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
             anidb.Add(LuaEnv.file.anidb.media.N, mediadict);
             anidb.Add(LuaEnv.file.anidb.description, aniDbInfo.Description);
+            anidb.Add(LuaEnv.file.anidb.originalname, aniDbInfo.OriginalFilename);
         }
 
         return anidb;
