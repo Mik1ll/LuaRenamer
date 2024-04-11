@@ -364,22 +364,21 @@ end
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
-        file.Add(LuaEnv.file.importfolder,
-            importfolders.First(i => _renamer.FileInfo.Path.NormPath().StartsWith(((string)i[LuaEnv.importfolder.location]).NormPath())));
+        file.Add(LuaEnv.file.importfolder, importfolders.First(i => (int)i[LuaEnv.importfolder.id] == _renamer.FileInfo.ImportFolderID));
         return file;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private List<Dictionary<string, object>> ImportFoldersToDict()
     {
-        var importfolders = _renamer.AvailableFolders.Select((f, i) =>
+        var importfolders = _renamer.AvailableFolders.Select(f =>
         {
             var importdict = new Dictionary<string, object>();
+            importdict.Add(LuaEnv.importfolder.id, f.ID);
             importdict.Add(LuaEnv.importfolder.name, f.Name);
             importdict.Add(LuaEnv.importfolder.location, f.Path);
             importdict.Add(LuaEnv.importfolder.type, f.DropFolderType.ToString());
             importdict.Add(LuaEnv.importfolder._classid, LuaEnv.importfolder._classidVal);
-            importdict.Add(LuaEnv.importfolder._index, i);
             return importdict;
         }).ToList();
         return importfolders;

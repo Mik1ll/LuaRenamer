@@ -225,7 +225,7 @@ public class LuaRenamer : IRenamer
                 break;
             case LuaTable destTable:
                 if ((string)destTable[LuaEnv.importfolder._classid] == LuaEnv.importfolder._classidVal)
-                    destfolder = AvailableFolders[Convert.ToInt32(destTable[LuaEnv.importfolder._index])];
+                    destfolder = AvailableFolders.First(i => i.ID == Convert.ToInt32(destTable[LuaEnv.importfolder.id]));
                 else
                     throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                 break;

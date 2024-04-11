@@ -258,12 +258,12 @@ public static class LuaEnv
 
     public static class importfolder
     {
+        public const string id = nameof(id);
         public const string name = nameof(name);
         public const string location = nameof(location);
         public const string type = nameof(type);
         public const string _classid = nameof(_classid);
         public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
-        public const string _index = nameof(_index);
     }
 
     public static class group

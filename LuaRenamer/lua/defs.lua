@@ -125,6 +125,7 @@ function Episode:getname(lang, include_unofficial)
 end
 
 ---@class (exact) ImportFolder
+---@field id integer
 ---@field name string
 ---@field location string
 ---@field type ImportFolderType
