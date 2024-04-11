@@ -146,8 +146,6 @@ public static class LuaEnv
             public const string releasedateFn = Fn + "." + releasedate;
             public const string description = nameof(description);
             public const string descriptionFn = Fn + "." + description;
-            public const string originalname = nameof(originalname);
-            public const string originalnameFn = Fn + "." + originalname;
 
             public static class releasegroup
             {
