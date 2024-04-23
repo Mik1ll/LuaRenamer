@@ -112,7 +112,7 @@ end
         {
             LuaEnv.anime._classidVal => _renamer.AnimeInfo.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.ID).Titles,
             LuaEnv.episode._classidVal => _renamer.EpisodeInfo.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.ID).Titles,
-            _ => throw new ArgumentException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
+            _ => throw new LuaRenamerException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
         };
         var lang = Enum.Parse<TitleLanguage>(language);
         var title = titles
@@ -173,7 +173,7 @@ end
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
         var retVal = _functions.RunSandbox.Call(_renamer.Script.Script, luaEnv);
         if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
-            throw new ArgumentException(errStr);
+            throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);
     }
 

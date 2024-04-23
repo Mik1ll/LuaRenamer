@@ -214,20 +214,20 @@ public class LuaRenamer : IRenamer
                                               && char.ToUpperInvariant(f.Path.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
                     .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
                 if (destfolder is null)
-                    throw new ArgumentException("could not find an available destination import folder");
+                    throw new LuaRenamerException("could not find an available destination import folder");
                 break;
             case string str:
                 destfolder = AvailableFolders.FirstOrDefault(f =>
                     string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(f.Path.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
                 if (destfolder is null)
-                    throw new ArgumentException($"could not find destination folder by name or path: {str}");
+                    throw new LuaRenamerException($"could not find destination folder by name or path: {str}");
                 break;
             case LuaTable destTable:
                 if ((string)destTable[LuaEnv.importfolder._classid] == LuaEnv.importfolder._classidVal)
                     destfolder = AvailableFolders.First(i => i.ID == Convert.ToInt32(destTable[LuaEnv.importfolder.id]));
                 else
-                    throw new ArgumentException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
+                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
                 break;
             default:
                 throw new LuaScriptException(
@@ -236,7 +236,7 @@ public class LuaRenamer : IRenamer
         }
 
         if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
-            throw new ArgumentException($"selected import folder \"{destfolder.Path}\" is not a destination folder, check import folder type");
+            throw new LuaRenamerException($"selected import folder \"{destfolder.Path}\" is not a destination folder, check import folder type");
         return destfolder;
     }
 
@@ -260,10 +260,10 @@ public class LuaRenamer : IRenamer
     private void CheckBadArgs()
     {
         if (string.IsNullOrWhiteSpace(Script.Script))
-            throw new ArgumentException("Script is empty or null");
+            throw new LuaRenamerException("Script is empty or null");
         if (Script.Type != RenamerId)
-            throw new ArgumentException($"Script doesn't match {RenamerId}");
+            throw new LuaRenamerException($"Script doesn't match {RenamerId}");
         if (AnimeInfo.Count == 0 || EpisodeInfo.Count == 0)
-            throw new ArgumentException("No anime and/or episode info");
+            throw new LuaRenamerException("No anime and/or episode info");
     }
 }

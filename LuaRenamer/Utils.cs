@@ -36,7 +36,7 @@ public static class Utils
             segment = segment.TrimEnd(' ', '.');
         var isEmpty = string.IsNullOrWhiteSpace(segment);
         if (isEmpty || CleanPathSegmentRegex2.Match(segment).Success)
-            throw new ArgumentException($"Illegal path segment: {(isEmpty ? "<empty/whitespace>" : segment)}");
+            throw new LuaRenamerException($"Illegal path segment: {(isEmpty ? "<empty/whitespace>" : segment)}");
         return segment;
     }
 
