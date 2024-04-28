@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,12 +18,12 @@ public class LuaRenamer : IRenamer
 {
     private readonly ILogger<LuaRenamer> _logger;
     public const string RenamerId = nameof(LuaRenamer);
-    private static readonly Type? Repofact = Utils.GetTypeFromAssemblies("Shoko.Server.Repositories.RepoFactory");
-    private static readonly dynamic? VideoLocalRepo = Repofact?.GetProperty("VideoLocal")?.GetValue(null);
-    private static readonly dynamic? ImportFolderRepo = Repofact?.GetProperty("ImportFolder")?.GetValue(null);
 
     internal static string ScriptCache = string.Empty;
     internal static readonly Dictionary<int, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
+
+    private bool _skipRename;
+    private bool _skipMove;
 
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
@@ -33,9 +32,6 @@ public class LuaRenamer : IRenamer
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
     public IList<IAnime> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
-
-    public bool SkipRename { get; private set; }
-    public bool SkipMove { get; private set; }
 
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
@@ -103,8 +99,7 @@ public class LuaRenamer : IRenamer
         EpisodeInfo = args.EpisodeInfo.ToList();
         GroupInfo = args.GroupInfo.ToList();
         Script = args.Script;
-        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-        AvailableFolders ??= new List<IImportFolder>();
+        AvailableFolders = args.AvailableFolders.ToList();
     }
 
 
@@ -127,7 +122,6 @@ public class LuaRenamer : IRenamer
             return cacheHit;
         }
 
-        AvailableFolders = ((IEnumerable?)ImportFolderRepo?.GetAll())?.Cast<IImportFolder>().ToList() ?? AvailableFolders;
         using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
         var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
@@ -137,30 +131,30 @@ public class LuaRenamer : IRenamer
         env.TryGetValue(LuaEnv.destination, out var luaDestination);
         env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
         env.TryGetValue(LuaEnv.skip_rename, out var luaSkipRename);
-        SkipRename = (bool?)luaSkipRename ?? false;
+        _skipRename = (bool?)luaSkipRename ?? false;
         env.TryGetValue(LuaEnv.skip_move, out var luaSkipMove);
-        SkipMove = (bool?)luaSkipMove ?? false;
+        _skipMove = (bool?)luaSkipMove ?? false;
 
         IImportFolder? destination;
         string? subfolder;
         string filename;
-        if (SkipMove)
+        if (_skipMove)
         {
-            destination = AvailableFolders.First(f => FileInfo.Path.NormPath().StartsWith(f.Path.NormPath()));
-            subfolder = Path.GetDirectoryName(FileInfo.Path)!.Substring(destination.Path.NormPath().Length + 1);
+            destination = FileInfo.ImportFolder;
+            subfolder = SubfolderFromRelativePath(FileInfo);
         }
         else
             (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
 
-        if (SkipRename)
+        if (_skipRename)
             filename = FileInfo.FileName;
         else
             filename = luaFilename is string f
                 ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.FileName)
                 : FileInfo.FileName;
 
-        if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(subfolder)) return null;
+        if (destination is null || string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(subfolder)) return null;
         ResultCache.Add(FileInfo.VideoID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
@@ -242,19 +236,28 @@ public class LuaRenamer : IRenamer
 
     private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
     {
-        if (VideoLocalRepo is null || ImportFolderRepo is null) return null;
-        IImportFolder? oldFld = null;
-        var lastFileLocation = ((IEnumerable<dynamic>)VideoLocalRepo.GetByAniDBAnimeID(AnimeInfo.First().ID))
-            .Where(vl => !string.Equals(vl.CRC32, VideoInfo.Hashes.CRC, StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(vl => vl.DateTimeUpdated)
-            .Select(vl => vl.GetBestVideoLocalPlace())
-            .FirstOrDefault(vlp => (oldFld = (IImportFolder)ImportFolderRepo.GetByID(vlp.ImportFolderID)) is not null &&
-                                   (oldFld.DropFolderType.HasFlag(DropFolderType.Destination) ||
-                                    oldFld.DropFolderType.HasFlag(DropFolderType.Excluded)));
-        if (oldFld is null || lastFileLocation is null) return null;
-        var subFld = Path.GetDirectoryName((string)lastFileLocation.FilePath);
-        if (subFld is null) return null;
-        return (oldFld, subFld);
+        var availableLocations = AnimeInfo.First().VideoList
+            .Where(vl => !string.Equals(vl.Hashes.ED2K, VideoInfo.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(vl => vl.Locations.Select(l => new
+            {
+                l.ImportFolder,
+                SubFolder = SubfolderFromRelativePath(l)
+            }))
+            .Where(vlp => !string.IsNullOrWhiteSpace(vlp.SubFolder) && vlp.ImportFolder is not null &&
+                          (vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Destination) ||
+                           vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Excluded))).ToList();
+        var bestLocation = availableLocations.GroupBy(l => l.SubFolder)
+            .OrderByDescending(g => g.ToList().Count).Select(g => g.First())
+            .FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(bestLocation?.SubFolder) || bestLocation.ImportFolder is null) return null;
+        return (bestLocation.ImportFolder, bestLocation.SubFolder);
+    }
+
+    private static string? SubfolderFromRelativePath(IVideoFile videoFile)
+    {
+        return Path.GetDirectoryName(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }.Contains(videoFile.RelativePath[0])
+            ? videoFile.RelativePath[1..]
+            : videoFile.RelativePath);
     }
 
     private void CheckBadArgs()

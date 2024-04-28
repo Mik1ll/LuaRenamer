@@ -24,18 +24,21 @@ public class LuaTests
 
     private static MoveEventArgs MinimalArgs(string script)
     {
+        var importFolder = Mock.Of<IImportFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
+                                                       i.DropFolderType == DropFolderType.Destination &&
+                                                       i.Name == "testimport");
         return new MoveEventArgs(new RenameScriptImpl
             {
                 Script = script,
                 Type = LuaRenamer.LuaRenamer.RenamerId
             }, new List<IImportFolder>
             {
-                Mock.Of<IImportFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
-                                            i.DropFolderType == DropFolderType.Destination &&
-                                            i.Name == "testimport")
+                importFolder
             }, Mock.Of<IVideoFile>(file =>
                 file.Path == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
+                file.RelativePath == Path.Combine("testsubfolder", "testfilename.mp4") &&
                 file.FileName == "testfilename.mp4" &&
+                file.ImportFolder == importFolder &&
                 file.VideoID == 25), Mock.Of<IVideo>(vi => vi.Hashes.ED2K == "abc123"),
             new List<IEpisode> { Mock.Of<IEpisode>(e => e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode) },
             new List<IAnime>
@@ -49,7 +52,7 @@ public class LuaTests
     }
 
     private static RenameEventArgs RenameArgs(MoveEventArgs args) =>
-        new(args.Script, args.FileInfo, args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo)
+        new(args.Script, args.AvailableFolders, args.FileInfo, args.VideoInfo, args.EpisodeInfo, args.AnimeInfo, args.GroupInfo)
         {
             Cancel = args.Cancel
         };
