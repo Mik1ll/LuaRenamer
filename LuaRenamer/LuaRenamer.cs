@@ -19,12 +19,6 @@ public class LuaRenamer : IRenamer
     private readonly ILogger<LuaRenamer> _logger;
     public const string RenamerId = nameof(LuaRenamer);
 
-    internal static string ScriptCache = string.Empty;
-    internal static readonly Dictionary<int, (DateTime setTIme, string filename, IImportFolder destination, string subfolder)> ResultCache = new();
-
-    private bool _skipRename;
-    private bool _skipMove;
-
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
@@ -33,28 +27,9 @@ public class LuaRenamer : IRenamer
     public IList<IAnime> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
 
-
     public LuaRenamer(ILogger<LuaRenamer> logger)
     {
         _logger = logger;
-    }
-
-    private (string filename, IImportFolder destination, string subfolder)? CheckCache()
-    {
-        var videoFileId = FileInfo.VideoID;
-        if (Script.Script != ScriptCache)
-        {
-            ScriptCache = Script.Script;
-            ResultCache.Clear();
-            return null;
-        }
-
-        if (!ResultCache.TryGetValue(videoFileId, out var res))
-            return null;
-        if (DateTime.UtcNow < res.setTIme + TimeSpan.FromSeconds(2))
-            return (res.filename, res.destination, res.subfolder);
-        ResultCache.Remove(videoFileId);
-        return null;
     }
 
     public string? GetFilename(RenameEventArgs args)
@@ -116,29 +91,21 @@ public class LuaRenamer : IRenamer
 
     public (string filename, IImportFolder destination, string subfolder)? GetInfo()
     {
-        if (CheckCache() is { } cacheHit)
-        {
-            _logger.LogInformation("Returning rename/move result from cache");
-            return cacheHit;
-        }
-
         using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
         var replaceIllegalChars = (bool)env[LuaEnv.replace_illegal_chars];
         var removeIllegalChars = (bool)env[LuaEnv.remove_illegal_chars];
         var useExistingAnimeLocation = (bool)env[LuaEnv.use_existing_anime_location];
+        var skipMove = (bool)env[LuaEnv.skip_move];
+        var skipRename = (bool)env[LuaEnv.skip_rename];
         env.TryGetValue(LuaEnv.filename, out var luaFilename);
         env.TryGetValue(LuaEnv.destination, out var luaDestination);
         env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
-        env.TryGetValue(LuaEnv.skip_rename, out var luaSkipRename);
-        _skipRename = (bool?)luaSkipRename ?? false;
-        env.TryGetValue(LuaEnv.skip_move, out var luaSkipMove);
-        _skipMove = (bool?)luaSkipMove ?? false;
 
         IImportFolder? destination;
         string? subfolder;
         string filename;
-        if (_skipMove)
+        if (skipMove)
         {
             destination = FileInfo.ImportFolder;
             subfolder = SubfolderFromRelativePath(FileInfo);
@@ -147,7 +114,7 @@ public class LuaRenamer : IRenamer
             (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
                                        (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
 
-        if (_skipRename)
+        if (skipRename)
             filename = FileInfo.FileName;
         else
             filename = luaFilename is string f
@@ -155,7 +122,6 @@ public class LuaRenamer : IRenamer
                 : FileInfo.FileName;
 
         if (destination is null || string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(subfolder)) return null;
-        ResultCache.Add(FileInfo.VideoID, (DateTime.UtcNow, filename, destination, subfolder));
         return (filename, destination, subfolder);
     }
 

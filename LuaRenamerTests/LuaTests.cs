@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using LuaRenamer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -56,14 +55,6 @@ public class LuaTests
         {
             Cancel = args.Cancel
         };
-
-
-    [TestInitialize]
-    public void InitializeTest()
-    {
-        LuaRenamer.LuaRenamer.ResultCache.Clear();
-        LuaRenamer.LuaRenamer.ScriptCache = string.Empty;
-    }
 
     [TestMethod]
     public void TestScriptRuns()
@@ -374,22 +365,6 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
         var moveres = renamer.GetDestination(MinimalArgs($"{LuaEnv.destination} = 'testimport'\n{LuaEnv.subfolder} = {{'blah'}}"));
         Assert.IsNotNull(moveres.destination);
         Assert.AreEqual("blah", moveres.subfolder);
-    }
-
-    [TestMethod]
-    public void TestCache()
-    {
-        var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        var args = MinimalArgs("filename = 'blah'");
-        renamer.SetupArgs(args);
-        renamer.GetFilename(RenameArgs(args));
-        Assert.IsTrue(LuaRenamer.LuaRenamer.ResultCache.Count == 1);
-        var setTime = LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoID].setTIme;
-        renamer.GetFilename(RenameArgs(args));
-        Assert.IsTrue(setTime == LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoID].setTIme);
-        Thread.Sleep(2500);
-        renamer.GetFilename(RenameArgs(args));
-        Assert.IsTrue(setTime != LuaRenamer.LuaRenamer.ResultCache[args.FileInfo.VideoID].setTIme);
     }
 
     [TestMethod]
