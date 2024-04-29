@@ -65,7 +65,7 @@ Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will ha
 
 In addition to the `filename`, `destination` and `subfolder` output variables, these variables affect the result of your script.
 
-* `use_existing_anime_location`<a id="eAnimeLocation"></a> If true, the subfolder of the most recent file of the same anime is reused if one exists. This takes precedence over the subfolder set in the script (default: false)
+* `use_existing_anime_location`<a id="eAnimeLocation"></a> If true, the subfolder with the most files of the same anime is reused if one exists. This takes precedence over the subfolder set in the script (default: false)
 * `replace_illegal_chars` If true, replaces all illegal path characters in subfolder and file name with alternatives. See [ReplaceMap in Utils.cs](./LuaRenamer/Utils.cs) (default: false)
 * `remove_illegal_chars` If true, removes all illegal path characters in subfolder and file name. If false, illegal characters are replaced with underscores or replaced if `replace_illegal_chars` is true. (default: false)
 * `skip_rename` If true, the result of running the script is discarded when renaming. (default: false)
@@ -73,7 +73,7 @@ In addition to the `filename`, `destination` and `subfolder` output variables, t
 
 ### Notes for File Moving
 
-Import folders are only valid destination candidates if they exist and have either the 'Destination' or 'Both' Drop Type.  
+Import folders are only valid destination candidates if they exist and have either the 'Destination' or 'Both' Drop Type. Using `use_existing_anime_location` allows for an import folder with 'Excluded' drop type to be picked. This may change in the future.  
 Destination defaults to the nearest (to the file) valid import folder.  
 Destination is set via:
 
