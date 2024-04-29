@@ -243,7 +243,7 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> AnimeToDict(IAnime anime, Dictionary<int, Dictionary<string, object?>> animeCache, bool ignoreRelations = false)
+    private Dictionary<string, object?> AnimeToDict(ISeries anime, Dictionary<int, Dictionary<string, object?>> animeCache, bool ignoreRelations = false)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
         if (animeCache.TryGetValue(anime.ID, out var animedict)) return animedict;
@@ -259,21 +259,21 @@ end
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);
         animedict.Add(LuaEnv.anime._classid, LuaEnv.anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
-        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
-        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCounts.Specials);
-        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCounts.Credits);
-        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCounts.Trailers);
-        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
-        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
+        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCountDict[EpisodeType.Episode]);
+        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCountDict[EpisodeType.Special]);
+        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCountDict[EpisodeType.Credits]);
+        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCountDict[EpisodeType.Trailer]);
+        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCountDict[EpisodeType.Other]);
+        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCountDict[EpisodeType.Parody]);
         animedict.Add(LuaEnv.anime.episodecounts, epcountdict);
         animedict.Add(LuaEnv.anime.relations.N, ignoreRelations
             ? new List<Dictionary<string, object?>>()
-            : anime.Relations.Where(r => r.RelatedAnime is not null && r.RelatedAnime.ID != anime.ID)
+            : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r =>
                 {
                     var relationdict = new Dictionary<string, object?>();
                     relationdict.Add(LuaEnv.anime.relations.type, r.RelationType.ToString());
-                    relationdict.Add(LuaEnv.anime.relations.anime, AnimeToDict(r.RelatedAnime!, animeCache, true));
+                    relationdict.Add(LuaEnv.anime.relations.anime, AnimeToDict(r.Related!, animeCache, true));
                     return relationdict;
                 }).ToList());
         return animeCache[anime.ID] = animedict;

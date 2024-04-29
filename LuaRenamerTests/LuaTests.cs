@@ -45,8 +45,16 @@ public class LuaTests
                 Mock.Of<IAnime>(a =>
                     a.PreferredTitle == "blah" &&
                     a.Titles == new List<AnimeTitle>() &&
-                    a.EpisodeCounts == new EpisodeCounts() &&
-                    a.Relations == new List<IRelatedAnime>())
+                    a.EpisodeCountDict == new Dictionary<EpisodeType, int>
+                    {
+                        { EpisodeType.Episode, 0 },
+                        { EpisodeType.Special, 0 },
+                        { EpisodeType.Credits, 0 },
+                        { EpisodeType.Trailer, 0 },
+                        { EpisodeType.Parody, 0 },
+                        { EpisodeType.Other, 0 }
+                    } &&
+                    a.RelatedSeries == new List<IRelatedMetadata<ISeries>>())
             }, new List<IGroup>());
     }
 
@@ -75,8 +83,16 @@ public class LuaTests
             Mock.Of<IAnime>(a => a.Type == AnimeType.Movie &&
                                  a.PreferredTitle == "blah" &&
                                  a.Titles == new List<AnimeTitle>() &&
-                                 a.EpisodeCounts == new EpisodeCounts() &&
-                                 a.Relations == new List<IRelatedAnime>())
+                                 a.EpisodeCountDict == new Dictionary<EpisodeType, int>
+                                 {
+                                     { EpisodeType.Episode, 0 },
+                                     { EpisodeType.Special, 0 },
+                                     { EpisodeType.Credits, 0 },
+                                     { EpisodeType.Trailer, 0 },
+                                     { EpisodeType.Parody, 0 },
+                                     { EpisodeType.Other, 0 }
+                                 } &&
+                                 a.RelatedSeries == new List<IRelatedMetadata<ISeries>>())
         }, args.GroupInfo);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         renamer.SetupArgs(args);
@@ -335,17 +351,25 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var args = MinimalArgs(
             $"{LuaEnv.filename} = {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.preferredname} .. {LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.type} .. #{LuaEnv.anime.relations.Fn}[1].{LuaEnv.anime.relations.anime}.{LuaEnv.anime.relations.N}");
-        ((List<IRelatedAnime>)args.AnimeInfo[0].Relations).Add(Mock.Of<IRelatedAnime>(r =>
+        ((List<IRelatedMetadata<ISeries>>)args.AnimeInfo[0].RelatedSeries).Add(Mock.Of<IRelatedMetadata<ISeries>>(r =>
             r.RelationType == RelationType.AlternativeSetting &&
-            r.RelatedAnime == Mock.Of<IAnime>(a =>
+            r.Related == Mock.Of<IAnime>(a =>
                 a.ID == 1 &&
                 a.PreferredTitle == "blah2" &&
                 a.Titles == new List<AnimeTitle>() &&
-                a.EpisodeCounts == new EpisodeCounts() &&
-                a.Relations == new List<IRelatedAnime>
+                a.EpisodeCountDict == new Dictionary<EpisodeType, int>
                 {
-                    Mock.Of<IRelatedAnime>(r2 => r2.RelatedAnime == args.AnimeInfo[0] &&
-                                                 r2.RelationType == RelationType.Prequel)
+                    { EpisodeType.Episode, 0 },
+                    { EpisodeType.Special, 0 },
+                    { EpisodeType.Credits, 0 },
+                    { EpisodeType.Trailer, 0 },
+                    { EpisodeType.Parody, 0 },
+                    { EpisodeType.Other, 0 }
+                } &&
+                a.RelatedSeries == new List<IRelatedMetadata<ISeries>>
+                {
+                    Mock.Of<IRelatedMetadata<ISeries>>(r2 => r2.Related == args.AnimeInfo[0] &&
+                                                             r2.RelationType == RelationType.Prequel)
                 })
         ));
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
