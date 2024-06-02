@@ -10,18 +10,18 @@
       },
       "NLua": {
         "type": "Direct",
-        "requested": "[1.7.2, )",
-        "resolved": "1.7.2",
-        "contentHash": "Eh/Nyois3Y4pObgAR8MDsiq5npSQcmEq7IkM50TfkZ8Pb+kV1HMWmaKLl6fFy6ydAzG67L3l3KQseZpBxjI6zw==",
+        "requested": "[1.7.3, )",
+        "resolved": "1.7.3",
+        "contentHash": "9GdqLw+DpB8ISI6LQlKqFHcsFel8iPnoAE/As6ElmRtJ7lqbVEJ2vD8EkHDuEgW0T8FSKidn6/lH7Uok/XnGMQ==",
         "dependencies": {
           "KeraLua": "1.4.1"
         }
       },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
-        "requested": "[3.0.0-alpha6, )",
-        "resolved": "3.0.0-alpha6",
-        "contentHash": "0l2gfg9euCocOhhTkWgy80RUgd3AVPxejeMnj5YAbtqMMCclDCiivokxPdgybjbJnj1QwKFladJe41XSTR7qlA=="
+        "requested": "[3.0.0-alpha8, )",
+        "resolved": "3.0.0-alpha8",
+        "contentHash": "J/jK6+/XipSfA37rQyfUpfj1A4fcYxT9HzOS2VdmNCD8g0JDrDOUNYNKmyT3J4NZfpbDXTw5tIOmXJN0dewTig=="
       },
       "KeraLua": {
         "type": "Transitive",
