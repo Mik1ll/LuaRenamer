@@ -181,13 +181,18 @@ public class LuaRenamer : IRenamer
                     string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(f.Path.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
                 if (destfolder is null)
-                    throw new LuaRenamerException($"could not find destination folder by name or path: {str}");
+                    throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
                 break;
             case LuaTable destTable:
                 if ((string)destTable[LuaEnv.importfolder._classid] == LuaEnv.importfolder._classidVal)
-                    destfolder = AvailableFolders.First(i => i.ID == Convert.ToInt32(destTable[LuaEnv.importfolder.id]));
+                {
+                    destfolder = AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[LuaEnv.importfolder.id]));
+                    if (destfolder is null)
+                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[LuaEnv.importfolder.id]}");
+                }
                 else
                     throw new LuaRenamerException($"destination table was not the correct class, assign a table from {LuaEnv.importfolders}");
+
                 break;
             default:
                 throw new LuaScriptException(

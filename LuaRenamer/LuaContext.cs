@@ -185,7 +185,7 @@ end
         var animes = _renamer.AnimeInfo.Select(a => AnimeToDict(a, animeCache)).ToList();
         var anidb = AniDbFileToDict();
         var mediainfo = MediaInfoToDict();
-        var importfolders = ImportFoldersToDict();
+        var importfolders = _renamer.AvailableFolders.Select(ImportFolderToDict).ToList();
         var file = FileToDict(anidb, mediainfo, importfolders);
         var episodes = EpisodesToDict();
         var groups = GroupsToDict(animeCache);
@@ -363,24 +363,20 @@ end
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
-        file.Add(LuaEnv.file.importfolder, importfolders.First(i => (int)i[LuaEnv.importfolder.id] == _renamer.FileInfo.ImportFolderID));
+        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_renamer.FileInfo.ImportFolder!));
         return file;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object>> ImportFoldersToDict()
+    private Dictionary<string, object> ImportFolderToDict(IImportFolder folder)
     {
-        var importfolders = _renamer.AvailableFolders.Select(f =>
-        {
-            var importdict = new Dictionary<string, object>();
-            importdict.Add(LuaEnv.importfolder.id, f.ID);
-            importdict.Add(LuaEnv.importfolder.name, f.Name);
-            importdict.Add(LuaEnv.importfolder.location, f.Path);
-            importdict.Add(LuaEnv.importfolder.type, f.DropFolderType.ToString());
-            importdict.Add(LuaEnv.importfolder._classid, LuaEnv.importfolder._classidVal);
-            return importdict;
-        }).ToList();
-        return importfolders;
+        var importdict = new Dictionary<string, object>();
+        importdict.Add(LuaEnv.importfolder.id, folder.ID);
+        importdict.Add(LuaEnv.importfolder.name, folder.Name);
+        importdict.Add(LuaEnv.importfolder.location, folder.Path);
+        importdict.Add(LuaEnv.importfolder.type, folder.DropFolderType.ToString());
+        importdict.Add(LuaEnv.importfolder._classid, LuaEnv.importfolder._classidVal);
+        return importdict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
