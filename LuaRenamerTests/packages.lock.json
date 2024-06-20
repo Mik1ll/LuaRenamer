@@ -31,9 +31,9 @@
       },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
-        "requested": "[3.0.0-alpha8, )",
-        "resolved": "3.0.0-alpha8",
-        "contentHash": "J/jK6+/XipSfA37rQyfUpfj1A4fcYxT9HzOS2VdmNCD8g0JDrDOUNYNKmyT3J4NZfpbDXTw5tIOmXJN0dewTig=="
+        "requested": "[3.0.0-alpha9, )",
+        "resolved": "3.0.0-alpha9",
+        "contentHash": "dGDi9OMs0qBE85UnTDHk+NzdKWobfuj/KNsT3MlKeZoeX7OEFbdiRyPMSTUVj7XkM0Z/o6lYfscO2rHJ23P4yA=="
       },
       "Castle.Core": {
         "type": "Transitive",
@@ -181,7 +181,7 @@
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[6.0.0, )",
           "NLua": "[1.7.3, )",
-          "Shoko.Plugin.Abstractions": "[3.0.0-alpha8, )"
+          "Shoko.Plugin.Abstractions": "[3.0.0-alpha9, )"
         }
       }
     }
