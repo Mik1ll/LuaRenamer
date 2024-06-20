@@ -108,7 +108,8 @@ public class LuaTests
         var name = args.FileInfo.FileName;
         args = new MoveEventArgs(args.Script, args.AvailableFolders, Mock.Of<IVideoFile>(file =>
                 file.Path == path &&
-                file.FileName == name),
+                file.FileName == name &&
+                file.ImportFolder == Mock.Of<IImportFolder>()),
             Mock.Of<IVideo>(vi => vi.Hashes == Mock.Of<IHashes>() &&
                                   vi.AniDB == Mock.Of<IAniDBFile>(adb =>
                                       adb.ReleaseDate == new DateTime(2022, 02, 03, 5, 3, 2) && adb.MediaInfo == new AniDBMediaData
