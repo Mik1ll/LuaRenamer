@@ -420,4 +420,15 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
+
+    [TestMethod]
+    public void TestLineEndings()
+    {
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var args = MinimalArgs("filename = 'blah'\r\nfilename = 'argle'\nfilename = 'blargle'\rfilename = 'test'");
+        renamer.SetupArgs(args);
+        var filename = renamer.GetFilename(RenameArgs(args));
+
+        Assert.AreEqual("test.mp4", filename);
+    }
 }
