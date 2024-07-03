@@ -7,89 +7,59 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
-using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer;
 
-[Renamer(RenamerId)]
 // ReSharper disable once ClassNeverInstantiated.Global
-public class LuaRenamer : IRenamer
+public class LuaRenamer : IRenamer<LuaRenamerSettings>
 {
     private readonly ILogger<LuaRenamer> _logger;
     public const string RenamerId = nameof(LuaRenamer);
 
+    public string Name { get; } = nameof(LuaRenamer);
+    public string Description { get; } = "Lua scripting enviornment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
+    public bool SupportsMoving { get; } = true;
+    public bool SupportsRenaming { get; } = true;
+
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
-    public IRenameScript Script { get; private set; } = null!;
+    public string Script { get; private set; } = null!;
     public IList<IGroup> GroupInfo { get; private set; } = null!;
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
     public IList<IAnime> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
+    public bool Rename { get; set; }
+    public bool Move { get; set; }
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
     {
         _logger = logger;
     }
 
-    public string? GetFilename(RenameEventArgs args)
-    {
-        SetupArgs(args);
-        try
-        {
-            CheckBadArgs();
-            var result = GetInfo();
-            return result?.filename;
-        }
-        catch (Exception e)
-        {
-            var st = new StackTrace(e, true);
-            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
-            return $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}";
-        }
-    }
-
-    public (IImportFolder? destination, string? subfolder) GetDestination(MoveEventArgs args)
-    {
-        SetupArgs(args);
-        try
-        {
-            CheckBadArgs();
-            var result = GetInfo();
-            return (result?.destination, result?.subfolder);
-        }
-        catch (Exception e)
-        {
-            var st = new StackTrace(e, true);
-            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
-            return (null, $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}");
-        }
-    }
-
-    private void SetupArgs(RenameEventArgs args)
+    public void SetupArgs(MoveRenameEventArgs<LuaRenamerSettings> args)
     {
         FileInfo = args.FileInfo;
-        VideoInfo = args.VideoInfo;
+        VideoInfo = args.FileInfo.VideoInfo ?? throw new LuaRenamerException("File did not have video info");
         AnimeInfo = args.AnimeInfo.ToList();
         EpisodeInfo = args.EpisodeInfo.ToList();
         GroupInfo = args.GroupInfo.ToList();
-        Script = args.Script;
+        Script = args.Settings.Script;
         AvailableFolders = args.AvailableFolders.ToList();
+        Move = args.MoveEnabled;
+        Rename = args.RenameEnabled;
+
+
+        if (string.IsNullOrWhiteSpace(Script))
+            throw new LuaRenamerException("Script is empty or null");
+        if (AnimeInfo.Count == 0)
+            throw new LuaRenamerException("No anime info");
+        if (EpisodeInfo.Count == 0)
+            throw new LuaRenamerException("No episode info");
     }
 
 
-    public void SetupArgs(MoveEventArgs args)
-    {
-        FileInfo = args.FileInfo;
-        VideoInfo = args.VideoInfo;
-        AnimeInfo = args.AnimeInfo.ToList();
-        EpisodeInfo = args.EpisodeInfo.ToList();
-        GroupInfo = args.GroupInfo.ToList();
-        Script = args.Script;
-        AvailableFolders = args.AvailableFolders.ToList();
-    }
-
-    public (string filename, IImportFolder destination, string subfolder)? GetInfo()
+    public MoveRenameResult GetInfo()
     {
         using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
@@ -102,27 +72,18 @@ public class LuaRenamer : IRenamer
         env.TryGetValue(LuaEnv.destination, out var luaDestination);
         env.TryGetValue(LuaEnv.subfolder, out var luaSubfolder);
 
-        IImportFolder? destination;
-        string? subfolder;
-        string filename;
-        if (skipMove)
-        {
-            destination = FileInfo.ImportFolder;
-            subfolder = SubfolderFromRelativePath(FileInfo);
-        }
-        else
-            (destination, subfolder) = (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
-                                       (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars));
+        var (destination, subfolder) = Move && !skipMove
+            ? (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
+              (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars))
+            : (null, null);
 
-        if (skipRename)
-            filename = FileInfo.FileName;
-        else
-            filename = luaFilename is string f
+        var filename = Rename && !skipRename
+            ? luaFilename is string f
                 ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.FileName)
-                : FileInfo.FileName;
+                : FileInfo.FileName
+            : null;
 
-        if (destination is null || string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(subfolder)) return null;
-        return (filename, destination, subfolder);
+        return new MoveRenameResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename };
     }
 
     private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars)
@@ -231,13 +192,24 @@ public class LuaRenamer : IRenamer
             : videoFile.RelativePath);
     }
 
-    private void CheckBadArgs()
+
+    public MoveRenameResult GetNewPath(MoveRenameEventArgs<LuaRenamerSettings> args)
     {
-        if (string.IsNullOrWhiteSpace(Script.Script))
-            throw new LuaRenamerException("Script is empty or null");
-        if (Script.Type != RenamerId)
-            throw new LuaRenamerException($"Script doesn't match {RenamerId}");
-        if (AnimeInfo.Count == 0 || EpisodeInfo.Count == 0)
-            throw new LuaRenamerException("No anime and/or episode info");
+        try
+        {
+            SetupArgs(args);
+            var result = GetInfo();
+            return result;
+        }
+        catch (Exception e)
+        {
+            var st = new StackTrace(e, true);
+            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
+            return new MoveRenameResult
+            {
+                Error = new MoveRenameError(
+                    $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}", e)
+            };
+        }
     }
 }

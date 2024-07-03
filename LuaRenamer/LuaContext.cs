@@ -171,7 +171,7 @@ end
         var env = CreateLuaEnv();
         var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}{LuaLinqEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = _functions.RunSandbox.Call(_renamer.Script.Script, luaEnv);
+        var retVal = _functions.RunSandbox.Call(_renamer.Script, luaEnv);
         if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);
@@ -186,7 +186,7 @@ end
         var anidb = AniDbFileToDict();
         var mediainfo = MediaInfoToDict();
         var importfolders = _renamer.AvailableFolders.Select(ImportFolderToDict).ToList();
-        var file = FileToDict(anidb, mediainfo, importfolders);
+        var file = FileToDict(anidb, mediainfo);
         var episodes = EpisodesToDict();
         var groups = GroupsToDict(animeCache);
 
@@ -259,12 +259,12 @@ end
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);
         animedict.Add(LuaEnv.anime._classid, LuaEnv.anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
-        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCountDict[EpisodeType.Episode]);
-        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCountDict[EpisodeType.Special]);
-        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCountDict[EpisodeType.Credits]);
-        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCountDict[EpisodeType.Trailer]);
-        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCountDict[EpisodeType.Other]);
-        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCountDict[EpisodeType.Parody]);
+        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
+        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCounts.Specials);
+        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCounts.Credits);
+        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCounts.Trailers);
+        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
+        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
         animedict.Add(LuaEnv.anime.episodecounts, epcountdict);
         animedict.Add(LuaEnv.anime.relations.N, ignoreRelations
             ? new List<Dictionary<string, object?>>()
@@ -346,8 +346,7 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo,
-        List<Dictionary<string, object>> importfolders)
+    private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo)
     {
         var file = new Dictionary<string, object?>();
         file.Add(LuaEnv.file.name, Path.GetFileNameWithoutExtension(_renamer.FileInfo.FileName));
