@@ -18,26 +18,28 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     public const string RenamerId = nameof(LuaRenamer);
 
     public string Name { get; } = nameof(LuaRenamer);
-    public string Description { get; } = "Lua scripting enviornment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
+    public string Description { get; } = "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
     public bool SupportsMoving { get; } = true;
     public bool SupportsRenaming { get; } = true;
+    public LuaRenamerSettings? DefaultSettings { get; } = new();
 
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
     public string Script { get; private set; } = null!;
     public IList<IGroup> GroupInfo { get; private set; } = null!;
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
-    public IList<IAnime> AnimeInfo { get; private set; } = null!;
+    public IList<ISeries> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
     public bool Rename { get; set; }
     public bool Move { get; set; }
+
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
     {
         _logger = logger;
     }
 
-    public void SetupArgs(MoveRenameEventArgs<LuaRenamerSettings> args)
+    public void SetupArgs(RelocationEventArgs<LuaRenamerSettings> args)
     {
         FileInfo = args.FileInfo;
         VideoInfo = args.FileInfo.VideoInfo ?? throw new LuaRenamerException("File did not have video info");
@@ -59,7 +61,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     }
 
 
-    public MoveRenameResult GetInfo()
+    public RelocationResult GetInfo()
     {
         using var lua = new LuaContext(_logger, this);
         var env = lua.RunSandboxed();
@@ -83,7 +85,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 : FileInfo.FileName
             : null;
 
-        return new MoveRenameResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename };
+        return new RelocationResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename };
     }
 
     private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars)
@@ -193,7 +195,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     }
 
 
-    public MoveRenameResult GetNewPath(MoveRenameEventArgs<LuaRenamerSettings> args)
+    public RelocationResult GetNewPath(RelocationEventArgs<LuaRenamerSettings> args)
     {
         try
         {
@@ -205,7 +207,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         {
             var st = new StackTrace(e, true);
             var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
-            return new MoveRenameResult
+            return new RelocationResult
             {
                 Error = new MoveRenameError(
                     $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}", e)

@@ -13,7 +13,7 @@
         <PackageReference Include="Moq" Version="4.20.70" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="MSTest" Version="3.4.3" />
-        <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.0.0-alpha2" />
+        <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.0.0-alpha6" />
     </ItemGroup>
 
     <ItemGroup>
