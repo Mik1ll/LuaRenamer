@@ -459,4 +459,12 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
 
         Assert.AreEqual("test.mp4", result.FileName);
     }
+
+    [TestMethod]
+    public void TestDefaultScript()
+    {
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var defaultScript = renamer.DefaultSettings;
+        Assert.IsNotNull(defaultScript?.Script);
+    }
 }

@@ -7,21 +7,35 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
+using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaRenamer;
 
-// ReSharper disable once ClassNeverInstantiated.Global
+[RenamerID(nameof(LuaRenamer))]
 public class LuaRenamer : IRenamer<LuaRenamerSettings>
 {
     private readonly ILogger<LuaRenamer> _logger;
-    public const string RenamerId = nameof(LuaRenamer);
 
     public string Name { get; } = nameof(LuaRenamer);
     public string Description { get; } = "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
     public bool SupportsMoving { get; } = true;
     public bool SupportsRenaming { get; } = true;
-    public LuaRenamerSettings? DefaultSettings { get; } = new();
+
+    public LuaRenamerSettings? DefaultSettings
+    {
+        get
+        {
+            var defaultFile = new FileInfo(Path.Combine(LuaContext.LuaPath, "default.lua"));
+            if (defaultFile.Exists)
+            {
+                using var text = defaultFile.OpenText();
+                return new LuaRenamerSettings { Script = text.ReadToEnd() };
+            }
+
+            return null;
+        }
+    }
 
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
