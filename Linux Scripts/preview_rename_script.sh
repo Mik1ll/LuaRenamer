@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-if ! type jq > /dev/null; then
+if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq to use this script"
 fi
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
 	echo "Pass filename of script as first parameter and optionally number of results as second parameter"
 	echo "Provides preview of filenames after running the script"
-	exit -1
+	exit 1
 fi
-if ! test -f "$1"; then
+if ! [[ -f "$1" ]]; then
     echo "$1 does not exist"
-    exit -1
+    exit 1
 fi
 script_json="{
   \"RenameScriptID\": 0,
