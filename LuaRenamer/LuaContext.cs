@@ -234,7 +234,7 @@ end
         var groups = _renamer.GroupInfo.Select(g =>
         {
             var groupdict = new Dictionary<string, object?>();
-            groupdict.Add(LuaEnv.group.name, g.Name);
+            groupdict.Add(LuaEnv.group.name, g.PreferredTitle);
             groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries, animeCache));
             groupdict.Add(LuaEnv.group.animes, g.Series.Select(a => AnimeToDict(a, animeCache)).ToList());
             return groupdict;
@@ -259,12 +259,12 @@ end
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);
         animedict.Add(LuaEnv.anime._classid, LuaEnv.anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
-        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCountDict[EpisodeType.Episode]);
-        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCountDict[EpisodeType.Special]);
-        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCountDict[EpisodeType.Credits]);
-        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCountDict[EpisodeType.Trailer]);
-        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCountDict[EpisodeType.Other]);
-        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCountDict[EpisodeType.Parody]);
+        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
+        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCounts.Specials);
+        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCounts.Credits);
+        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCounts.Trailers);
+        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
+        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
         animedict.Add(LuaEnv.anime.episodecounts, epcountdict);
         animedict.Add(LuaEnv.anime.relations.N, ignoreRelations
             ? new List<Dictionary<string, object?>>()

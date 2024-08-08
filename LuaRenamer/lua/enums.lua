@@ -41,6 +41,7 @@ TitleType = {
 
 ---@enum Language
 Language = {
+    None = "None",
     Unknown = "Unknown",
     English = "English",
     Romaji = "Romaji",
@@ -151,6 +152,11 @@ Language = {
     Yiddish = "Yiddish",
     Yoruba = "Yoruba",
     Zulu = "Zulu",
+    Hindi = "Hindi",
+    Filipino = "Filipino",
+    KoreanTranscription = "KoreanTranscription",
+    ThaiTranscription = "ThaiTranscription",
+    Urdu = "Urdu",
 }
 
 ---@enum RelationType

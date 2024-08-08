@@ -9,6 +9,7 @@ using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Plugin.Abstractions.DataModels.Shoko;
 
 namespace LuaRenamer;
 
@@ -22,9 +23,9 @@ public class LuaRenamer : IRenamer
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
-    public IList<IGroup> GroupInfo { get; private set; } = null!;
-    public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
-    public IList<IAnime> AnimeInfo { get; private set; } = null!;
+    public IList<IShokoGroup> GroupInfo { get; private set; } = null!;
+    public IList<IShokoEpisode> EpisodeInfo { get; private set; } = null!;
+    public IList<IShokoSeries> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
@@ -32,7 +33,7 @@ public class LuaRenamer : IRenamer
         _logger = logger;
     }
 
-    public string? GetFilename(RenameEventArgs args)
+    public string? GetFilename(MoveEventArgs args)
     {
         SetupArgs(args);
         try
@@ -66,25 +67,14 @@ public class LuaRenamer : IRenamer
         }
     }
 
-    private void SetupArgs(RenameEventArgs args)
-    {
-        FileInfo = args.FileInfo;
-        VideoInfo = args.VideoInfo;
-        AnimeInfo = args.AnimeInfo.ToList();
-        EpisodeInfo = args.EpisodeInfo.ToList();
-        GroupInfo = args.GroupInfo.ToList();
-        Script = args.Script;
-        AvailableFolders = args.AvailableFolders.ToList();
-    }
-
 
     public void SetupArgs(MoveEventArgs args)
     {
-        FileInfo = args.FileInfo;
-        VideoInfo = args.VideoInfo;
-        AnimeInfo = args.AnimeInfo.ToList();
-        EpisodeInfo = args.EpisodeInfo.ToList();
-        GroupInfo = args.GroupInfo.ToList();
+        FileInfo = args.File;
+        VideoInfo = args.Video;
+        AnimeInfo = args.Series.ToList();
+        EpisodeInfo = args.Episodes.ToList();
+        GroupInfo = args.Groups.ToList();
         Script = args.Script;
         AvailableFolders = args.AvailableFolders.ToList();
     }
@@ -207,7 +197,7 @@ public class LuaRenamer : IRenamer
 
     private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
     {
-        var availableLocations = AnimeInfo.First().VideoList
+        var availableLocations = AnimeInfo.First().Videos
             .Where(vl => !string.Equals(vl.Hashes.ED2K, VideoInfo.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
             .SelectMany(vl => vl.Locations.Select(l => new
             {
