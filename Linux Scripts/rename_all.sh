@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
       port="${1#*=}"
       ;;
     --help|-h)
-      echo "Usage: ./rename_all.sh [--help|-h] [--host <host>] [--port <port>] [--move] <script name>"
+      echo "Usage: ${BASH_SOURCE[0]// /\\ } [--help|-h] [--host <host>] [--port <port>] [--move] <script name>"
       exit 0
       ;;
     --move)
@@ -54,7 +54,7 @@ if [[ $(basename "$script_name") == *.lua ]]; then
   exit 1
 fi
 
-if [[ $(curl -s -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
+if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
   echo "Server not running/started at target host+port"
   exit 1
 fi
