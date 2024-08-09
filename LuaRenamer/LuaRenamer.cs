@@ -13,7 +13,7 @@ using Shoko.Plugin.Abstractions.DataModels.Shoko;
 
 namespace LuaRenamer;
 
-[Renamer(RenamerId)]
+[Renamer(RenamerId, "Lua Renamer")]
 // ReSharper disable once ClassNeverInstantiated.Global
 public class LuaRenamer : IRenamer
 {
