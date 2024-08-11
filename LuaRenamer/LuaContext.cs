@@ -186,7 +186,7 @@ end
         var anidb = AniDbFileToDict();
         var mediainfo = MediaInfoToDict();
         var importfolders = _renamer.AvailableFolders.Select(ImportFolderToDict).ToList();
-        var file = FileToDict(anidb, mediainfo, importfolders);
+        var file = FileToDict(anidb, mediainfo);
         var episodes = EpisodesToDict();
         var groups = GroupsToDict(animeCache);
 
@@ -235,8 +235,8 @@ end
         {
             var groupdict = new Dictionary<string, object?>();
             groupdict.Add(LuaEnv.group.name, g.PreferredTitle);
-            groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries, animeCache));
-            groupdict.Add(LuaEnv.group.animes, g.Series.Select(a => AnimeToDict(a, animeCache)).ToList());
+            groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries.AnidbAnime, animeCache));
+            groupdict.Add(LuaEnv.group.animes, g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache)).ToList());
             return groupdict;
         }).ToList();
         return groups;
@@ -346,8 +346,7 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo,
-        List<Dictionary<string, object>> importfolders)
+    private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo)
     {
         var file = new Dictionary<string, object?>();
         file.Add(LuaEnv.file.name, Path.GetFileNameWithoutExtension(_renamer.FileInfo.FileName));

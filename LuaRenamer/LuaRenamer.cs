@@ -24,8 +24,8 @@ public class LuaRenamer : IRenamer
     public IVideo VideoInfo { get; private set; } = null!;
     public IRenameScript Script { get; private set; } = null!;
     public IList<IShokoGroup> GroupInfo { get; private set; } = null!;
-    public IList<IShokoEpisode> EpisodeInfo { get; private set; } = null!;
-    public IList<IShokoSeries> AnimeInfo { get; private set; } = null!;
+    public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
+    public IList<ISeries> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
 
     public LuaRenamer(ILogger<LuaRenamer> logger)
@@ -72,8 +72,8 @@ public class LuaRenamer : IRenamer
     {
         FileInfo = args.File;
         VideoInfo = args.Video;
-        AnimeInfo = args.Series.ToList();
-        EpisodeInfo = args.Episodes.ToList();
+        AnimeInfo = args.Series.Select(s => s.AnidbAnime).ToList();
+        EpisodeInfo = args.Episodes.Select(ep => ep.AnidbEpisode).ToList();
         GroupInfo = args.Groups.ToList();
         Script = args.Script;
         AvailableFolders = args.AvailableFolders.ToList();
