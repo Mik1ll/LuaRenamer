@@ -43,7 +43,7 @@ if [[ $pos_arg -lt $min_pos_arg ]]; then
 fi
 
 if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
-  echo "Server not running/started at target host+port"
+  echo "Unabled to connect or server not running/started at target host+port"
   exit 1
 fi
 
