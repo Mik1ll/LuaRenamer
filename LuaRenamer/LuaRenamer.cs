@@ -93,13 +93,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         var (destination, subfolder) = Move && !skipMove
             ? (useExistingAnimeLocation ? GetExistingAnimeLocation() : null) ??
               (GetNewDestination(luaDestination), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars))
-            : (null, null);
+            : (FileInfo.ImportFolder, Path.GetDirectoryName(FileInfo.RelativePath));
 
         var filename = Rename && !skipRename
             ? luaFilename is string f
                 ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(FileInfo.FileName)
                 : FileInfo.FileName
-            : null;
+            : FileInfo.FileName;
 
         return new RelocationResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename };
     }
