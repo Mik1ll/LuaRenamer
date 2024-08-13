@@ -41,6 +41,7 @@ TitleType = {
 
 ---@enum Language
 Language = {
+    Main = "Main",
     None = "None",
     Unknown = "Unknown",
     English = "English",

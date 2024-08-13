@@ -9,10 +9,12 @@ using NLua.Exceptions;
 using Shoko.Plugin.Abstractions;
 using Shoko.Plugin.Abstractions.Attributes;
 using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Plugin.Abstractions.DataModels.Shoko;
+using Shoko.Plugin.Abstractions.Events;
 
 namespace LuaRenamer;
 
-[RenamerID(nameof(LuaRenamer), "Lua Renamer")]
+[RenamerID(nameof(LuaRenamer))]
 public class LuaRenamer : IRenamer<LuaRenamerSettings>
 {
     private readonly ILogger<LuaRenamer> _logger;
@@ -40,7 +42,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     public IVideoFile FileInfo { get; private set; } = null!;
     public IVideo VideoInfo { get; private set; } = null!;
     public string Script { get; private set; } = null!;
-    public IList<IGroup> GroupInfo { get; private set; } = null!;
+    public IList<IShokoGroup> GroupInfo { get; private set; } = null!;
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
     public IList<ISeries> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
@@ -55,11 +57,11 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
 
     public void SetupArgs(RelocationEventArgs<LuaRenamerSettings> args)
     {
-        FileInfo = args.FileInfo;
-        VideoInfo = args.FileInfo.VideoInfo ?? throw new LuaRenamerException("File did not have video info");
-        AnimeInfo = args.AnimeInfo.ToList();
-        EpisodeInfo = args.EpisodeInfo.ToList();
-        GroupInfo = args.GroupInfo.ToList();
+        FileInfo = args.File;
+        VideoInfo = args.File.Video ?? throw new LuaRenamerException("File did not have video info");
+        AnimeInfo = args.Series.Select(s => s.AnidbAnime).ToList();
+        EpisodeInfo = args.Episodes.Select(se => se.AnidbEpisode).ToList();
+        GroupInfo = args.Groups.ToList();
         Script = args.Settings.Script;
         AvailableFolders = args.AvailableFolders.ToList();
         Move = args.MoveEnabled;
@@ -184,7 +186,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
 
     private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation()
     {
-        var availableLocations = AnimeInfo.First().VideoList
+        var availableLocations = AnimeInfo.First().Videos
             .Where(vl => !string.Equals(vl.Hashes.ED2K, VideoInfo.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
             .SelectMany(vl => vl.Locations.Select(l => new
             {
@@ -223,7 +225,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
             var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
             return new RelocationResult
             {
-                Error = new MoveRenameError(
+                Error = new RelocationError(
                     $"*Error: File: {frame?.GetFileName()} Method: {frame?.GetMethod()?.Name} Line: {frame?.GetFileLineNumber()} | {e.Message}", e)
             };
         }
