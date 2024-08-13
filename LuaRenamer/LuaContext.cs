@@ -171,7 +171,7 @@ end
         var env = CreateLuaEnv();
         var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}{LuaLinqEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = _functions.RunSandbox.Call(_renamer.Script.Script, luaEnv);
+        var retVal = _functions.RunSandbox.Call(_renamer.Script, luaEnv);
         if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);

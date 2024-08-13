@@ -4,9 +4,12 @@
     "net6.0": {
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "/HggWBbTwy8TgebGSX5DBZ24ndhzi93sHUBDvP1IxbZD7FDokYzdAr6+vbWGjw2XAfR2EJ1sfKUotpjHnFWPxA=="
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "arDBqTgFCyS0EvRV7O3MZturChstm50OJ0y9bDJvAcmEPJm0FFpFyjU/JLYyStNGGey081DvnQYlncNX5SJJGA==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
+        }
       },
       "NLua": {
         "type": "Direct",
@@ -19,14 +22,19 @@
       },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
-        "requested": "[3.0.0-alpha11, )",
-        "resolved": "3.0.0-alpha11",
-        "contentHash": "jpRtEtJ60hAYXPtCCEWUq2nWZ53NyQmTwpb/bQAWQeJRX7qUSbeBUBHyh69hKdoO4WFFslOUgX5gRn6Sgjs6Mw=="
+        "requested": "[4.0.0-alpha6, )",
+        "resolved": "4.0.0-alpha6",
+        "contentHash": "fF1z9PbeORTciCRAKl5P5gPGm53JwzC7iXJSVpcTXZ8QrBgX+AvOZFiPGaTaXtror3purFUuzCr/TV9C7nlKXA=="
       },
       "KeraLua": {
         "type": "Transitive",
         "resolved": "1.4.1",
         "contentHash": "SHfGjaWED+nHxMWbIqAVN90bs5xLnOOojuQaSSzZqJAKXSzcDi94ikr/7GQxM1/4ny/tKnnGHSKkOQyZ65572Q=="
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "cjWrLkJXK0rs4zofsK4bSdg+jhDLTaxrkXu4gS6Y7MAlCvRyNNgwY/lJi5RDlQOnSZweHqoyvgvbdvQsRIW+hg=="
       }
     }
   }

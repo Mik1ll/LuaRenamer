@@ -92,9 +92,9 @@ Subfolder is set via:
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
 Also see [use_existing_anime_location in Script Settings](#eAnimeLocation)
 
-### [The Example Script](./LuaRenamer/lua/example.lua)
+### [The Default Script](./LuaRenamer/lua/default.lua)
 
-The example script provides a sensible default renaming template. Some variables may be customized at the top of the file, and can serve as a good base for your own script.
+The default script provides a sensible renaming template. Some variables may be customized at the top of the file, and can serve as a good base for your own script.
 
 ### Common Questions/Scenarios
 
