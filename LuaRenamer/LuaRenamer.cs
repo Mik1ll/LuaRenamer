@@ -101,7 +101,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 : FileInfo.FileName
             : null;
 
-        return new RelocationResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename };
+        return new RelocationResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename, SkipMove = skipMove, SkipRename = skipRename };
     }
 
     private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars)
