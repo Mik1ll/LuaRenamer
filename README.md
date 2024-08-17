@@ -1,55 +1,55 @@
-# LuaRenamer
+Lua Renamer is a plugin for [Shoko Server](https://github.com/ShokoAnime/ShokoServer). It allows users to rename their collection via an Lua 5.4 interface.  
+This renamer is fitting for users with more advanced collection renaming/organization requirements.
+
+Limitations: The Lua environment is sandboxed such that interaction with the operating system/file system/networking is unavailable.
+
+For support/questions join the [Shoko Discord server](https://discord.gg/shokoanime) and message [mikill](discord://-/users/116043375433482241).
 
 ## Installation
 
-1. Download the [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest)
-2. Unzip the files into destination
+1. Download the [the release appropriate for your Shoko Server version.](https://github.com/Mik1ll/LuaRenamer/releases)
+    * The [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest) should be compatible with current Stable.
+    * Pre-releases will be compatible with Shoko Daily depending on the Abstractions Version, check release notes and [Shoko Server tags](https://github.com/ShokoAnime/ShokoServer/tags) for compatibility.
+2. Unzip the folder into the Shoko plugin directory:
     * (Windows) `C:\ProgramData\ShokoServer\plugins`
-    * (Docker) wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted
-3. Restart Shoko Server
-4. (Optional) Install VS Code and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script. The extension uses [LuaCATS annotations](https://luals.github.io/wiki/annotations/)
-5. Follow instructions in the next section to add your script
+    * (Docker) wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted.
+3. Restart Shoko Server.
+4. (Recommended) Install [VS Code](https://code.visualstudio.com/download) and [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) to edit your script.
+5. Follow instructions in the next section to add a script.
 
 ## Usage
 
-### With Shoko Desktop
-
-1. Open Shoko Desktop
-2. Navigate to Utilities/File Renaming
-3. Use the Default script or create a new one and set the type of the script to LuaRenamer in the drop-down menu
-4. (Optional) Open the lua subfolder of the extracted plugin in VS Code
-5. [Create a script](#script-writing)
-6. Paste the script in the text box in Shoko Desktop
-7. Add the files you wish to rename
-8. Test your script before renaming by pressing Preview. (There is no preview for file moving, only renaming)
-9. Pressing Rename does not move files by default, the checkbox to move must also be checked
-10. Save your script
-
-### Linux/Without Shoko Desktop
-
-1. Copy/download [the linux scripts](./Linux%20Scripts)
-2. (Optional) Open the lua subfolder of the extracted plugin in VS Code
-3. [Create a script](#script-writing)
-4. Preview the results with [the preview script](./Linux%20Scripts/preview_rename_script.sh) `./preview_rename_script.sh <script filename> [# results]`
-5. Add your script to Shoko with [the add script](./Linux%20Scripts/add_rename_script.sh) `./add_rename_script.sh <script filename>`
-6. If you want to rename and move all existing files use [the rename script](./Linux%20Scripts/rename_and_move_all.sh) `./rename_and_move_all.sh <script name>`
+1. Open the Server WebUI (port 8111 by default) and log in
+2. Navigate to Utilities/File Rename.
+3. Click the cog wheel icon to open the renamer config panel.
+4. Create a new renamer config, enter a name and select LuaRenamer from the select box. If LuaRenamer is not visible, the renamer failed to load, check the server logs.
+5. Add the files (button next to the config cog wheel) you wish to rename. The rename/move preview will automatically populate with changes you make.
+6. The Move checkbox chooses whether the files are renamed and moved or only renamed.
+7. The config can be set to be the Default, which is used when Rename On Import and Move On Import are set in the Import Settings. 
+8. Once you are happy with the preview you can save the config and click Rename Files to rename/move+rename the previewed files.
 
 ### Renaming on Import
 
 If you wish to rename/move your files on import you must do two things:
 
-1. Set Rename/Move On Import to true in Shoko settings
-2. Ensure your script is saved with the run on import setting true
-    1. Check that it is the only script with the setting enabled
+1. Set Rename/Move On Import to true in Shoko settings (via WebUI or settings-server.json).
+2. Ensure your renamer config is saved as the Default.
 
 ## Script Writing
 
-VS Code + [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) is recommended for script editing.  
-The script environment utilizes [LuaCATS annotations](https://luals.github.io/wiki/annotations/), allowing the extension to provide type linting.
+Check out [This short guide](https://learnxinyminutes.com/docs/lua/) if you are new to Lua.  
+
+### With VS Code (Recommended)
+
+1. VS Code + [the Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) is recommended for script editing.
+    * The script environment provides [LuaCATS annotations](https://luals.github.io/wiki/annotations/) for type linting.
+2. Open the plugin's lua subfolder in VS Code via `File -> Open Folder...`
+3. You can create a new .lua script or edit the existing `default.lua` (editing default.lua will not change existing scripts on the server, but will be used when new scripts are created)
+4. When your script is ready to test, copy the script content into the Renamer config in the WebUI. See [Usage](#Usage)
 
 ### The Environment
 
-The lua environment is sandboxed, removing operations from standard libraries such as io, and os. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
+The lua environment is sandboxed, removing operations from standard libraries such as `io`, and `os`. See BaseEnv in [LuaContext](./LuaRenamer/LuaContext.cs).  
 The script is run in a fresh environment for every file.  
 Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will have any effect outside of the script.
 
@@ -65,40 +65,43 @@ Only the output variables defined in [env.lua](./LuaRenamer/lua/env.lua) will ha
 
 In addition to the `filename`, `destination` and `subfolder` output variables, these variables affect the result of your script.
 
-* `use_existing_anime_location`<a id="eAnimeLocation"></a> If true, the subfolder with the most files of the same anime is reused if one exists. This takes precedence over the subfolder set in the script (default: false)
+* `use_existing_anime_location` If true, the subfolder with the most files of the same anime is reused if one exists. This takes precedence over the subfolder set in the script (default: false)
 * `replace_illegal_chars` If true, replaces all illegal path characters in subfolder and file name with alternatives. See [ReplaceMap in Utils.cs](./LuaRenamer/Utils.cs) (default: false)
 * `remove_illegal_chars` If true, removes all illegal path characters in subfolder and file name. If false, illegal characters are replaced with underscores or replaced if `replace_illegal_chars` is true. (default: false)
 * `skip_rename` If true, the result of running the script is discarded when renaming. (default: false)
 * `skip_move` If true, the result of running the script is discarded when moving. (default: false)
 
-### Notes for File Moving
+## Notes for File Moving
 
-Import folders are only valid destination candidates if they exist and have either the 'Destination' or 'Both' Drop Type. Using `use_existing_anime_location` allows for an import folder with 'Excluded' drop type to be picked. This may change in the future.  
+### Destination
+
+<wbr/>Import folders are only valid destination candidates if they exist and have either the `Destination` or `Both` Drop Type.  
+> [!NOTE]
+> Using `use_existing_anime_location` may bypass this restriction, allowing `None` but not `Source`. This may change in the future.
+
 Destination defaults to the nearest (to the file) valid import folder.  
-Destination is set via:
+Destination is set via one of:
 
-* Import folder name (string)
+* <wbr/>Import folder name (string)
 * Server folder path (string)
-* Import folder reference (selected from 'importfolders' array)
+* <wbr/>Import folder reference (selected from `importfolders` array or `file.importfolder`)
 
 If destination set via path, it is matched to import folder path with converted directory seperators but no other special handling (relative path or expansion).
 
+### Subfolder
+
 Subfolder defaults to the anime title in your preferred language.  
-Subfolder is set via:
+Subfolder is set via one of:
 
 * Subfolder name (string)
 * Path segments (array-table, e.g. `{"parent dir name", "subdir name", "..."}`)
 
 If set via a string subfolder name, directory separators within the string are ignored or replaced depending on preference.  
-Also see [use_existing_anime_location in Script Settings](#eAnimeLocation)
+Also see [`use_existing_anime_location` in Script Settings](#Script-Settings)
 
-### [The Default Script](./LuaRenamer/lua/default.lua)
+## Common Questions/Scenarios
 
-The default script provides a sensible renaming template. Some variables may be customized at the top of the file, and can serve as a good base for your own script.
-
-### Common Questions/Scenarios
-
-#### I want to split my collection across import folders
+### How do I split my collection across import folders?
 
 The easiest option is to set the destination by import folder name. Keep in mind the import folder must have the Destination or Both drop type. You may also specify the destination by the full path of the import folder on the server or by referencing it directly via `importfolders`.
 
@@ -110,7 +113,7 @@ else
 end
 ```
 
-#### I want to split my collection across subfolders
+### How do I split my collection across subfolders?
 
 ```lua
 if anime.type == AnimeType.Movie then
@@ -120,10 +123,9 @@ else
 end
 ```
 
-#### I want my anime to be grouped according to Shoko
+### How do I group my anime according to Shoko?
 
-Adding Shoko group name to subfolder path when there are multiple series in group.  
-Warning: adding new series to a group with one entry will not move the old series into a subfolder, so you should probably use this when batch renaming/moving existing series
+Adding Shoko group name to subfolder path when there are multiple series in group.
 
 ```lua
 if #groups == 1 and #groups[1].animes > 1 then
@@ -131,11 +133,11 @@ if #groups == 1 and #groups[1].animes > 1 then
 end
 ```
 
-#### I want to move/rename my anime collection into seasons
+### How do I move/rename my anime collection according to seasons?
 
-AniDB, Shoko's metadata provider does not have the concept of seasons. Therefore the metadata available cannot be cleanly mapped. I recommend using Shoko Metadata for Plex or Shokofin for Jellyfin as your client instead of depending on other metadata providers.
+AniDB, Shoko's metadata provider does not have the concept of seasons. Therefore the metadata available cannot be cleanly mapped. I recommend using Shoko Metadata for Plex or Shokofin for Jellyfin as your client instead of depending on other metadata providing plugins.
 
-#### I want to hard link my files
+### How can I hard/soft link my files instead of moving them?
 
 Neither Shoko nor this plugin has the ability to create file links. I recommend creating any links before the file is processed by Shoko. Usually download clients have the option to run a script on download completion. You can create a script to link files to a Shoko drop source folder. Feel free to contact me if you need help with this.  
 Note: If you hard link your files you will need to create an import folder for each file system/volume used.
