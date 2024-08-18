@@ -44,6 +44,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     public string Script { get; private set; } = null!;
     public IList<IShokoGroup> GroupInfo { get; private set; } = null!;
     public IList<IEpisode> EpisodeInfo { get; private set; } = null!;
+    public IList<IShokoSeries> ShokoSeries { get; private set; }
     public IList<ISeries> AnimeInfo { get; private set; } = null!;
     public List<IImportFolder> AvailableFolders { get; private set; } = null!;
     public bool Rename { get; set; }
@@ -59,6 +60,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     {
         FileInfo = args.File;
         VideoInfo = args.File.Video ?? throw new LuaRenamerException("File did not have video info");
+        ShokoSeries = args.Series.ToList();
         AnimeInfo = args.Series.Select(s => s.AnidbAnime).ToList();
         EpisodeInfo = args.Episodes.Select(se => se.AnidbEpisode).ToList();
         GroupInfo = args.Groups.ToList();
@@ -101,7 +103,8 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 : FileInfo.FileName
             : null;
 
-        return new RelocationResult { DestinationImportFolder = destination, Path = subfolder, FileName = filename, SkipMove = skipMove, SkipRename = skipRename };
+        return new RelocationResult
+            { DestinationImportFolder = destination, Path = subfolder, FileName = filename, SkipMove = skipMove, SkipRename = skipRename };
     }
 
     private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars)
