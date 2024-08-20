@@ -51,7 +51,7 @@ public class LuaTests
             },
             Series = new List<IShokoSeries>
             {
-                Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object)
+                Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname")
             },
             Groups = new List<IShokoGroup>(),
             Settings = new LuaRenamerSettings { Script = script },
@@ -65,8 +65,7 @@ public class LuaTests
     {
         var args = MinimalArgs($@"{LuaEnv.filename} = 'testfilename'");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("testfilename.mp4", res.FileName);
     }
 
@@ -88,7 +87,7 @@ public class LuaTests
             Episodes = args.Episodes,
             Series = new[]
             {
-                Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object)
+                Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname")
             },
             Groups = args.Groups,
             MoveEnabled = true,
@@ -96,8 +95,7 @@ public class LuaTests
         };
 
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("true.mp4", res.FileName);
     }
 
@@ -128,8 +126,7 @@ public class LuaTests
             RenameEnabled = true
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("Thu Feb  3 05_03_02 2022.mp4", res.FileName);
     }
 
@@ -156,8 +153,7 @@ public class LuaTests
             RenameEnabled = true
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("episodeTitle1 5 Episode.mp4", res.FileName);
     }
 
@@ -182,8 +178,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
             RenameEnabled = true
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreSame(args.AvailableFolders[1], res.DestinationImportFolder);
     }
 
@@ -228,8 +223,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var args = MinimalArgs(lua);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual(expected + ".mp4", res.FileName);
     }
 
@@ -272,8 +266,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
             RenameEnabled = true
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("003 005-007 C005 S002 O001-002 O009 O012.mp4", res.FileName);
     }
 
@@ -331,8 +324,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
             }
         });
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("animeTitle4episdoeTitle2episodeTitle3.mp4", res.FileName);
     }
 
@@ -342,8 +334,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
         var args = MinimalArgs("log(\"test\")");
         var logmock = new Mock<ILogger<LuaRenamer.LuaRenamer>>();
         var renamer = new LuaRenamer.LuaRenamer(logmock.Object);
-        renamer.SetupArgs(args);
-        renamer.GetInfo();
+        renamer.GetNewPath(args);
 
         logmock.Verify(l => l.Log(It.Is<LogLevel>(ll => ll == LogLevel.Information),
                 It.IsAny<EventId>(),
@@ -360,8 +351,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
             $@"function string:clean_spaces(char) return (self:match('^%s*(.-)%s*$'):gsub('%s+', char or ' ')) end
                 {LuaEnv.filename} = (('blah  sdhow  wh '):clean_spaces())");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("blah sdhow wh.mp4", res.FileName);
     }
 
@@ -387,9 +377,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
 
         var defsEnv = new Lua();
         defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
-        var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(MinimalArgs("filename = ''"));
-        var sandboxEnv = new LuaContext(Logmock, renamer).RunSandboxed();
+        var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
         CompareEnums((LuaTable)defsEnv[LuaEnv.Language], (LuaTable)sandboxEnv[LuaEnv.Language]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.AnimeType], (LuaTable)sandboxEnv[LuaEnv.AnimeType]);
         CompareEnums((LuaTable)defsEnv[LuaEnv.TitleType], (LuaTable)sandboxEnv[LuaEnv.TitleType]);
@@ -418,8 +406,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
             r.Related == animeMock.Object
         ));
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        renamer.SetupArgs(args);
-        var res = renamer.GetInfo();
+        var res = renamer.GetNewPath(args);
         Assert.AreEqual("blah2AlternativeSetting0.mp4", res.FileName);
     }
 
@@ -428,11 +415,10 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var args = MinimalArgs("filename = 'blah'");
-        renamer.SetupArgs(args);
         var result = renamer.GetNewPath(args);
         Assert.AreEqual("blah.mp4", result.FileName);
         Assert.IsNotNull(result.DestinationImportFolder);
-        Assert.AreEqual("blah", result.Path);
+        Assert.AreEqual("shokoseriesprefname", result.Path);
     }
 
     [TestMethod]
@@ -440,7 +426,6 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var args = MinimalArgs("filename = 'blah'\nsubfolder = {'blah'}\nskip_rename = true\nskip_move = true");
-        renamer.SetupArgs(args);
         var result = renamer.GetNewPath(args);
         Assert.AreEqual(null, result.FileName);
         Assert.AreEqual(null, result.Path);
@@ -452,8 +437,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
         var args = MinimalArgs("linqSetLogLevel(3); from({'test1', 'test2'})");
         var logmock = new Mock<ILogger<LuaRenamer.LuaRenamer>>();
         var renamer = new LuaRenamer.LuaRenamer(logmock.Object);
-        renamer.SetupArgs(args);
-        renamer.GetInfo();
+        renamer.GetNewPath(args);
 
         logmock.Verify(l => l.Log(It.Is<LogLevel>(ll => ll == LogLevel.Debug),
                 It.IsAny<EventId>(),
@@ -468,7 +452,6 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var args = MinimalArgs("filename = 'blah'\r\nfilename = 'argle'\nfilename = 'blargle'\rfilename = 'test'");
-        renamer.SetupArgs(args);
         var result = renamer.GetNewPath(args);
 
         Assert.AreEqual("test.mp4", result.FileName);

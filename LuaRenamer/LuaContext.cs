@@ -8,13 +8,14 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Plugin.Abstractions.Events;
 
 namespace LuaRenamer;
 
 public class LuaContext : Lua
 {
     private readonly ILogger _logger;
-    private readonly LuaRenamer _renamer;
+    private readonly RelocationEventArgs<LuaRenamerSettings> _args;
     private readonly LuaFunctions _functions;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
 
@@ -110,8 +111,8 @@ end
     {
         var titles = (string)anime_or_episode[LuaEnv.anime._classid] switch
         {
-            LuaEnv.anime._classidVal => _renamer.AnimeInfo.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.ID).Titles,
-            LuaEnv.episode._classidVal => _renamer.EpisodeInfo.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.ID).Titles,
+            LuaEnv.anime._classidVal => _args.Series.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.AnidbAnimeID).AnidbAnime.Titles,
+            LuaEnv.episode._classidVal => _args.Episodes.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.AnidbEpisodeID).AnidbEpisode.Titles,
             _ => throw new LuaRenamerException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
         };
         var lang = Enum.Parse<TitleLanguage>(language);
@@ -125,7 +126,8 @@ end
     private static readonly MethodInfo GetNameMethod =
         typeof(LuaContext).GetMethod(nameof(GetName), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private string EpNums(int pad) => _renamer.EpisodeInfo.Where(e => e.SeriesID == _renamer.AnimeInfo.First().ID) // All episodes with same anime id
+    private string EpNums(int pad) => _args.Episodes.Select(se => se.AnidbEpisode)
+        .Where(e => e.SeriesID == _args.Series.First().AnidbAnimeID) // All episodes with same anime id
         .OrderBy(e => e.EpisodeNumber)
         .GroupBy(e => e.Type)
         .OrderBy(g => g.Key)
@@ -148,10 +150,10 @@ end
 
     #endregion
 
-    public LuaContext(ILogger logger, LuaRenamer renamer)
+    public LuaContext(ILogger logger, RelocationEventArgs<LuaRenamerSettings> args)
     {
         _logger = logger;
-        _renamer = renamer;
+        _args = args;
         State.Encoding = Encoding.UTF8;
         DoFile(Path.Combine(LuaPath, "utils.lua"));
         DoFile(Path.Combine(LuaPath, "lualinq.lua"));
@@ -171,7 +173,7 @@ end
         var env = CreateLuaEnv();
         var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}{LuaLinqEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = _functions.RunSandbox.Call(_renamer.Script, luaEnv);
+        var retVal = _functions.RunSandbox.Call(_args.Settings.Script, luaEnv);
         if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);
@@ -182,10 +184,10 @@ end
     {
         Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
-        var animes = _renamer.AnimeInfo.Select(a => AnimeToDict(a, animeCache)).ToList();
+        var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache)).ToList();
         var anidb = AniDbFileToDict();
         var mediainfo = MediaInfoToDict();
-        var importfolders = _renamer.AvailableFolders.Select(ImportFolderToDict).ToList();
+        var importfolders = _args.AvailableFolders.Select(ImportFolderToDict).ToList();
         var file = FileToDict(anidb, mediainfo);
         var episodes = EpisodesToDict();
         var groups = GroupsToDict(animeCache);
@@ -231,7 +233,7 @@ end
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private List<Dictionary<string, object?>> GroupsToDict(Dictionary<int, Dictionary<string, object?>> animeCache)
     {
-        var groups = _renamer.GroupInfo.Select(g =>
+        var groups = _args.Groups.Select(g =>
         {
             var groupdict = new Dictionary<string, object?>();
             groupdict.Add(LuaEnv.group.name, g.PreferredTitle);
@@ -253,7 +255,7 @@ end
         animedict.Add(LuaEnv.anime.rating, anime.Rating);
         animedict.Add(LuaEnv.anime.restricted, anime.Restricted);
         animedict.Add(LuaEnv.anime.type, anime.Type.ToString());
-        animedict.Add(LuaEnv.anime.preferredname, _renamer.ShokoSeries.FirstOrDefault(ss => ss.AnidbAnime == anime)?.PreferredTitle ?? anime.PreferredTitle);
+        animedict.Add(LuaEnv.anime.preferredname, _args.Series.FirstOrDefault(series => series.AnidbAnime == anime)?.PreferredTitle ?? anime.PreferredTitle);
         animedict.Add(LuaEnv.anime.id, anime.ID);
         animedict.Add(LuaEnv.anime.titles, ConvertTitles(anime.Titles));
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);
@@ -283,7 +285,7 @@ end
     private Dictionary<string, object?>? AniDbFileToDict()
     {
         Dictionary<string, object?>? anidb = null;
-        if (_renamer.VideoInfo.AniDB is { } aniDbInfo)
+        if (_args.File.Video!.AniDB is { } aniDbInfo)
         {
             anidb = new Dictionary<string, object?>();
             anidb.Add(LuaEnv.file.anidb.censored, aniDbInfo.Censored);
@@ -313,7 +315,7 @@ end
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private List<Dictionary<string, object?>> EpisodesToDict()
     {
-        var episodes = _renamer.EpisodeInfo.Select(e =>
+        var episodes = _args.Episodes.Select(se => se.AnidbEpisode).Select(e =>
         {
             var epdict = new Dictionary<string, object?>();
             epdict.Add(LuaEnv.episode.duration, e.Runtime.TotalSeconds);
@@ -349,20 +351,20 @@ end
     private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo)
     {
         var file = new Dictionary<string, object?>();
-        file.Add(LuaEnv.file.name, Path.GetFileNameWithoutExtension(_renamer.FileInfo.FileName));
-        file.Add(LuaEnv.file.extension, Path.GetExtension(_renamer.FileInfo.FileName));
-        file.Add(LuaEnv.file.path, _renamer.FileInfo.Path);
-        file.Add(LuaEnv.file.size, _renamer.FileInfo.Size);
-        file.Add(LuaEnv.file.earliestname, Path.GetFileNameWithoutExtension(_renamer.VideoInfo.EarliestKnownName));
+        file.Add(LuaEnv.file.name, Path.GetFileNameWithoutExtension(_args.File.FileName));
+        file.Add(LuaEnv.file.extension, Path.GetExtension(_args.File.FileName));
+        file.Add(LuaEnv.file.path, _args.File.Path);
+        file.Add(LuaEnv.file.size, _args.File.Size);
+        file.Add(LuaEnv.file.earliestname, Path.GetFileNameWithoutExtension(_args.File.Video!.EarliestKnownName));
         var hashdict = new Dictionary<string, object?>();
-        hashdict.Add(LuaEnv.file.hashes.crc, _renamer.VideoInfo.Hashes.CRC);
-        hashdict.Add(LuaEnv.file.hashes.md5, _renamer.VideoInfo.Hashes.MD5);
-        hashdict.Add(LuaEnv.file.hashes.ed2k, _renamer.VideoInfo.Hashes.ED2K);
-        hashdict.Add(LuaEnv.file.hashes.sha1, _renamer.VideoInfo.Hashes.SHA1);
+        hashdict.Add(LuaEnv.file.hashes.crc, _args.File.Video.Hashes.CRC);
+        hashdict.Add(LuaEnv.file.hashes.md5, _args.File.Video.Hashes.MD5);
+        hashdict.Add(LuaEnv.file.hashes.ed2k, _args.File.Video.Hashes.ED2K);
+        hashdict.Add(LuaEnv.file.hashes.sha1, _args.File.Video.Hashes.SHA1);
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
-        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_renamer.FileInfo.ImportFolder!));
+        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_args.File.ImportFolder!));
         return file;
     }
 
@@ -382,7 +384,7 @@ end
     private Dictionary<string, object?>? MediaInfoToDict()
     {
         Dictionary<string, object?>? mediainfo = null;
-        if (_renamer.VideoInfo.MediaInfo is { } mediaInfo)
+        if (_args.File.Video!.MediaInfo is { } mediaInfo)
         {
             mediainfo = new Dictionary<string, object?>();
             mediainfo.Add(LuaEnv.file.media.chaptered, mediaInfo.Chaptered);
