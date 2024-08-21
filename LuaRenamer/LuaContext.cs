@@ -387,39 +387,34 @@ end
         if (_args.File.Video!.MediaInfo is { } mediaInfo)
         {
             mediainfo = new Dictionary<string, object?>();
-            mediainfo.Add(LuaEnv.file.media.chaptered, mediaInfo.Chaptered);
+            mediainfo.Add(LuaEnv.file.media.chaptered, mediaInfo.Chapters.Any());
             Dictionary<string, object>? videodict = null;
-            if (mediaInfo.Video is not null)
+            if (mediaInfo.VideoStream is { } video)
             {
                 videodict = new Dictionary<string, object>();
-                videodict.Add(LuaEnv.file.media.video.height, mediaInfo.Video.Height);
-                videodict.Add(LuaEnv.file.media.video.width, mediaInfo.Video.Width);
-                videodict.Add(LuaEnv.file.media.video.codec, mediaInfo.Video.SimplifiedCodec);
-                videodict.Add(LuaEnv.file.media.video.res, mediaInfo.Video.StandardizedResolution);
-                videodict.Add(LuaEnv.file.media.video.bitrate, mediaInfo.Video.BitRate);
-                videodict.Add(LuaEnv.file.media.video.bitdepth, mediaInfo.Video.BitDepth);
-                videodict.Add(LuaEnv.file.media.video.framerate, mediaInfo.Video.FrameRate);
+                videodict.Add(LuaEnv.file.media.video.height, video.Height);
+                videodict.Add(LuaEnv.file.media.video.width, video.Width);
+                videodict.Add(LuaEnv.file.media.video.codec, video.Codec.Simplified);
+                videodict.Add(LuaEnv.file.media.video.res, video.Resolution);
+                videodict.Add(LuaEnv.file.media.video.bitrate, video.BitRate);
+                videodict.Add(LuaEnv.file.media.video.bitdepth, video.BitDepth);
+                videodict.Add(LuaEnv.file.media.video.framerate, video.FrameRate);
             }
 
             mediainfo.Add(LuaEnv.file.media.video.N, videodict);
-            mediainfo.Add(LuaEnv.file.media.duration, mediaInfo.General.Duration);
-            mediainfo.Add(LuaEnv.file.media.bitrate, mediaInfo.General.OverallBitRate);
-            mediainfo.Add(LuaEnv.file.media.sublanguages, mediaInfo.Subs.Select(s =>
-                (Utils.ParseEnum<TitleLanguage>(s.LanguageName, false) is var l && l is TitleLanguage.Unknown
-                    ? Utils.ParseEnum<TitleLanguage>(s.Title, false)
-                    : l).ToString()).ToList());
-            mediainfo.Add(LuaEnv.file.media.audio.N, mediaInfo.Audio.Select(a =>
+            mediainfo.Add(LuaEnv.file.media.duration, mediaInfo.Duration);
+            mediainfo.Add(LuaEnv.file.media.bitrate, mediaInfo.BitRate);
+            mediainfo.Add(LuaEnv.file.media.sublanguages, mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
+            mediainfo.Add(LuaEnv.file.media.audio.N, mediaInfo.AudioStreams.Select(a =>
             {
                 var audiodict = new Dictionary<string, object>();
-                audiodict.Add(LuaEnv.file.media.audio.compressionmode, a.Compression_Mode);
+                audiodict.Add(LuaEnv.file.media.audio.compressionmode, a.CompressionMode);
                 audiodict.Add(LuaEnv.file.media.audio.channels,
                     ((string?)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels);
                 audiodict.Add(LuaEnv.file.media.audio.samplingrate, a.SamplingRate);
                 audiodict.Add(LuaEnv.file.media.audio.codec, ((dynamic)a).Format);
-                audiodict.Add(LuaEnv.file.media.audio.language, (Utils.ParseEnum<TitleLanguage>(a.LanguageName, false) is var l && l is TitleLanguage.Unknown
-                    ? Utils.ParseEnum<TitleLanguage>(a.Title, false)
-                    : l).ToString());
-                audiodict.Add(LuaEnv.file.media.audio.title, a.Title);
+                audiodict.Add(LuaEnv.file.media.audio.language, a.Language.ToString());
+                audiodict.Add(LuaEnv.file.media.audio.title, a.Title ?? string.Empty);
                 return audiodict;
             }).ToList());
         }
