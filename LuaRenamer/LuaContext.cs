@@ -292,10 +292,11 @@ end
             anidb.Add(LuaEnv.file.anidb.source, aniDbInfo.Source);
             anidb.Add(LuaEnv.file.anidb.version, aniDbInfo.Version);
             anidb.Add(LuaEnv.file.anidb.releasedate, aniDbInfo.ReleaseDate?.ToTable());
-            Dictionary<string, object>? groupdict = null;
-            if (aniDbInfo.ReleaseGroup is not null && aniDbInfo.ReleaseGroup.Name != "raw/unknown")
+            Dictionary<string, object?>? groupdict = null;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (aniDbInfo.ReleaseGroup is not null && aniDbInfo.ReleaseGroup.ID != 0 && aniDbInfo.ReleaseGroup.Name != "raw/unknown")
             {
-                groupdict = new Dictionary<string, object>();
+                groupdict = new Dictionary<string, object?>();
                 groupdict.Add(LuaEnv.file.anidb.releasegroup.name, aniDbInfo.ReleaseGroup.Name);
                 groupdict.Add(LuaEnv.file.anidb.releasegroup.shortname, aniDbInfo.ReleaseGroup.ShortName);
             }
@@ -407,14 +408,14 @@ end
             mediainfo.Add(LuaEnv.file.media.sublanguages, mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
             mediainfo.Add(LuaEnv.file.media.audio.N, mediaInfo.AudioStreams.Select(a =>
             {
-                var audiodict = new Dictionary<string, object>();
+                var audiodict = new Dictionary<string, object?>();
                 audiodict.Add(LuaEnv.file.media.audio.compressionmode, a.CompressionMode);
                 audiodict.Add(LuaEnv.file.media.audio.channels,
                     ((string?)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels);
                 audiodict.Add(LuaEnv.file.media.audio.samplingrate, a.SamplingRate);
                 audiodict.Add(LuaEnv.file.media.audio.codec, ((dynamic)a).Format);
                 audiodict.Add(LuaEnv.file.media.audio.language, a.Language.ToString());
-                audiodict.Add(LuaEnv.file.media.audio.title, a.Title ?? string.Empty);
+                audiodict.Add(LuaEnv.file.media.audio.title, a.Title);
                 return audiodict;
             }).ToList());
         }
