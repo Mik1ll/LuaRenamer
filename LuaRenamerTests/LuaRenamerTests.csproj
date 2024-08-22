@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
         <IsPackable>false</IsPackable>
         <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

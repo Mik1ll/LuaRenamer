@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
-        <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
-        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+        <!--<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>-->
+        <Deterministic>true</Deterministic>
+        <DeterministicSourcePaths>true</DeterministicSourcePaths>
     </PropertyGroup>
 
     <ItemGroup>
