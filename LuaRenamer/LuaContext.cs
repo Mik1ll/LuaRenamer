@@ -413,7 +413,7 @@ end
                 audiodict.Add(LuaEnv.file.media.audio.channels,
                     ((string?)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels);
                 audiodict.Add(LuaEnv.file.media.audio.samplingrate, a.SamplingRate);
-                audiodict.Add(LuaEnv.file.media.audio.codec, ((dynamic)a).Format);
+                audiodict.Add(LuaEnv.file.media.audio.codec, a.Format);
                 audiodict.Add(LuaEnv.file.media.audio.language, a.Language.ToString());
                 audiodict.Add(LuaEnv.file.media.audio.title, a.Title);
                 return audiodict;

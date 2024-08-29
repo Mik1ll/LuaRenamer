@@ -190,6 +190,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         }
         catch (Exception e)
         {
+            _logger.LogWarning("{Exception}", e.ToString());
             var st = new StackTrace(e, true);
             var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
             return new RelocationResult
