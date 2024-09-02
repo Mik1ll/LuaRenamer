@@ -1,49 +1,47 @@
 #!/usr/bin/env bash
+
+usage() {
+  >&2 cat << EOF
+Usage: ${BASH_SOURCE[0]// /\\ } [-h | --help] [--host <host>] [--port <port>]
+EOF
+}
+
+options=$(getopt -o "h" -l "help,host:,port:" -- "$@")
+[[ $? -eq 0 ]] || {
+  usage
+  exit 1
+}
+eval set -- "$options"
+
+host='localhost'
+port='8111'
+while true; do
+  case "$1" in
+    --host)
+      host="$2"
+      shift 2
+      ;;
+    --port)
+      port="$2"
+      shift 2
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break 
+      ;;
+  esac
+done
+
 if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq to use this script"
 fi
-min_pos_arg=0
-pos_arg=0
-host='localhost'
-port='8111'
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --host*)
-      if [[ "$1" != *=* ]]; then shift; fi # Value is next arg if no `=`
-      host="${1#*=}"
-      ;;
-    --port*)
-      if [[ "$1" != *=* ]]; then shift; fi
-      port="${1#*=}"
-      ;;
-    --help|-h)
-      echo "Usage: ${BASH_SOURCE[0]// /\\ } [--help|-h] [--host <host>] [--port <port>]"
-      exit 0
-      ;;
-    -*)
-      >&2 printf "Error: Invalid named argument/flag\n"
-      exit 1
-      ;;
-    *)
-      ((pos_arg=pos_arg+1))
-      case "$pos_arg" in
-        *)
-          >&2 printf "Error: Cannot take any more positional arguments\n"
-          exit 1
-          ;;
-      esac
-      ;;
-  esac
-  shift
-done
-
-if [[ $pos_arg -lt $min_pos_arg ]]; then
-  echo "Error: must provide at least $min_pos_arg positional argument(s)"
-  exit 1
-fi
 
 if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
-  echo "Unabled to connect or server not running/started at target host+port"
+  echo "Unabled to connect or server not running/started at target http://$host:$port"
   exit 1
 fi
 
