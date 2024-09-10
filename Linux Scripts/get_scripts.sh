@@ -2,11 +2,11 @@
 
 usage() {
   >&2 cat << EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [-h | --help] [--host <host>] [--port <port>]
+Usage: ${BASH_SOURCE[0]// /\\ } [-h | --help] [-s <host> | --host <host>] [-p <port> | --port <port>] [--user <username>] [--pass <password>]
 EOF
 }
 
-options=$(getopt -o "h" -l "help,host:,port:" -- "$@")
+options=$(getopt -o "hs:p:" -l "help,host:,port:,user:,pass:" -- "$@")
 [[ $? -eq 0 ]] || {
   usage
   exit 1
@@ -15,14 +15,23 @@ eval set -- "$options"
 
 host='localhost'
 port='8111'
+user='Default'
 while true; do
   case "$1" in
-    --host)
+    -s | --host)
       host="$2"
       shift 2
       ;;
-    --port)
+    -p | --port)
       port="$2"
+      shift 2
+      ;;
+    --user)
+      user="$2"
+      shift 2
+      ;;
+    --pass)
+      pass="$2"
       shift 2
       ;;
     -h | --help)
@@ -45,4 +54,12 @@ if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:
   exit 1
 fi
 
-curl -s "http://$host:$port/v1/RenameScript" | jq
+loginjson=$(jq --null-input --arg user "$user" --arg pass "$pass" '. + {user:$user, pass:$pass, device:"rename_bash_script"}')
+apikey=$(curl -s -H "Content-Type: application/json" -d "$loginjson" "http://$host:$port/api/Auth" | jq -r '.apikey')
+
+if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
+  echo "Login did not return an api key, check --user and --pass"
+  exit 1
+fi
+
+curl -s -H "apikey: $apikey" "http://$host:$port/api/v3/Renamer/Config" | jq
