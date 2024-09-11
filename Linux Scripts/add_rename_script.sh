@@ -7,19 +7,19 @@ Usage: ${BASH_SOURCE[0]// /\\ } [options] <script path>
 -h, --help                Show help.
 --host <host>             Shoko server host. [default: localhost]
 --port <port>             Shoko server port. [default: 8111]
--i, --import-run          Run this script on import, disables other scripts if 
-                          they are set to run on import.
+-d, --default             Make this config the default, it will be used if 
+                          move/rename on import is enabled.
 -t <renamer type>, --type <renamer type>
                           The renamer id to set for the script.
                           [default: LuaRenamer]
 --user <username>         Shoko username [default: Default]
 --pass <password>         Shoko password
 <script path>             The path to the .lua script to add. Will use filename 
-                          sans extension as the script name.
+                          sans extension as the config name.
 EOF
 }
 
-options=$(getopt -o "hit:" -l "help,host:,port:,import-run:,type:,user:,pass:" -- "$@")
+options=$(getopt -o "hdt:" -l "help,host:,port:,default,type:,user:,pass:" -- "$@")
 [[ $? -eq 0 ]] || {
   usage
   exit 1
@@ -28,7 +28,7 @@ eval set -- "$options"
 
 host='localhost'
 port='8111'
-import_run=0
+default=0
 type='LuaRenamer'
 user='Default'
 while true; do
@@ -53,8 +53,8 @@ while true; do
       usage
       exit 0
       ;;
-    -i | --import-run)
-      import_run=1
+    -d | --default)
+      default=1
       shift
       ;;
     -t | --type)
@@ -153,11 +153,22 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 if [[ ! -z $(echo "$update_response" | head -n 1 - | grep '200') ]]; then
-  printf "${GREEN}%s${NC}\n" "Success!"
   update_json=$(printf %s "$update_response" | tr -d '\r' | awk -v RS='' 'NR==2' | jq)
   echo "$update_json" | jq -C
+  if [[ ! -z $default ]]; then
+    patch_json=$(jq --null-input --arg config_name "$script_name" '[{"op":"replace", "path":"/Plugins/Renamer/DefaultRenamer", "value": $config_name }]')
+    settings_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X PATCH -d "$patch_json" "http://$host:$port/api/v3/Settings")
+    if [[ ! -z $(echo "$settings_response" | head -n 1 - | grep '200') ]]; then
+      printf "${GREEN}%s${NC}\n" "Success! Updated the config and set as the default."
+    else
+      echo "$settings_response"
+      printf "${RED}%s${NC}\n" "Failed! Updated the config, but failed to set it as default."
+    fi
+  else
+    printf "${GREEN}%s${NC}\n" "Success! Updated the config."
+  fi
 else
-  printf "${RED}%s${NC}\n" "Failed! Response:"
   echo "$update_response"
+  printf "${RED}%s${NC}\n" "Failed! Could not update the config."
   exit 1
 fi
