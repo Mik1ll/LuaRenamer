@@ -5,13 +5,15 @@ usage() {
 Usage: ${BASH_SOURCE[0]// /\\ } [options] <script path>
 
 -h, --help                Show help.
---host=<host>             Shoko server host. [default: localhost]
---port=<port>             Shoko server port. [default: 8111]
+--host <host>             Shoko server host. [default: localhost]
+--port <port>             Shoko server port. [default: 8111]
 -i, --import-run          Run this script on import, disables other scripts if 
                           they are set to run on import.
--t <renamer type>, --type=<renamer type>
+-t <renamer type>, --type <renamer type>
                           The renamer id to set for the script.
                           [default: LuaRenamer]
+--user <username>         Shoko username [default: Default]
+--pass <password>         Shoko password
 <script path>             The path to the .lua script to add. Will use filename 
                           sans extension as the script name.
 EOF
@@ -28,6 +30,7 @@ host='localhost'
 port='8111'
 import_run=0
 type='LuaRenamer'
+user='Default'
 while true; do
   case "$1" in
     --host)
@@ -36,6 +39,14 @@ while true; do
       ;;
     --port)
       port="$2"
+      shift 2
+      ;;
+    --user)
+      user="$2"
+      shift 2
+      ;;
+    --pass)
+      pass="$2"
       shift 2
       ;;
     -h | --help)
@@ -84,10 +95,10 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq to use this script."
 fi
 
-if ! [[ -f "$script_filename" ]]; then
+if [[ ! -f "$script_filename" ]]; then
   echo "\"$script_filename\" does not exist."
   exit 1
-elif ! [[ $(basename "$script_filename") == *.lua ]]; then
+elif [[ $(basename "$script_filename") != *.lua ]]; then
   echo "Filename must end in .lua."
   exit 1
 fi
@@ -97,34 +108,56 @@ if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:
   exit 1
 fi
 
-if [[ $(curl -s -H 'Accept: application/json' "http://$host:$port/v1/RenameScript/Types" | jq "has(\"$type\")") != 'true' ]]; then
+loginjson=$(jq --null-input --arg user "$user" --arg pass "$pass" '. + {user:$user, pass:$pass, device:"rename_bash_script"}')
+apikey=$(curl -s -H "Content-Type: application/json" -d "$loginjson" "http://$host:$port/api/Auth" | jq -r '.apikey')
+
+if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
+  echo "Login did not return an api key, check --user and --pass"
+  exit 1
+fi
+
+renamer_response=$(curl -s -i -H "apikey: $apikey" -H 'Accept: application/json' "http://$host:$port/api/v3/Renamer/$type")
+if [[ -z $(echo "$renamer_response" | head -n 1 - | grep '200') ]]; then
   echo "Renamer type was not found on the server. Check the renamer ID, ensure the renamer is installed, then restart server after install."
   exit 1
 fi
 
-script_name=$(basename "$script_filename" .lua)
-scriptid=$(curl -s "http://$host:$port/v1/RenameScript" | jq -c ".[] | select(.ScriptName==\"$script_name\").RenameScriptID")
-if [[ -z "$scriptid" ]]; then
-  scriptid="0"
-  echo "Adding new script."
-else
-  echo "Found script with same name, replacing."
+renamer_json=$(printf %s "$renamer_response" | tr -d '\r' | awk -v RS='' 'NR==2')
+default_settings_json=$(printf %s "$renamer_json" | jq '.DefaultSettings')
+
+if [[ $(printf %s "$renamer_json" | jq '.Settings | any(.Name == "Script" and .SettingType == "Code")') != 'true' ]]; then
+  echo "Renamer does not have a setting called 'Script' with setting type 'Code', can't continue."
+  exit 1
 fi
 
-script_content=$(jq -Rsa . "$script_filename")
 
-read -r -d '' script_json << EOM
-{
-  "ScriptName": "$script_name",
-  "Script": $script_content,
-  "IsEnabledOnImport": $import_run,
-  "RenameScriptID": $scriptid,
-  "RenamerType": "$type",
-  "ExtraData": null
-}
-EOM
+script_name=$(basename "$script_filename" .lua)
+script_name_url_encoded=$(printf %s "$script_name" | jq -Rr @uri)
 
-# Upload script to Shoko
-curl -s -o /dev/null -d "$script_json" -H 'Content-Type: application/json' "http://$host:$port/v1/RenameScript"
+script_content=$(<"$script_filename")
 
-# TODO: Change value of IsEnabledOnImport for all other scripts if it is set
+script_response=$(curl -s -i -H "apikey: $apikey" -H 'Accept: application/json' "http://$host:$port/api/v3/Renamer/Config/$script_name_url_encoded")
+if [[ ! -z $(echo "$script_response" | head -n 1 - | grep '200') ]]; then
+  echo "Found config with same name, replacing."
+  script_json=$(printf %s "$script_response" | tr -d '\r' | awk -v RS='' 'NR==2')
+  new_script_json=$(printf %s "$script_json" | jq --arg input "$script_content" '(.Settings[] | select(.Name == "Script") | .Value) |= $input')
+  update_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X PUT -d "$new_script_json" "http://$host:$port/api/v3/Renamer/Config/$script_name_url_encoded")
+elif [[ ! -z $(echo "$script_response" | head -n 1 - | grep '404') ]]; then
+  echo "Adding new config."
+  new_script_json=$(printf %s "$default_settings_json" | jq --arg renamerId "$type" --arg name "$script_name" --arg input "$script_content" '{ RenamerID: $renamerId, Name: $name, Settings: (.[] |= if .Name == "Script" then .Value = $input else . end) }')
+  update_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X POST -d "$new_script_json" "http://$host:$port/api/v3/Renamer/Config")
+fi
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+if [[ ! -z $(echo "$update_response" | head -n 1 - | grep '200') ]]; then
+  printf "${GREEN}%s${NC}\n" "Success!"
+  update_json=$(printf %s "$update_response" | tr -d '\r' | awk -v RS='' 'NR==2' | jq)
+  echo "$update_json" | jq -C
+else
+  printf "${RED}%s${NC}\n" "Failed! Response:"
+  echo "$update_response"
+  exit 1
+fi
