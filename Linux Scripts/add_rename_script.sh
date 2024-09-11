@@ -19,7 +19,7 @@ Usage: ${BASH_SOURCE[0]// /\\ } [options] <script path>
 EOF
 }
 
-options=$(getopt -o "hit:" -l "help,host:,port:,import-run:,type:" -- "$@")
+options=$(getopt -o "hit:" -l "help,host:,port:,import-run:,type:user:pass:" -- "$@")
 [[ $? -eq 0 ]] || {
   usage
   exit 1
