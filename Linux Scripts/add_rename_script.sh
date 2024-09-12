@@ -1,34 +1,30 @@
 #!/usr/bin/env bash
 
 usage() {
-  >&2 cat << EOF
+  cat >&2 <<EOF
 Usage: ${BASH_SOURCE[0]// /\\ } [options] <script path>
 
--h, --help                Show help.
---host <host>             Shoko server host. [default: localhost]
---port <port>             Shoko server port. [default: 8111]
--d, --default             Make this config the default, it will be used if 
-                          move/rename on import is enabled.
--t <renamer type>, --type <renamer type>
-                          The renamer id to set for the script.
-                          [default: LuaRenamer]
---user <username>         Shoko username [default: Default]
---pass <password>         Shoko password
-<script path>             The path to the .lua script to add. Will use filename 
-                          sans extension as the config name.
+  -h, --help                Show help.
+  --host <host>             Shoko server host. [default: localhost]
+  --port <port>             Shoko server port. [default: 8111]
+  -d, --default             Make this config the default, it will be used if 
+                            move/rename on import is enabled.
+  -t <renamer type>, --type <renamer type>
+                            The renamer id to set for the script.
+                            [default: LuaRenamer]
+  --user <username>         Shoko username [default: Default]
+  --pass <password>         Shoko password
+  <script path>             The path to the .lua script to add. Will use 
+                            filename sans extension as the config name.
 EOF
 }
 
-options=$(getopt -o "hdt:" -l "help,host:,port:,default,type:,user:,pass:" -- "$@")
-[[ $? -eq 0 ]] || {
-  usage
-  exit 1
-}
+options=$(getopt -o "hdt:" -l "help,host:,port:,default,type:,user:,pass:" -- "$@") || { usage; exit 1; }
 eval set -- "$options"
 
 host='localhost'
 port='8111'
-default=0
+default=false
 type='LuaRenamer'
 user='Default'
 while true; do
@@ -54,7 +50,7 @@ while true; do
       exit 0
       ;;
     -d | --default)
-      default=1
+      default=true
       shift
       ;;
     -t | --type)
@@ -103,7 +99,7 @@ elif [[ $(basename "$script_filename") != *.lua ]]; then
   exit 1
 fi
 
-if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
+if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
   echo "Unabled to connect or server not running/started at http://$host:$port."
   exit 1
 fi
@@ -117,7 +113,7 @@ if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
 fi
 
 renamer_response=$(curl -s -i -H "apikey: $apikey" -H 'Accept: application/json' "http://$host:$port/api/v3/Renamer/$type")
-if [[ -z $(echo "$renamer_response" | head -n 1 - | grep '200') ]]; then
+if ! printf %s "$renamer_response" | head -n 1 - | grep -q '200'; then
   echo "Renamer type was not found on the server. Check the renamer ID, ensure the renamer is installed, then restart server after install."
   exit 1
 fi
@@ -125,7 +121,7 @@ fi
 renamer_json=$(printf %s "$renamer_response" | tr -d '\r' | awk -v RS='' 'NR==2')
 default_settings_json=$(printf %s "$renamer_json" | jq '.DefaultSettings')
 
-if [[ $(printf %s "$renamer_json" | jq '.Settings | any(.Name == "Script" and .SettingType == "Code")') != 'true' ]]; then
+if ! printf %s "$renamer_json" | jq -e '.Settings | any(.Name == "Script" and .SettingType == "Code")' >/dev/null; then
   echo "Renamer does not have a setting called 'Script' with setting type 'Code', can't continue."
   exit 1
 fi
@@ -137,38 +133,42 @@ script_name_url_encoded=$(printf %s "$script_name" | jq -Rr @uri)
 script_content=$(<"$script_filename")
 
 script_response=$(curl -s -i -H "apikey: $apikey" -H 'Accept: application/json' "http://$host:$port/api/v3/Renamer/Config/$script_name_url_encoded")
-if [[ ! -z $(echo "$script_response" | head -n 1 - | grep '200') ]]; then
+if printf %s "$script_response" | head -n 1 - | grep -q '200'; then
   echo "Found config with same name, replacing."
   script_json=$(printf %s "$script_response" | tr -d '\r' | awk -v RS='' 'NR==2')
   new_script_json=$(printf %s "$script_json" | jq --arg input "$script_content" '(.Settings[] | select(.Name == "Script") | .Value) |= $input')
   update_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X PUT -d "$new_script_json" "http://$host:$port/api/v3/Renamer/Config/$script_name_url_encoded")
-elif [[ ! -z $(echo "$script_response" | head -n 1 - | grep '404') ]]; then
+elif printf %s "$script_response" | head -n 1 - | grep -q '404'; then
   echo "Adding new config."
   new_script_json=$(printf %s "$default_settings_json" | jq --arg renamerId "$type" --arg name "$script_name" --arg input "$script_content" '{ RenamerID: $renamerId, Name: $name, Settings: (.[] |= if .Name == "Script" then .Value = $input else . end) }')
   update_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X POST -d "$new_script_json" "http://$host:$port/api/v3/Renamer/Config")
+else
+  echo "$script_response"
+  printf "${RED}%s${NC}\n" "Failed! Bad status code for config response."
+  exit 1
 fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-if [[ ! -z $(echo "$update_response" | head -n 1 - | grep '200') ]]; then
+if printf %s "$update_response" | head -n 1 - | grep -q '200'; then
   update_json=$(printf %s "$update_response" | tr -d '\r' | awk -v RS='' 'NR==2' | jq)
   echo "$update_json" | jq -C
-  if [[ ! -z $default ]]; then
+  if $default; then
     patch_json=$(jq --null-input --arg config_name "$script_name" '[{"op":"replace", "path":"/Plugins/Renamer/DefaultRenamer", "value": $config_name }]')
     settings_response=$(curl -s -i -H "apikey: $apikey" -H 'Content-Type: application/json' -X PATCH -d "$patch_json" "http://$host:$port/api/v3/Settings")
-    if [[ ! -z $(echo "$settings_response" | head -n 1 - | grep '200') ]]; then
+    if printf %s "$settings_response" | head -n 1 - | grep -q '200'; then
       printf "${GREEN}%s${NC}\n" "Success! Updated the config and set as the default."
     else
       echo "$settings_response"
-      printf "${RED}%s${NC}\n" "Failed! Updated the config, but failed to set it as default."
+      printf "${RED}%s${NC}\n" "Failed! Updated the config, but got bad status code for default setting response."
     fi
   else
     printf "${GREEN}%s${NC}\n" "Success! Updated the config."
   fi
 else
   echo "$update_response"
-  printf "${RED}%s${NC}\n" "Failed! Could not update the config."
+  printf "${RED}%s${NC}\n" "Failed! Bad status code for update response."
   exit 1
 fi
