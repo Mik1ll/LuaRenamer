@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
 
 usage() {
-  >&2 cat << EOF
+  cat >&2 <<EOF
 Usage: ${BASH_SOURCE[0]// /\\ } [-h | --help] [-s <host> | --host <host>] [-p <port> | --port <port>] [--user <username>] [--pass <password>]
 EOF
 }
 
-options=$(getopt -o "hs:p:" -l "help,host:,port:,user:,pass:" -- "$@")
-[[ $? -eq 0 ]] || {
-  usage
-  exit 1
-}
+options=$(getopt -o "hs:p:" -l "help,host:,port:,user:,pass:" -- "$@") || { usage; exit 1; }
 eval set -- "$options"
 
 host='localhost'
@@ -49,8 +45,8 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "Please install jq to use this script"
 fi
 
-if [[ $(curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq '.State==2') != 'true' ]]; then
-  echo "Unabled to connect or server not running/started at target http://$host:$port"
+if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
+  echo "Unable to connect or server not running/started at target http://$host:$port"
   exit 1
 fi
 

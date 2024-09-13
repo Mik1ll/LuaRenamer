@@ -100,7 +100,7 @@ elif [[ $(basename "$script_filename") != *.lua ]]; then
 fi
 
 if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host:$port/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
-  echo "Unabled to connect or server not running/started at http://$host:$port."
+  echo "Unable to connect or server not running/started at http://$host:$port."
   exit 1
 fi
 
