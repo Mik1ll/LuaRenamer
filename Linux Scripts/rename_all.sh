@@ -2,20 +2,30 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [-h | --help] [--host <host>] [--move] <script name>
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] CONFIG_NAME
+Rename/move all files in Shoko using the CONFIG.
+
+  -h, --help                Show help.
+  -s, --host=HOST           Shoko server host. [default: localhost:8111]
+  -u, --user=USERNAME       Shoko username [default: Default]
+      --pass=PASSWORD       Shoko password.
+  -m, --move                Also move the files.
 EOF
 }
 
-options=$(getopt -o "h" -l "help,host:,port:,move" -- "$@") || { usage; exit 1; }
+options=$(getopt -o "hs:u:m" -l "help,host:,user:,pass:,move" -- "$@") || { usage; exit 1; }
 eval set -- "$options"
 
 host='localhost:8111'
 move='false'
+user='Default'
 while true; do
   case "$1" in
-    --host) host="$2"; shift 2 ;;
     -h | --help) usage; exit 0 ;;
-    --move) move='true'; shift ;;
+    -s | --host) host="$2"; shift 2 ;;
+    -u | --user) user="$2"; shift 2 ;;
+    --pass) pass="$2"; shift 2 ;;
+    -m | --move) move='true'; shift ;;
     --) shift; break ;;
   esac
 done
@@ -44,24 +54,35 @@ if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host/api
   exit 1
 fi
 
-if [[ -z $(curl -s "http://$host/v1/RenameScript" | jq ".[] | select(.ScriptName==\"$script_name\")") ]]; then
-  echo "Script \"$script_name\" does not exist on the server, try adding it first"
+loginjson=$(jq -n --arg user "$user" --arg pass "$pass" '{user:$user, pass:$pass, device:"rename_bash_script"}')
+apikey=$(curl -s -H "Content-Type: application/json" -d "$loginjson" "http://$host/api/Auth" | jq -r '.apikey')
+
+if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
+  echo "Login did not return an api key, check --user and --pass"
   exit 1
 fi
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 script_name_uri_encoded=$(printf %s "$script_name" | jq -Rr @uri)
-curl -s "http://$host/v1/File/Rename/RandomPreview/2147483647/1" | \
-jq '.[].VideoLocalID' | \
-while read -r vlocal_id
-do
-	result=$(curl -s "http://$host/v1/File/Rename/$vlocal_id/$script_name_uri_encoded/$move")
-	result_name=$(jq -r '.NewFileName' <<< "$result")
-	if [[ $(jq '.Success' <<< "$result") == 'true' ]]; then
-	  printf "${GREEN}%s${NC}\n" "$result_name"
-	else
-	  printf "${RED}%s${NC}\n" "$result_name"
-	fi
+
+page=1
+while fileIds="$(curl -s -H "apikey: $apikey" -H 'Accept: application/json' "http://$host/api/v3/File?sortOrder=FileID&page=$page&pageSize=1000&exclude=Unrecognized" | jq -e 'if .List == [] then null else .List | map(.ID) end')"; do
+  rename_response=$(curl -s -X POST -d "$fileIds" -H "apikey: $apikey" -H 'Content-Type: application/json' -H 'Accept: application/json' "http://$host/api/v3/Renamer/Config/$script_name_uri_encoded/Preview?rename=true&move=$move")
+  IFS=$'\n' jq -c '.[]' <<< "$rename_response" | \
+  while read -r result; do
+    if jq -e '.IsSuccess' <<< "$result" >/dev/null; then
+        result_name=$(jq -r '.AbsolutePath' <<< "$result")
+        if [[ $move == 'false' ]]; then
+          result_name="${result_name##*[/\\]}"
+        fi
+        printf "${GREEN}%s${NC}\n" "$result_name"
+      else
+        printf "${RED}%s${NC}\n" "$(jq -r '.ErrorMessage' <<<"$result"))"
+      fi
+  done
+  
+  ((page+=1))
 done

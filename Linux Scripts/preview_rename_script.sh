@@ -2,8 +2,8 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] SCRIPT
-Preview the rename/move results of a SCRIPT.
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] CONFIG_NAME
+Preview the rename/move results of the CONFIG.
 
   -h, --help                Show help.
   -s, --host=HOST           Shoko server host. [default: localhost:8111]
@@ -99,15 +99,15 @@ script_content=$(<"$script_path")
 preview_json=$(printf %s "$default_settings_json" | jq --arg renamerId "$type" --arg input "$script_content" --argjson ids "$random_ids_json" '{FileIDs: $ids, Config: { RenamerID: $renamerId, Name: "PreviewConfig", Settings: (.[] |= if .Name == "Script" then .Value = $input else . end) }}')
 
 preview_response=$(curl -s -X POST -d "$preview_json" -H "apikey: $apikey" -H 'Content-Type: application/json' -H 'Accept: application/json' "http://$host/api/v3/Renamer/Preview?rename=true&move=$move")
-echo "$preview_response" | jq -c '.[]' | \
+IFS=$'\n' jq -c '.[]' <<< "$preview_response" | \
 while read -r result; do
-  result_name=$(jq -r '.AbsolutePath' <<< "$result")
-  if [[ $move == 'false' ]]; then
-    result_name="${result_name##*[/\\]}"
-  fi
   if jq -e '.IsSuccess' <<< "$result" >/dev/null; then
+    result_name=$(jq -r '.AbsolutePath' <<< "$result")
+    if [[ $move == 'false' ]]; then
+      result_name="${result_name##*[/\\]}"
+    fi
     printf "${GREEN}%s${NC}\n" "$result_name"
   else
-    printf "${RED}%s${NC}\n" "$result_name"
+    printf "${RED}%s${NC}\n" "$(jq -r '.ErrorMessage' <<<"$result"))"
   fi
 done
