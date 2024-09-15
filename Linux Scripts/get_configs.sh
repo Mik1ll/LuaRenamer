@@ -12,7 +12,7 @@ Get every config stored in Shoko.
 EOF
 }
 
-options=$(getopt -o 'hs:' -l 'help,host:,user:,pass:' -- "$@") || { usage; exit 1; }
+options=$(getopt -o 'hs:u:' -l 'help,host:,user:,pass:' -- "$@") || { usage; exit 1; }
 eval set -- "$options"
 
 host='localhost:8111'
@@ -28,11 +28,11 @@ while true; do
 done
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo 'Please install jq to use this script'
+  printf '%s\n' 'Please install jq to use this script'
 fi
 
 if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
-  echo "Unable to connect or server not running/started at target http://$host"
+  printf '%s\n' "Unable to connect or server not running/started at target http://$host"
   exit 1
 fi
 
@@ -40,7 +40,7 @@ loginjson=$(jq -n --arg user "$user" --arg pass "$pass" '{user:$user, pass:$pass
 apikey=$(curl -s -H 'Content-Type: application/json' -d "$loginjson" "http://$host/api/Auth" | jq -r '.apikey')
 
 if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
-  echo 'Login did not return an api key, check --user and --pass'
+  printf '%s\n' 'Login did not return an api key, check --user and --pass'
   exit 1
 fi
 

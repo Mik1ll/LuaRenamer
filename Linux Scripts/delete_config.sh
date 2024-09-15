@@ -12,7 +12,7 @@ Get every config stored in Shoko.
 EOF
 }
 
-options=$(getopt -o 'hs:' -l 'help,host:,user:,pass:' -- "$@") || { usage; exit 1; }
+options=$(getopt -o 'hs:u:' -l 'help,host:,user:,pass:' -- "$@") || { usage; exit 1; }
 eval set -- "$options"
 
 host='localhost:8111'
@@ -33,21 +33,21 @@ while [[ $# -gt 0 ]]; do
   ((pos_arg=pos_arg+1))
   case "$pos_arg" in
     1) script_name="$1"; shift ;;
-    *) echo 'Error: Cannot take any more positional arguments' >&2; exit 1 ;;
+    *) printf '%s\n' 'Error: Cannot take any more positional arguments' >&2; exit 1 ;;
   esac
 done
 
 if [[ $pos_arg -lt $min_pos_arg ]]; then
-  echo "Error: must provide at least $min_pos_arg positional argument(s)"
+  printf '%s\n' "Error: must provide at least $min_pos_arg positional argument(s)"
   exit 1
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo 'Please install jq to use this script'
+  printf '%s\n' 'Please install jq to use this script'
 fi
 
 if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
-  echo "Unable to connect or server not running/started at target http://$host"
+  printf '%s\n' "Unable to connect or server not running/started at target http://$host"
   exit 1
 fi
 
@@ -55,7 +55,7 @@ loginjson=$(jq -n --arg user "$user" --arg pass "$pass" '{user:$user, pass:$pass
 apikey=$(curl -s -H 'Content-Type: application/json' -d "$loginjson" "http://$host/api/Auth" | jq -r '.apikey')
 
 if ! [[ ${apikey//-/} =~ ^[[:xdigit:]]{32}$ ]]; then
-  echo 'Login did not return an api key, check --user and --pass'
+  printf '%s\n' 'Login did not return an api key, check --user and --pass'
   exit 1
 fi
 
@@ -63,13 +63,13 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-script_name_uri_encoded=$(printf %s "$script_name" | jq -Rr @uri)
+script_name_uri_encoded=$(printf '%s' "$script_name" | jq -Rr @uri)
 
 
 delete_response=$(curl -i -s -X DELETE -H "apikey: $apikey" "http://$host/api/v3/Renamer/Config/$script_name_uri_encoded")
-if head -n 1 - <<< "$delete_response" | grep -q '200'; then
+if printf '%s' "$delete_response" | head -n 1 - | grep -q '200'; then
   printf "${GREEN}%s${NC}\n" "Success! Deleted the config from the server."
 else
-  echo "$delete_response"
+  printf '%s\n' "$delete_response"
   printf "${RED}%s${NC}\n" "Failed! Config was not deleted."
 fi
