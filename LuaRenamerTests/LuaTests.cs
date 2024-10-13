@@ -367,12 +367,25 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         void CompareEnums(LuaTable enum1, LuaTable enum2)
         {
-            foreach (var (e1, e2) in new[] { (enum1, enum2), (enum2, enum1) })
-            foreach (KeyValuePair<object, object> kvp in e1)
+            var e1Set = new HashSet<string>();
+            var e2Set = new HashSet<string>();
+            foreach (KeyValuePair<object, object> kvp in enum1)
             {
                 Assert.AreEqual(kvp.Key, kvp.Value);
-                Assert.IsTrue(e2.Keys.Cast<string>().Contains(kvp.Key));
+                e1Set.Add((string)kvp.Key);
             }
+
+            foreach (KeyValuePair<object, object> kvp in enum2)
+            {
+                Assert.AreEqual(kvp.Key, kvp.Value);
+                e2Set.Add((string)kvp.Key);
+            }
+
+            var e2Missing = e1Set.Except(e2Set).ToList();
+            var e1Missing = e2Set.Except(e1Set).ToList();
+
+            Assert.IsFalse(e2Missing.Any());
+            Assert.IsFalse(e1Missing.Any());
         }
 
         var defsEnv = new Lua();

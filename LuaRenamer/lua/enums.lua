@@ -158,6 +158,12 @@ Language = {
     KoreanTranscription = "KoreanTranscription",
     ThaiTranscription = "ThaiTranscription",
     Urdu = "Urdu",
+    EnglishNewZealand = "EnglishNewZealand",
+    EnglishIndia = "EnglishIndia",
+    EnglishCanadian = "EnglishCanadian",
+    EnglishBritish = "EnglishBritish",
+    EnglishAmerican = "EnglishAmerican",
+    EnglishAustralian = "EnglishAustralian"
 }
 
 ---@enum RelationType

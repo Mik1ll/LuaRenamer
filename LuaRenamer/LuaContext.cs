@@ -285,7 +285,7 @@ end
     private Dictionary<string, object?>? AniDbFileToDict()
     {
         Dictionary<string, object?>? anidb = null;
-        if (_args.File.Video!.AniDB is { } aniDbInfo)
+        if (_args.File.Video.AniDB is { } aniDbInfo)
         {
             anidb = new Dictionary<string, object?>();
             anidb.Add(LuaEnv.file.anidb.censored, aniDbInfo.Censored);
@@ -356,7 +356,7 @@ end
         file.Add(LuaEnv.file.extension, Path.GetExtension(_args.File.FileName));
         file.Add(LuaEnv.file.path, _args.File.Path);
         file.Add(LuaEnv.file.size, _args.File.Size);
-        file.Add(LuaEnv.file.earliestname, Path.GetFileNameWithoutExtension(_args.File.Video!.EarliestKnownName));
+        file.Add(LuaEnv.file.earliestname, Path.GetFileNameWithoutExtension(_args.File.Video.EarliestKnownName));
         var hashdict = new Dictionary<string, object?>();
         hashdict.Add(LuaEnv.file.hashes.crc, _args.File.Video.Hashes.CRC);
         hashdict.Add(LuaEnv.file.hashes.md5, _args.File.Video.Hashes.MD5);
@@ -365,7 +365,7 @@ end
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
-        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_args.File.ImportFolder!));
+        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_args.File.ImportFolder));
         return file;
     }
 
@@ -385,7 +385,7 @@ end
     private Dictionary<string, object?>? MediaInfoToDict()
     {
         Dictionary<string, object?>? mediainfo = null;
-        if (_args.File.Video!.MediaInfo is { } mediaInfo)
+        if (_args.File.Video.MediaInfo is { } mediaInfo)
         {
             mediainfo = new Dictionary<string, object?>();
             mediainfo.Add(LuaEnv.file.media.chaptered, mediaInfo.Chapters.Any());
@@ -411,7 +411,7 @@ end
                 var audiodict = new Dictionary<string, object?>();
                 audiodict.Add(LuaEnv.file.media.audio.compressionmode, a.CompressionMode);
                 audiodict.Add(LuaEnv.file.media.audio.channels,
-                    ((string?)((dynamic)a).ChannelLayout)?.Contains("LFE") ?? false ? a.Channels - 1 + 0.1 : a.Channels);
+                    a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
                 audiodict.Add(LuaEnv.file.media.audio.samplingrate, a.SamplingRate);
                 audiodict.Add(LuaEnv.file.media.audio.codec, a.Format);
                 audiodict.Add(LuaEnv.file.media.audio.language, a.Language.ToString());

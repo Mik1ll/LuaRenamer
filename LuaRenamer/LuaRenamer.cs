@@ -49,10 +49,10 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         switch (subfolder)
         {
             case null:
-                newSubFolderSplit = new List<string> { args.Series.First().PreferredTitle };
+                newSubFolderSplit = [args.Series.First().PreferredTitle];
                 break;
             case string str:
-                newSubFolderSplit = new List<string> { str };
+                newSubFolderSplit = [str];
                 break;
             case LuaTable subfolderTable:
             {
@@ -126,19 +126,19 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationEventArgs<LuaRenamerSettings> args)
     {
         var availableLocations = args.Series.First().Videos
-            .Where(vl => !string.Equals(vl.Hashes.ED2K, args.File.Video!.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
+            .Where(vl => !string.Equals(vl.Hashes.ED2K, args.File.Video.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
             .SelectMany(vl => vl.Locations.Select(l => new
             {
                 l.ImportFolder,
                 SubFolder = SubfolderFromRelativePath(l)
             }))
-            .Where(vlp => !string.IsNullOrWhiteSpace(vlp.SubFolder) && vlp.ImportFolder is not null &&
+            .Where(vlp => !string.IsNullOrWhiteSpace(vlp.SubFolder) &&
                           (vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Destination) ||
                            vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Excluded))).ToList();
         var bestLocation = availableLocations.GroupBy(l => l.SubFolder)
             .OrderByDescending(g => g.ToList().Count).Select(g => g.First())
             .FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(bestLocation?.SubFolder) || bestLocation.ImportFolder is null) return null;
+        if (string.IsNullOrWhiteSpace(bestLocation?.SubFolder)) return null;
         return (bestLocation.ImportFolder, bestLocation.SubFolder);
     }
 
