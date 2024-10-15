@@ -411,7 +411,7 @@ end
                 var audiodict = new Dictionary<string, object?>();
                 audiodict.Add(LuaEnv.file.media.audio.compressionmode, a.CompressionMode);
                 audiodict.Add(LuaEnv.file.media.audio.channels,
-                    a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
+                    !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
                 audiodict.Add(LuaEnv.file.media.audio.samplingrate, a.SamplingRate);
                 audiodict.Add(LuaEnv.file.media.audio.codec, a.Format);
                 audiodict.Add(LuaEnv.file.media.audio.language, a.Language.ToString());
