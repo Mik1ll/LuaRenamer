@@ -26,7 +26,15 @@
     </ItemGroup>
 
     <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
-        <Exec Command="git describe &quot;--match=v[0-9]%2A.[0-9]%2A.[0-9]%2A&quot; &quot;--exclude=v%2A[!0-9]%2A.%2A[!0-9]%2A.%2A[!0-9]%2A&quot; --tags --abbrev=7 --long --dirty" ConsoleToMsBuild="true">
+        <PropertyGroup Condition="$([System.OperatingSystem]::IsWindows())">
+            <DevNull>NUL</DevNull>
+        </PropertyGroup>
+        <PropertyGroup Condition="!$([System.OperatingSystem]::IsWindows())">
+            <DevNull>/dev/null</DevNull>
+        </PropertyGroup>
+
+        <Exec Command="git describe &quot;--match=v[0-9]%2A.[0-9]%2A.[0-9]%2A&quot; &quot;--exclude=v%2A[!0-9]%2A.%2A[!0-9]%2A.%2A[!0-9]%2A&quot; --tags --abbrev=7 --long --dirty 2&gt;$(DevNull)"
+              ConsoleToMsBuild="true" IgnoreExitCode="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
         </Exec>
 
