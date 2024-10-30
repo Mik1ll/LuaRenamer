@@ -26,20 +26,12 @@
     </ItemGroup>
 
     <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
-        <PropertyGroup Condition="$([System.OperatingSystem]::IsWindows())">
-            <DevNull>NUL</DevNull>
-        </PropertyGroup>
-        <PropertyGroup Condition="!$([System.OperatingSystem]::IsWindows())">
-            <DevNull>/dev/null</DevNull>
-        </PropertyGroup>
-
-        <Exec Command="git describe &quot;--match=v[0-9]%2A.[0-9]%2A.[0-9]%2A&quot; &quot;--exclude=v%2A[!0-9]%2A.%2A[!0-9]%2A.%2A[!0-9]%2A&quot; --tags --abbrev=7 --long --dirty 2&gt;$(DevNull)"
-              ConsoleToMsBuild="true" IgnoreExitCode="true">
+        <Exec Command="git describe --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; --tags --abbrev=7 --long --dirty --always" ConsoleToMsBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
         </Exec>
 
-        <PropertyGroup Condition="'$(GitInfo)' != ''">
-            <Version>$([System.Text.RegularExpressions.Regex]::Match("$(GitInfo)", "\d+\.\d+\.\d+"))</Version>
+        <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(GitInfo)', '\d+\.\d+\.\d+'))">
+            <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+'))</Version>
             <InformationalVersion>$(GitInfo)</InformationalVersion>
         </PropertyGroup>
     </Target>
