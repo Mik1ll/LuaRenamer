@@ -11,16 +11,19 @@
         <!--<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>-->
         <Deterministic>true</Deterministic>
         <DeterministicSourcePaths>true</DeterministicSourcePaths>
+        <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" ExcludeAssets="runtime" />
         <PackageReference Include="NLua" Version="1.7.3" />
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.0.0" ExcludeAssets="runtime" />
+        <ProjectReference Include="..\LuaRenamerNativeLibs\LuaRenamerNativeLibs.csproj" ReferenceOutputAssembly="false" />
+        <PackageReference Include="LuaRenamerNativeLibs" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="lua\**\*.*">
+        <None Include="lua\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
@@ -38,26 +41,17 @@
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
         <PropertyGroup>
-            <WinZipDir>$(PublishDir)WinZipDir/</WinZipDir>
-            <DockerAmdDir>$(PublishDir)DockerAmdZipDir/</DockerAmdDir>
-            <DockerArmDir>$(PublishDir)DockerArmZipDir/</DockerArmDir>
+            <ZipDir>$(PublishDir)ZipDir/</ZipDir>
+            <ZipDestination>$(PublishDir)../$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipDestination>
         </PropertyGroup>
+
         <ItemGroup>
-            <SharedOut Include="$(PublishDir)**/*" Exclude="$(PublishDir)runtimes/**/*" />
-            <WinOut Include="$(PublishDir)runtimes/win-x64/native/lua54.dll" />
-            <DockerAmd64Out Include="$(ProjectDir)docker_build/amd64/liblua54.so" />
-            <DockerArm64Out Include="$(ProjectDir)docker_build/arm64/liblua54.so" />
+            <ZipOut Include="$(PublishDir)**/*" />
         </ItemGroup>
 
-        <Copy SourceFiles="@(SharedOut);@(WinOut)" DestinationFolder="$(WinZipDir)$(ProjectName)/%(RecursiveDir)" />
-        <Copy SourceFiles="@(SharedOut);@(DockerAmd64Out)" DestinationFolder="$(DockerAmdDir)$(ProjectName)/%(RecursiveDir)" />
-        <Copy SourceFiles="@(SharedOut);@(DockerArm64Out)" DestinationFolder="$(DockerArmDir)$(ProjectName)/%(RecursiveDir)" />
-
-        <ZipDirectory SourceDirectory="$(WinZipDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Windows_AMD64_$(GitInfo).zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(DockerAmdDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Docker_AMD64_$(GitInfo).zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(DockerArmDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Docker_ARM64_$(GitInfo).zip" Overwrite="true" />
-
-        <RemoveDir Directories="$(WinZipDir);$(DockerAmdDir);$(DockerArmDir)" />
+        <Copy SourceFiles="@(ZipOut)" DestinationFolder="$(ZipDir)$(ProjectName)/%(RecursiveDir)" />
+        <ZipDirectory SourceDirectory="$(ZipDir)" DestinationFile="$(ZipDestination)" Overwrite="true" />
+        <RemoveDir Directories="$(ZipDir)" />
     </Target>
 
 </Project>

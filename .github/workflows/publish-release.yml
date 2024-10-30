@@ -18,8 +18,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Publish
-      run: dotnet publish ./LuaRenamer/LuaRenamer.csproj -c Release -o ./publish
+      run: |
+        for rid in "win-x64" "linux-x64" "linux-arm64"; do
+          dotnet publish ./LuaRenamer/LuaRenamer.csproj -c Release --sc true -r "$rid" -o "./publish/$rid"
+        done
     - name: Release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release create "$GITHUB_REF_NAME" ./*.zip --generate-notes --verify-tag
+      run: gh release create "$GITHUB_REF_NAME" ./publish/*.zip --generate-notes --verify-tag
