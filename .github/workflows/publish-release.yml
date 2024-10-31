@@ -20,7 +20,7 @@ jobs:
     - name: Publish
       run: |
         for rid in "win-x64" "linux-x64" "linux-arm64"; do
-          dotnet publish ./LuaRenamer/LuaRenamer.csproj -c Release --sc true -r "$rid" -o "./publish/$rid"
+          dotnet publish ./LuaRenamer/LuaRenamer.csproj -c Release -r "$rid" -o "./publish/$rid"
         done
     - name: Release
       env:
