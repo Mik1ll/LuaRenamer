@@ -49,6 +49,8 @@ public static class LuaEnv
         public const string typeFn = Fn + "." + type;
         public const string preferredname = nameof(preferredname);
         public const string preferrednameFn = Fn + "." + preferredname;
+        public const string defaultname = nameof(defaultname);
+        public const string defaultnameFn = Fn + "." + defaultname;
         public const string id = nameof(id);
         public const string idFn = Fn + "." + id;
         public const string titles = nameof(titles);

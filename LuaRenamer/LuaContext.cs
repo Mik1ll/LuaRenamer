@@ -249,13 +249,15 @@ end
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
         if (animeCache.TryGetValue(anime.ID, out var animedict)) return animedict;
+        var series = _args.Series.FirstOrDefault(series => series.AnidbAnime == anime);
         animedict = new Dictionary<string, object?>();
         animedict.Add(LuaEnv.anime.airdate, anime.AirDate?.ToTable());
         animedict.Add(LuaEnv.anime.enddate, anime.EndDate?.ToTable());
         animedict.Add(LuaEnv.anime.rating, anime.Rating);
         animedict.Add(LuaEnv.anime.restricted, anime.Restricted);
         animedict.Add(LuaEnv.anime.type, anime.Type.ToString());
-        animedict.Add(LuaEnv.anime.preferredname, _args.Series.FirstOrDefault(series => series.AnidbAnime == anime)?.PreferredTitle ?? anime.PreferredTitle);
+        animedict.Add(LuaEnv.anime.preferredname, series?.PreferredTitle ?? anime.PreferredTitle);
+        animedict.Add(LuaEnv.anime.defaultname, series?.DefaultTitle ?? anime.DefaultTitle);
         animedict.Add(LuaEnv.anime.id, anime.ID);
         animedict.Add(LuaEnv.anime.titles, ConvertTitles(anime.Titles));
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);

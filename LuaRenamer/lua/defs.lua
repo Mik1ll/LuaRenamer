@@ -75,6 +75,7 @@ local Audio = {}
 ---@field restricted boolean
 ---@field type AnimeType
 ---@field preferredname string
+---@field defaultname string
 ---@field id integer
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
