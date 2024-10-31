@@ -18,12 +18,17 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" ExcludeAssets="runtime" />
         <PackageReference Include="NLua" Version="1.7.3" />
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.0.0" ExcludeAssets="runtime" />
-        <ProjectReference Include="..\LuaRenamerNativeLibs\LuaRenamerNativeLibs.csproj" ReferenceOutputAssembly="false" />
-        <PackageReference Include="LuaRenamerNativeLibs" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="lua\**\*">
+        <None Include="lua/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Condition="'$(RuntimeIdentifier)' == ''" Include="runtimes/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Condition="'$(RuntimeIdentifier)' != ''" Include="runtimes/$(RuntimeIdentifier)/native/*">
+            <Link>%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>

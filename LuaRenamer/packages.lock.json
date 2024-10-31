@@ -2,12 +2,6 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
-      "LuaRenamerNativeLibs": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "qdZ3NDpq/gtcLlPz8KBuALJD2t0MdwzrFTHh0IBdA25vkLWEqk02oaH+l3Uaqke5AK3s097hzkhQYdqLB8+Krg=="
-      },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
         "requested": "[8.0.0, )",
@@ -44,12 +38,6 @@
       }
     },
     "net8.0/linux-arm64": {
-      "LuaRenamerNativeLibs": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "qdZ3NDpq/gtcLlPz8KBuALJD2t0MdwzrFTHh0IBdA25vkLWEqk02oaH+l3Uaqke5AK3s097hzkhQYdqLB8+Krg=="
-      },
       "KeraLua": {
         "type": "Transitive",
         "resolved": "1.4.1",
@@ -57,12 +45,6 @@
       }
     },
     "net8.0/linux-x64": {
-      "LuaRenamerNativeLibs": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "qdZ3NDpq/gtcLlPz8KBuALJD2t0MdwzrFTHh0IBdA25vkLWEqk02oaH+l3Uaqke5AK3s097hzkhQYdqLB8+Krg=="
-      },
       "KeraLua": {
         "type": "Transitive",
         "resolved": "1.4.1",
@@ -70,12 +52,6 @@
       }
     },
     "net8.0/win-x64": {
-      "LuaRenamerNativeLibs": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "qdZ3NDpq/gtcLlPz8KBuALJD2t0MdwzrFTHh0IBdA25vkLWEqk02oaH+l3Uaqke5AK3s097hzkhQYdqLB8+Krg=="
-      },
       "KeraLua": {
         "type": "Transitive",
         "resolved": "1.4.1",

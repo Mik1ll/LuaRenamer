@@ -51,11 +51,6 @@
         "resolved": "1.4.1",
         "contentHash": "SHfGjaWED+nHxMWbIqAVN90bs5xLnOOojuQaSSzZqJAKXSzcDi94ikr/7GQxM1/4ny/tKnnGHSKkOQyZ65572Q=="
       },
-      "LuaRenamerNativeLibs": {
-        "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "qdZ3NDpq/gtcLlPz8KBuALJD2t0MdwzrFTHh0IBdA25vkLWEqk02oaH+l3Uaqke5AK3s097hzkhQYdqLB8+Krg=="
-      },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
         "resolved": "2.22.0",
@@ -192,7 +187,6 @@
       "luarenamer": {
         "type": "Project",
         "dependencies": {
-          "LuaRenamerNativeLibs": "[1.0.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.0, )",
           "NLua": "[1.7.3, )",
           "Shoko.Plugin.Abstractions": "[4.0.0, )"
