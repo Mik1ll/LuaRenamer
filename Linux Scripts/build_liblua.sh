@@ -1,6 +1,5 @@
 #run in docker container shell
 
-cd /home/shoko/.shoko &&
 apt-get -y install build-essential &&
 curl -R -O http://www.lua.org/ftp/lua-5.4.4.tar.gz &&
 tar zxf lua-5.4.4.tar.gz &&

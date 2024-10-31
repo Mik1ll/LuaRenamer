@@ -36,6 +36,27 @@
         "resolved": "8.0.0",
         "contentHash": "cjWrLkJXK0rs4zofsK4bSdg+jhDLTaxrkXu4gS6Y7MAlCvRyNNgwY/lJi5RDlQOnSZweHqoyvgvbdvQsRIW+hg=="
       }
+    },
+    "net8.0/linux-arm64": {
+      "KeraLua": {
+        "type": "Transitive",
+        "resolved": "1.4.1",
+        "contentHash": "SHfGjaWED+nHxMWbIqAVN90bs5xLnOOojuQaSSzZqJAKXSzcDi94ikr/7GQxM1/4ny/tKnnGHSKkOQyZ65572Q=="
+      }
+    },
+    "net8.0/linux-x64": {
+      "KeraLua": {
+        "type": "Transitive",
+        "resolved": "1.4.1",
+        "contentHash": "SHfGjaWED+nHxMWbIqAVN90bs5xLnOOojuQaSSzZqJAKXSzcDi94ikr/7GQxM1/4ny/tKnnGHSKkOQyZ65572Q=="
+      }
+    },
+    "net8.0/win-x64": {
+      "KeraLua": {
+        "type": "Transitive",
+        "resolved": "1.4.1",
+        "contentHash": "SHfGjaWED+nHxMWbIqAVN90bs5xLnOOojuQaSSzZqJAKXSzcDi94ikr/7GQxM1/4ny/tKnnGHSKkOQyZ65572Q=="
+      }
     }
   }
 }

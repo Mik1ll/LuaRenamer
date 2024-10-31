@@ -11,6 +11,7 @@
         <!--<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>-->
         <Deterministic>true</Deterministic>
         <DeterministicSourcePaths>true</DeterministicSourcePaths>
+        <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,52 +21,42 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="lua\**\*.*">
+        <None Include="lua/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Condition="'$(RuntimeIdentifier)' == ''" Include="runtimes/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Condition="'$(RuntimeIdentifier)' != ''" Include="runtimes/$(RuntimeIdentifier)/native/*">
+            <Link>%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
-        <PropertyGroup Condition="$([System.OperatingSystem]::IsWindows())">
-            <DevNull>NUL</DevNull>
-        </PropertyGroup>
-        <PropertyGroup Condition="!$([System.OperatingSystem]::IsWindows())">
-            <DevNull>/dev/null</DevNull>
-        </PropertyGroup>
-
-        <Exec Command="git describe &quot;--match=v[0-9]%2A.[0-9]%2A.[0-9]%2A&quot; &quot;--exclude=v%2A[!0-9]%2A.%2A[!0-9]%2A.%2A[!0-9]%2A&quot; --tags --abbrev=7 --long --dirty 2&gt;$(DevNull)"
-              ConsoleToMsBuild="true" IgnoreExitCode="true">
+        <Exec Command="git describe --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; --tags --abbrev=7 --long --dirty --always" ConsoleToMsBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
         </Exec>
 
-        <PropertyGroup Condition="'$(GitInfo)' != ''">
-            <Version>$([System.Text.RegularExpressions.Regex]::Match("$(GitInfo)", "\d+\.\d+\.\d+"))</Version>
+        <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(GitInfo)', '\d+\.\d+\.\d+'))">
+            <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+'))</Version>
             <InformationalVersion>$(GitInfo)</InformationalVersion>
         </PropertyGroup>
     </Target>
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
         <PropertyGroup>
-            <WinZipDir>$(PublishDir)WinZipDir/</WinZipDir>
-            <DockerAmdDir>$(PublishDir)DockerAmdZipDir/</DockerAmdDir>
-            <DockerArmDir>$(PublishDir)DockerArmZipDir/</DockerArmDir>
+            <ZipDir>$(PublishDir)ZipDir/</ZipDir>
+            <ZipDestination>$(PublishDir)../$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipDestination>
         </PropertyGroup>
+
         <ItemGroup>
-            <SharedOut Include="$(PublishDir)**/*" Exclude="$(PublishDir)runtimes/**/*" />
-            <WinOut Include="$(PublishDir)runtimes/win-x64/native/lua54.dll" />
-            <DockerAmd64Out Include="$(ProjectDir)docker_build/amd64/liblua54.so" />
-            <DockerArm64Out Include="$(ProjectDir)docker_build/arm64/liblua54.so" />
+            <ZipOut Include="$(PublishDir)**/*" />
         </ItemGroup>
 
-        <Copy SourceFiles="@(SharedOut);@(WinOut)" DestinationFolder="$(WinZipDir)$(ProjectName)/%(RecursiveDir)" />
-        <Copy SourceFiles="@(SharedOut);@(DockerAmd64Out)" DestinationFolder="$(DockerAmdDir)$(ProjectName)/%(RecursiveDir)" />
-        <Copy SourceFiles="@(SharedOut);@(DockerArm64Out)" DestinationFolder="$(DockerArmDir)$(ProjectName)/%(RecursiveDir)" />
-
-        <ZipDirectory SourceDirectory="$(WinZipDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Windows_AMD64_$(GitInfo).zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(DockerAmdDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Docker_AMD64_$(GitInfo).zip" Overwrite="true" />
-        <ZipDirectory SourceDirectory="$(DockerArmDir)" DestinationFile="$(PublishDir)../$(ProjectName)_Docker_ARM64_$(GitInfo).zip" Overwrite="true" />
-
-        <RemoveDir Directories="$(WinZipDir);$(DockerAmdDir);$(DockerArmDir)" />
+        <Copy SourceFiles="@(ZipOut)" DestinationFolder="$(ZipDir)$(ProjectName)/%(RecursiveDir)" />
+        <ZipDirectory SourceDirectory="$(ZipDir)" DestinationFile="$(ZipDestination)" Overwrite="true" />
+        <RemoveDir Directories="$(ZipDir)" />
     </Target>
 
 </Project>
