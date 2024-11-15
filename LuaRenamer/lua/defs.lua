@@ -119,9 +119,8 @@ local DateTime = {}
 local Episode = {}
 
 ---@param lang Language
----@param include_unofficial boolean?
 ---@return string?
-function Episode:getname(lang, include_unofficial)
+function Episode:getname(lang)
 end
 
 ---@class (exact) ImportFolder

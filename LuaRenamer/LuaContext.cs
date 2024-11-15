@@ -106,25 +106,28 @@ end
 
     #endregion
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    private string? GetName(LuaTable anime_or_episode, string language, bool allow_unofficial = false)
-    {
-        var titles = (string)anime_or_episode[LuaEnv.anime._classid] switch
-        {
-            LuaEnv.anime._classidVal => _args.Series.First(a => (long)anime_or_episode[LuaEnv.anime.id] == a.AnidbAnimeID).AnidbAnime.Titles,
-            LuaEnv.episode._classidVal => _args.Episodes.First(e => (long)anime_or_episode[LuaEnv.episode.id] == e.AnidbEpisodeID).AnidbEpisode.Titles,
-            _ => throw new LuaRenamerException("Self is not recognized as an Anime or Episode (class id nil or mismatch)")
-        };
-        var lang = Enum.Parse<TitleLanguage>(language);
-        var title = titles
-            .OrderBy(t => t.Type == TitleType.None ? int.MaxValue : (int)t.Type)
-            .Where(t => t.Language == lang && (t.Type is TitleType.Main or TitleType.Official or TitleType.None ||
-                                               allow_unofficial && t.Type is TitleType.Synonym)).Select(t => t.Title).FirstOrDefault();
-        return title;
-    }
-
-    private static readonly MethodInfo GetNameMethod =
-        typeof(LuaContext).GetMethod(nameof(GetName), BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly string GetNameFunction =
+        $$"""
+          ---@param self Anime|Episode
+          ---@param lang Language
+          ---@param include_unofficial? boolean
+          ---@return string?
+          return function (self, lang, include_unofficial)
+              local title_priority = {
+                  {{nameof(TitleType.Main)}} = 0,
+                  {{nameof(TitleType.Official)}} = 1,
+                  {{nameof(TitleType.None)}} = 2,
+                  {{nameof(TitleType.Synonym)}} = include_unofficial and 3 or nil,
+              }
+              ---@type string?
+              local name = from(self.{{LuaEnv.anime.titles}}):where(function(t1) ---@param t1 Title
+                  return t1.{{LuaEnv.title.language}} == lang and title_priority[t1.{{LuaEnv.title.type}}] ~= nil
+              end):orderby(function(t2) ---@param t2 Title
+                  return title_priority[t2.{{LuaEnv.title.type}}]
+              end):select("{{LuaEnv.title.name}}"):first()
+              return name
+          end
+          """;
 
     private string EpNums(int pad) => _args.Episodes.Select(se => se.AnidbEpisode)
         .Where(e => e.SeriesID == _args.Series.First().AnidbAnimeID) // All episodes with same anime id
@@ -159,7 +162,7 @@ end
         DoFile(Path.Combine(LuaPath, "lualinq.lua"));
         _functions = new LuaFunctions(
             (LuaFunction)DoString(SandboxFunction)[0],
-            RegisterFunction(LuaEnv.anime.getname, this, GetNameMethod),
+            (LuaFunction)DoString(GetNameFunction)[0],
             RegisterFunction(LuaEnv.logdebug, this, LogDebugMethod),
             RegisterFunction(LuaEnv.log, this, LogMethod),
             RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod),
