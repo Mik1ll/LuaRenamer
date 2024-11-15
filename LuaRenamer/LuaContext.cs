@@ -260,7 +260,7 @@ end
         animedict.Add(LuaEnv.anime.restricted, anime.Restricted);
         animedict.Add(LuaEnv.anime.type, anime.Type.ToString());
         animedict.Add(LuaEnv.anime.preferredname, series?.PreferredTitle ?? anime.PreferredTitle);
-        animedict.Add(LuaEnv.anime.defaultname, series?.DefaultTitle ?? anime.DefaultTitle);
+        animedict.Add(LuaEnv.anime.defaultname, string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(LuaEnv.anime.id, anime.ID);
         animedict.Add(LuaEnv.anime.titles, ConvertTitles(anime.Titles));
         animedict.Add(LuaEnv.anime.getname, _functions.GetName);
