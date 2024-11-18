@@ -70,7 +70,7 @@ script_name_uri_encoded=$(printf '%s' "$script_name" | jq -Rr @uri)
 
 page=1
 while fileIds="$(curl -s -H "apikey: $apikey" -H 'Accept: application/json' "http://$host/api/v3/File?sortOrder=FileID&page=$page&pageSize=1000&exclude=Unrecognized" | jq -e 'if .List == [] then null else .List | map(.ID) end')"; do
-  rename_response=$(curl -s -X POST -d "$fileIds" -H "apikey: $apikey" -H 'Content-Type: application/json' -H 'Accept: application/json' "http://$host/api/v3/Renamer/Config/$script_name_uri_encoded/Preview?rename=true&move=$move")
+  rename_response=$(curl -s -X POST -d "$fileIds" -H "apikey: $apikey" -H 'Content-Type: application/json' -H 'Accept: application/json' "http://$host/api/v3/Renamer/Config/$script_name_uri_encoded/Relocate?rename=true&move=$move")
   IFS=$'\n' jq -c '.[]' <<< "$rename_response" | \
   while read -r result; do
     if jq -e '.IsSuccess' <<< "$result" >/dev/null; then
