@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,11 @@ public class LuaContext : Lua
     private readonly ILogger _logger;
     private readonly RelocationEventArgs<LuaRenamerSettings> _args;
     private readonly LuaFunctions _functions;
+    private static readonly Stopwatch FileCacheStopwatch = new();
+    private static string? _utilsFileCache;
+    private static string? _luaLinqFileCache;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
+
 
     #region Sandbox
 
@@ -158,8 +163,19 @@ end
         _logger = logger;
         _args = args;
         State.Encoding = Encoding.UTF8;
-        DoFile(Path.Combine(LuaPath, "utils.lua"));
-        DoFile(Path.Combine(LuaPath, "lualinq.lua"));
+
+        if (!FileCacheStopwatch.IsRunning || FileCacheStopwatch.Elapsed > TimeSpan.FromSeconds(10) ||
+            string.IsNullOrWhiteSpace(_utilsFileCache) ||
+            string.IsNullOrWhiteSpace(_luaLinqFileCache))
+        {
+            _utilsFileCache = File.ReadAllText(Path.Combine(LuaPath, "utils.lua"));
+            _luaLinqFileCache = File.ReadAllText(Path.Combine(LuaPath, "lualinq.lua"));
+        }
+
+        FileCacheStopwatch.Restart();
+        DoString(_utilsFileCache);
+        DoString(_luaLinqFileCache);
+
         _functions = new LuaFunctions(
             (LuaFunction)DoString(SandboxFunction)[0],
             (LuaFunction)DoString(GetNameFunction)[0],
