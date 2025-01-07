@@ -17,7 +17,6 @@ public class LuaContext : Lua
 {
     private readonly ILogger _logger;
     private readonly RelocationEventArgs<LuaRenamerSettings> _args;
-    private readonly LuaFunctions _functions;
     private static readonly Stopwatch FileCacheStopwatch = new();
     private static string? _utilsFileCache;
     private static string? _luaLinqFileCache;
@@ -58,38 +57,17 @@ utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.code
 error = error, 
 ";
 
-    private const string LuaLinqEnv = @"
-from = from,
-fromArray = fromArray,
-fromArrayInstance = fromArrayInstance,
-fromDictionary = fromDictionary,
-fromIterator = fromIterator,
-fromIteratorsArray = fromIteratorsArray,
-fromSet = fromSet,
-fromNothing = fromNothing,
-linqSetLogLevel = linqSetLogLevel,
-";
-
     private const string SandboxFunction = @"
 return function (untrusted_code, env)
   local untrusted_function, message = load(untrusted_code, nil, 't', env)
   if not untrusted_function then return nil, message end
-  return untrusted_function()
+  return pcall(untrusted_function)
 end
 ";
 
     #endregion
 
     #region Lua Function Bindings
-
-    private record LuaFunctions(
-        LuaFunction RunSandbox,
-        LuaFunction GetName,
-        LuaFunction LogDebug,
-        LuaFunction Log,
-        LuaFunction LogWarn,
-        LuaFunction LogError,
-        LuaFunction EpNums);
 
     #region Logger Binding
 
@@ -173,43 +151,35 @@ end
         }
 
         FileCacheStopwatch.Restart();
-        DoString(_utilsFileCache);
-        DoString(_luaLinqFileCache);
-
-        _functions = new LuaFunctions(
-            (LuaFunction)DoString(SandboxFunction)[0],
-            (LuaFunction)DoString(GetNameFunction)[0],
-            RegisterFunction(LuaEnv.logdebug, this, LogDebugMethod),
-            RegisterFunction(LuaEnv.log, this, LogMethod),
-            RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod),
-            RegisterFunction(LuaEnv.logerror, this, LogErrorMethod),
-            RegisterFunction(LuaEnv.episode_numbers, this, EpNumsMethod)
-        );
     }
 
     public Dictionary<object, object> RunSandboxed()
     {
-        var env = CreateLuaEnv();
-        var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}{LuaLinqEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
+        var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
+        var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
+        runSandboxFn.Call(_luaLinqFileCache, luaEnv);
+        var getNameFn = (LuaFunction)runSandboxFn.Call(GetNameFunction, luaEnv)[1];
+        var env = CreateLuaEnv(getNameFn);
+        runSandboxFn.Call(_utilsFileCache, luaEnv);
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = _functions.RunSandbox.Call(_args.Settings.Script, luaEnv);
-        if (retVal.Length == 2 && retVal[0] == null && retVal[1] is string errStr)
+        var retVal = runSandboxFn.Call(_args.Settings.Script, luaEnv);
+        if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> CreateLuaEnv()
+    private Dictionary<string, object?> CreateLuaEnv(LuaFunction getNameFn)
     {
         Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
-        var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache)).ToList();
+        var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache, false, getNameFn)).ToList();
         var anidb = AniDbFileToDict();
         var mediainfo = MediaInfoToDict();
         var importfolders = _args.AvailableFolders.Select(ImportFolderToDict).ToList();
         var file = FileToDict(anidb, mediainfo);
-        var episodes = EpisodesToDict();
-        var groups = GroupsToDict(animeCache);
+        var episodes = EpisodesToDict(getNameFn);
+        var groups = GroupsToDict(animeCache, getNameFn);
 
         var env = new Dictionary<string, object?>();
         env.Add(LuaEnv.filename, null);
@@ -233,11 +203,11 @@ end
         env.Add(LuaEnv.importfolders, importfolders);
         env.Add(LuaEnv.groups, groups);
         env.Add(LuaEnv.group.N, groups.FirstOrDefault());
-        env.Add(LuaEnv.episode_numbers, _functions.EpNums);
-        env.Add(LuaEnv.logdebug, _functions.LogDebug);
-        env.Add(LuaEnv.log, _functions.Log);
-        env.Add(LuaEnv.logwarn, _functions.LogWarn);
-        env.Add(LuaEnv.logerror, _functions.LogError);
+        env.Add(LuaEnv.episode_numbers, RegisterFunction("_", this, EpNumsMethod));
+        env.Add(LuaEnv.logdebug, RegisterFunction(LuaEnv.logdebug, this, LogDebugMethod));
+        env.Add(LuaEnv.log, RegisterFunction(LuaEnv.log, this, LogMethod));
+        env.Add(LuaEnv.logwarn, RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod));
+        env.Add(LuaEnv.logerror, RegisterFunction(LuaEnv.logerror, this, LogErrorMethod));
         env.Add(LuaEnv.AnimeType, EnumToDict<AnimeType>());
         env.Add(LuaEnv.TitleType, EnumToDict<TitleType>());
         env.Add(LuaEnv.Language, EnumToDict<TitleLanguage>());
@@ -250,21 +220,22 @@ end
     private Dictionary<string, string> EnumToDict<T>() => Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object?>> GroupsToDict(Dictionary<int, Dictionary<string, object?>> animeCache)
+    private List<Dictionary<string, object?>> GroupsToDict(Dictionary<int, Dictionary<string, object?>> animeCache, LuaFunction getNameFn)
     {
         var groups = _args.Groups.Select(g =>
         {
             var groupdict = new Dictionary<string, object?>();
             groupdict.Add(LuaEnv.group.name, g.PreferredTitle);
-            groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries.AnidbAnime, animeCache));
-            groupdict.Add(LuaEnv.group.animes, g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache)).ToList());
+            groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries.AnidbAnime, animeCache, false, getNameFn));
+            groupdict.Add(LuaEnv.group.animes, g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache, false, getNameFn)).ToList());
             return groupdict;
         }).ToList();
         return groups;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> AnimeToDict(ISeries anime, Dictionary<int, Dictionary<string, object?>> animeCache, bool ignoreRelations = false)
+    private Dictionary<string, object?> AnimeToDict(ISeries anime, Dictionary<int, Dictionary<string, object?>> animeCache, bool ignoreRelations,
+        LuaFunction getNameFn)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
         if (animeCache.TryGetValue(anime.ID, out var animedict)) return animedict;
@@ -279,7 +250,7 @@ end
         animedict.Add(LuaEnv.anime.defaultname, string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(LuaEnv.anime.id, anime.ID);
         animedict.Add(LuaEnv.anime.titles, ConvertTitles(anime.Titles));
-        animedict.Add(LuaEnv.anime.getname, _functions.GetName);
+        animedict.Add(LuaEnv.anime.getname, getNameFn);
         animedict.Add(LuaEnv.anime._classid, LuaEnv.anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
         epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
@@ -296,7 +267,7 @@ end
                 {
                     var relationdict = new Dictionary<string, object?>();
                     relationdict.Add(LuaEnv.anime.relations.type, r.RelationType.ToString());
-                    relationdict.Add(LuaEnv.anime.relations.anime, AnimeToDict(r.Related!, animeCache, true));
+                    relationdict.Add(LuaEnv.anime.relations.anime, AnimeToDict(r.Related!, animeCache, true, getNameFn));
                     return relationdict;
                 }).ToList());
         return animeCache[anime.ID] = animedict;
@@ -335,7 +306,7 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object?>> EpisodesToDict()
+    private List<Dictionary<string, object?>> EpisodesToDict(LuaFunction getNameFn)
     {
         var episodes = _args.Episodes.Select(se => se.AnidbEpisode).Select(e =>
         {
@@ -347,7 +318,7 @@ end
             epdict.Add(LuaEnv.episode.animeid, e.SeriesID);
             epdict.Add(LuaEnv.episode.id, e.ID);
             epdict.Add(LuaEnv.episode.titles, ConvertTitles(e.Titles));
-            epdict.Add(LuaEnv.episode.getname, _functions.GetName);
+            epdict.Add(LuaEnv.episode.getname, getNameFn);
             epdict.Add(LuaEnv.episode.prefix, Utils.EpPrefix[e.Type]);
             epdict.Add(LuaEnv.episode._classid, LuaEnv.episode._classidVal);
             return epdict;
