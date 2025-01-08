@@ -61,9 +61,12 @@ return {
 
     private const string SandboxFunction = @"
 return function (untrusted_code, env)
+  setmetatable(string, {__index = env.string})
   local untrusted_function, message = load(untrusted_code, nil, 't', env)
   if not untrusted_function then return nil, message end
-  return pcall(untrusted_function)
+  result = {pcall(untrusted_function)}
+  setmetatable(string, nil)
+  return table.unpack(result)
 end
 ";
 
@@ -159,6 +162,7 @@ end
     {
         var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = (LuaTable)DoString(BaseEnv)[0];
+
         luaEnv[LuaEnv.logdebug] = RegisterFunction("_", this, LogDebugMethod);
         luaEnv[LuaEnv.log] = RegisterFunction("_", this, LogMethod);
         luaEnv[LuaEnv.logwarn] = RegisterFunction("_", this, LogWarnMethod);
