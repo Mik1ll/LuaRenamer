@@ -18,43 +18,45 @@ public class LuaContext : Lua
     private readonly ILogger _logger;
     private readonly RelocationEventArgs<LuaRenamerSettings> _args;
     private static readonly Stopwatch FileCacheStopwatch = new();
-    private static string? _utilsFileCache;
-    private static string? _luaLinqFileCache;
+    private static string? _luaUtilsText;
+    private static string? _luaLinqText;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
 
 
     #region Sandbox
 
     private const string BaseEnv = @"
-ipairs = ipairs,
-next = next,
-pairs = pairs,
-pcall = pcall,
-tonumber = tonumber,
-tostring = tostring,
-type = type,
-select = select,
-string = { byte = string.byte, char = string.char, find = string.find, 
-  format = string.format, gmatch = string.gmatch, gsub = string.gsub, 
-  len = string.len, lower = string.lower, match = string.match, 
-  rep = string.rep, reverse = string.reverse, sub = string.sub, 
-  upper = string.upper, pack = string.pack, unpack = string.unpack, packsize = string.packsize },
-table = { concat = table.concat, insert = table.insert, move = table.move, pack = table.pack, remove = table.remove, 
-  sort = table.sort, unpack = table.unpack },
-math = { abs = math.abs, acos = math.acos, asin = math.asin, 
-  atan = math.atan, ceil = math.ceil, cos = math.cos, 
-  deg = math.deg, exp = math.exp, floor = math.floor, 
-  fmod = math.fmod, huge = math.huge, 
-  log = math.log, max = math.max, maxinteger = math.maxinteger,
-  min = math.min, mininteger = math.mininteger, modf = math.modf, pi = math.pi,
-  rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
-  sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
-os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
-setmetatable = setmetatable,
-getmetatable = getmetatable,
-rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
-utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
-error = error, 
+return {
+  ipairs = ipairs,
+  next = next,
+  pairs = pairs,
+  pcall = pcall,
+  tonumber = tonumber,
+  tostring = tostring,
+  type = type,
+  select = select,
+  string = { byte = string.byte, char = string.char, find = string.find, 
+    format = string.format, gmatch = string.gmatch, gsub = string.gsub, 
+    len = string.len, lower = string.lower, match = string.match, 
+    rep = string.rep, reverse = string.reverse, sub = string.sub, 
+    upper = string.upper, pack = string.pack, unpack = string.unpack, packsize = string.packsize },
+  table = { concat = table.concat, insert = table.insert, move = table.move, pack = table.pack, remove = table.remove, 
+    sort = table.sort, unpack = table.unpack },
+  math = { abs = math.abs, acos = math.acos, asin = math.asin, 
+    atan = math.atan, ceil = math.ceil, cos = math.cos, 
+    deg = math.deg, exp = math.exp, floor = math.floor, 
+    fmod = math.fmod, huge = math.huge, 
+    log = math.log, max = math.max, maxinteger = math.maxinteger,
+    min = math.min, mininteger = math.mininteger, modf = math.modf, pi = math.pi,
+    rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
+    sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
+  os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
+  setmetatable = setmetatable,
+  getmetatable = getmetatable,
+  rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
+  utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
+  error = error,
+}
 ";
 
     private const string SandboxFunction = @"
@@ -143,11 +145,11 @@ end
         State.Encoding = Encoding.UTF8;
 
         if (!FileCacheStopwatch.IsRunning || FileCacheStopwatch.Elapsed > TimeSpan.FromSeconds(10) ||
-            string.IsNullOrWhiteSpace(_utilsFileCache) ||
-            string.IsNullOrWhiteSpace(_luaLinqFileCache))
+            string.IsNullOrWhiteSpace(_luaUtilsText) ||
+            string.IsNullOrWhiteSpace(_luaLinqText))
         {
-            _utilsFileCache = File.ReadAllText(Path.Combine(LuaPath, "utils.lua"));
-            _luaLinqFileCache = File.ReadAllText(Path.Combine(LuaPath, "lualinq.lua"));
+            _luaUtilsText = File.ReadAllText(Path.Combine(LuaPath, "utils.lua"));
+            _luaLinqText = File.ReadAllText(Path.Combine(LuaPath, "lualinq.lua"));
         }
 
         FileCacheStopwatch.Restart();
@@ -156,11 +158,16 @@ end
     public Dictionary<object, object> RunSandboxed()
     {
         var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
-        var luaEnv = (LuaTable)DoString($"r = {{{BaseEnv}}}; r._G = r; setmetatable(string, {{ __index = r.string}}); return r")[0];
-        runSandboxFn.Call(_luaLinqFileCache, luaEnv);
+        var luaEnv = (LuaTable)DoString(BaseEnv)[0];
+        luaEnv[LuaEnv.logdebug] = RegisterFunction("_", this, LogDebugMethod);
+        luaEnv[LuaEnv.log] = RegisterFunction("_", this, LogMethod);
+        luaEnv[LuaEnv.logwarn] = RegisterFunction("_", this, LogWarnMethod);
+        luaEnv[LuaEnv.logerror] = RegisterFunction("_", this, LogErrorMethod);
+        luaEnv[LuaEnv.episode_numbers] = RegisterFunction("_", this, EpNumsMethod);
+        runSandboxFn.Call(_luaLinqText, luaEnv);
+        runSandboxFn.Call(_luaUtilsText, luaEnv);
         var getNameFn = (LuaFunction)runSandboxFn.Call(GetNameFunction, luaEnv)[1];
         var env = CreateLuaEnv(getNameFn);
-        runSandboxFn.Call(_utilsFileCache, luaEnv);
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
         var retVal = runSandboxFn.Call(_args.Settings.Script, luaEnv);
         if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
@@ -203,11 +210,6 @@ end
         env.Add(LuaEnv.importfolders, importfolders);
         env.Add(LuaEnv.groups, groups);
         env.Add(LuaEnv.group.N, groups.FirstOrDefault());
-        env.Add(LuaEnv.episode_numbers, RegisterFunction("_", this, EpNumsMethod));
-        env.Add(LuaEnv.logdebug, RegisterFunction(LuaEnv.logdebug, this, LogDebugMethod));
-        env.Add(LuaEnv.log, RegisterFunction(LuaEnv.log, this, LogMethod));
-        env.Add(LuaEnv.logwarn, RegisterFunction(LuaEnv.logwarn, this, LogWarnMethod));
-        env.Add(LuaEnv.logerror, RegisterFunction(LuaEnv.logerror, this, LogErrorMethod));
         env.Add(LuaEnv.AnimeType, EnumToDict<AnimeType>());
         env.Add(LuaEnv.TitleType, EnumToDict<TitleType>());
         env.Add(LuaEnv.Language, EnumToDict<TitleLanguage>());
