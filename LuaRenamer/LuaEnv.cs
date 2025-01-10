@@ -10,32 +10,34 @@ namespace LuaRenamer;
 
 public class LuaEnv : Table
 {
-    public const string filename = nameof(filename);
-    public const string destination = nameof(destination);
-    public const string subfolder = nameof(subfolder);
-    public const string use_existing_anime_location = nameof(use_existing_anime_location);
-    public const string replace_illegal_chars = nameof(replace_illegal_chars);
-    public const string remove_illegal_chars = nameof(remove_illegal_chars);
-    public const string skip_rename = nameof(skip_rename);
-    public const string skip_move = nameof(skip_move);
-    public const string animes = nameof(animes);
+    public static readonly LuaEnv Inst = new();
+    public string filename => Get();
+    public string destination => Get();
+    public string subfolder => Get();
+    public string use_existing_anime_location => Get();
+    public string replace_illegal_chars => Get();
+    public string remove_illegal_chars => Get();
+    public string skip_rename => Get();
+    public string skip_move => Get();
+    public string animes => Get();
     public episode episode => new() { Fn = Get() };
     public Array<episode> episodes => new() { Fn = Get() };
-    public const string importfolders = nameof(importfolders);
-    public const string groups = nameof(groups);
-    public const string AnimeType = nameof(AnimeType);
-    public const string TitleType = nameof(TitleType);
-    public const string Language = nameof(Language);
-    public const string EpisodeType = nameof(EpisodeType);
-    public const string ImportFolderType = nameof(ImportFolderType);
-    public const string RelationType = nameof(RelationType);
-    public const string episode_numbers = nameof(episode_numbers);
-    public const string logdebug = nameof(logdebug);
-    public const string log = nameof(log);
-    public const string logwarn = nameof(logwarn);
-    public const string logerror = nameof(logerror);
+    public Array<importfolder> importfolders => new() { Fn = Get() };
+    public group group => new() { Fn = Get() };
+    public Array<group> groups => new() { Fn = Get() };
+    public string AnimeType => Get();
+    public string TitleType => Get();
+    public string Language => Get();
+    public string EpisodeType => Get();
+    public string ImportFolderType => Get();
+    public string RelationType => Get();
+    public string episode_numbers => Get();
+    public string logdebug => Get();
+    public string log => Get();
+    public string logwarn => Get();
+    public string logerror => Get();
 
-    public static class anime
+    public class anime : Table
     {
         public const string N = nameof(anime);
         public const string Fn = N;
@@ -56,8 +58,7 @@ public class LuaEnv : Table
         public const string defaultnameFn = Fn + "." + defaultname;
         public const string id = nameof(id);
         public const string idFn = Fn + "." + id;
-        public const string titles = nameof(titles);
-        public const string titlesFn = Fn + "." + titles;
+        public Array<title> titles => new() { Fn = Get() };
         public const string getname = nameof(getname);
         public const string getnameFn = Fn + ":" + getname;
         public const string episodecounts = nameof(episodecounts);
@@ -79,15 +80,6 @@ public class LuaEnv : Table
         }
     }
 
-
-    public static class title
-    {
-        public const string name = nameof(name);
-        public const string language = nameof(language);
-        public const string languagecode = nameof(languagecode);
-        public const string type = nameof(type);
-    }
-
     public static class date
     {
         public const string year = nameof(year);
@@ -101,7 +93,7 @@ public class LuaEnv : Table
         public const string isdst = nameof(isdst);
     }
 
-    public static class @file
+    public class @file : Table
     {
         public const string N = nameof(file);
         public const string Fn = N;
@@ -114,8 +106,7 @@ public class LuaEnv : Table
         public const string pathFn = Fn + "." + path;
         public const string size = nameof(size);
         public const string sizeFn = Fn + "." + size;
-        public const string importfolder = nameof(importfolder);
-        public const string importfolderFn = Fn + "." + importfolder;
+        public importfolder importfolder => new() { Fn = Get() };
         public const string earliestname = nameof(earliestname);
         public const string earliestnameFn = Fn + "." + earliestname;
 
@@ -230,35 +221,12 @@ public class LuaEnv : Table
             }
         }
     }
-
-
-    public static class importfolder
-    {
-        public const string id = nameof(id);
-        public const string name = nameof(name);
-        public const string location = nameof(location);
-        public const string type = nameof(type);
-        public const string _classid = nameof(_classid);
-        public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
-    }
-
-    public static class group
-    {
-        public const string N = nameof(group);
-        public const string Fn = N;
-
-        public const string name = nameof(name);
-        public const string nameFn = Fn + "." + name;
-        public const string mainanime = nameof(mainanime);
-        public const string mainanimeFn = Fn + "." + mainanime;
-        public const string animes = nameof(animes);
-        public const string animesFn = Fn + "." + animes;
-    }
 }
 
 public class Table
 {
     public string Fn { get; init; } = "";
+    public override string ToString() => Fn;
     protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
 }
 
@@ -275,9 +243,34 @@ public class episode : Table
     public string airdate => Get();
     public string animeid => Get();
     public string id => Get();
-    public string titles => Get();
+    public Array<title> titles => new() { Fn = Get() };
     public string getname => Get(':');
     public string prefix => Get();
     public string _classid => Get();
     public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
+}
+
+public class importfolder : Table
+{
+    public string id => Get();
+    public string name => Get();
+    public string location => Get();
+    public string type => Get();
+    public string _classid => Get();
+    public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
+}
+
+public class group : Table
+{
+    public string name => Get();
+    public string mainanime => Get();
+    public string animes => Get();
+}
+
+public class title : Table
+{
+    public string name => Get();
+    public string language => Get();
+    public string languagecode => Get();
+    public string type => Get();
 }

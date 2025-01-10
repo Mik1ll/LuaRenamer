@@ -108,11 +108,11 @@ end
                   {{nameof(TitleType.Synonym)}} = include_unofficial and 3 or nil,
               }
               ---@type string?
-              local name = from(self.{{LuaEnv.anime.titles}}):where(function(t1) ---@param t1 Title
-                  return t1.{{LuaEnv.title.language}} == lang and title_priority[t1.{{LuaEnv.title.type}}] ~= nil
+              local name = from(self.{{nameof(LuaEnv.anime.titles)}}):where(function(t1) ---@param t1 Title
+                  return t1.{{nameof(title.language)}} == lang and title_priority[t1.{{nameof(title.type)}}] ~= nil
               end):orderby(function(t2) ---@param t2 Title
-                  return title_priority[t2.{{LuaEnv.title.type}}]
-              end):select("{{LuaEnv.title.name}}"):first()
+                  return title_priority[t2.{{nameof(title.type)}}]
+              end):select("{{nameof(title.name)}}"):first()
               return name
           end
           """;
@@ -163,11 +163,11 @@ end
         var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = (LuaTable)DoString(BaseEnv)[0];
 
-        luaEnv[LuaEnv.logdebug] = RegisterFunction("_", this, LogDebugMethod);
-        luaEnv[LuaEnv.log] = RegisterFunction("_", this, LogMethod);
-        luaEnv[LuaEnv.logwarn] = RegisterFunction("_", this, LogWarnMethod);
-        luaEnv[LuaEnv.logerror] = RegisterFunction("_", this, LogErrorMethod);
-        luaEnv[LuaEnv.episode_numbers] = RegisterFunction("_", this, EpNumsMethod);
+        luaEnv[LuaEnv.Inst.logdebug] = RegisterFunction("_", this, LogDebugMethod);
+        luaEnv[LuaEnv.Inst.log] = RegisterFunction("_", this, LogMethod);
+        luaEnv[LuaEnv.Inst.logwarn] = RegisterFunction("_", this, LogWarnMethod);
+        luaEnv[LuaEnv.Inst.logerror] = RegisterFunction("_", this, LogErrorMethod);
+        luaEnv[LuaEnv.Inst.episode_numbers] = RegisterFunction("_", this, EpNumsMethod);
         runSandboxFn.Call(_luaLinqText, luaEnv);
         runSandboxFn.Call(_luaUtilsText, luaEnv);
         var getNameFn = (LuaFunction)runSandboxFn.Call(GetNameFunction, luaEnv)[1];
@@ -191,36 +191,35 @@ end
         var file = FileToDict(anidb, mediainfo);
         var episodes = EpisodesToDict(getNameFn);
         var groups = GroupsToDict(animeCache, getNameFn);
-        var LuaEnv = new LuaEnv();
 
         var env = new Dictionary<string, object?>();
-        env.Add(LuaEnv.filename, null);
-        env.Add(LuaEnv.destination, null);
-        env.Add(LuaEnv.subfolder, null);
-        env.Add(LuaEnv.replace_illegal_chars, false);
-        env.Add(LuaEnv.remove_illegal_chars, false);
-        env.Add(LuaEnv.use_existing_anime_location, false);
-        env.Add(LuaEnv.skip_rename, false);
-        env.Add(LuaEnv.skip_move, false);
-        env.Add(LuaEnv.animes, animes);
+        env.Add(LuaEnv.Inst.filename, null);
+        env.Add(LuaEnv.Inst.destination, null);
+        env.Add(LuaEnv.Inst.subfolder, null);
+        env.Add(LuaEnv.Inst.replace_illegal_chars, false);
+        env.Add(LuaEnv.Inst.remove_illegal_chars, false);
+        env.Add(LuaEnv.Inst.use_existing_anime_location, false);
+        env.Add(LuaEnv.Inst.skip_rename, false);
+        env.Add(LuaEnv.Inst.skip_move, false);
+        env.Add(LuaEnv.Inst.animes, animes);
         env.Add(LuaEnv.anime.N, animes.First());
         env.Add(LuaEnv.file.N, file);
-        env.Add(LuaEnv.episodes.Fn, episodes);
-        env.Add(LuaEnv.episode.Fn, episodes.Where(e => (int)e[nameof(episode.animeid)]! == (int)animes.First()[LuaEnv.anime.id]!)
+        env.Add(LuaEnv.Inst.episodes.Fn, episodes);
+        env.Add(LuaEnv.Inst.episode.Fn, episodes.Where(e => (int)e[nameof(episode.animeid)]! == (int)animes.First()[LuaEnv.anime.id]!)
             .OrderBy(e => (string)e[nameof(episode.type)]! == EpisodeType.Other.ToString()
                 ? int.MinValue
                 : (int)Enum.Parse<EpisodeType>((string)e[nameof(episode.type)]!))
             .ThenBy(e => (int)e[nameof(episode.number)]!)
             .First());
-        env.Add(LuaEnv.importfolders, importfolders);
-        env.Add(LuaEnv.groups, groups);
-        env.Add(LuaEnv.group.N, groups.FirstOrDefault());
-        env.Add(LuaEnv.AnimeType, EnumToDict<AnimeType>());
-        env.Add(LuaEnv.TitleType, EnumToDict<TitleType>());
-        env.Add(LuaEnv.Language, EnumToDict<TitleLanguage>());
-        env.Add(LuaEnv.EpisodeType, EnumToDict<EpisodeType>());
-        env.Add(LuaEnv.ImportFolderType, EnumToDict<DropFolderType>());
-        env.Add(LuaEnv.RelationType, EnumToDict<RelationType>());
+        env.Add(LuaEnv.Inst.importfolders.Fn, importfolders);
+        env.Add(LuaEnv.Inst.groups.Fn, groups);
+        env.Add(LuaEnv.Inst.group.Fn, groups.FirstOrDefault());
+        env.Add(LuaEnv.Inst.AnimeType, EnumToDict<AnimeType>());
+        env.Add(LuaEnv.Inst.TitleType, EnumToDict<TitleType>());
+        env.Add(LuaEnv.Inst.Language, EnumToDict<TitleLanguage>());
+        env.Add(LuaEnv.Inst.EpisodeType, EnumToDict<EpisodeType>());
+        env.Add(LuaEnv.Inst.ImportFolderType, EnumToDict<DropFolderType>());
+        env.Add(LuaEnv.Inst.RelationType, EnumToDict<RelationType>());
         return env;
     }
 
@@ -232,9 +231,9 @@ end
         var groups = _args.Groups.Select(g =>
         {
             var groupdict = new Dictionary<string, object?>();
-            groupdict.Add(LuaEnv.group.name, g.PreferredTitle);
-            groupdict.Add(LuaEnv.group.mainanime, AnimeToDict(g.MainSeries.AnidbAnime, animeCache, false, getNameFn));
-            groupdict.Add(LuaEnv.group.animes, g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache, false, getNameFn)).ToList());
+            groupdict.Add(nameof(group.name), g.PreferredTitle);
+            groupdict.Add(nameof(group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, animeCache, false, getNameFn));
+            groupdict.Add(nameof(group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache, false, getNameFn)).ToList());
             return groupdict;
         }).ToList();
         return groups;
@@ -256,7 +255,7 @@ end
         animedict.Add(LuaEnv.anime.preferredname, series?.PreferredTitle ?? anime.PreferredTitle);
         animedict.Add(LuaEnv.anime.defaultname, string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(LuaEnv.anime.id, anime.ID);
-        animedict.Add(LuaEnv.anime.titles, ConvertTitles(anime.Titles));
+        animedict.Add(nameof(LuaEnv.anime.titles), ConvertTitles(anime.Titles));
         animedict.Add(LuaEnv.anime.getname, getNameFn);
         animedict.Add(LuaEnv.anime._classid, LuaEnv.anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
@@ -338,12 +337,12 @@ end
     {
         return titles.Select(t =>
         {
-            var title = new Dictionary<string, string?>();
-            title.Add(LuaEnv.title.name, t.Title);
-            title.Add(LuaEnv.title.language, t.Language.ToString());
-            title.Add(LuaEnv.title.languagecode, t.LanguageCode);
-            title.Add(LuaEnv.title.type, t.Type.ToString());
-            return title;
+            var titled = new Dictionary<string, string?>();
+            titled.Add(nameof(title.name), t.Title);
+            titled.Add(nameof(title.language), t.Language.ToString());
+            titled.Add(nameof(title.languagecode), t.LanguageCode);
+            titled.Add(nameof(title.type), t.Type.ToString());
+            return titled;
         }).ToList();
     }
 
@@ -364,7 +363,7 @@ end
         file.Add(LuaEnv.file.hashes.N, hashdict);
         file.Add(LuaEnv.file.anidb.N, anidb);
         file.Add(LuaEnv.file.media.N, mediainfo);
-        file.Add(LuaEnv.file.importfolder, ImportFolderToDict(_args.File.ImportFolder));
+        file.Add(nameof(LuaEnv.file.importfolder), ImportFolderToDict(_args.File.ImportFolder));
         return file;
     }
 
@@ -372,11 +371,11 @@ end
     private Dictionary<string, object> ImportFolderToDict(IImportFolder folder)
     {
         var importdict = new Dictionary<string, object>();
-        importdict.Add(LuaEnv.importfolder.id, folder.ID);
-        importdict.Add(LuaEnv.importfolder.name, folder.Name);
-        importdict.Add(LuaEnv.importfolder.location, folder.Path);
-        importdict.Add(LuaEnv.importfolder.type, folder.DropFolderType.ToString());
-        importdict.Add(LuaEnv.importfolder._classid, LuaEnv.importfolder._classidVal);
+        importdict.Add(nameof(importfolder.id), folder.ID);
+        importdict.Add(nameof(importfolder.name), folder.Name);
+        importdict.Add(nameof(importfolder.location), folder.Path);
+        importdict.Add(nameof(importfolder.type), folder.DropFolderType.ToString());
+        importdict.Add(nameof(importfolder._classid), importfolder._classidVal);
         return importdict;
     }
 
