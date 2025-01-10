@@ -202,11 +202,11 @@ end
         env.Add(Env.Inst.use_existing_anime_location, false);
         env.Add(Env.Inst.skip_rename, false);
         env.Add(Env.Inst.skip_move, false);
-        env.Add(Env.Inst.animes, animes);
-        env.Add(Env.anime.N, animes.First());
+        env.Add(Env.Inst.animes.Fn, animes);
+        env.Add(Env.Inst.anime.Fn, animes.First());
         env.Add(Env.file.N, file);
         env.Add(Env.Inst.episodes.Fn, episodes);
-        env.Add(Env.Inst.episode.Fn, episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[Env.anime.id]!)
+        env.Add(Env.Inst.episode.Fn, episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
             .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
                 ? int.MinValue
                 : (int)Enum.Parse<EpisodeType>((string)e[nameof(Episode.type)]!))
@@ -248,17 +248,17 @@ end
         if (animeCache.TryGetValue(anime.ID, out var animedict)) return animedict;
         var series = _args.Series.FirstOrDefault(series => series.AnidbAnime == anime);
         animedict = new Dictionary<string, object?>();
-        animedict.Add(Env.anime.airdate, anime.AirDate?.ToTable());
-        animedict.Add(Env.anime.enddate, anime.EndDate?.ToTable());
-        animedict.Add(Env.anime.rating, anime.Rating);
-        animedict.Add(Env.anime.restricted, anime.Restricted);
-        animedict.Add(Env.anime.type, anime.Type.ToString());
-        animedict.Add(Env.anime.preferredname, series?.PreferredTitle ?? anime.PreferredTitle);
-        animedict.Add(Env.anime.defaultname, string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
-        animedict.Add(Env.anime.id, anime.ID);
+        animedict.Add(nameof(Anime.airdate), anime.AirDate?.ToTable());
+        animedict.Add(nameof(Anime.enddate), anime.EndDate?.ToTable());
+        animedict.Add(nameof(Anime.rating), anime.Rating);
+        animedict.Add(nameof(Anime.restricted), anime.Restricted);
+        animedict.Add(nameof(Anime.type), anime.Type.ToString());
+        animedict.Add(nameof(Anime.preferredname), series?.PreferredTitle ?? anime.PreferredTitle);
+        animedict.Add(nameof(Anime.defaultname), string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
+        animedict.Add(nameof(Anime.id), anime.ID);
         animedict.Add(nameof(Env.anime.titles), ConvertTitles(anime.Titles));
-        animedict.Add(Env.anime.getname, getNameFn);
-        animedict.Add(Env.anime._classid, Env.anime._classidVal);
+        animedict.Add(nameof(Anime.getname), getNameFn);
+        animedict.Add(nameof(Anime._classid), Anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
         epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
         epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCounts.Specials);
@@ -266,15 +266,15 @@ end
         epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCounts.Trailers);
         epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
         epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
-        animedict.Add(Env.anime.episodecounts, epcountdict);
-        animedict.Add(Env.anime.relations.N, ignoreRelations
+        animedict.Add(nameof(Anime.episodecounts), epcountdict);
+        animedict.Add(nameof(Env.anime.relations), ignoreRelations
             ? new List<Dictionary<string, object?>>()
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r =>
                 {
                     var relationdict = new Dictionary<string, object?>();
-                    relationdict.Add(Env.anime.relations.type, r.RelationType.ToString());
-                    relationdict.Add(Env.anime.relations.anime, AnimeToDict(r.Related!, animeCache, true, getNameFn));
+                    relationdict.Add(nameof(Relation.type), r.RelationType.ToString());
+                    relationdict.Add(nameof(Relation.anime), AnimeToDict(r.Related!, animeCache, true, getNameFn));
                     return relationdict;
                 }).ToList());
         return animeCache[anime.ID] = animedict;
@@ -363,7 +363,7 @@ end
         hashdict.Add(Env.file.hashes.sha1, _args.File.Video.Hashes.SHA1);
         file.Add(Env.file.hashes.N, hashdict);
         file.Add(Env.file.anidb.N, anidb);
-        file.Add(Env.file.media.N, mediainfo);
+        file.Add(nameof(Env.file.media), mediainfo);
         file.Add(nameof(Env.file.importfolder), ImportFolderToDict(_args.File.ImportFolder));
         return file;
     }
@@ -387,34 +387,34 @@ end
         if (_args.File.Video.MediaInfo is { } mediaInfo)
         {
             mediainfo = new Dictionary<string, object?>();
-            mediainfo.Add(Env.file.media.chaptered, mediaInfo.Chapters.Any());
+            mediainfo.Add(nameof(Media.chaptered), mediaInfo.Chapters.Any());
             Dictionary<string, object>? videodict = null;
             if (mediaInfo.VideoStream is { } video)
             {
                 videodict = new Dictionary<string, object>();
-                videodict.Add(Env.file.media.video.height, video.Height);
-                videodict.Add(Env.file.media.video.width, video.Width);
-                videodict.Add(Env.file.media.video.codec, video.Codec.Simplified);
-                videodict.Add(Env.file.media.video.res, video.Resolution);
-                videodict.Add(Env.file.media.video.bitrate, video.BitRate);
-                videodict.Add(Env.file.media.video.bitdepth, video.BitDepth);
-                videodict.Add(Env.file.media.video.framerate, video.FrameRate);
+                videodict.Add(nameof(Video.height), video.Height);
+                videodict.Add(nameof(Video.width), video.Width);
+                videodict.Add(nameof(Video.codec), video.Codec.Simplified);
+                videodict.Add(nameof(Video.res), video.Resolution);
+                videodict.Add(nameof(Video.bitrate), video.BitRate);
+                videodict.Add(nameof(Video.bitdepth), video.BitDepth);
+                videodict.Add(nameof(Video.framerate), video.FrameRate);
             }
 
-            mediainfo.Add(Env.file.media.video.N, videodict);
-            mediainfo.Add(Env.file.media.duration, mediaInfo.Duration);
-            mediainfo.Add(Env.file.media.bitrate, mediaInfo.BitRate);
-            mediainfo.Add(Env.file.media.sublanguages, mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
-            mediainfo.Add(Env.file.media.audio.N, mediaInfo.AudioStreams.Select(a =>
+            mediainfo.Add(nameof(Media.video), videodict);
+            mediainfo.Add(nameof(Media.duration), mediaInfo.Duration);
+            mediainfo.Add(nameof(Media.bitrate), mediaInfo.BitRate);
+            mediainfo.Add(nameof(Media.sublanguages), mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
+            mediainfo.Add(nameof(Media.audio), mediaInfo.AudioStreams.Select(a =>
             {
                 var audiodict = new Dictionary<string, object?>();
-                audiodict.Add(Env.file.media.audio.compressionmode, a.CompressionMode);
-                audiodict.Add(Env.file.media.audio.channels,
+                audiodict.Add(nameof(Audio.compressionmode), a.CompressionMode);
+                audiodict.Add(nameof(Audio.channels),
                     !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
-                audiodict.Add(Env.file.media.audio.samplingrate, a.SamplingRate);
-                audiodict.Add(Env.file.media.audio.codec, a.Codec.Simplified);
-                audiodict.Add(Env.file.media.audio.language, a.Language.ToString());
-                audiodict.Add(Env.file.media.audio.title, a.Title);
+                audiodict.Add(nameof(Audio.samplingrate), a.SamplingRate);
+                audiodict.Add(nameof(Audio.codec), a.Codec.Simplified);
+                audiodict.Add(nameof(Audio.language), a.Language.ToString());
+                audiodict.Add(nameof(Audio.title), a.Title);
                 return audiodict;
             }).ToList());
         }

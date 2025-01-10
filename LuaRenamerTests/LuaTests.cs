@@ -73,7 +73,7 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = tostring({Env.anime.typeFn} == {Env.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
+        var args = MinimalArgs($"{Env.Inst.filename} = tostring({Env.Inst.anime} == {Env.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
@@ -274,9 +274,8 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(Importfolder.type)}
     [TestMethod]
     public void TestGetTitle()
     {
-        var LuaEnv = new Env();
         var args = MinimalArgs(
-            $@"{LuaEnv.filename} = {Env.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getname}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true) .. {LuaEnv.episode.getname}({LuaEnv.Language}.{nameof(TitleLanguage.Romaji)}, true)");
+            $@"{Env.Inst.filename} = {Env.Inst.anime.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange(new AnimeTitle[]
         {
             new()
@@ -405,7 +404,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(Importfolder.type)}
     public void TestRelations()
     {
         var args = MinimalArgs(
-            $"{Env.Inst.filename} = {Env.anime.relations.Fn}[1].{Env.anime.relations.anime}.{Env.anime.preferredname} .. {Env.anime.relations.Fn}[1].{Env.anime.relations.type} .. #{Env.anime.relations.Fn}[1].{Env.anime.relations.anime}.{Env.anime.relations.N}");
+            $"{Env.Inst.filename} = {Env.Inst.anime.relations[1].anime.preferredname} .. {Env.Inst.anime.relations[1].type} .. #{Env.Inst.anime.relations[1].anime.relations}");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.ID).Returns(1);

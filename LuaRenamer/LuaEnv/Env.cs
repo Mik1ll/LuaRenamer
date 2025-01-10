@@ -17,7 +17,8 @@ public class Env : Table
     public string remove_illegal_chars => Get();
     public string skip_rename => Get();
     public string skip_move => Get();
-    public string animes => Get();
+    public Anime anime => new() { Fn = Get() };
+    public Array<Anime> animes => new() { Fn = Get() };
     public Episode episode => new() { Fn = Get() };
     public Array<Episode> episodes => new() { Fn = Get() };
     public Array<Importfolder> importfolders => new() { Fn = Get() };
@@ -35,48 +36,6 @@ public class Env : Table
     public string logwarn => Get();
     public string logerror => Get();
 
-    public class anime : Table
-    {
-        public const string N = nameof(anime);
-        public const string Fn = N;
-
-        public const string airdate = nameof(airdate);
-        public const string airdateFn = Fn + "." + airdate;
-        public const string enddate = nameof(enddate);
-        public const string enddateFn = Fn + "." + enddate;
-        public const string rating = nameof(rating);
-        public const string ratingFn = Fn + "." + rating;
-        public const string restricted = nameof(restricted);
-        public const string restrictedFn = Fn + "." + restricted;
-        public const string type = nameof(type);
-        public const string typeFn = Fn + "." + type;
-        public const string preferredname = nameof(preferredname);
-        public const string preferrednameFn = Fn + "." + preferredname;
-        public const string defaultname = nameof(defaultname);
-        public const string defaultnameFn = Fn + "." + defaultname;
-        public const string id = nameof(id);
-        public const string idFn = Fn + "." + id;
-        public Array<Title> titles => new() { Fn = Get() };
-        public const string getname = nameof(getname);
-        public const string getnameFn = Fn + ":" + getname;
-        public const string episodecounts = nameof(episodecounts);
-        public const string episodecountsFn = Fn + "." + episodecounts;
-        public const string _classid = nameof(_classid);
-        public const string _classidFn = Fn + "." + _classid;
-        public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
-
-
-        public static class relations
-        {
-            public const string N = nameof(relations);
-            public const string Fn = Env.anime.Fn + "." + N;
-
-            public const string anime = nameof(anime);
-            public const string animeFn = Fn + "." + anime;
-            public const string type = nameof(type);
-            public const string typeFn = Fn + "." + type;
-        }
-    }
 
     public static class date
     {
@@ -107,6 +66,7 @@ public class Env : Table
         public Importfolder importfolder => new() { Fn = Get() };
         public const string earliestname = nameof(earliestname);
         public const string earliestnameFn = Fn + "." + earliestname;
+        public Media media => new() { Fn = Get() };
 
         public static class hashes
         {
@@ -161,61 +121,6 @@ public class Env : Table
                 public const string sublanguagesFn = Fn + "." + sublanguages;
                 public const string dublanguages = nameof(dublanguages);
                 public const string dublanguagesFn = Fn + "." + dublanguages;
-            }
-        }
-
-        public static class media
-        {
-            public const string N = nameof(media);
-            public const string Fn = file.Fn + "." + N;
-
-            public const string chaptered = nameof(chaptered);
-            public const string chapteredFn = Fn + "." + chaptered;
-            public const string duration = nameof(duration);
-            public const string durationFn = Fn + "." + duration;
-            public const string bitrate = nameof(bitrate);
-            public const string bitrateFn = Fn + "." + bitrate;
-            public const string sublanguages = nameof(sublanguages);
-            public const string sublanguagesFn = Fn + "." + sublanguages;
-
-            public static class video
-            {
-                public const string N = nameof(video);
-                public const string Fn = media.Fn + "." + N;
-
-                public const string height = nameof(height);
-                public const string heightFn = Fn + "." + height;
-                public const string width = nameof(width);
-                public const string widthFn = Fn + "." + width;
-                public const string codec = nameof(codec);
-                public const string codecFn = Fn + "." + codec;
-                public const string res = nameof(res);
-                public const string resFn = Fn + "." + res;
-                public const string bitrate = nameof(bitrate);
-                public const string bitrateFn = Fn + "." + bitrate;
-                public const string bitdepth = nameof(bitdepth);
-                public const string bitdepthFn = Fn + "." + bitdepth;
-                public const string framerate = nameof(framerate);
-                public const string framerateFn = Fn + "." + framerate;
-            }
-
-            public static class audio
-            {
-                public const string N = nameof(audio);
-                public const string Fn = media.Fn + "." + N;
-
-                public const string compressionmode = nameof(compressionmode);
-                public const string compressionmodeFn = Fn + "." + compressionmode;
-                public const string channels = nameof(channels);
-                public const string channelsFn = Fn + "." + channels;
-                public const string samplingrate = nameof(samplingrate);
-                public const string samplingrateFn = Fn + "." + samplingrate;
-                public const string codec = nameof(codec);
-                public const string codecFn = Fn + "." + codec;
-                public const string language = nameof(language);
-                public const string languageFn = Fn + "." + language;
-                public const string title = nameof(title);
-                public const string titleFn = Fn + "." + title;
             }
         }
     }
