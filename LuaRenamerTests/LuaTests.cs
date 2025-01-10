@@ -133,6 +133,7 @@ public class LuaTests
     [TestMethod]
     public void TestEpisodes()
     {
+        var LuaEnv = new LuaEnv();
         var args = MinimalArgs(
             $"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.numberFn} .. ' ' .. {LuaEnv.episode.typeFn}");
         args = new RelocationEventArgs<LuaRenamerSettings>
@@ -273,6 +274,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     [TestMethod]
     public void TestGetTitle()
     {
+        var LuaEnv = new LuaEnv();
         var args = MinimalArgs(
             $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.Romaji)}, true)");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange(new AnimeTitle[]

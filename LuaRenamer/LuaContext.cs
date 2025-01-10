@@ -191,6 +191,7 @@ end
         var file = FileToDict(anidb, mediainfo);
         var episodes = EpisodesToDict(getNameFn);
         var groups = GroupsToDict(animeCache, getNameFn);
+        var LuaEnv = new LuaEnv();
 
         var env = new Dictionary<string, object?>();
         env.Add(LuaEnv.filename, null);
@@ -204,12 +205,12 @@ end
         env.Add(LuaEnv.animes, animes);
         env.Add(LuaEnv.anime.N, animes.First());
         env.Add(LuaEnv.file.N, file);
-        env.Add(LuaEnv.episodes, episodes);
-        env.Add(LuaEnv.episode.N, episodes.Where(e => (int)e[LuaEnv.episode.animeid]! == (int)animes.First()[LuaEnv.anime.id]!)
-            .OrderBy(e => (string)e[LuaEnv.episode.type]! == EpisodeType.Other.ToString()
+        env.Add(LuaEnv.episodes.Fn, episodes);
+        env.Add(LuaEnv.episode.Fn, episodes.Where(e => (int)e[episode.animeid]! == (int)animes.First()[LuaEnv.anime.id]!)
+            .OrderBy(e => (string)e[episode.type]! == EpisodeType.Other.ToString()
                 ? int.MinValue
-                : (int)Enum.Parse<EpisodeType>((string)e[LuaEnv.episode.type]!))
-            .ThenBy(e => (int)e[LuaEnv.episode.number]!)
+                : (int)Enum.Parse<EpisodeType>((string)e[episode.type]!))
+            .ThenBy(e => (int)e[episode.number]!)
             .First());
         env.Add(LuaEnv.importfolders, importfolders);
         env.Add(LuaEnv.groups, groups);
@@ -317,16 +318,16 @@ end
         var episodes = _args.Episodes.Select(se => se.AnidbEpisode).Select(e =>
         {
             var epdict = new Dictionary<string, object?>();
-            epdict.Add(LuaEnv.episode.duration, e.Runtime.TotalSeconds);
-            epdict.Add(LuaEnv.episode.number, e.EpisodeNumber);
-            epdict.Add(LuaEnv.episode.type, e.Type.ToString());
-            epdict.Add(LuaEnv.episode.airdate, e.AirDate?.ToTable());
-            epdict.Add(LuaEnv.episode.animeid, e.SeriesID);
-            epdict.Add(LuaEnv.episode.id, e.ID);
-            epdict.Add(LuaEnv.episode.titles, ConvertTitles(e.Titles));
-            epdict.Add(LuaEnv.episode.getname, getNameFn);
-            epdict.Add(LuaEnv.episode.prefix, Utils.EpPrefix[e.Type]);
-            epdict.Add(LuaEnv.episode._classid, LuaEnv.episode._classidVal);
+            epdict.Add(episode.duration, e.Runtime.TotalSeconds);
+            epdict.Add(episode.number, e.EpisodeNumber);
+            epdict.Add(episode.type, e.Type.ToString());
+            epdict.Add(episode.airdate, e.AirDate?.ToTable());
+            epdict.Add(episode.animeid, e.SeriesID);
+            epdict.Add(episode.id, e.ID);
+            epdict.Add(episode.titles, ConvertTitles(e.Titles));
+            epdict.Add(episode.getname, getNameFn);
+            epdict.Add(episode.prefix, Utils.EpPrefix[e.Type]);
+            epdict.Add(episode._classid, episode._classidVal);
             return epdict;
         }).ToList();
         return episodes;

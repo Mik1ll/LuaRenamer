@@ -6,7 +6,7 @@
 #pragma warning disable CS8981
 namespace LuaRenamer;
 
-public static class LuaEnv
+public class LuaEnv
 {
     public const string filename = nameof(filename);
     public const string destination = nameof(destination);
@@ -17,7 +17,8 @@ public static class LuaEnv
     public const string skip_rename = nameof(skip_rename);
     public const string skip_move = nameof(skip_move);
     public const string animes = nameof(animes);
-    public const string episodes = nameof(episodes);
+    public episode episode => new(nameof(episode));
+    public episodes episodes => new(nameof(episodes));
     public const string importfolders = nameof(importfolders);
     public const string groups = nameof(groups);
     public const string AnimeType = nameof(AnimeType);
@@ -228,33 +229,6 @@ public static class LuaEnv
         }
     }
 
-    public static class episode
-    {
-        public const string N = nameof(episode);
-        public const string Fn = N;
-
-        public const string duration = nameof(duration);
-        public const string durationFn = Fn + "." + duration;
-        public const string number = nameof(number);
-        public const string numberFn = Fn + "." + number;
-        public const string type = nameof(type);
-        public const string typeFn = Fn + "." + type;
-        public const string airdate = nameof(airdate);
-        public const string airdateFn = Fn + "." + airdate;
-        public const string animeid = nameof(animeid);
-        public const string animeidFn = Fn + "." + animeid;
-        public const string id = nameof(id);
-        public const string idFn = Fn + "." + id;
-        public const string titles = nameof(anime.titles);
-        public const string titlesFn = Fn + "." + titles;
-        public const string getname = nameof(getname);
-        public const string getnameFn = Fn + ":" + getname;
-        public const string prefix = nameof(prefix);
-        public const string prefixFn = Fn + "." + prefix;
-        public const string _classid = nameof(_classid);
-        public const string _classidFn = Fn + "." + _classid;
-        public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
-    }
 
     public static class importfolder
     {
@@ -278,4 +252,38 @@ public static class LuaEnv
         public const string animes = nameof(animes);
         public const string animesFn = Fn + "." + animes;
     }
+}
+
+public class episode(string Path)
+{
+    public string Fn => Path;
+
+    public const string duration = nameof(duration);
+    public string durationFn => Fn + "." + duration;
+    public const string number = nameof(number);
+    public string numberFn => Fn + "." + number;
+    public const string type = nameof(type);
+    public string typeFn => Fn + "." + type;
+    public const string airdate = nameof(airdate);
+    public string airdateFn => Fn + "." + airdate;
+    public const string animeid = nameof(animeid);
+    public string animeidFn => Fn + "." + animeid;
+    public const string id = nameof(id);
+    public string idFn => Fn + "." + id;
+    public const string titles = nameof(titles);
+    public string titlesFn => Fn + "." + titles;
+    public const string getname = nameof(getname);
+    public string getnameFn => Fn + ":" + getname;
+    public const string prefix = nameof(prefix);
+    public string prefixFn => Fn + "." + prefix;
+    public const string _classid = nameof(_classid);
+    public string _classidFn => Fn + "." + _classid;
+    public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
+}
+
+public class episodes(string Path)
+{
+    public string Fn => Path;
+
+    public episode this[int index] => new(Fn + $"[{index}]");
 }
