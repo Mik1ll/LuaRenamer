@@ -206,11 +206,11 @@ end
         env.Add(LuaEnv.anime.N, animes.First());
         env.Add(LuaEnv.file.N, file);
         env.Add(LuaEnv.episodes.Fn, episodes);
-        env.Add(LuaEnv.episode.Fn, episodes.Where(e => (int)e[episode.animeid]! == (int)animes.First()[LuaEnv.anime.id]!)
-            .OrderBy(e => (string)e[episode.type]! == EpisodeType.Other.ToString()
+        env.Add(LuaEnv.episode.Fn, episodes.Where(e => (int)e[nameof(episode.animeid)]! == (int)animes.First()[LuaEnv.anime.id]!)
+            .OrderBy(e => (string)e[nameof(episode.type)]! == EpisodeType.Other.ToString()
                 ? int.MinValue
-                : (int)Enum.Parse<EpisodeType>((string)e[episode.type]!))
-            .ThenBy(e => (int)e[episode.number]!)
+                : (int)Enum.Parse<EpisodeType>((string)e[nameof(episode.type)]!))
+            .ThenBy(e => (int)e[nameof(episode.number)]!)
             .First());
         env.Add(LuaEnv.importfolders, importfolders);
         env.Add(LuaEnv.groups, groups);
@@ -318,16 +318,16 @@ end
         var episodes = _args.Episodes.Select(se => se.AnidbEpisode).Select(e =>
         {
             var epdict = new Dictionary<string, object?>();
-            epdict.Add(episode.duration, e.Runtime.TotalSeconds);
-            epdict.Add(episode.number, e.EpisodeNumber);
-            epdict.Add(episode.type, e.Type.ToString());
-            epdict.Add(episode.airdate, e.AirDate?.ToTable());
-            epdict.Add(episode.animeid, e.SeriesID);
-            epdict.Add(episode.id, e.ID);
-            epdict.Add(episode.titles, ConvertTitles(e.Titles));
-            epdict.Add(episode.getname, getNameFn);
-            epdict.Add(episode.prefix, Utils.EpPrefix[e.Type]);
-            epdict.Add(episode._classid, episode._classidVal);
+            epdict.Add(nameof(episode.duration), e.Runtime.TotalSeconds);
+            epdict.Add(nameof(episode.number), e.EpisodeNumber);
+            epdict.Add(nameof(episode.type), e.Type.ToString());
+            epdict.Add(nameof(episode.airdate), e.AirDate?.ToTable());
+            epdict.Add(nameof(episode.animeid), e.SeriesID);
+            epdict.Add(nameof(episode.id), e.ID);
+            epdict.Add(nameof(episode.titles), ConvertTitles(e.Titles));
+            epdict.Add(nameof(episode.getname), getNameFn);
+            epdict.Add(nameof(episode.prefix), Utils.EpPrefix[e.Type]);
+            epdict.Add(nameof(episode._classid), episode._classidVal);
             return epdict;
         }).ToList();
         return episodes;

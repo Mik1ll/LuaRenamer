@@ -135,7 +135,7 @@ public class LuaTests
     {
         var LuaEnv = new LuaEnv();
         var args = MinimalArgs(
-            $"{LuaEnv.filename} = {LuaEnv.episode.titlesFn}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.numberFn} .. ' ' .. {LuaEnv.episode.typeFn}");
+            $"{LuaEnv.filename} = {LuaEnv.episode.titles}[1].{LuaEnv.title.name} .. ' ' .. {LuaEnv.episode.number} .. ' ' .. {LuaEnv.episode.type}");
         args = new RelocationEventArgs<LuaRenamerSettings>
         {
             Settings = args.Settings,
@@ -276,7 +276,7 @@ local fld = from({LuaEnv.importfolders}):where('{LuaEnv.importfolder.type}', {Lu
     {
         var LuaEnv = new LuaEnv();
         var args = MinimalArgs(
-            $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true) .. {LuaEnv.episode.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.Romaji)}, true)");
+            $@"{LuaEnv.filename} = {LuaEnv.anime.getnameFn}({LuaEnv.Language}.{nameof(TitleLanguage.English)}) .. {LuaEnv.episode.getname}({LuaEnv.Language}.{nameof(TitleLanguage.English)}, true) .. {LuaEnv.episode.getname}({LuaEnv.Language}.{nameof(TitleLanguage.Romaji)}, true)");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange(new AnimeTitle[]
         {
             new()

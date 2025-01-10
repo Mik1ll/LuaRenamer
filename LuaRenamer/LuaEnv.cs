@@ -3,6 +3,8 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberHidesStaticFromOuterClass
 
+using System.Runtime.CompilerServices;
+
 #pragma warning disable CS8981
 namespace LuaRenamer;
 
@@ -17,8 +19,8 @@ public class LuaEnv
     public const string skip_rename = nameof(skip_rename);
     public const string skip_move = nameof(skip_move);
     public const string animes = nameof(animes);
-    public episode episode => new(nameof(episode));
-    public episodes episodes => new(nameof(episodes));
+    public episode episode => new() { Fn = nameof(episode) };
+    public Array<episode> episodes => new() { Fn = nameof(episodes) };
     public const string importfolders = nameof(importfolders);
     public const string groups = nameof(groups);
     public const string AnimeType = nameof(AnimeType);
@@ -254,36 +256,28 @@ public class LuaEnv
     }
 }
 
-public class episode(string Path)
+public class Table
 {
-    public string Fn => Path;
-
-    public const string duration = nameof(duration);
-    public string durationFn => Fn + "." + duration;
-    public const string number = nameof(number);
-    public string numberFn => Fn + "." + number;
-    public const string type = nameof(type);
-    public string typeFn => Fn + "." + type;
-    public const string airdate = nameof(airdate);
-    public string airdateFn => Fn + "." + airdate;
-    public const string animeid = nameof(animeid);
-    public string animeidFn => Fn + "." + animeid;
-    public const string id = nameof(id);
-    public string idFn => Fn + "." + id;
-    public const string titles = nameof(titles);
-    public string titlesFn => Fn + "." + titles;
-    public const string getname = nameof(getname);
-    public string getnameFn => Fn + ":" + getname;
-    public const string prefix = nameof(prefix);
-    public string prefixFn => Fn + "." + prefix;
-    public const string _classid = nameof(_classid);
-    public string _classidFn => Fn + "." + _classid;
-    public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
+    public string Fn { get; init; } = "";
+    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => Fn + sep + memberName;
 }
 
-public class episodes(string Path)
+public class Array<T> : Table where T : Table, new()
 {
-    public string Fn => Path;
+    public T this[int index] => new() { Fn = Fn + $"[{index}]" };
+}
 
-    public episode this[int index] => new(Fn + $"[{index}]");
+public class episode : Table
+{
+    public string duration => Get();
+    public string number => Get();
+    public string type => Get();
+    public string airdate => Get();
+    public string animeid => Get();
+    public string id => Get();
+    public string titles => Get();
+    public string getname => Get(':');
+    public string prefix => Get();
+    public string _classid => Get();
+    public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
 }
