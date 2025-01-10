@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
@@ -102,19 +103,19 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                     throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
                 break;
             case LuaTable destTable:
-                if ((string)destTable[nameof(importfolder._classid)] == importfolder._classidVal)
+                if ((string)destTable[nameof(Importfolder._classid)] == Importfolder._classidVal)
                 {
-                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(importfolder.id)]));
+                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(Importfolder.id)]));
                     if (destfolder is null)
-                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(importfolder.id)]}");
+                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(Importfolder.id)]}");
                 }
                 else
-                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {LuaEnv.Inst.importfolders}");
+                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {Env.Inst.importfolders}");
 
                 break;
             default:
                 throw new LuaScriptException(
-                    $"destination must be nil or an existing import folder string (name/path), or table (see {LuaEnv.Inst.importfolders} variable)",
+                    $"destination must be nil or an existing import folder string (name/path), or table (see {Env.Inst.importfolders} variable)",
                     string.Empty);
         }
 
@@ -165,14 +166,14 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
 
             using var lua = new LuaContext(_logger, args);
             var env = lua.RunSandboxed();
-            var replaceIllegalChars = (bool)env[LuaEnv.Inst.replace_illegal_chars];
-            var removeIllegalChars = (bool)env[LuaEnv.Inst.remove_illegal_chars];
-            var useExistingAnimeLocation = (bool)env[LuaEnv.Inst.use_existing_anime_location];
-            var skipMove = (bool)env[LuaEnv.Inst.skip_move];
-            var skipRename = (bool)env[LuaEnv.Inst.skip_rename];
-            env.TryGetValue(LuaEnv.Inst.filename, out var luaFilename);
-            env.TryGetValue(LuaEnv.Inst.destination, out var luaDestination);
-            env.TryGetValue(LuaEnv.Inst.subfolder, out var luaSubfolder);
+            var replaceIllegalChars = (bool)env[Env.Inst.replace_illegal_chars];
+            var removeIllegalChars = (bool)env[Env.Inst.remove_illegal_chars];
+            var useExistingAnimeLocation = (bool)env[Env.Inst.use_existing_anime_location];
+            var skipMove = (bool)env[Env.Inst.skip_move];
+            var skipRename = (bool)env[Env.Inst.skip_rename];
+            env.TryGetValue(Env.Inst.filename, out var luaFilename);
+            env.TryGetValue(Env.Inst.destination, out var luaDestination);
+            env.TryGetValue(Env.Inst.subfolder, out var luaSubfolder);
 
             var (destination, subfolder) = args.MoveEnabled && !skipMove
                 ? (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??

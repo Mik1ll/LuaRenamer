@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using LuaRenamer.LuaEnv;
 using NLua;
 
 namespace LuaRenamer;
@@ -31,6 +32,7 @@ public static class LuaExtensions
         {
             tab[entry.Key] = AddHelper(lua, cache, entry.Value);
         }
+
         return tab;
     }
 
@@ -47,6 +49,7 @@ public static class LuaExtensions
             tab[i] = AddHelper(lua, cache, obj);
             i++;
         }
+
         return tab;
     }
 
@@ -54,15 +57,15 @@ public static class LuaExtensions
     {
         return new Dictionary<string, object>
         {
-            { LuaEnv.date.year, dt.Year },
-            { LuaEnv.date.month, dt.Month },
-            { LuaEnv.date.day, dt.Day },
-            { LuaEnv.date.yday, dt.DayOfYear },
-            { LuaEnv.date.wday, (long)dt.DayOfWeek + 1 },
-            { LuaEnv.date.hour, dt.Hour },
-            { LuaEnv.date.min, dt.Minute },
-            { LuaEnv.date.sec, dt.Second },
-            { LuaEnv.date.isdst, dt.IsDaylightSavingTime() }
+            { Env.date.year, dt.Year },
+            { Env.date.month, dt.Month },
+            { Env.date.day, dt.Day },
+            { Env.date.yday, dt.DayOfYear },
+            { Env.date.wday, (long)dt.DayOfWeek + 1 },
+            { Env.date.hour, dt.Hour },
+            { Env.date.min, dt.Minute },
+            { Env.date.sec, dt.Second },
+            { Env.date.isdst, dt.IsDaylightSavingTime() }
         };
     }
 }

@@ -3,14 +3,12 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberHidesStaticFromOuterClass
 
-using System.Runtime.CompilerServices;
-
 #pragma warning disable CS8981
-namespace LuaRenamer;
+namespace LuaRenamer.LuaEnv;
 
-public class LuaEnv : Table
+public class Env : Table
 {
-    public static readonly LuaEnv Inst = new();
+    public static readonly Env Inst = new();
     public string filename => Get();
     public string destination => Get();
     public string subfolder => Get();
@@ -20,11 +18,11 @@ public class LuaEnv : Table
     public string skip_rename => Get();
     public string skip_move => Get();
     public string animes => Get();
-    public episode episode => new() { Fn = Get() };
-    public Array<episode> episodes => new() { Fn = Get() };
-    public Array<importfolder> importfolders => new() { Fn = Get() };
-    public group group => new() { Fn = Get() };
-    public Array<group> groups => new() { Fn = Get() };
+    public Episode episode => new() { Fn = Get() };
+    public Array<Episode> episodes => new() { Fn = Get() };
+    public Array<Importfolder> importfolders => new() { Fn = Get() };
+    public Group group => new() { Fn = Get() };
+    public Array<Group> groups => new() { Fn = Get() };
     public string AnimeType => Get();
     public string TitleType => Get();
     public string Language => Get();
@@ -58,7 +56,7 @@ public class LuaEnv : Table
         public const string defaultnameFn = Fn + "." + defaultname;
         public const string id = nameof(id);
         public const string idFn = Fn + "." + id;
-        public Array<title> titles => new() { Fn = Get() };
+        public Array<Title> titles => new() { Fn = Get() };
         public const string getname = nameof(getname);
         public const string getnameFn = Fn + ":" + getname;
         public const string episodecounts = nameof(episodecounts);
@@ -71,7 +69,7 @@ public class LuaEnv : Table
         public static class relations
         {
             public const string N = nameof(relations);
-            public const string Fn = LuaEnv.anime.Fn + "." + N;
+            public const string Fn = Env.anime.Fn + "." + N;
 
             public const string anime = nameof(anime);
             public const string animeFn = Fn + "." + anime;
@@ -106,7 +104,7 @@ public class LuaEnv : Table
         public const string pathFn = Fn + "." + path;
         public const string size = nameof(size);
         public const string sizeFn = Fn + "." + size;
-        public importfolder importfolder => new() { Fn = Get() };
+        public Importfolder importfolder => new() { Fn = Get() };
         public const string earliestname = nameof(earliestname);
         public const string earliestnameFn = Fn + "." + earliestname;
 
@@ -221,56 +219,4 @@ public class LuaEnv : Table
             }
         }
     }
-}
-
-public class Table
-{
-    public string Fn { get; init; } = "";
-    public override string ToString() => Fn;
-    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
-}
-
-public class Array<T> : Table where T : Table, new()
-{
-    public T this[int index] => new() { Fn = Fn + $"[{index}]" };
-}
-
-public class episode : Table
-{
-    public string duration => Get();
-    public string number => Get();
-    public string type => Get();
-    public string airdate => Get();
-    public string animeid => Get();
-    public string id => Get();
-    public Array<title> titles => new() { Fn = Get() };
-    public string getname => Get(':');
-    public string prefix => Get();
-    public string _classid => Get();
-    public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
-}
-
-public class importfolder : Table
-{
-    public string id => Get();
-    public string name => Get();
-    public string location => Get();
-    public string type => Get();
-    public string _classid => Get();
-    public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
-}
-
-public class group : Table
-{
-    public string name => Get();
-    public string mainanime => Get();
-    public string animes => Get();
-}
-
-public class title : Table
-{
-    public string name => Get();
-    public string language => Get();
-    public string languagecode => Get();
-    public string type => Get();
 }
