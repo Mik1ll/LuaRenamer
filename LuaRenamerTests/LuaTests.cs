@@ -73,7 +73,7 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = tostring({Env.Inst.anime} == {Env.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
+        var args = MinimalArgs($"{Env.Inst.filename} = tostring({Env.Inst.anime.type} == {Env.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
@@ -103,7 +103,7 @@ public class LuaTests
     [TestMethod]
     public void TestDateTime()
     {
-        var args = MinimalArgs($@"{Env.Inst.filename} = os.date('%c', os.time({Env.file.anidb.releasedateFn}))");
+        var args = MinimalArgs($@"{Env.Inst.filename} = os.date('%c', os.time({Env.Inst.file.anidb.releasedate}))");
         var path = args.File.Path;
         var name = args.File.FileName;
         args = new RelocationEventArgs<LuaRenamerSettings>

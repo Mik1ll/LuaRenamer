@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Plugin.Abstractions.DataModels;
 using Shoko.Plugin.Abstractions.Events;
+using File = System.IO.File;
 
 namespace LuaRenamer;
 
@@ -204,7 +205,7 @@ end
         env.Add(Env.Inst.skip_move, false);
         env.Add(Env.Inst.animes.Fn, animes);
         env.Add(Env.Inst.anime.Fn, animes.First());
-        env.Add(Env.file.N, file);
+        env.Add(Env.Inst.file.Fn, file);
         env.Add(Env.Inst.episodes.Fn, episodes);
         env.Add(Env.Inst.episode.Fn, episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
             .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
@@ -287,26 +288,26 @@ end
         if (_args.File.Video.AniDB is { } aniDbInfo)
         {
             anidb = new Dictionary<string, object?>();
-            anidb.Add(Env.file.anidb.censored, aniDbInfo.Censored);
-            anidb.Add(Env.file.anidb.source, aniDbInfo.Source);
-            anidb.Add(Env.file.anidb.version, aniDbInfo.Version);
-            anidb.Add(Env.file.anidb.releasedate, aniDbInfo.ReleaseDate?.ToTable());
+            anidb.Add(nameof(AniDb.censored), aniDbInfo.Censored);
+            anidb.Add(nameof(AniDb.source), aniDbInfo.Source);
+            anidb.Add(nameof(AniDb.version), aniDbInfo.Version);
+            anidb.Add(nameof(AniDb.releasedate), aniDbInfo.ReleaseDate?.ToTable());
             Dictionary<string, object?>? groupdict = null;
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (aniDbInfo.ReleaseGroup is not null && aniDbInfo.ReleaseGroup.ID != 0 && aniDbInfo.ReleaseGroup.Name != "raw/unknown")
             {
                 groupdict = new Dictionary<string, object?>();
-                groupdict.Add(Env.file.anidb.releasegroup.name, aniDbInfo.ReleaseGroup.Name);
-                groupdict.Add(Env.file.anidb.releasegroup.shortname, aniDbInfo.ReleaseGroup.ShortName);
+                groupdict.Add(nameof(ReleaseGroup.name), aniDbInfo.ReleaseGroup.Name);
+                groupdict.Add(nameof(ReleaseGroup.shortname), aniDbInfo.ReleaseGroup.ShortName);
             }
 
-            anidb.Add(Env.file.anidb.releasegroup.N, groupdict);
-            anidb.Add(Env.file.anidb.id, aniDbInfo.AniDBFileID);
+            anidb.Add(nameof(AniDb.releasegroup), groupdict);
+            anidb.Add(nameof(AniDb.id), aniDbInfo.AniDBFileID);
             var mediadict = new Dictionary<string, object>();
-            mediadict.Add(Env.file.anidb.media.sublanguages, aniDbInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList());
-            mediadict.Add(Env.file.anidb.media.dublanguages, aniDbInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
-            anidb.Add(Env.file.anidb.media.N, mediadict);
-            anidb.Add(Env.file.anidb.description, aniDbInfo.Description);
+            mediadict.Add(nameof(AniDbMedia.sublanguages), aniDbInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList());
+            mediadict.Add(nameof(AniDbMedia.dublanguages), aniDbInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
+            anidb.Add(nameof(AniDb.media), mediadict);
+            anidb.Add(nameof(AniDb.description), aniDbInfo.Description);
         }
 
         return anidb;
@@ -351,20 +352,20 @@ end
     private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo)
     {
         var file = new Dictionary<string, object?>();
-        file.Add(Env.file.name, Path.GetFileNameWithoutExtension(_args.File.FileName));
-        file.Add(Env.file.extension, Path.GetExtension(_args.File.FileName));
-        file.Add(Env.file.path, _args.File.Path);
-        file.Add(Env.file.size, _args.File.Size);
-        file.Add(Env.file.earliestname, Path.GetFileNameWithoutExtension(_args.File.Video.EarliestKnownName));
+        file.Add(nameof(LuaEnv.File.name), Path.GetFileNameWithoutExtension(_args.File.FileName));
+        file.Add(nameof(LuaEnv.File.extension), Path.GetExtension(_args.File.FileName));
+        file.Add(nameof(LuaEnv.File.path), _args.File.Path);
+        file.Add(nameof(LuaEnv.File.size), _args.File.Size);
+        file.Add(nameof(LuaEnv.File.earliestname), Path.GetFileNameWithoutExtension(_args.File.Video.EarliestKnownName));
         var hashdict = new Dictionary<string, object?>();
-        hashdict.Add(Env.file.hashes.crc, _args.File.Video.Hashes.CRC);
-        hashdict.Add(Env.file.hashes.md5, _args.File.Video.Hashes.MD5);
-        hashdict.Add(Env.file.hashes.ed2k, _args.File.Video.Hashes.ED2K);
-        hashdict.Add(Env.file.hashes.sha1, _args.File.Video.Hashes.SHA1);
-        file.Add(Env.file.hashes.N, hashdict);
-        file.Add(Env.file.anidb.N, anidb);
-        file.Add(nameof(Env.file.media), mediainfo);
-        file.Add(nameof(Env.file.importfolder), ImportFolderToDict(_args.File.ImportFolder));
+        hashdict.Add(nameof(Hashes.crc), _args.File.Video.Hashes.CRC);
+        hashdict.Add(nameof(Hashes.md5), _args.File.Video.Hashes.MD5);
+        hashdict.Add(nameof(Hashes.ed2k), _args.File.Video.Hashes.ED2K);
+        hashdict.Add(nameof(Hashes.sha1), _args.File.Video.Hashes.SHA1);
+        file.Add(nameof(LuaEnv.File.hashes), hashdict);
+        file.Add(nameof(LuaEnv.File.anidb), anidb);
+        file.Add(nameof(LuaEnv.File.media), mediainfo);
+        file.Add(nameof(LuaEnv.File.importfolder), ImportFolderToDict(_args.File.ImportFolder));
         return file;
     }
 

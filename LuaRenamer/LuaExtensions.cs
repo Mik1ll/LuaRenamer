@@ -57,15 +57,15 @@ public static class LuaExtensions
     {
         return new Dictionary<string, object>
         {
-            { Env.date.year, dt.Year },
-            { Env.date.month, dt.Month },
-            { Env.date.day, dt.Day },
-            { Env.date.yday, dt.DayOfYear },
-            { Env.date.wday, (long)dt.DayOfWeek + 1 },
-            { Env.date.hour, dt.Hour },
-            { Env.date.min, dt.Minute },
-            { Env.date.sec, dt.Second },
-            { Env.date.isdst, dt.IsDaylightSavingTime() }
+            { nameof(Date.year), dt.Year },
+            { nameof(Date.month), dt.Month },
+            { nameof(Date.day), dt.Day },
+            { nameof(Date.yday), dt.DayOfYear },
+            { nameof(Date.wday), (long)dt.DayOfWeek + 1 },
+            { nameof(Date.hour), dt.Hour },
+            { nameof(Date.min), dt.Minute },
+            { nameof(Date.sec), dt.Second },
+            { nameof(Date.isdst), dt.IsDaylightSavingTime() }
         };
     }
 }
