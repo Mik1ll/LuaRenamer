@@ -110,7 +110,7 @@ end
                   {{nameof(TitleType.Synonym)}} = include_unofficial and 3 or nil,
               }
               ---@type string?
-              local name = from(self.{{nameof(Env.anime.titles)}}):where(function(t1) ---@param t1 Title
+              local name = from(self.{{nameof(Anime.titles)}}):where(function(t1) ---@param t1 Title
                   return t1.{{nameof(Title.language)}} == lang and title_priority[t1.{{nameof(Title.type)}}] ~= nil
               end):orderby(function(t2) ---@param t2 Title
                   return title_priority[t2.{{nameof(Title.type)}}]
@@ -257,7 +257,7 @@ end
         animedict.Add(nameof(Anime.preferredname), series?.PreferredTitle ?? anime.PreferredTitle);
         animedict.Add(nameof(Anime.defaultname), string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(nameof(Anime.id), anime.ID);
-        animedict.Add(nameof(Env.anime.titles), ConvertTitles(anime.Titles));
+        animedict.Add(nameof(Anime.titles), ConvertTitles(anime.Titles));
         animedict.Add(nameof(Anime.getname), getNameFn);
         animedict.Add(nameof(Anime._classid), Anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
@@ -268,7 +268,7 @@ end
         epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
         epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
         animedict.Add(nameof(Anime.episodecounts), epcountdict);
-        animedict.Add(nameof(Env.anime.relations), ignoreRelations
+        animedict.Add(nameof(Anime.relations), ignoreRelations
             ? new List<Dictionary<string, object?>>()
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r =>
