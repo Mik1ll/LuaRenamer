@@ -1,9 +1,5 @@
 ﻿// ReSharper disable InconsistentNaming
-// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable UnusedMember.Global
-// ReSharper disable MemberHidesStaticFromOuterClass
 
-#pragma warning disable CS8981
 namespace LuaRenamer.LuaEnv;
 
 public class Env : Table

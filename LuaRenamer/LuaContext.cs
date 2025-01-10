@@ -165,11 +165,11 @@ end
         var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = (LuaTable)DoString(BaseEnv)[0];
 
-        luaEnv[Env.Inst.logdebug] = RegisterFunction("_", this, LogDebugMethod);
-        luaEnv[Env.Inst.log] = RegisterFunction("_", this, LogMethod);
-        luaEnv[Env.Inst.logwarn] = RegisterFunction("_", this, LogWarnMethod);
-        luaEnv[Env.Inst.logerror] = RegisterFunction("_", this, LogErrorMethod);
-        luaEnv[Env.Inst.episode_numbers] = RegisterFunction("_", this, EpNumsMethod);
+        luaEnv[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
+        luaEnv[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
+        luaEnv[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
+        luaEnv[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
+        luaEnv[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
         runSandboxFn.Call(_luaLinqText, luaEnv);
         runSandboxFn.Call(_luaUtilsText, luaEnv);
         var getNameFn = (LuaFunction)runSandboxFn.Call(GetNameFunction, luaEnv)[1];
@@ -195,33 +195,33 @@ end
         var groups = GroupsToDict(animeCache, getNameFn);
 
         var env = new Dictionary<string, object?>();
-        env.Add(Env.Inst.filename, null);
-        env.Add(Env.Inst.destination, null);
-        env.Add(Env.Inst.subfolder, null);
-        env.Add(Env.Inst.replace_illegal_chars, false);
-        env.Add(Env.Inst.remove_illegal_chars, false);
-        env.Add(Env.Inst.use_existing_anime_location, false);
-        env.Add(Env.Inst.skip_rename, false);
-        env.Add(Env.Inst.skip_move, false);
-        env.Add(Env.Inst.animes.Fn, animes);
-        env.Add(Env.Inst.anime.Fn, animes.First());
-        env.Add(Env.Inst.file.Fn, file);
-        env.Add(Env.Inst.episodes.Fn, episodes);
-        env.Add(Env.Inst.episode.Fn, episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
+        env.Add(nameof(Env.filename), null);
+        env.Add(nameof(Env.destination), null);
+        env.Add(nameof(Env.subfolder), null);
+        env.Add(nameof(Env.replace_illegal_chars), false);
+        env.Add(nameof(Env.remove_illegal_chars), false);
+        env.Add(nameof(Env.use_existing_anime_location), false);
+        env.Add(nameof(Env.skip_rename), false);
+        env.Add(nameof(Env.skip_move), false);
+        env.Add(nameof(Env.animes), animes);
+        env.Add(nameof(Env.anime), animes.First());
+        env.Add(nameof(Env.file), file);
+        env.Add(nameof(Env.episodes), episodes);
+        env.Add(nameof(Env.episode), episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
             .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
                 ? int.MinValue
                 : (int)Enum.Parse<EpisodeType>((string)e[nameof(Episode.type)]!))
             .ThenBy(e => (int)e[nameof(Episode.number)]!)
             .First());
-        env.Add(Env.Inst.importfolders.Fn, importfolders);
-        env.Add(Env.Inst.groups.Fn, groups);
-        env.Add(Env.Inst.group.Fn, groups.FirstOrDefault());
-        env.Add(Env.Inst.AnimeType, EnumToDict<AnimeType>());
-        env.Add(Env.Inst.TitleType, EnumToDict<TitleType>());
-        env.Add(Env.Inst.Language, EnumToDict<TitleLanguage>());
-        env.Add(Env.Inst.EpisodeType, EnumToDict<EpisodeType>());
-        env.Add(Env.Inst.ImportFolderType, EnumToDict<DropFolderType>());
-        env.Add(Env.Inst.RelationType, EnumToDict<RelationType>());
+        env.Add(nameof(Env.importfolders), importfolders);
+        env.Add(nameof(Env.groups), groups);
+        env.Add(nameof(Env.group), groups.FirstOrDefault());
+        env.Add(nameof(Env.AnimeType), EnumToDict<AnimeType>());
+        env.Add(nameof(Env.TitleType), EnumToDict<TitleType>());
+        env.Add(nameof(Env.Language), EnumToDict<TitleLanguage>());
+        env.Add(nameof(Env.EpisodeType), EnumToDict<EpisodeType>());
+        env.Add(nameof(Env.ImportFolderType), EnumToDict<DropFolderType>());
+        env.Add(nameof(Env.RelationType), EnumToDict<RelationType>());
         return env;
     }
 
