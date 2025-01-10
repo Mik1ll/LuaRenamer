@@ -2,7 +2,6 @@
 
 namespace LuaRenamer.LuaEnv;
 
-#pragma warning disable CS8981
 public class Media : Table
 {
     public string chaptered => Get();

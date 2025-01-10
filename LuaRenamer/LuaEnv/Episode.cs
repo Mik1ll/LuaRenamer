@@ -7,7 +7,7 @@ public class Episode : Table
     public string duration => Get();
     public string number => Get();
     public string type => Get();
-    public string airdate => Get();
+    public Date airdate => new() { Fn = Get() };
     public string animeid => Get();
     public string id => Get();
     public Array<Title> titles => new() { Fn = Get() };

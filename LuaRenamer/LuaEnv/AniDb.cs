@@ -8,7 +8,7 @@ public class AniDb : Table
     public string censored => Get();
     public string source => Get();
     public string version => Get();
-    public string releasedate => Get();
+    public Date releasedate => new() { Fn = Get() };
     public string description => Get();
     public ReleaseGroup releasegroup => new() { Fn = Get() };
     public AniDbMedia media => new() { Fn = Get() };

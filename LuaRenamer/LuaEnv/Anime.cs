@@ -4,8 +4,8 @@ namespace LuaRenamer.LuaEnv;
 
 public class Anime : Table
 {
-    public string airdate => Get();
-    public string enddate => Get();
+    public Date airdate => new() { Fn = Get() };
+    public Date enddate => new() { Fn = Get() };
     public string rating => Get();
     public string restricted => Get();
     public string type => Get();
