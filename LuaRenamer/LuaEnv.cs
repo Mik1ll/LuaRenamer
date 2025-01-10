@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 #pragma warning disable CS8981
 namespace LuaRenamer;
 
-public class LuaEnv
+public class LuaEnv : Table
 {
     public const string filename = nameof(filename);
     public const string destination = nameof(destination);
@@ -19,8 +19,8 @@ public class LuaEnv
     public const string skip_rename = nameof(skip_rename);
     public const string skip_move = nameof(skip_move);
     public const string animes = nameof(animes);
-    public episode episode => new() { Fn = nameof(episode) };
-    public Array<episode> episodes => new() { Fn = nameof(episodes) };
+    public episode episode => new() { Fn = Get() };
+    public Array<episode> episodes => new() { Fn = Get() };
     public const string importfolders = nameof(importfolders);
     public const string groups = nameof(groups);
     public const string AnimeType = nameof(AnimeType);
@@ -259,7 +259,7 @@ public class LuaEnv
 public class Table
 {
     public string Fn { get; init; } = "";
-    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => Fn + sep + memberName;
+    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
 }
 
 public class Array<T> : Table where T : Table, new()
