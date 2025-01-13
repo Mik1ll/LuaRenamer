@@ -184,11 +184,10 @@ end
         runSandboxed.Call(_luaLinqText, luaEnv);
         runSandboxed.Call(_luaUtilsText, luaEnv);
         var getNameFn = (LuaFunction)runSandboxed.Call(GetNameFunction, luaEnv)[1];
-        Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
-        var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache, false, getNameFn)).ToList();
+        var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToDict(series.AnidbAnime, false, getNameFn)).ToList();
         var episodes = EpisodesToDict(getNameFn);
-        var groups = GroupsToDict(animeCache, getNameFn);
+        var groups = GroupsToDict(getNameFn);
 
         var env = new Dictionary<string, object?>();
         env.Add(nameof(Env.filename), null);
@@ -224,33 +223,33 @@ end
     private Dictionary<string, string> EnumToDict<T>() => Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object?>> GroupsToDict(Dictionary<int, Dictionary<string, object?>> animeCache, LuaFunction getNameFn)
+    private List<Dictionary<string, object?>> GroupsToDict(LuaFunction getNameFn)
     {
         var groups = _args.Groups.Select(g =>
         {
             var groupdict = new Dictionary<string, object?>();
             groupdict.Add(nameof(Group.name), g.PreferredTitle);
-            groupdict.Add(nameof(Group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, animeCache, false, getNameFn));
-            groupdict.Add(nameof(Group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, animeCache, false, getNameFn)).ToList());
+            groupdict.Add(nameof(Group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, false, getNameFn));
+            groupdict.Add(nameof(Group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, false, getNameFn)).ToList());
             return groupdict;
         }).ToList();
         return groups;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> AnimeToDict(ISeries anime, Dictionary<int, Dictionary<string, object?>> animeCache, bool ignoreRelations,
-        LuaFunction getNameFn)
+    private Dictionary<string, object?> AnimeToDict(ISeries anime, bool ignoreRelations, LuaFunction getNameFn)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
-        if (animeCache.TryGetValue(anime.ID, out var animedict)) return animedict;
-        var series = _args.Series.FirstOrDefault(series => series.AnidbAnime == anime);
-        animedict = new Dictionary<string, object?>();
+        if (_tableCache.TryGetValue((typeof(ISeries), anime.ID), out var eObj))
+            return eObj;
+        var series = anime.ShokoSeries.FirstOrDefault();
+        var animedict = new Dictionary<string, object?>();
         animedict.Add(nameof(Anime.airdate), anime.AirDate?.ToTable());
         animedict.Add(nameof(Anime.enddate), anime.EndDate?.ToTable());
         animedict.Add(nameof(Anime.rating), anime.Rating);
         animedict.Add(nameof(Anime.restricted), anime.Restricted);
         animedict.Add(nameof(Anime.type), anime.Type.ToString());
-        animedict.Add(nameof(Anime.preferredname), series?.PreferredTitle ?? anime.PreferredTitle);
+        animedict.Add(nameof(Anime.preferredname), string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle);
         animedict.Add(nameof(Anime.defaultname), string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(nameof(Anime.id), anime.ID);
         animedict.Add(nameof(Anime.titles), ConvertTitles(anime.Titles));
@@ -265,16 +264,16 @@ end
         epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
         animedict.Add(nameof(Anime.episodecounts), epcountdict);
         animedict.Add(nameof(Anime.relations), ignoreRelations
-            ? new List<Dictionary<string, object?>>()
+            ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r =>
                 {
                     var relationdict = new Dictionary<string, object?>();
                     relationdict.Add(nameof(Relation.type), r.RelationType.ToString());
-                    relationdict.Add(nameof(Relation.anime), AnimeToDict(r.Related!, animeCache, true, getNameFn));
+                    relationdict.Add(nameof(Relation.anime), AnimeToDict(r.Related!, true, getNameFn));
                     return relationdict;
                 }).ToList());
-        return animeCache[anime.ID] = animedict;
+        return _tableCache[(typeof(ISeries), anime.ID)] = animedict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
