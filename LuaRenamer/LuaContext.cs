@@ -23,6 +23,7 @@ public class LuaContext : Lua
     private static string? _luaUtilsText;
     private static string? _luaLinqText;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
+    private readonly Dictionary<(Type, int), Dictionary<string, object?>> _tableCache = new();
 
 
     #region Sandbox
@@ -186,7 +187,6 @@ end
         Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
         var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache, false, getNameFn)).ToList();
-        var importfolders = ImportFoldersToDict();
         var episodes = EpisodesToDict(getNameFn);
         var groups = GroupsToDict(animeCache, getNameFn);
 
@@ -201,7 +201,7 @@ end
         env.Add(nameof(Env.skip_move), false);
         env.Add(nameof(Env.animes), animes);
         env.Add(nameof(Env.anime), animes.First());
-        env.Add(nameof(Env.file), FileToDict(importfolders));
+        env.Add(nameof(Env.file), FileToDict(_args.File));
         env.Add(nameof(Env.episodes), episodes);
         env.Add(nameof(Env.episode), episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
             .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
@@ -209,8 +209,7 @@ end
                 : (int)Enum.Parse<EpisodeType>((string)e[nameof(Episode.type)]!))
             .ThenBy(e => (int)e[nameof(Episode.number)]!)
             .First());
-        env.Add(nameof(Env.importfolders),
-            importfolders.Where(i => _args.AvailableFolders.Select(ai => ai.ID).Contains(Convert.ToInt32(i[nameof(ImportFolder.id)]))).ToList());
+        env.Add(nameof(Env.importfolders), _args.AvailableFolders.Select(ImportFolderToDict).ToList());
         env.Add(nameof(Env.groups), groups);
         env.Add(nameof(Env.group), groups.FirstOrDefault());
         env.Add(nameof(Env.AnimeType), EnumToDict<AnimeType>());
@@ -279,35 +278,34 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?>? AniDbFileToDict()
+    private Dictionary<string, object?>? AniDbFileToDict(IAniDBFile? aniDbFile)
     {
-        Dictionary<string, object?>? anidb = null;
-        if (_args.File.Video.AniDB is { } aniDbInfo)
-        {
-            anidb = new Dictionary<string, object?>();
-            anidb.Add(nameof(AniDb.censored), aniDbInfo.Censored);
-            anidb.Add(nameof(AniDb.source), aniDbInfo.Source);
-            anidb.Add(nameof(AniDb.version), aniDbInfo.Version);
-            anidb.Add(nameof(AniDb.releasedate), aniDbInfo.ReleaseDate?.ToTable());
-            Dictionary<string, object?>? groupdict = null;
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (aniDbInfo.ReleaseGroup is not null && aniDbInfo.ReleaseGroup.ID != 0 && aniDbInfo.ReleaseGroup.Name != "raw/unknown")
-            {
-                groupdict = new Dictionary<string, object?>();
-                groupdict.Add(nameof(ReleaseGroup.name), aniDbInfo.ReleaseGroup.Name);
-                groupdict.Add(nameof(ReleaseGroup.shortname), aniDbInfo.ReleaseGroup.ShortName);
-            }
-
-            anidb.Add(nameof(AniDb.releasegroup), groupdict);
-            anidb.Add(nameof(AniDb.id), aniDbInfo.AniDBFileID);
-            var mediadict = new Dictionary<string, object>();
-            mediadict.Add(nameof(AniDbMedia.sublanguages), aniDbInfo.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList());
-            mediadict.Add(nameof(AniDbMedia.dublanguages), aniDbInfo.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
-            anidb.Add(nameof(AniDb.media), mediadict);
-            anidb.Add(nameof(AniDb.description), aniDbInfo.Description);
-        }
-
+        if (aniDbFile is null)
+            return null;
+        var anidb = new Dictionary<string, object?>();
+        anidb.Add(nameof(AniDb.id), aniDbFile.AniDBFileID);
+        anidb.Add(nameof(AniDb.censored), aniDbFile.Censored);
+        anidb.Add(nameof(AniDb.source), aniDbFile.Source);
+        anidb.Add(nameof(AniDb.version), aniDbFile.Version);
+        anidb.Add(nameof(AniDb.releasedate), aniDbFile.ReleaseDate?.ToTable());
+        anidb.Add(nameof(AniDb.releasegroup), ReleaseGroupToDict(aniDbFile.ReleaseGroup));
+        var mediadict = new Dictionary<string, object>();
+        mediadict.Add(nameof(AniDbMedia.sublanguages), aniDbFile.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList());
+        mediadict.Add(nameof(AniDbMedia.dublanguages), aniDbFile.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
+        anidb.Add(nameof(AniDb.media), mediadict);
+        anidb.Add(nameof(AniDb.description), aniDbFile.Description);
         return anidb;
+    }
+
+    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
+    private Dictionary<string, object?>? ReleaseGroupToDict(IReleaseGroup? releaseGroup)
+    {
+        if (releaseGroup is null || releaseGroup.ID == 0 || releaseGroup.Name == "raw/unknown")
+            return null;
+        var groupdict = new Dictionary<string, object?>();
+        groupdict.Add(nameof(ReleaseGroup.name), releaseGroup.Name);
+        groupdict.Add(nameof(ReleaseGroup.shortname), releaseGroup.ShortName);
+        return groupdict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
@@ -346,81 +344,77 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> FileToDict(List<Dictionary<string, object>> importFolders)
+    private Dictionary<string, object?> FileToDict(IVideoFile file)
     {
-        var anidb = AniDbFileToDict();
-        var mediainfo = MediaInfoToDict();
-        var file = new Dictionary<string, object?>();
-        file.Add(nameof(LuaEnv.File.name), Path.GetFileNameWithoutExtension(_args.File.FileName));
-        file.Add(nameof(LuaEnv.File.extension), Path.GetExtension(_args.File.FileName));
-        file.Add(nameof(LuaEnv.File.path), _args.File.Path);
-        file.Add(nameof(LuaEnv.File.size), _args.File.Size);
-        file.Add(nameof(LuaEnv.File.earliestname), Path.GetFileNameWithoutExtension(_args.File.Video.EarliestKnownName));
+        var fileDict = new Dictionary<string, object?>();
+        fileDict.Add(nameof(LuaEnv.File.name), Path.GetFileNameWithoutExtension(file.FileName));
+        fileDict.Add(nameof(LuaEnv.File.extension), Path.GetExtension(file.FileName));
+        fileDict.Add(nameof(LuaEnv.File.path), file.Path);
+        fileDict.Add(nameof(LuaEnv.File.size), file.Size);
+        fileDict.Add(nameof(LuaEnv.File.earliestname), Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName));
         var hashdict = new Dictionary<string, object?>();
-        hashdict.Add(nameof(Hashes.crc), _args.File.Video.Hashes.CRC);
-        hashdict.Add(nameof(Hashes.md5), _args.File.Video.Hashes.MD5);
-        hashdict.Add(nameof(Hashes.ed2k), _args.File.Video.Hashes.ED2K);
-        hashdict.Add(nameof(Hashes.sha1), _args.File.Video.Hashes.SHA1);
-        file.Add(nameof(LuaEnv.File.hashes), hashdict);
-        file.Add(nameof(LuaEnv.File.anidb), anidb);
-        file.Add(nameof(LuaEnv.File.media), mediainfo);
-        file.Add(nameof(LuaEnv.File.importfolder), importFolders.First(i => Convert.ToInt32(i[nameof(ImportFolder.id)]) == _args.File.ImportFolderID));
-        return file;
+        hashdict.Add(nameof(Hashes.crc), file.Video.Hashes.CRC);
+        hashdict.Add(nameof(Hashes.md5), file.Video.Hashes.MD5);
+        hashdict.Add(nameof(Hashes.ed2k), file.Video.Hashes.ED2K);
+        hashdict.Add(nameof(Hashes.sha1), file.Video.Hashes.SHA1);
+        fileDict.Add(nameof(LuaEnv.File.hashes), hashdict);
+        fileDict.Add(nameof(LuaEnv.File.anidb), AniDbFileToDict(file.Video.AniDB));
+        fileDict.Add(nameof(LuaEnv.File.media), MediaInfoToDict(file.Video.MediaInfo));
+        fileDict.Add(nameof(LuaEnv.File.importfolder), ImportFolderToDict(file.ImportFolder));
+        return fileDict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object>> ImportFoldersToDict()
+    private Dictionary<string, object?> ImportFolderToDict(IImportFolder folder)
     {
-        return _args.AvailableFolders.Concat([_args.File.ImportFolder]).DistinctBy(i => i.ID).Select(folder =>
-        {
-            var importdict = new Dictionary<string, object>();
-            importdict.Add(nameof(ImportFolder.id), folder.ID);
-            importdict.Add(nameof(ImportFolder.name), folder.Name);
-            importdict.Add(nameof(ImportFolder.location), folder.Path);
-            importdict.Add(nameof(ImportFolder.type), folder.DropFolderType.ToString());
-            importdict.Add(nameof(ImportFolder._classid), ImportFolder._classidVal);
-            return importdict;
-        }).ToList();
+        if (_tableCache.TryGetValue((typeof(IImportFolder), folder.ID), out var eObj))
+            return eObj;
+        var importdict = new Dictionary<string, object?>();
+        importdict.Add(nameof(ImportFolder.id), folder.ID);
+        importdict.Add(nameof(ImportFolder.name), folder.Name);
+        importdict.Add(nameof(ImportFolder.location), folder.Path);
+        importdict.Add(nameof(ImportFolder.type), folder.DropFolderType.ToString());
+        importdict.Add(nameof(ImportFolder._classid), ImportFolder._classidVal);
+        _tableCache[(typeof(IImportFolder), folder.ID)] = importdict;
+        return importdict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?>? MediaInfoToDict()
+    private Dictionary<string, object?>? MediaInfoToDict(IMediaInfo? mediaInfo)
     {
-        Dictionary<string, object?>? mediainfo = null;
-        if (_args.File.Video.MediaInfo is { } mediaInfo)
+        if (mediaInfo is null)
+            return null;
+        var mediainfo = new Dictionary<string, object?>();
+        mediainfo.Add(nameof(Media.chaptered), mediaInfo.Chapters.Any());
+        Dictionary<string, object>? videodict = null;
+        if (mediaInfo.VideoStream is { } video)
         {
-            mediainfo = new Dictionary<string, object?>();
-            mediainfo.Add(nameof(Media.chaptered), mediaInfo.Chapters.Any());
-            Dictionary<string, object>? videodict = null;
-            if (mediaInfo.VideoStream is { } video)
-            {
-                videodict = new Dictionary<string, object>();
-                videodict.Add(nameof(Video.height), video.Height);
-                videodict.Add(nameof(Video.width), video.Width);
-                videodict.Add(nameof(Video.codec), video.Codec.Simplified);
-                videodict.Add(nameof(Video.res), video.Resolution);
-                videodict.Add(nameof(Video.bitrate), video.BitRate);
-                videodict.Add(nameof(Video.bitdepth), video.BitDepth);
-                videodict.Add(nameof(Video.framerate), video.FrameRate);
-            }
-
-            mediainfo.Add(nameof(Media.video), videodict);
-            mediainfo.Add(nameof(Media.duration), mediaInfo.Duration);
-            mediainfo.Add(nameof(Media.bitrate), mediaInfo.BitRate);
-            mediainfo.Add(nameof(Media.sublanguages), mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
-            mediainfo.Add(nameof(Media.audio), mediaInfo.AudioStreams.Select(a =>
-            {
-                var audiodict = new Dictionary<string, object?>();
-                audiodict.Add(nameof(Audio.compressionmode), a.CompressionMode);
-                audiodict.Add(nameof(Audio.channels),
-                    !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
-                audiodict.Add(nameof(Audio.samplingrate), a.SamplingRate);
-                audiodict.Add(nameof(Audio.codec), a.Codec.Simplified);
-                audiodict.Add(nameof(Audio.language), a.Language.ToString());
-                audiodict.Add(nameof(Audio.title), a.Title);
-                return audiodict;
-            }).ToList());
+            videodict = new Dictionary<string, object>();
+            videodict.Add(nameof(Video.height), video.Height);
+            videodict.Add(nameof(Video.width), video.Width);
+            videodict.Add(nameof(Video.codec), video.Codec.Simplified);
+            videodict.Add(nameof(Video.res), video.Resolution);
+            videodict.Add(nameof(Video.bitrate), video.BitRate);
+            videodict.Add(nameof(Video.bitdepth), video.BitDepth);
+            videodict.Add(nameof(Video.framerate), video.FrameRate);
         }
+
+        mediainfo.Add(nameof(Media.video), videodict);
+        mediainfo.Add(nameof(Media.duration), mediaInfo.Duration);
+        mediainfo.Add(nameof(Media.bitrate), mediaInfo.BitRate);
+        mediainfo.Add(nameof(Media.sublanguages), mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
+        mediainfo.Add(nameof(Media.audio), mediaInfo.AudioStreams.Select(a =>
+        {
+            var audiodict = new Dictionary<string, object?>();
+            audiodict.Add(nameof(Audio.compressionmode), a.CompressionMode);
+            audiodict.Add(nameof(Audio.channels),
+                !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
+            audiodict.Add(nameof(Audio.samplingrate), a.SamplingRate);
+            audiodict.Add(nameof(Audio.codec), a.Codec.Simplified);
+            audiodict.Add(nameof(Audio.language), a.Language.ToString());
+            audiodict.Add(nameof(Audio.title), a.Title);
+            return audiodict;
+        }).ToList());
 
         return mediainfo;
     }
