@@ -8,7 +8,7 @@ public class File : Table
     public string extension => Get();
     public string path => Get();
     public string size => Get();
-    public Importfolder importfolder => new() { Fn = Get() };
+    public ImportFolder importfolder => new() { Fn = Get() };
     public string earliestname => Get();
     public Media media => new() { Fn = Get() };
     public AniDb anidb => new() { Fn = Get() };

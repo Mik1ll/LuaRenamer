@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Importfolder : Table
+public class ImportFolder : Table
 {
     public string id => Get();
     public string name => Get();

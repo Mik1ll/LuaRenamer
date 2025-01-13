@@ -18,7 +18,7 @@ public class Env : Table
     public Array<Anime> animes => new() { Fn = Get() };
     public Episode episode => new() { Fn = Get() };
     public Array<Episode> episodes => new() { Fn = Get() };
-    public Array<Importfolder> importfolders => new() { Fn = Get() };
+    public Array<ImportFolder> importfolders => new() { Fn = Get() };
     public Group group => new() { Fn = Get() };
     public Array<Group> groups => new() { Fn = Get() };
     public string AnimeType => Get();

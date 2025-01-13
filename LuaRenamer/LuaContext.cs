@@ -210,7 +210,7 @@ end
             .ThenBy(e => (int)e[nameof(Episode.number)]!)
             .First());
         env.Add(nameof(Env.importfolders),
-            importfolders.Where(i => _args.AvailableFolders.Select(ai => ai.ID).Contains(Convert.ToInt32(i[nameof(Importfolder.id)]))).ToList());
+            importfolders.Where(i => _args.AvailableFolders.Select(ai => ai.ID).Contains(Convert.ToInt32(i[nameof(ImportFolder.id)]))).ToList());
         env.Add(nameof(Env.groups), groups);
         env.Add(nameof(Env.group), groups.FirstOrDefault());
         env.Add(nameof(Env.AnimeType), EnumToDict<AnimeType>());
@@ -364,7 +364,7 @@ end
         file.Add(nameof(LuaEnv.File.hashes), hashdict);
         file.Add(nameof(LuaEnv.File.anidb), anidb);
         file.Add(nameof(LuaEnv.File.media), mediainfo);
-        file.Add(nameof(LuaEnv.File.importfolder), importFolders.First(i => Convert.ToInt32(i[nameof(Importfolder.id)]) == _args.File.ImportFolderID));
+        file.Add(nameof(LuaEnv.File.importfolder), importFolders.First(i => Convert.ToInt32(i[nameof(ImportFolder.id)]) == _args.File.ImportFolderID));
         return file;
     }
 
@@ -374,11 +374,11 @@ end
         return _args.AvailableFolders.Concat([_args.File.ImportFolder]).DistinctBy(i => i.ID).Select(folder =>
         {
             var importdict = new Dictionary<string, object>();
-            importdict.Add(nameof(Importfolder.id), folder.ID);
-            importdict.Add(nameof(Importfolder.name), folder.Name);
-            importdict.Add(nameof(Importfolder.location), folder.Path);
-            importdict.Add(nameof(Importfolder.type), folder.DropFolderType.ToString());
-            importdict.Add(nameof(Importfolder._classid), Importfolder._classidVal);
+            importdict.Add(nameof(ImportFolder.id), folder.ID);
+            importdict.Add(nameof(ImportFolder.name), folder.Name);
+            importdict.Add(nameof(ImportFolder.location), folder.Path);
+            importdict.Add(nameof(ImportFolder.type), folder.DropFolderType.ToString());
+            importdict.Add(nameof(ImportFolder._classid), ImportFolder._classidVal);
             return importdict;
         }).ToList();
     }

@@ -103,11 +103,11 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                     throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
                 break;
             case LuaTable destTable:
-                if ((string)destTable[nameof(Importfolder._classid)] == Importfolder._classidVal)
+                if ((string)destTable[nameof(ImportFolder._classid)] == ImportFolder._classidVal)
                 {
-                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(Importfolder.id)]));
+                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolder.id)]));
                     if (destfolder is null)
-                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(Importfolder.id)]}");
+                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolder.id)]}");
                 }
                 else
                     throw new LuaRenamerException($"destination table was not the correct class, assign a table from {Env.Inst.importfolders}");

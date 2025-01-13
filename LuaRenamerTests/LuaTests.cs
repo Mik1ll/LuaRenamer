@@ -164,7 +164,7 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $@"
-local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(Importfolder.type)}', {Env.Inst.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
+local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}', {Env.Inst.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
 {Env.Inst.destination} = fld");
         args = new RelocationEventArgs<LuaRenamerSettings>
         {
