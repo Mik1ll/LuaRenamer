@@ -43,6 +43,7 @@ public class LuaTests
                 file.Path == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
                 file.RelativePath == Path.Combine("testsubfolder", "testfilename.mp4") &&
                 file.FileName == "testfilename.mp4" &&
+                file.ImportFolderID == importFolder.ID &&
                 file.ImportFolder == importFolder &&
                 file.VideoID == 25 &&
                 file.Video == Mock.Of<IVideo>(vi => vi.Hashes.ED2K == "abc123")),

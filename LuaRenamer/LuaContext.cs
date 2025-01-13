@@ -162,35 +162,31 @@ end
 
     public Dictionary<object, object> RunSandboxed()
     {
-        var runSandboxFn = (LuaFunction)DoString(SandboxFunction)[0];
+        var runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = (LuaTable)DoString(BaseEnv)[0];
-
-        luaEnv[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
-        luaEnv[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
-        luaEnv[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
-        luaEnv[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
-        luaEnv[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
-        runSandboxFn.Call(_luaLinqText, luaEnv);
-        runSandboxFn.Call(_luaUtilsText, luaEnv);
-        var getNameFn = (LuaFunction)runSandboxFn.Call(GetNameFunction, luaEnv)[1];
-        var env = CreateLuaEnv(getNameFn);
+        var env = CreateLuaEnv(luaEnv, runSandboxed);
         foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
-        var retVal = runSandboxFn.Call(_args.Settings.Script, luaEnv);
+        var retVal = runSandboxed.Call(_args.Settings.Script, luaEnv);
         if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return GetTableDict(luaEnv);
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> CreateLuaEnv(LuaFunction getNameFn)
+    private Dictionary<string, object?> CreateLuaEnv(LuaTable luaEnv, LuaFunction runSandboxed)
     {
+        luaEnv[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
+        luaEnv[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
+        luaEnv[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
+        luaEnv[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
+        luaEnv[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
+        runSandboxed.Call(_luaLinqText, luaEnv);
+        runSandboxed.Call(_luaUtilsText, luaEnv);
+        var getNameFn = (LuaFunction)runSandboxed.Call(GetNameFunction, luaEnv)[1];
         Dictionary<int, Dictionary<string, object?>> animeCache = new();
 
         var animes = _args.Series.Select(series => AnimeToDict(series.AnidbAnime, animeCache, false, getNameFn)).ToList();
-        var anidb = AniDbFileToDict();
-        var mediainfo = MediaInfoToDict();
-        var importfolders = _args.AvailableFolders.Select(ImportFolderToDict).ToList();
-        var file = FileToDict(anidb, mediainfo);
+        var importfolders = ImportFoldersToDict();
         var episodes = EpisodesToDict(getNameFn);
         var groups = GroupsToDict(animeCache, getNameFn);
 
@@ -205,7 +201,7 @@ end
         env.Add(nameof(Env.skip_move), false);
         env.Add(nameof(Env.animes), animes);
         env.Add(nameof(Env.anime), animes.First());
-        env.Add(nameof(Env.file), file);
+        env.Add(nameof(Env.file), FileToDict(importfolders));
         env.Add(nameof(Env.episodes), episodes);
         env.Add(nameof(Env.episode), episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
             .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
@@ -213,7 +209,8 @@ end
                 : (int)Enum.Parse<EpisodeType>((string)e[nameof(Episode.type)]!))
             .ThenBy(e => (int)e[nameof(Episode.number)]!)
             .First());
-        env.Add(nameof(Env.importfolders), importfolders);
+        env.Add(nameof(Env.importfolders),
+            importfolders.Where(i => _args.AvailableFolders.Select(ai => ai.ID).Contains(Convert.ToInt32(i[nameof(Importfolder.id)]))).ToList());
         env.Add(nameof(Env.groups), groups);
         env.Add(nameof(Env.group), groups.FirstOrDefault());
         env.Add(nameof(Env.AnimeType), EnumToDict<AnimeType>());
@@ -349,8 +346,10 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> FileToDict(Dictionary<string, object?>? anidb, Dictionary<string, object?>? mediainfo)
+    private Dictionary<string, object?> FileToDict(List<Dictionary<string, object>> importFolders)
     {
+        var anidb = AniDbFileToDict();
+        var mediainfo = MediaInfoToDict();
         var file = new Dictionary<string, object?>();
         file.Add(nameof(LuaEnv.File.name), Path.GetFileNameWithoutExtension(_args.File.FileName));
         file.Add(nameof(LuaEnv.File.extension), Path.GetExtension(_args.File.FileName));
@@ -365,20 +364,23 @@ end
         file.Add(nameof(LuaEnv.File.hashes), hashdict);
         file.Add(nameof(LuaEnv.File.anidb), anidb);
         file.Add(nameof(LuaEnv.File.media), mediainfo);
-        file.Add(nameof(LuaEnv.File.importfolder), ImportFolderToDict(_args.File.ImportFolder));
+        file.Add(nameof(LuaEnv.File.importfolder), importFolders.First(i => Convert.ToInt32(i[nameof(Importfolder.id)]) == _args.File.ImportFolderID));
         return file;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object> ImportFolderToDict(IImportFolder folder)
+    private List<Dictionary<string, object>> ImportFoldersToDict()
     {
-        var importdict = new Dictionary<string, object>();
-        importdict.Add(nameof(Importfolder.id), folder.ID);
-        importdict.Add(nameof(Importfolder.name), folder.Name);
-        importdict.Add(nameof(Importfolder.location), folder.Path);
-        importdict.Add(nameof(Importfolder.type), folder.DropFolderType.ToString());
-        importdict.Add(nameof(Importfolder._classid), Importfolder._classidVal);
-        return importdict;
+        return _args.AvailableFolders.Concat([_args.File.ImportFolder]).DistinctBy(i => i.ID).Select(folder =>
+        {
+            var importdict = new Dictionary<string, object>();
+            importdict.Add(nameof(Importfolder.id), folder.ID);
+            importdict.Add(nameof(Importfolder.name), folder.Name);
+            importdict.Add(nameof(Importfolder.location), folder.Path);
+            importdict.Add(nameof(Importfolder.type), folder.DropFolderType.ToString());
+            importdict.Add(nameof(Importfolder._classid), Importfolder._classidVal);
+            return importdict;
+        }).ToList();
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
@@ -421,5 +423,11 @@ end
         }
 
         return mediainfo;
+    }
+
+    public LuaTable GetNewTable()
+    {
+        NewTable("_");
+        return GetTable("_");
     }
 }
