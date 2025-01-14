@@ -10,6 +10,7 @@ using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Plugin.Abstractions.DataModels.Shoko;
 using Shoko.Plugin.Abstractions.Events;
 using File = System.IO.File;
 
@@ -186,8 +187,11 @@ end
         var getNameFn = (LuaFunction)runSandboxed.Call(GetNameFunction, luaEnv)[1];
 
         var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToDict(series.AnidbAnime, false, getNameFn)).ToList();
-        var episodes = EpisodesToDict(getNameFn);
-        var groups = GroupsToDict(getNameFn);
+        var episodes = _args.Episodes.Select(e => e.AnidbEpisode)
+            .OrderBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
+            .ThenBy(e => e.EpisodeNumber)
+            .Select(e => EpisodeToDict(e, getNameFn)).ToList();
+        var groups = _args.Groups.Select(g => GroupToDict(g, getNameFn));
 
         var env = new Dictionary<string, object?>();
         env.Add(nameof(Env.filename), null);
@@ -202,12 +206,7 @@ end
         env.Add(nameof(Env.anime), animes.First());
         env.Add(nameof(Env.file), FileToDict(_args.File));
         env.Add(nameof(Env.episodes), episodes);
-        env.Add(nameof(Env.episode), episodes.Where(e => (int)e[nameof(Episode.animeid)]! == (int)animes.First()[nameof(Anime.id)]!)
-            .OrderBy(e => (string)e[nameof(Episode.type)]! == EpisodeType.Other.ToString()
-                ? int.MinValue
-                : (int)Enum.Parse<EpisodeType>((string)e[nameof(Episode.type)]!))
-            .ThenBy(e => (int)e[nameof(Episode.number)]!)
-            .First());
+        env.Add(nameof(Env.episode), episodes.First());
         env.Add(nameof(Env.importfolders), _args.AvailableFolders.Select(ImportFolderToDict).ToList());
         env.Add(nameof(Env.groups), groups);
         env.Add(nameof(Env.group), groups.FirstOrDefault());
@@ -223,17 +222,13 @@ end
     private Dictionary<string, string> EnumToDict<T>() => Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object?>> GroupsToDict(LuaFunction getNameFn)
+    private Dictionary<string, object?> GroupToDict(IShokoGroup g, LuaFunction getNameFn)
     {
-        var groups = _args.Groups.Select(g =>
-        {
-            var groupdict = new Dictionary<string, object?>();
-            groupdict.Add(nameof(Group.name), g.PreferredTitle);
-            groupdict.Add(nameof(Group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, false, getNameFn));
-            groupdict.Add(nameof(Group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, false, getNameFn)).ToList());
-            return groupdict;
-        }).ToList();
-        return groups;
+        var groupdict = new Dictionary<string, object?>();
+        groupdict.Add(nameof(Group.name), g.PreferredTitle);
+        groupdict.Add(nameof(Group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, false, getNameFn));
+        groupdict.Add(nameof(Group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, false, getNameFn)).ToList());
+        return groupdict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
@@ -252,7 +247,7 @@ end
         animedict.Add(nameof(Anime.preferredname), string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle);
         animedict.Add(nameof(Anime.defaultname), string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
         animedict.Add(nameof(Anime.id), anime.ID);
-        animedict.Add(nameof(Anime.titles), ConvertTitles(anime.Titles));
+        animedict.Add(nameof(Anime.titles), anime.Titles.Select(TitleToDict));
         animedict.Add(nameof(Anime.getname), getNameFn);
         animedict.Add(nameof(Anime._classid), Anime._classidVal);
         var epcountdict = new Dictionary<string, int>();
@@ -308,38 +303,34 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, object?>> EpisodesToDict(LuaFunction getNameFn)
+    private Dictionary<string, object?> EpisodeToDict(IEpisode episode, LuaFunction getNameFn)
     {
-        var episodes = _args.Episodes.Select(se => se.AnidbEpisode).Select(e =>
-        {
-            var epdict = new Dictionary<string, object?>();
-            epdict.Add(nameof(Episode.duration), e.Runtime.TotalSeconds);
-            epdict.Add(nameof(Episode.number), e.EpisodeNumber);
-            epdict.Add(nameof(Episode.type), e.Type.ToString());
-            epdict.Add(nameof(Episode.airdate), e.AirDate?.ToTable());
-            epdict.Add(nameof(Episode.animeid), e.SeriesID);
-            epdict.Add(nameof(Episode.id), e.ID);
-            epdict.Add(nameof(Episode.titles), ConvertTitles(e.Titles));
-            epdict.Add(nameof(Episode.getname), getNameFn);
-            epdict.Add(nameof(Episode.prefix), Utils.EpPrefix[e.Type]);
-            epdict.Add(nameof(Episode._classid), Episode._classidVal);
-            return epdict;
-        }).ToList();
-        return episodes;
+        if (_tableCache.TryGetValue((typeof(IEpisode), episode.ID), out var eObj))
+            return eObj;
+        var epdict = new Dictionary<string, object?>();
+        epdict.Add(nameof(Episode.duration), episode.Runtime.TotalSeconds);
+        epdict.Add(nameof(Episode.number), episode.EpisodeNumber);
+        epdict.Add(nameof(Episode.type), episode.Type.ToString());
+        epdict.Add(nameof(Episode.airdate), episode.AirDate?.ToTable());
+        epdict.Add(nameof(Episode.animeid), episode.SeriesID);
+        epdict.Add(nameof(Episode.id), episode.ID);
+        epdict.Add(nameof(Episode.titles), episode.Titles.Select(TitleToDict));
+        epdict.Add(nameof(Episode.getname), getNameFn);
+        epdict.Add(nameof(Episode.prefix), Utils.EpPrefix[episode.Type]);
+        epdict.Add(nameof(Episode._classid), Episode._classidVal);
+        _tableCache[(typeof(IEpisode), episode.ID)] = epdict;
+        return epdict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private List<Dictionary<string, string?>> ConvertTitles(IEnumerable<AnimeTitle> titles)
+    private Dictionary<string, string?> TitleToDict(AnimeTitle title)
     {
-        return titles.Select(t =>
-        {
-            var title = new Dictionary<string, string?>();
-            title.Add(nameof(Title.name), t.Title);
-            title.Add(nameof(Title.language), t.Language.ToString());
-            title.Add(nameof(Title.languagecode), t.LanguageCode);
-            title.Add(nameof(Title.type), t.Type.ToString());
-            return title;
-        }).ToList();
+        var titleDict = new Dictionary<string, string?>();
+        titleDict.Add(nameof(Title.name), title.Title);
+        titleDict.Add(nameof(Title.language), title.Language.ToString());
+        titleDict.Add(nameof(Title.languagecode), title.LanguageCode);
+        titleDict.Add(nameof(Title.type), title.Type.ToString());
+        return titleDict;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
