@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +25,7 @@ public class LuaContext : Lua
     private static string? _luaUtilsText;
     private static string? _luaLinqText;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
-    private readonly Dictionary<(Type, int), Dictionary<string, object?>> _tableCache = new();
+    private readonly Dictionary<(Type, int), LuaTable> _tableCache = new();
 
 
     #region Sandbox
@@ -165,9 +166,7 @@ end
     public Dictionary<object, object> RunSandboxed()
     {
         var runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
-        var luaEnv = (LuaTable)DoString(BaseEnv)[0];
-        var env = CreateLuaEnv(luaEnv, runSandboxed);
-        foreach (var (k, v) in env) this.AddObject(luaEnv, v, k);
+        var luaEnv = CreateLuaEnv(runSandboxed);
         var retVal = runSandboxed.Call(_args.Settings.Script, luaEnv);
         if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
@@ -175,243 +174,272 @@ end
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> CreateLuaEnv(LuaTable luaEnv, LuaFunction runSandboxed)
+    private LuaTable CreateLuaEnv(LuaFunction runSandboxed)
     {
-        luaEnv[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
-        luaEnv[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
-        luaEnv[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
-        luaEnv[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
-        luaEnv[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
-        runSandboxed.Call(_luaLinqText, luaEnv);
-        runSandboxed.Call(_luaUtilsText, luaEnv);
-        var getNameFn = (LuaFunction)runSandboxed.Call(GetNameFunction, luaEnv)[1];
+        var env = (LuaTable)DoString(BaseEnv)[0];
+        env[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
+        env[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
+        env[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
+        env[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
+        env[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
+        runSandboxed.Call(_luaLinqText, env);
+        runSandboxed.Call(_luaUtilsText, env);
+        var getName = (LuaFunction)runSandboxed.Call(GetNameFunction, env)[1];
 
-        var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToDict(series.AnidbAnime, false, getNameFn)).ToList();
+        var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToTable(series.AnidbAnime, false, getName)).ToList();
         var episodes = _args.Episodes.Select(e => e.AnidbEpisode)
             .OrderBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
             .ThenBy(e => e.EpisodeNumber)
-            .Select(e => EpisodeToDict(e, getNameFn)).ToList();
-        var groups = _args.Groups.Select(g => GroupToDict(g, getNameFn));
+            .Select(e => EpisodeToTable(e, getName)).ToList();
+        var groups = _args.Groups.Select(g => GroupToTable(g, getName)).ToList();
 
-        var env = new Dictionary<string, object?>();
-        env.Add(nameof(Env.filename), null);
-        env.Add(nameof(Env.destination), null);
-        env.Add(nameof(Env.subfolder), null);
-        env.Add(nameof(Env.replace_illegal_chars), false);
-        env.Add(nameof(Env.remove_illegal_chars), false);
-        env.Add(nameof(Env.use_existing_anime_location), false);
-        env.Add(nameof(Env.skip_rename), false);
-        env.Add(nameof(Env.skip_move), false);
-        env.Add(nameof(Env.animes), animes);
-        env.Add(nameof(Env.anime), animes.First());
-        env.Add(nameof(Env.file), FileToDict(_args.File));
-        env.Add(nameof(Env.episodes), episodes);
-        env.Add(nameof(Env.episode), episodes.First());
-        env.Add(nameof(Env.importfolders), _args.AvailableFolders.Select(ImportFolderToDict).ToList());
-        env.Add(nameof(Env.groups), groups);
-        env.Add(nameof(Env.group), groups.FirstOrDefault());
-        env.Add(nameof(Env.AnimeType), EnumToDict<AnimeType>());
-        env.Add(nameof(Env.TitleType), EnumToDict<TitleType>());
-        env.Add(nameof(Env.Language), EnumToDict<TitleLanguage>());
-        env.Add(nameof(Env.EpisodeType), EnumToDict<EpisodeType>());
-        env.Add(nameof(Env.ImportFolderType), EnumToDict<DropFolderType>());
-        env.Add(nameof(Env.RelationType), EnumToDict<RelationType>());
+        env[nameof(Env.replace_illegal_chars)] = false;
+        env[nameof(Env.remove_illegal_chars)] = false;
+        env[nameof(Env.use_existing_anime_location)] = false;
+        env[nameof(Env.skip_rename)] = false;
+        env[nameof(Env.skip_move)] = false;
+        env[nameof(Env.animes)] = GetNewArray(animes);
+        env[nameof(Env.anime)] = animes.First();
+        env[nameof(Env.file)] = FileToTable(_args.File);
+        env[nameof(Env.episodes)] = GetNewArray(episodes);
+        env[nameof(Env.episode)] = episodes.First();
+        env[nameof(Env.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
+        env[nameof(Env.groups)] = GetNewArray(groups);
+        env[nameof(Env.group)] = groups.FirstOrDefault();
+        env[nameof(Env.AnimeType)] = EnumToTable<AnimeType>();
+        env[nameof(Env.TitleType)] = EnumToTable<TitleType>();
+        env[nameof(Env.Language)] = EnumToTable<TitleLanguage>();
+        env[nameof(Env.EpisodeType)] = EnumToTable<EpisodeType>();
+        env[nameof(Env.ImportFolderType)] = EnumToTable<DropFolderType>();
+        env[nameof(Env.RelationType)] = EnumToTable<RelationType>();
         return env;
     }
 
-    private Dictionary<string, string> EnumToDict<T>() => Enum.GetValues(typeof(T)).Cast<T>().ToDictionary(a => a!.ToString()!, a => a!.ToString()!);
-
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> GroupToDict(IShokoGroup g, LuaFunction getNameFn)
+    private LuaTable EnumToTable<T>() where T : struct, Enum
     {
-        var groupdict = new Dictionary<string, object?>();
-        groupdict.Add(nameof(Group.name), g.PreferredTitle);
-        groupdict.Add(nameof(Group.mainanime), AnimeToDict(g.MainSeries.AnidbAnime, false, getNameFn));
-        groupdict.Add(nameof(Group.animes), g.AllSeries.Select(a => AnimeToDict(a.AnidbAnime, false, getNameFn)).ToList());
-        return groupdict;
+        var enumTable = GetNewTable();
+        foreach (var name in Enum.GetNames<T>())
+            enumTable[name] = name;
+        return enumTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> AnimeToDict(ISeries anime, bool ignoreRelations, LuaFunction getNameFn)
+    private LuaTable GroupToTable(IShokoGroup group, LuaFunction getNameFn)
+    {
+        var groupTable = GetNewTable();
+        groupTable[nameof(Group.name)] = group.PreferredTitle;
+        groupTable[nameof(Group.mainanime)] = AnimeToTable(group.MainSeries.AnidbAnime, false, getNameFn);
+        groupTable[nameof(Group.animes)] = GetNewArray(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getNameFn)));
+        return groupTable;
+    }
+
+    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
+    private LuaTable AnimeToTable(ISeries anime, bool ignoreRelations, LuaFunction getNameFn)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
         if (_tableCache.TryGetValue((typeof(ISeries), anime.ID), out var eObj))
             return eObj;
         var series = anime.ShokoSeries.FirstOrDefault();
-        var animedict = new Dictionary<string, object?>();
-        animedict.Add(nameof(Anime.airdate), anime.AirDate?.ToTable());
-        animedict.Add(nameof(Anime.enddate), anime.EndDate?.ToTable());
-        animedict.Add(nameof(Anime.rating), anime.Rating);
-        animedict.Add(nameof(Anime.restricted), anime.Restricted);
-        animedict.Add(nameof(Anime.type), anime.Type.ToString());
-        animedict.Add(nameof(Anime.preferredname), string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle);
-        animedict.Add(nameof(Anime.defaultname), string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle);
-        animedict.Add(nameof(Anime.id), anime.ID);
-        animedict.Add(nameof(Anime.titles), anime.Titles.Select(TitleToDict));
-        animedict.Add(nameof(Anime.getname), getNameFn);
-        animedict.Add(nameof(Anime._classid), Anime._classidVal);
-        var epcountdict = new Dictionary<string, int>();
-        epcountdict.Add(EpisodeType.Episode.ToString(), anime.EpisodeCounts.Episodes);
-        epcountdict.Add(EpisodeType.Special.ToString(), anime.EpisodeCounts.Specials);
-        epcountdict.Add(EpisodeType.Credits.ToString(), anime.EpisodeCounts.Credits);
-        epcountdict.Add(EpisodeType.Trailer.ToString(), anime.EpisodeCounts.Trailers);
-        epcountdict.Add(EpisodeType.Other.ToString(), anime.EpisodeCounts.Others);
-        epcountdict.Add(EpisodeType.Parody.ToString(), anime.EpisodeCounts.Parodies);
-        animedict.Add(nameof(Anime.episodecounts), epcountdict);
-        animedict.Add(nameof(Anime.relations), ignoreRelations
+        var animeTable = GetNewTable();
+        animeTable[nameof(Anime.airdate)] = DateTimeToTable(anime.AirDate);
+        animeTable[nameof(Anime.enddate)] = DateTimeToTable(anime.EndDate);
+        animeTable[nameof(Anime.rating)] = anime.Rating;
+        animeTable[nameof(Anime.restricted)] = anime.Restricted;
+        animeTable[nameof(Anime.type)] = anime.Type.ToString();
+        animeTable[nameof(Anime.preferredname)] = string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle;
+        animeTable[nameof(Anime.defaultname)] = string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle;
+        animeTable[nameof(Anime.id)] = anime.ID;
+        animeTable[nameof(Anime.titles)] = GetNewArray(anime.Titles.Select(TitleToTable));
+        animeTable[nameof(Anime.getname)] = getNameFn;
+        animeTable[nameof(Anime._classid)] = Anime._classidVal;
+        var epCountTable = GetNewTable();
+        epCountTable[EpisodeType.Episode.ToString()] = anime.EpisodeCounts.Episodes;
+        epCountTable[EpisodeType.Special.ToString()] = anime.EpisodeCounts.Specials;
+        epCountTable[EpisodeType.Credits.ToString()] = anime.EpisodeCounts.Credits;
+        epCountTable[EpisodeType.Trailer.ToString()] = anime.EpisodeCounts.Trailers;
+        epCountTable[EpisodeType.Other.ToString()] = anime.EpisodeCounts.Others;
+        epCountTable[EpisodeType.Parody.ToString()] = anime.EpisodeCounts.Parodies;
+        animeTable[nameof(Anime.episodecounts)] = epCountTable;
+        animeTable[nameof(Anime.relations)] = GetNewArray(ignoreRelations
             ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r =>
                 {
-                    var relationdict = new Dictionary<string, object?>();
-                    relationdict.Add(nameof(Relation.type), r.RelationType.ToString());
-                    relationdict.Add(nameof(Relation.anime), AnimeToDict(r.Related!, true, getNameFn));
-                    return relationdict;
-                }).ToList());
-        return _tableCache[(typeof(ISeries), anime.ID)] = animedict;
+                    var relationTable = GetNewTable();
+                    relationTable[nameof(Relation.type)] = r.RelationType.ToString();
+                    relationTable[nameof(Relation.anime)] = AnimeToTable(r.Related!, true, getNameFn);
+                    return relationTable;
+                }));
+        _tableCache[(typeof(ISeries), anime.ID)] = animeTable;
+        return animeTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?>? AniDbFileToDict(IAniDBFile? aniDbFile)
+    private LuaTable? AniDbFileToTable(IAniDBFile? aniDb)
     {
-        if (aniDbFile is null)
+        if (aniDb is null)
             return null;
-        var anidb = new Dictionary<string, object?>();
-        anidb.Add(nameof(AniDb.id), aniDbFile.AniDBFileID);
-        anidb.Add(nameof(AniDb.censored), aniDbFile.Censored);
-        anidb.Add(nameof(AniDb.source), aniDbFile.Source);
-        anidb.Add(nameof(AniDb.version), aniDbFile.Version);
-        anidb.Add(nameof(AniDb.releasedate), aniDbFile.ReleaseDate?.ToTable());
-        anidb.Add(nameof(AniDb.releasegroup), ReleaseGroupToDict(aniDbFile.ReleaseGroup));
-        var mediadict = new Dictionary<string, object>();
-        mediadict.Add(nameof(AniDbMedia.sublanguages), aniDbFile.MediaInfo.SubLanguages.Select(l => l.ToString()).ToList());
-        mediadict.Add(nameof(AniDbMedia.dublanguages), aniDbFile.MediaInfo.AudioLanguages.Select(l => l.ToString()).ToList());
-        anidb.Add(nameof(AniDb.media), mediadict);
-        anidb.Add(nameof(AniDb.description), aniDbFile.Description);
-        return anidb;
+        var aniDbTable = GetNewTable();
+        aniDbTable[nameof(AniDb.id)] = aniDb.AniDBFileID;
+        aniDbTable[nameof(AniDb.censored)] = aniDb.Censored;
+        aniDbTable[nameof(AniDb.source)] = aniDb.Source;
+        aniDbTable[nameof(AniDb.version)] = aniDb.Version;
+        aniDbTable[nameof(AniDb.releasedate)] = DateTimeToTable(aniDb.ReleaseDate);
+        aniDbTable[nameof(AniDb.releasegroup)] = ReleaseGroupToTable(aniDb.ReleaseGroup);
+        var mediaTable = GetNewTable();
+        mediaTable[nameof(AniDbMedia.sublanguages)] = GetNewArray(aniDb.MediaInfo.SubLanguages.Select(l => l.ToString()));
+        mediaTable[nameof(AniDbMedia.dublanguages)] = GetNewArray(aniDb.MediaInfo.AudioLanguages.Select(l => l.ToString()));
+        aniDbTable[nameof(AniDb.media)] = mediaTable;
+        aniDbTable[nameof(AniDb.description)] = aniDb.Description;
+        return aniDbTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?>? ReleaseGroupToDict(IReleaseGroup? releaseGroup)
+    private LuaTable? ReleaseGroupToTable(IReleaseGroup? releaseGroup)
     {
         if (releaseGroup is null || releaseGroup.ID == 0 || releaseGroup.Name == "raw/unknown")
             return null;
-        var groupdict = new Dictionary<string, object?>();
-        groupdict.Add(nameof(ReleaseGroup.name), releaseGroup.Name);
-        groupdict.Add(nameof(ReleaseGroup.shortname), releaseGroup.ShortName);
-        return groupdict;
+        var groupTable = GetNewTable();
+        groupTable[nameof(ReleaseGroup.name)] = releaseGroup.Name;
+        groupTable[nameof(ReleaseGroup.shortname)] = releaseGroup.ShortName;
+        return groupTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> EpisodeToDict(IEpisode episode, LuaFunction getNameFn)
+    private LuaTable EpisodeToTable(IEpisode episode, LuaFunction getNameFn)
     {
         if (_tableCache.TryGetValue((typeof(IEpisode), episode.ID), out var eObj))
             return eObj;
-        var epdict = new Dictionary<string, object?>();
-        epdict.Add(nameof(Episode.duration), episode.Runtime.TotalSeconds);
-        epdict.Add(nameof(Episode.number), episode.EpisodeNumber);
-        epdict.Add(nameof(Episode.type), episode.Type.ToString());
-        epdict.Add(nameof(Episode.airdate), episode.AirDate?.ToTable());
-        epdict.Add(nameof(Episode.animeid), episode.SeriesID);
-        epdict.Add(nameof(Episode.id), episode.ID);
-        epdict.Add(nameof(Episode.titles), episode.Titles.Select(TitleToDict));
-        epdict.Add(nameof(Episode.getname), getNameFn);
-        epdict.Add(nameof(Episode.prefix), Utils.EpPrefix[episode.Type]);
-        epdict.Add(nameof(Episode._classid), Episode._classidVal);
-        _tableCache[(typeof(IEpisode), episode.ID)] = epdict;
-        return epdict;
+        var epTable = GetNewTable();
+        epTable[nameof(Episode.duration)] = episode.Runtime.TotalSeconds;
+        epTable[nameof(Episode.number)] = episode.EpisodeNumber;
+        epTable[nameof(Episode.type)] = episode.Type.ToString();
+        epTable[nameof(Episode.airdate)] = DateTimeToTable(episode.AirDate);
+        epTable[nameof(Episode.animeid)] = episode.SeriesID;
+        epTable[nameof(Episode.id)] = episode.ID;
+        epTable[nameof(Episode.titles)] = GetNewArray(episode.Titles.Select(TitleToTable));
+        epTable[nameof(Episode.getname)] = getNameFn;
+        epTable[nameof(Episode.prefix)] = Utils.EpPrefix[episode.Type];
+        epTable[nameof(Episode._classid)] = Episode._classidVal;
+        _tableCache[(typeof(IEpisode), episode.ID)] = epTable;
+        return epTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, string?> TitleToDict(AnimeTitle title)
+    private LuaTable TitleToTable(AnimeTitle title)
     {
-        var titleDict = new Dictionary<string, string?>();
-        titleDict.Add(nameof(Title.name), title.Title);
-        titleDict.Add(nameof(Title.language), title.Language.ToString());
-        titleDict.Add(nameof(Title.languagecode), title.LanguageCode);
-        titleDict.Add(nameof(Title.type), title.Type.ToString());
-        return titleDict;
+        var titleTable = GetNewTable();
+        titleTable[nameof(Title.name)] = title.Title;
+        titleTable[nameof(Title.language)] = title.Language.ToString();
+        titleTable[nameof(Title.languagecode)] = title.LanguageCode;
+        titleTable[nameof(Title.type)] = title.Type.ToString();
+        return titleTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> FileToDict(IVideoFile file)
+    private LuaTable FileToTable(IVideoFile file)
     {
-        var fileDict = new Dictionary<string, object?>();
-        fileDict.Add(nameof(LuaEnv.File.name), Path.GetFileNameWithoutExtension(file.FileName));
-        fileDict.Add(nameof(LuaEnv.File.extension), Path.GetExtension(file.FileName));
-        fileDict.Add(nameof(LuaEnv.File.path), file.Path);
-        fileDict.Add(nameof(LuaEnv.File.size), file.Size);
-        fileDict.Add(nameof(LuaEnv.File.earliestname), Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName));
-        var hashdict = new Dictionary<string, object?>();
-        hashdict.Add(nameof(Hashes.crc), file.Video.Hashes.CRC);
-        hashdict.Add(nameof(Hashes.md5), file.Video.Hashes.MD5);
-        hashdict.Add(nameof(Hashes.ed2k), file.Video.Hashes.ED2K);
-        hashdict.Add(nameof(Hashes.sha1), file.Video.Hashes.SHA1);
-        fileDict.Add(nameof(LuaEnv.File.hashes), hashdict);
-        fileDict.Add(nameof(LuaEnv.File.anidb), AniDbFileToDict(file.Video.AniDB));
-        fileDict.Add(nameof(LuaEnv.File.media), MediaInfoToDict(file.Video.MediaInfo));
-        fileDict.Add(nameof(LuaEnv.File.importfolder), ImportFolderToDict(file.ImportFolder));
-        return fileDict;
+        var fileTable = GetNewTable();
+        fileTable[nameof(LuaEnv.File.name)] = Path.GetFileNameWithoutExtension(file.FileName);
+        fileTable[nameof(LuaEnv.File.extension)] = Path.GetExtension(file.FileName);
+        fileTable[nameof(LuaEnv.File.path)] = file.Path;
+        fileTable[nameof(LuaEnv.File.size)] = file.Size;
+        fileTable[nameof(LuaEnv.File.earliestname)] = Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName);
+        var hashTable = GetNewTable();
+        hashTable[nameof(Hashes.crc)] = file.Video.Hashes.CRC;
+        hashTable[nameof(Hashes.md5)] = file.Video.Hashes.MD5;
+        hashTable[nameof(Hashes.ed2k)] = file.Video.Hashes.ED2K;
+        hashTable[nameof(Hashes.sha1)] = file.Video.Hashes.SHA1;
+        fileTable[nameof(LuaEnv.File.hashes)] = hashTable;
+        fileTable[nameof(LuaEnv.File.anidb)] = AniDbFileToTable(file.Video.AniDB);
+        fileTable[nameof(LuaEnv.File.media)] = MediaInfoToTable(file.Video.MediaInfo);
+        fileTable[nameof(LuaEnv.File.importfolder)] = ImportFolderToTable(file.ImportFolder);
+        return fileTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?> ImportFolderToDict(IImportFolder folder)
+    private LuaTable ImportFolderToTable(IImportFolder folder)
     {
         if (_tableCache.TryGetValue((typeof(IImportFolder), folder.ID), out var eObj))
             return eObj;
-        var importdict = new Dictionary<string, object?>();
-        importdict.Add(nameof(ImportFolder.id), folder.ID);
-        importdict.Add(nameof(ImportFolder.name), folder.Name);
-        importdict.Add(nameof(ImportFolder.location), folder.Path);
-        importdict.Add(nameof(ImportFolder.type), folder.DropFolderType.ToString());
-        importdict.Add(nameof(ImportFolder._classid), ImportFolder._classidVal);
-        _tableCache[(typeof(IImportFolder), folder.ID)] = importdict;
-        return importdict;
+        var importTable = GetNewTable();
+        importTable[nameof(ImportFolder.id)] = folder.ID;
+        importTable[nameof(ImportFolder.name)] = folder.Name;
+        importTable[nameof(ImportFolder.location)] = folder.Path;
+        importTable[nameof(ImportFolder.type)] = folder.DropFolderType.ToString();
+        importTable[nameof(ImportFolder._classid)] = ImportFolder._classidVal;
+        _tableCache[(typeof(IImportFolder), folder.ID)] = importTable;
+        return importTable;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private Dictionary<string, object?>? MediaInfoToDict(IMediaInfo? mediaInfo)
+    private LuaTable? MediaInfoToTable(IMediaInfo? mediaInfo)
     {
         if (mediaInfo is null)
             return null;
-        var mediainfo = new Dictionary<string, object?>();
-        mediainfo.Add(nameof(Media.chaptered), mediaInfo.Chapters.Any());
-        Dictionary<string, object>? videodict = null;
+        var mediaInfoTable = GetNewTable();
+        mediaInfoTable[nameof(Media.chaptered)] = mediaInfo.Chapters.Any();
         if (mediaInfo.VideoStream is { } video)
         {
-            videodict = new Dictionary<string, object>();
-            videodict.Add(nameof(Video.height), video.Height);
-            videodict.Add(nameof(Video.width), video.Width);
-            videodict.Add(nameof(Video.codec), video.Codec.Simplified);
-            videodict.Add(nameof(Video.res), video.Resolution);
-            videodict.Add(nameof(Video.bitrate), video.BitRate);
-            videodict.Add(nameof(Video.bitdepth), video.BitDepth);
-            videodict.Add(nameof(Video.framerate), video.FrameRate);
+            var videoTable = GetNewTable();
+            videoTable[nameof(Video.height)] = video.Height;
+            videoTable[nameof(Video.width)] = video.Width;
+            videoTable[nameof(Video.codec)] = video.Codec.Simplified;
+            videoTable[nameof(Video.res)] = video.Resolution;
+            videoTable[nameof(Video.bitrate)] = video.BitRate;
+            videoTable[nameof(Video.bitdepth)] = video.BitDepth;
+            videoTable[nameof(Video.framerate)] = video.FrameRate;
+            mediaInfoTable[nameof(Media.video)] = videoTable;
         }
 
-        mediainfo.Add(nameof(Media.video), videodict);
-        mediainfo.Add(nameof(Media.duration), mediaInfo.Duration);
-        mediainfo.Add(nameof(Media.bitrate), mediaInfo.BitRate);
-        mediainfo.Add(nameof(Media.sublanguages), mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList());
-        mediainfo.Add(nameof(Media.audio), mediaInfo.AudioStreams.Select(a =>
+        mediaInfoTable[nameof(Media.duration)] = mediaInfo.Duration;
+        mediaInfoTable[nameof(Media.bitrate)] = mediaInfo.BitRate;
+        mediaInfoTable[nameof(Media.sublanguages)] = GetNewArray(mediaInfo.TextStreams.Select(s => s.Language.ToString()));
+        mediaInfoTable[nameof(Media.audio)] = GetNewArray(mediaInfo.AudioStreams.Select(a =>
         {
-            var audiodict = new Dictionary<string, object?>();
-            audiodict.Add(nameof(Audio.compressionmode), a.CompressionMode);
-            audiodict.Add(nameof(Audio.channels),
-                !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels);
-            audiodict.Add(nameof(Audio.samplingrate), a.SamplingRate);
-            audiodict.Add(nameof(Audio.codec), a.Codec.Simplified);
-            audiodict.Add(nameof(Audio.language), a.Language.ToString());
-            audiodict.Add(nameof(Audio.title), a.Title);
-            return audiodict;
-        }).ToList());
+            var audioTable = GetNewTable();
+            audioTable[nameof(Audio.compressionmode)] = a.CompressionMode;
+            audioTable[nameof(Audio.channels)] =
+                !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels;
+            audioTable[nameof(Audio.samplingrate)] = a.SamplingRate;
+            audioTable[nameof(Audio.codec)] = a.Codec.Simplified;
+            audioTable[nameof(Audio.language)] = a.Language.ToString();
+            audioTable[nameof(Audio.title)] = a.Title;
+            return audioTable;
+        }));
 
-        return mediainfo;
+        return mediaInfoTable;
     }
 
-    public LuaTable GetNewTable()
+    private LuaTable? DateTimeToTable(DateTime? dateTime)
+    {
+        if (dateTime is not { } dt)
+            return null;
+        var dateTimeTable = GetNewTable();
+        dateTimeTable[nameof(Date.year)] = dt.Year;
+        dateTimeTable[nameof(Date.month)] = dt.Month;
+        dateTimeTable[nameof(Date.day)] = dt.Day;
+        dateTimeTable[nameof(Date.yday)] = dt.DayOfYear;
+        dateTimeTable[nameof(Date.wday)] = (long)dt.DayOfWeek + 1;
+        dateTimeTable[nameof(Date.hour)] = dt.Hour;
+        dateTimeTable[nameof(Date.min)] = dt.Minute;
+        dateTimeTable[nameof(Date.sec)] = dt.Second;
+        dateTimeTable[nameof(Date.isdst)] = dt.IsDaylightSavingTime();
+        return dateTimeTable;
+    }
+
+    private LuaTable GetNewTable()
     {
         NewTable("_");
         return GetTable("_");
+    }
+
+    private LuaTable GetNewArray(IEnumerable list)
+    {
+        var table = GetNewTable();
+        var i = 1;
+        foreach (var item in list)
+            table[i++] = item;
+        return table;
     }
 }
