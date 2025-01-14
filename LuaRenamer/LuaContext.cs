@@ -223,18 +223,16 @@ end
         return enumTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private LuaTable GroupToTable(IShokoGroup group, LuaFunction getNameFn)
+    private LuaTable GroupToTable(IShokoGroup group, LuaFunction getName)
     {
         var groupTable = GetNewTable();
         groupTable[nameof(Group.name)] = group.PreferredTitle;
-        groupTable[nameof(Group.mainanime)] = AnimeToTable(group.MainSeries.AnidbAnime, false, getNameFn);
-        groupTable[nameof(Group.animes)] = GetNewArray(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getNameFn)));
+        groupTable[nameof(Group.mainanime)] = AnimeToTable(group.MainSeries.AnidbAnime, false, getName);
+        groupTable[nameof(Group.animes)] = GetNewArray(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getName)));
         return groupTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private LuaTable AnimeToTable(ISeries anime, bool ignoreRelations, LuaFunction getNameFn)
+    private LuaTable AnimeToTable(ISeries anime, bool ignoreRelations, LuaFunction getName)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
         if (_tableCache.TryGetValue((typeof(ISeries), anime.ID), out var eObj))
@@ -249,32 +247,29 @@ end
         animeTable[nameof(Anime.preferredname)] = string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle;
         animeTable[nameof(Anime.defaultname)] = string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle;
         animeTable[nameof(Anime.id)] = anime.ID;
-        animeTable[nameof(Anime.titles)] = GetNewArray(anime.Titles.Select(TitleToTable));
-        animeTable[nameof(Anime.getname)] = getNameFn;
+        animeTable[nameof(Anime.titles)] = GetNewArray(anime.Titles.OrderBy(t => t.Title).Select(TitleToTable));
+        animeTable[nameof(Anime.getname)] = getName;
         animeTable[nameof(Anime._classid)] = Anime._classidVal;
         var epCountTable = GetNewTable();
-        epCountTable[EpisodeType.Episode.ToString()] = anime.EpisodeCounts.Episodes;
-        epCountTable[EpisodeType.Special.ToString()] = anime.EpisodeCounts.Specials;
-        epCountTable[EpisodeType.Credits.ToString()] = anime.EpisodeCounts.Credits;
-        epCountTable[EpisodeType.Trailer.ToString()] = anime.EpisodeCounts.Trailers;
-        epCountTable[EpisodeType.Other.ToString()] = anime.EpisodeCounts.Others;
-        epCountTable[EpisodeType.Parody.ToString()] = anime.EpisodeCounts.Parodies;
+        foreach (var epType in Enum.GetValues<EpisodeType>())
+            epCountTable[epType.ToString()] = anime.EpisodeCounts[epType];
         animeTable[nameof(Anime.episodecounts)] = epCountTable;
         animeTable[nameof(Anime.relations)] = GetNewArray(ignoreRelations
             ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
-                .Select(r =>
-                {
-                    var relationTable = GetNewTable();
-                    relationTable[nameof(Relation.type)] = r.RelationType.ToString();
-                    relationTable[nameof(Relation.anime)] = AnimeToTable(r.Related!, true, getNameFn);
-                    return relationTable;
-                }));
+                .Select(r => RelationToTable(r, getName)));
         _tableCache[(typeof(ISeries), anime.ID)] = animeTable;
         return animeTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
+    private LuaTable RelationToTable(IRelatedMetadata<ISeries> relation, LuaFunction getName)
+    {
+        var relationTable = GetNewTable();
+        relationTable[nameof(Relation.type)] = relation.RelationType.ToString();
+        relationTable[nameof(Relation.anime)] = AnimeToTable(relation.Related!, true, getName);
+        return relationTable;
+    }
+
     private LuaTable? AniDbFileToTable(IAniDBFile? aniDb)
     {
         if (aniDb is null)
@@ -294,7 +289,6 @@ end
         return aniDbTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private LuaTable? ReleaseGroupToTable(IReleaseGroup? releaseGroup)
     {
         if (releaseGroup is null || releaseGroup.ID == 0 || releaseGroup.Name == "raw/unknown")
@@ -305,8 +299,7 @@ end
         return groupTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
-    private LuaTable EpisodeToTable(IEpisode episode, LuaFunction getNameFn)
+    private LuaTable EpisodeToTable(IEpisode episode, LuaFunction getName)
     {
         if (_tableCache.TryGetValue((typeof(IEpisode), episode.ID), out var eObj))
             return eObj;
@@ -317,15 +310,14 @@ end
         epTable[nameof(Episode.airdate)] = DateTimeToTable(episode.AirDate);
         epTable[nameof(Episode.animeid)] = episode.SeriesID;
         epTable[nameof(Episode.id)] = episode.ID;
-        epTable[nameof(Episode.titles)] = GetNewArray(episode.Titles.Select(TitleToTable));
-        epTable[nameof(Episode.getname)] = getNameFn;
+        epTable[nameof(Episode.titles)] = GetNewArray(episode.Titles.OrderBy(t => t.Title).Select(TitleToTable));
+        epTable[nameof(Episode.getname)] = getName;
         epTable[nameof(Episode.prefix)] = Utils.EpPrefix[episode.Type];
         epTable[nameof(Episode._classid)] = Episode._classidVal;
         _tableCache[(typeof(IEpisode), episode.ID)] = epTable;
         return epTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private LuaTable TitleToTable(AnimeTitle title)
     {
         var titleTable = GetNewTable();
@@ -336,7 +328,6 @@ end
         return titleTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private LuaTable FileToTable(IVideoFile file)
     {
         var fileTable = GetNewTable();
@@ -357,7 +348,6 @@ end
         return fileTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private LuaTable ImportFolderToTable(IImportFolder folder)
     {
         if (_tableCache.TryGetValue((typeof(IImportFolder), folder.ID), out var eObj))
@@ -372,7 +362,6 @@ end
         return importTable;
     }
 
-    [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]
     private LuaTable? MediaInfoToTable(IMediaInfo? mediaInfo)
     {
         if (mediaInfo is null)
