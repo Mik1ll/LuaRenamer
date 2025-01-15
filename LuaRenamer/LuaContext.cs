@@ -163,14 +163,14 @@ end
         FileCacheStopwatch.Restart();
     }
 
-    public Dictionary<object, object> RunSandboxed()
+    public LuaTable RunSandboxed()
     {
         var runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = CreateLuaEnv(runSandboxed);
         var retVal = runSandboxed.Call(_args.Settings.Script, luaEnv);
         if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
-        return GetTableDict(luaEnv);
+        return luaEnv;
     }
 
     [SuppressMessage("ReSharper", "UseObjectOrCollectionInitializer")]

@@ -44,7 +44,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         _logger = logger;
     }
 
-    private string GetNewSubfolder(object? subfolder, bool replaceIllegalChars, bool removeIllegalChars, RelocationEventArgs<LuaRenamerSettings> args)
+
+    private string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars) =>
+        filename is string f
+            ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(args.File.FileName)
+            : args.File.FileName;
+
+    private string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
     {
         List<string> newSubFolderSplit;
         switch (subfolder)
@@ -63,7 +69,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                     if (kvp.Key is not long key)
                         continue;
                     if (kvp.Value is not string val)
-                        throw new LuaScriptException("subfolder array must only contain strings", string.Empty);
+                        throw new LuaRenamerException("subfolder array must only contain strings");
                     subfolderDict[key] = val;
                 }
 
@@ -71,7 +77,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 break;
             }
             default:
-                throw new LuaScriptException("subfolder returned a value of an unexpected type", string.Empty);
+                throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
         newSubFolderSplit = newSubFolderSplit
@@ -104,19 +110,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 break;
             case LuaTable destTable:
                 if ((string)destTable[nameof(ImportFolder._classid)] == ImportFolder._classidVal)
-                {
-                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolder.id)]));
-                    if (destfolder is null)
-                        throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolder.id)]}");
-                }
+                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolder.id)])) ??
+                                 throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolder.id)]}");
                 else
-                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {Env.Inst.importfolders}");
-
+                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {Env.Inst.importfolders} variable");
                 break;
             default:
-                throw new LuaScriptException(
-                    $"destination must be nil or an existing import folder string (name/path), or table (see {Env.Inst.importfolders} variable)",
-                    string.Empty);
+                throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from {Env.Inst.importfolders} variable");
         }
 
         if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
@@ -166,28 +166,26 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
 
             using var lua = new LuaContext(_logger, args);
             var env = lua.RunSandboxed();
-            var replaceIllegalChars = (bool)env[Env.Inst.replace_illegal_chars];
-            var removeIllegalChars = (bool)env[Env.Inst.remove_illegal_chars];
-            var useExistingAnimeLocation = (bool)env[Env.Inst.use_existing_anime_location];
-            var skipMove = (bool)env[Env.Inst.skip_move];
-            var skipRename = (bool)env[Env.Inst.skip_rename];
-            env.TryGetValue(Env.Inst.filename, out var luaFilename);
-            env.TryGetValue(Env.Inst.destination, out var luaDestination);
-            env.TryGetValue(Env.Inst.subfolder, out var luaSubfolder);
+            var replaceIllegalChars = env[nameof(Env.replace_illegal_chars)] is true;
+            var removeIllegalChars = env[nameof(Env.remove_illegal_chars)] is true;
+            var useExistingAnimeLocation = env[nameof(Env.use_existing_anime_location)] is true;
+            var skipMove = env[nameof(Env.skip_move)] is true;
+            var skipRename = env[nameof(Env.skip_rename)] is true;
+            var luaFilename = env[nameof(Env.filename)];
+            var luaDestination = env[nameof(Env.destination)];
+            var luaSubfolder = env[nameof(Env.subfolder)];
 
-            var (destination, subfolder) = args.MoveEnabled && !skipMove
-                ? (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??
-                  (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, replaceIllegalChars, removeIllegalChars, args))
-                : (null, null);
+            var result = new RelocationResult { SkipMove = skipMove, SkipRename = skipRename };
 
-            var filename = args.RenameEnabled && !skipRename
-                ? luaFilename is string f
-                    ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(args.File.FileName)
-                    : args.File.FileName
-                : null;
+            if (args.MoveEnabled && !skipMove)
+                (result.DestinationImportFolder, result.Path) =
+                    (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??
+                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, args, replaceIllegalChars, removeIllegalChars));
 
-            return new RelocationResult
-                { DestinationImportFolder = destination, Path = subfolder, FileName = filename, SkipMove = skipMove, SkipRename = skipRename };
+            if (args.RenameEnabled && !skipRename)
+                result.FileName = GetNewFilename(luaFilename, args, removeIllegalChars, replaceIllegalChars);
+
+            return result;
         }
         catch (Exception e)
         {
