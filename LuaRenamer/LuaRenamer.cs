@@ -45,10 +45,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
     }
 
 
-    private string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars) =>
-        filename is string f
-            ? (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(true) + Path.GetExtension(args.File.FileName)
-            : args.File.FileName;
+    private string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars)
+    {
+        if (filename is not string)
+            return args.File.FileName;
+        var fileNameWithExt = filename + Path.GetExtension(args.File.FileName);
+        return fileNameWithExt.CleanPathSegment(removeIllegalChars, replaceIllegalChars);
+    }
 
     private string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
     {
@@ -80,8 +83,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
-        newSubFolderSplit = newSubFolderSplit
-            .Select(f => (removeIllegalChars ? f : f.ReplacePathSegmentChars(replaceIllegalChars)).CleanPathSegment(false)).ToList();
+        newSubFolderSplit = newSubFolderSplit.Select(f => f.CleanPathSegment(removeIllegalChars, replaceIllegalChars)).ToList();
         var newSubfolder = Path.Combine(newSubFolderSplit.ToArray()).NormPath();
         return newSubfolder;
     }
