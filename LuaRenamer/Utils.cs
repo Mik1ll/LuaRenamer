@@ -16,7 +16,8 @@ public static class Utils
 
     private static readonly Regex InvalidPathCharRegex = new(@"[<>:""/\\|?*\x00-\x1F]", RegexOptions.Compiled);
 
-    private static readonly Regex WindowsDeviceNamesRegex = new("^(CON|PRN|AUX|NUL|COM[0-9\xB9\xB2\xB3]|LPT[0-9\xB9\xB2\xB3])(\\..+)?$", RegexOptions.Compiled);
+    private static readonly Regex WindowsDeviceNamesRegex = new("^(CON|PRN|AUX|NUL|COM[0-9\xB9\xB2\xB3]|LPT[0-9\xB9\xB2\xB3])(\\..+)?$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     public static string CleanPathSegment(this string segment, bool removeIllegalChars, bool replaceIllegalChars)
     {
