@@ -13,9 +13,6 @@ using Shoko.Plugin.Abstractions.DataModels;
 using Shoko.Plugin.Abstractions.DataModels.Shoko;
 using Shoko.Plugin.Abstractions.Events;
 
-// ReSharper disable PossibleUnintendedReferenceComparison
-// ReSharper disable CompareOfFloatsByEqualityOperator
-
 namespace LuaRenamerTests;
 
 [TestClass]
@@ -69,7 +66,7 @@ public class LuaTests
     [TestMethod]
     public void TestScriptRuns()
     {
-        var args = MinimalArgs($@"{Env.Inst.filename} = 'testfilename'");
+        var args = MinimalArgs($"{Env.Inst.filename} = 'testfilename'");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
         Assert.AreEqual("testfilename.mp4", res.FileName);
@@ -111,7 +108,7 @@ public class LuaTests
     [TestMethod]
     public void TestDateTime()
     {
-        var args = MinimalArgs($@"{Env.Inst.filename} = os.date('%c', os.time({Env.Inst.file.anidb.releasedate}))");
+        var args = MinimalArgs($"{Env.Inst.filename} = os.date('%c', os.time({Env.Inst.file.anidb.releasedate}))");
         var path = args.File.Path;
         var name = args.File.FileName;
         args = new RelocationEventArgs<LuaRenamerSettings>
@@ -240,7 +237,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     [TestMethod]
     public void TestEpisodeNumbers()
     {
-        var args = MinimalArgs($@"{Env.Inst.filename} = {Env.Inst.episode_numbers}(3)");
+        var args = MinimalArgs($"{Env.Inst.filename} = {Env.Inst.episode_numbers}(3)");
         var titles = args.Episodes[0].AnidbEpisode.Titles;
         args = new RelocationEventArgs<LuaRenamerSettings>
         {
@@ -290,7 +287,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $@"{Env.Inst.filename} = {Env.Inst.anime.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
+            $"{Env.Inst.filename} = {Env.Inst.anime.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange(new AnimeTitle[]
         {
             new()
@@ -494,5 +491,41 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var defaultScript = renamer.DefaultSettings;
         Assert.IsNotNull(defaultScript?.Script);
+    }
+
+    [TestMethod]
+    [DataRow("subfolder = {'testfld'}", "testfld")]
+    [DataRow("subfolder = {'testfld', 'testfld2'}", "testfld/testfld2")]
+    [DataRow("subfolder = {'testfld', nil, 'testfld2'}", "testfld")]
+    [DataRow("subfolder = {[2] = 'testfld', [1] = 'testfld2'}", "testfld2/testfld")]
+    [DataRow("subfolder = {}", null)]
+    [DataRow($$"""{{nameof(Env.replace_illegal_chars)}} = true ; subfolder = {'testfld\\', 'testfld2'}""", "testfld＼/testfld2")]
+    [DataRow($$"""{{nameof(Env.replace_illegal_chars)}} = true ; subfolder = 'testfld\\testfld2/testfld3'""", "testfld＼testfld2／testfld3")]
+    public void TestSubfolder(string lua, string? expected)
+    {
+        var args = MinimalArgs(lua);
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var res = renamer.GetNewPath(args);
+        Assert.AreEqual(expected?.NormPath() ?? "", res.Path?.NormPath() ?? "");
+    }
+
+    [TestMethod]
+    [DataRow("filename = 'com1'", true)]
+    [DataRow("filename = 'com1.test'", true)]
+    [DataRow("filename = 'com\u00b9'", true)]
+    [DataRow("filename = 'NUL'", true)]
+    [DataRow("filename = 'CON1'", false)]
+    [DataRow("filename = 'COM1test'", false)]
+    [DataRow("filename = 'COM1test.test'", false)]
+    [DataRow("filename = 'COM1.'", true)]
+    public void TestInvalidDeviceNames(string lua, bool error)
+    {
+        var args = MinimalArgs(lua);
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var res = renamer.GetNewPath(args);
+        if (error)
+            Assert.IsNotNull(res.Error);
+        else
+            Assert.IsNull(res.Error);
     }
 }

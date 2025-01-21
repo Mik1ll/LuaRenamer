@@ -66,25 +66,16 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 break;
             case LuaTable subfolderTable:
             {
-                var subfolderDict = new SortedDictionary<long, string>();
-                foreach (KeyValuePair<object, object> kvp in subfolderTable)
-                {
-                    if (kvp.Key is not long key)
-                        continue;
-                    if (kvp.Value is not string val)
-                        throw new LuaRenamerException("subfolder array must only contain strings");
-                    subfolderDict[key] = val;
-                }
-
-                newSubFolderSplit = subfolderDict.Values.ToList();
+                newSubFolderSplit = [];
+                for (var i = 1; subfolderTable[i] is { } val; i++)
+                    newSubFolderSplit.Add(val as string ?? throw new LuaRenamerException("subfolder array must only contain strings"));
                 break;
             }
             default:
                 throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
-        newSubFolderSplit = newSubFolderSplit.Select(f => f.CleanPathSegment(removeIllegalChars, replaceIllegalChars)).ToList();
-        var newSubfolder = Path.Combine(newSubFolderSplit.ToArray()).NormPath();
+        var newSubfolder = Path.Combine(newSubFolderSplit.Select(f => f.CleanPathSegment(removeIllegalChars, replaceIllegalChars)).ToArray()).NormPath();
         return newSubfolder;
     }
 
