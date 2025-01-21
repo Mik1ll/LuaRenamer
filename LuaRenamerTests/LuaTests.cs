@@ -190,19 +190,19 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     }
 
     [TestMethod]
-    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+    [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
              "filename = from(array):select(function(v) return #v; end):dump()", "q{ 4, 5, 9 }")]
-    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, }\n" +
-             "filename = from(array):select(\"say\"):dump()", "q{ ciao, hello }")]
-    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+    [DataRow("local array = { { say='ciao', lang='ita' }, { say='hello', lang='eng' }, }\n" +
+             "filename = from(array):select('say'):dump()", "q{ ciao, hello }")]
+    [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
              "filename = from(array):selectMany(function(v) return { v, #v }; end):dump()  ", "q{ ciao, 4, hello, ...6 }")]
-    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+    [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
              "filename = ''\n" +
              "from(array):foreach(function (a, blah) filename = filename .. a .. blah end, 'blah')", "ciaoblahhelloblahau revoirblah")]
-    [DataRow("local array = { { say=\"ciao\", lang=\"ita\" }, { say=\"hello\", lang=\"eng\" }, { say=\"au revoir\", lang=\"fre\" }}\n" +
-             "array = from(array):where(\"lang\", \"ita\", \"fre\"):toArray()\n" +
+    [DataRow("local array = { { say='ciao', lang='ita' }, { say='hello', lang='eng' }, { say='au revoir', lang='fre' }}\n" +
+             "array = from(array):where('lang', 'ita', 'fre'):toArray()\n" +
              "filename = array[1].say .. array[2].say .. (array[3] and array[3].say or '')", "ciaoau revoir")]
-    [DataRow("local array = { \"ciao\", \"hello\", \"au revoir\" }\n" +
+    [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
              "filename = tostring(from(array):whereIndex(function (i, v) return ((i % 2)~=0); end):count())", "2")]
     [DataRow("filename = table.concat(from({'a', 'b', 'c'}):concat({'d', 'e'}):toArray())", "abcde")]
     [DataRow("filename = table.concat(from({'ablah', 'blahb', 'blac'}):where(function(a, extra) return string.find(a, extra) end, 'blah'):toArray())",
@@ -344,7 +344,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     [TestMethod]
     public void TestLogging()
     {
-        var args = MinimalArgs("log(\"test\")");
+        var args = MinimalArgs("log('test')");
         var logmock = new Mock<ILogger<LuaRenamer.LuaRenamer>>();
         var renamer = new LuaRenamer.LuaRenamer(logmock.Object);
         renamer.GetNewPath(args);
