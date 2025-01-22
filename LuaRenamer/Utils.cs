@@ -12,7 +12,7 @@ public static class Utils
 
     private static readonly Dictionary<string, string> ReplaceMap = new()
     {
-        { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" }
+        { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" },
     };
 
     private static readonly Regex InvalidPathCharRegex = new("""[<>:"/\\|?*\x00-\x1F]""", RegexOptions.Compiled);
@@ -43,6 +43,6 @@ public static class Utils
         { EpisodeType.Credits, "C" },
         { EpisodeType.Other, "O" },
         { EpisodeType.Parody, "P" },
-        { EpisodeType.Trailer, "T" }
+        { EpisodeType.Trailer, "T" },
     };
 }

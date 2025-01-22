@@ -33,11 +33,11 @@ public class LuaTests
         animeMock.SetupGet(a => a.ID).Returns(3);
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 && s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        return new RelocationEventArgs<LuaRenamerSettings>
+        return new()
         {
             AvailableFolders = new List<IImportFolder>
             {
-                importFolder
+                importFolder,
             },
             File = Mock.Of<IVideoFile>(file =>
                 file.Path == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
@@ -50,23 +50,23 @@ public class LuaTests
             Episodes = new List<IShokoEpisode>
             {
                 Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode))
+                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode)),
             },
             Series = new List<IShokoSeries>
             {
-                shokoSeries
+                shokoSeries,
             },
             Groups = new List<IShokoGroup>(),
-            Settings = new LuaRenamerSettings { Script = script },
+            Settings = new() { Script = script },
             RenameEnabled = true,
-            MoveEnabled = true
+            MoveEnabled = true,
         };
     }
 
     [TestMethod]
     public void TestScriptRuns()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = 'testfilename'");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = 'testfilename'");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
         Assert.AreEqual("testfilename.mp4", res.FileName);
@@ -75,7 +75,7 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = tostring({Env.Inst.anime.type} == {Env.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = tostring({EnvTable.Inst.anime.type} == {EnvTable.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
@@ -85,7 +85,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.ID).Returns(3);
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        args = new RelocationEventArgs<LuaRenamerSettings>
+        args = new()
         {
             Settings = args.Settings,
             AvailableFolders = args.AvailableFolders,
@@ -93,11 +93,11 @@ public class LuaTests
             Episodes = args.Episodes,
             Series =
             [
-                shokoSeries
+                shokoSeries,
             ],
             Groups = args.Groups,
             MoveEnabled = true,
-            RenameEnabled = true
+            RenameEnabled = true,
         };
 
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
@@ -108,10 +108,10 @@ public class LuaTests
     [TestMethod]
     public void TestDateTime()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = os.date('%c', os.time({Env.Inst.file.anidb.releasedate}))");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = os.date('%c', os.time({EnvTable.Inst.file.anidb.releasedate}))");
         var path = args.File.Path;
         var name = args.File.FileName;
-        args = new RelocationEventArgs<LuaRenamerSettings>
+        args = new()
         {
             Settings = args.Settings,
             AvailableFolders = args.AvailableFolders,
@@ -129,7 +129,7 @@ public class LuaTests
             Series = args.Series,
             Groups = args.Groups,
             MoveEnabled = true,
-            RenameEnabled = true
+            RenameEnabled = true,
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
@@ -140,24 +140,24 @@ public class LuaTests
     public void TestEpisodes()
     {
         var args = MinimalArgs(
-            $"{Env.Inst.filename} = {Env.Inst.episode.titles[1].name} .. ' ' .. {Env.Inst.episode.number} .. ' ' .. {Env.Inst.episode.type}");
-        args = new RelocationEventArgs<LuaRenamerSettings>
+            $"{EnvTable.Inst.filename} = {EnvTable.Inst.episode.titles[1].name} .. ' ' .. {EnvTable.Inst.episode.number} .. ' ' .. {EnvTable.Inst.episode.type}");
+        args = new()
         {
             Settings = args.Settings,
             AvailableFolders = args.AvailableFolders,
             File = args.File,
-            Episodes = new[]
-            {
+            Episodes =
+            [
                 Mock.Of<IShokoEpisode>(se => se.AnidbEpisode == Mock.Of<IEpisode>(e =>
                     e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
                     e.EpisodeNumber == 5 &&
                     e.Type == EpisodeType.Episode &&
-                    e.SeriesID == 3))
-            },
+                    e.SeriesID == 3)),
+            ],
             Series = args.Series,
             Groups = args.Groups,
             MoveEnabled = true,
-            RenameEnabled = true
+            RenameEnabled = true,
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
@@ -169,9 +169,9 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $@"
-local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}', {Env.Inst.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
-{Env.Inst.destination} = fld");
-        args = new RelocationEventArgs<LuaRenamerSettings>
+local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnvTable.Inst.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
+{EnvTable.Inst.destination} = fld");
+        args = new()
         {
             Settings = args.Settings,
             AvailableFolders =
@@ -182,7 +182,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
             Series = args.Series,
             Groups = args.Groups,
             MoveEnabled = true,
-            RenameEnabled = true
+            RenameEnabled = true,
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
@@ -237,9 +237,9 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     [TestMethod]
     public void TestEpisodeNumbers()
     {
-        var args = MinimalArgs($"{Env.Inst.filename} = {Env.Inst.episode_numbers}(3)");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = {EnvTable.Inst.episode_numbers}(3)");
         var titles = args.Episodes[0].AnidbEpisode.Titles;
-        args = new RelocationEventArgs<LuaRenamerSettings>
+        args = new()
         {
             Settings = args.Settings,
             AvailableFolders = args.AvailableFolders,
@@ -271,12 +271,12 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
                 Mock.Of<IShokoEpisode>(se =>
                     se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 3 && e.Type == EpisodeType.Episode)),
                 Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 2 && e.Type == EpisodeType.Other))
+                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 2 && e.Type == EpisodeType.Other)),
             },
             Series = args.Series,
             Groups = args.Groups,
             MoveEnabled = true,
-            RenameEnabled = true
+            RenameEnabled = true,
         };
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
@@ -287,54 +287,53 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $"{Env.Inst.filename} = {Env.Inst.anime.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {Env.Inst.episode.getname}({Env.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
-        ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange(new AnimeTitle[]
-        {
+            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}) .. {EnvTable.Inst.episode.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {EnvTable.Inst.episode.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
+        ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange([
             new()
             {
                 Title = "animeTitle1",
                 Language = TitleLanguage.English,
-                Type = TitleType.Short
+                Type = TitleType.Short,
             },
             new()
             {
                 Title = "animeTitle2",
                 Language = TitleLanguage.Japanese,
-                Type = TitleType.Official
+                Type = TitleType.Official,
             },
             new()
             {
                 Title = "animeTitle3",
                 Language = TitleLanguage.Romaji,
-                Type = TitleType.Synonym
+                Type = TitleType.Synonym,
             },
             new()
             {
                 Title = "animeTitle4",
                 Language = TitleLanguage.English,
-                Type = TitleType.Main
-            }
-        });
+                Type = TitleType.Main,
+            },
+        ]);
         ((List<AnimeTitle>)args.Episodes[0].AnidbEpisode.Titles).AddRange(new List<AnimeTitle>
         {
             new()
             {
                 Title = "episodeTitle1",
                 Language = TitleLanguage.English,
-                Type = TitleType.Short
+                Type = TitleType.Short,
             },
             new()
             {
                 Title = "episdoeTitle2",
                 Language = TitleLanguage.English,
-                Type = TitleType.Synonym
+                Type = TitleType.Synonym,
             },
             new()
             {
                 Title = "episodeTitle3",
                 Language = TitleLanguage.Romaji,
-                Type = TitleType.Synonym
-            }
+                Type = TitleType.Synonym,
+            },
         });
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
@@ -362,7 +361,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     {
         var args = MinimalArgs(
             $@"function string:clean_spaces(char) return (self:match('^%s*(.-)%s*$'):gsub('%s+', char or ' ')) end
-                {Env.Inst.filename} = (('blah  sdhow  wh '):clean_spaces())");
+                {EnvTable.Inst.filename} = (('blah  sdhow  wh '):clean_spaces())");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
         Assert.AreEqual("blah sdhow wh.mp4", res.FileName);
@@ -404,19 +403,19 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
         var defsEnv = new Lua();
         defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
         var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
-        CompareEnums((LuaTable)defsEnv[Env.Inst.Language], (LuaTable)sandboxEnv[Env.Inst.Language]);
-        CompareEnums((LuaTable)defsEnv[Env.Inst.AnimeType], (LuaTable)sandboxEnv[Env.Inst.AnimeType]);
-        CompareEnums((LuaTable)defsEnv[Env.Inst.TitleType], (LuaTable)sandboxEnv[Env.Inst.TitleType]);
-        CompareEnums((LuaTable)defsEnv[Env.Inst.EpisodeType], (LuaTable)sandboxEnv[Env.Inst.EpisodeType]);
-        CompareEnums((LuaTable)defsEnv[Env.Inst.ImportFolderType], (LuaTable)sandboxEnv[Env.Inst.ImportFolderType]);
-        CompareEnums((LuaTable)defsEnv[Env.Inst.RelationType], (LuaTable)sandboxEnv[Env.Inst.RelationType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.Language], (LuaTable)sandboxEnv[EnvTable.Inst.Language]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.AnimeType], (LuaTable)sandboxEnv[EnvTable.Inst.AnimeType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.TitleType], (LuaTable)sandboxEnv[EnvTable.Inst.TitleType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.EpisodeType], (LuaTable)sandboxEnv[EnvTable.Inst.EpisodeType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.ImportFolderType], (LuaTable)sandboxEnv[EnvTable.Inst.ImportFolderType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.RelationType], (LuaTable)sandboxEnv[EnvTable.Inst.RelationType]);
     }
 
     [TestMethod]
     public void TestRelations()
     {
         var args = MinimalArgs(
-            $"{Env.Inst.filename} = {Env.Inst.anime.relations[1].anime.preferredname} .. {Env.Inst.anime.relations[1].type} .. #{Env.Inst.anime.relations[1].anime.relations}");
+            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.relations[1].anime.preferredname} .. {EnvTable.Inst.anime.relations[1].type} .. #{EnvTable.Inst.anime.relations[1].anime.relations}");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.ID).Returns(1);
@@ -425,7 +424,7 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
-                                                     r2.RelationType == RelationType.Prequel)
+                                                     r2.RelationType == RelationType.Prequel),
         });
         animeMock.SetupGet(a => a.ID).Returns(4);
         ((List<IRelatedMetadata<ISeries>>)args.Series[0].AnidbAnime.RelatedSeries).Add(Mock.Of<IRelatedMetadata<ISeries>>(r =>
@@ -499,8 +498,8 @@ local fld = from({Env.Inst.importfolders.Fn}):where('{nameof(ImportFolder.type)}
     [DataRow("subfolder = {'testfld', nil, 'testfld2'}", "testfld")]
     [DataRow("subfolder = {[2] = 'testfld', [1] = 'testfld2'}", "testfld2/testfld")]
     [DataRow("subfolder = {}", null)]
-    [DataRow($$"""{{nameof(Env.replace_illegal_chars)}} = true ; subfolder = {'testfld\\', 'testfld2'}""", "testfld＼/testfld2")]
-    [DataRow($$"""{{nameof(Env.replace_illegal_chars)}} = true ; subfolder = 'testfld\\testfld2/testfld3'""", "testfld＼testfld2／testfld3")]
+    [DataRow($$"""{{nameof(EnvTable.replace_illegal_chars)}} = true ; subfolder = {'testfld\\', 'testfld2'}""", "testfld＼/testfld2")]
+    [DataRow($$"""{{nameof(EnvTable.replace_illegal_chars)}} = true ; subfolder = 'testfld\\testfld2/testfld3'""", "testfld＼testfld2／testfld3")]
     public void TestSubfolder(string lua, string? expected)
     {
         var args = MinimalArgs(lua);

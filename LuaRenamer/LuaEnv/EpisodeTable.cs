@@ -2,15 +2,15 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Episode : Table
+public class EpisodeTable : Table
 {
     public string duration => Get();
     public string number => Get();
     public string type => Get();
-    public Date airdate => new() { Fn = Get() };
+    public DateTable airdate => new() { Fn = Get() };
     public string animeid => Get();
     public string id => Get();
-    public Array<Title> titles => new() { Fn = Get() };
+    public ArrayTable<TitleTable> titles => new() { Fn = Get() };
     public string getname => Get(':');
     public string prefix => Get();
     public string _classid => Get();

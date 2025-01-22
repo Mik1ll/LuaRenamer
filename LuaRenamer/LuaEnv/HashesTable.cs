@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Hashes : Table
+public class HashesTable : Table
 {
     public string crc => Get();
     public string md5 => Get();

@@ -113,11 +113,11 @@ end
                   {{nameof(TitleType.Synonym)}} = include_unofficial and 3 or nil,
               }
               ---@type string?
-              local name = from(self.{{nameof(Anime.titles)}}):where(function(t1) ---@param t1 Title
-                  return t1.{{nameof(Title.language)}} == lang and title_priority[t1.{{nameof(Title.type)}}] ~= nil
+              local name = from(self.{{nameof(AnimeTable.titles)}}):where(function(t1) ---@param t1 Title
+                  return t1.{{nameof(TitleTable.language)}} == lang and title_priority[t1.{{nameof(TitleTable.type)}}] ~= nil
               end):orderby(function(t2) ---@param t2 Title
-                  return title_priority[t2.{{nameof(Title.type)}}]
-              end):select("{{nameof(Title.name)}}"):first()
+                  return title_priority[t2.{{nameof(TitleTable.type)}}]
+              end):select("{{nameof(TitleTable.name)}}"):first()
               return name
           end
           """;
@@ -177,11 +177,11 @@ end
     private LuaTable CreateLuaEnv(LuaFunction runSandboxed)
     {
         var env = (LuaTable)DoString(BaseEnv)[0];
-        env[nameof(Env.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
-        env[nameof(Env.log)] = RegisterFunction("_", this, LogMethod);
-        env[nameof(Env.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
-        env[nameof(Env.logerror)] = RegisterFunction("_", this, LogErrorMethod);
-        env[nameof(Env.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
+        env[nameof(EnvTable.logdebug)] = RegisterFunction("_", this, LogDebugMethod);
+        env[nameof(EnvTable.log)] = RegisterFunction("_", this, LogMethod);
+        env[nameof(EnvTable.logwarn)] = RegisterFunction("_", this, LogWarnMethod);
+        env[nameof(EnvTable.logerror)] = RegisterFunction("_", this, LogErrorMethod);
+        env[nameof(EnvTable.episode_numbers)] = RegisterFunction("_", this, EpNumsMethod);
         runSandboxed.Call(_luaLinqText, env);
         runSandboxed.Call(_luaUtilsText, env);
         var getName = (LuaFunction)runSandboxed.Call(GetNameFunction, env)[1];
@@ -193,25 +193,25 @@ end
             .Select(e => EpisodeToTable(e, getName)).ToList();
         var groups = _args.Groups.Select(g => GroupToTable(g, getName)).ToList();
 
-        env[nameof(Env.replace_illegal_chars)] = false;
-        env[nameof(Env.remove_illegal_chars)] = false;
-        env[nameof(Env.use_existing_anime_location)] = false;
-        env[nameof(Env.skip_rename)] = false;
-        env[nameof(Env.skip_move)] = false;
-        env[nameof(Env.animes)] = GetNewArray(animes);
-        env[nameof(Env.anime)] = animes.First();
-        env[nameof(Env.file)] = FileToTable(_args.File);
-        env[nameof(Env.episodes)] = GetNewArray(episodes);
-        env[nameof(Env.episode)] = episodes.First();
-        env[nameof(Env.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
-        env[nameof(Env.groups)] = GetNewArray(groups);
-        env[nameof(Env.group)] = groups.FirstOrDefault();
-        env[nameof(Env.AnimeType)] = EnumToTable<AnimeType>();
-        env[nameof(Env.TitleType)] = EnumToTable<TitleType>();
-        env[nameof(Env.Language)] = EnumToTable<TitleLanguage>();
-        env[nameof(Env.EpisodeType)] = EnumToTable<EpisodeType>();
-        env[nameof(Env.ImportFolderType)] = EnumToTable<DropFolderType>();
-        env[nameof(Env.RelationType)] = EnumToTable<RelationType>();
+        env[nameof(EnvTable.replace_illegal_chars)] = false;
+        env[nameof(EnvTable.remove_illegal_chars)] = false;
+        env[nameof(EnvTable.use_existing_anime_location)] = false;
+        env[nameof(EnvTable.skip_rename)] = false;
+        env[nameof(EnvTable.skip_move)] = false;
+        env[nameof(EnvTable.animes)] = GetNewArray(animes);
+        env[nameof(EnvTable.anime)] = animes.First();
+        env[nameof(EnvTable.file)] = FileToTable(_args.File);
+        env[nameof(EnvTable.episodes)] = GetNewArray(episodes);
+        env[nameof(EnvTable.episode)] = episodes.First();
+        env[nameof(EnvTable.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
+        env[nameof(EnvTable.groups)] = GetNewArray(groups);
+        env[nameof(EnvTable.group)] = groups.FirstOrDefault();
+        env[nameof(EnvTable.AnimeType)] = EnumToTable<AnimeType>();
+        env[nameof(EnvTable.TitleType)] = EnumToTable<TitleType>();
+        env[nameof(EnvTable.Language)] = EnumToTable<TitleLanguage>();
+        env[nameof(EnvTable.EpisodeType)] = EnumToTable<EpisodeType>();
+        env[nameof(EnvTable.ImportFolderType)] = EnumToTable<DropFolderType>();
+        env[nameof(EnvTable.RelationType)] = EnumToTable<RelationType>();
         return env;
     }
 
@@ -226,9 +226,9 @@ end
     private LuaTable GroupToTable(IShokoGroup group, LuaFunction getName)
     {
         var groupTable = GetNewTable();
-        groupTable[nameof(Group.name)] = group.PreferredTitle;
-        groupTable[nameof(Group.mainanime)] = AnimeToTable(group.MainSeries.AnidbAnime, false, getName);
-        groupTable[nameof(Group.animes)] = GetNewArray(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getName)));
+        groupTable[nameof(GroupTable.name)] = group.PreferredTitle;
+        groupTable[nameof(GroupTable.mainanime)] = AnimeToTable(group.MainSeries.AnidbAnime, false, getName);
+        groupTable[nameof(GroupTable.animes)] = GetNewArray(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getName)));
         return groupTable;
     }
 
@@ -239,22 +239,22 @@ end
             return eObj;
         var series = anime.ShokoSeries.FirstOrDefault();
         var animeTable = GetNewTable();
-        animeTable[nameof(Anime.airdate)] = DateTimeToTable(anime.AirDate);
-        animeTable[nameof(Anime.enddate)] = DateTimeToTable(anime.EndDate);
-        animeTable[nameof(Anime.rating)] = anime.Rating;
-        animeTable[nameof(Anime.restricted)] = anime.Restricted;
-        animeTable[nameof(Anime.type)] = anime.Type.ToString();
-        animeTable[nameof(Anime.preferredname)] = string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle;
-        animeTable[nameof(Anime.defaultname)] = string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle;
-        animeTable[nameof(Anime.id)] = anime.ID;
-        animeTable[nameof(Anime.titles)] = GetNewArray(anime.Titles.OrderBy(t => t.Title).Select(TitleToTable));
-        animeTable[nameof(Anime.getname)] = getName;
-        animeTable[nameof(Anime._classid)] = Anime._classidVal;
+        animeTable[nameof(AnimeTable.airdate)] = DateTimeToTable(anime.AirDate);
+        animeTable[nameof(AnimeTable.enddate)] = DateTimeToTable(anime.EndDate);
+        animeTable[nameof(AnimeTable.rating)] = anime.Rating;
+        animeTable[nameof(AnimeTable.restricted)] = anime.Restricted;
+        animeTable[nameof(AnimeTable.type)] = anime.Type.ToString();
+        animeTable[nameof(AnimeTable.preferredname)] = string.IsNullOrWhiteSpace(series?.PreferredTitle) ? anime.PreferredTitle : series.PreferredTitle;
+        animeTable[nameof(AnimeTable.defaultname)] = string.IsNullOrWhiteSpace(series?.DefaultTitle) ? anime.DefaultTitle : series.DefaultTitle;
+        animeTable[nameof(AnimeTable.id)] = anime.ID;
+        animeTable[nameof(AnimeTable.titles)] = GetNewArray(anime.Titles.OrderBy(t => t.Title).Select(TitleToTable));
+        animeTable[nameof(AnimeTable.getname)] = getName;
+        animeTable[nameof(AnimeTable._classid)] = AnimeTable._classidVal;
         var epCountTable = GetNewTable();
         foreach (var epType in Enum.GetValues<EpisodeType>())
             epCountTable[epType.ToString()] = anime.EpisodeCounts[epType];
-        animeTable[nameof(Anime.episodecounts)] = epCountTable;
-        animeTable[nameof(Anime.relations)] = GetNewArray(ignoreRelations
+        animeTable[nameof(AnimeTable.episodecounts)] = epCountTable;
+        animeTable[nameof(AnimeTable.relations)] = GetNewArray(ignoreRelations
             ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r => RelationToTable(r, getName)));
@@ -265,8 +265,8 @@ end
     private LuaTable RelationToTable(IRelatedMetadata<ISeries> relation, LuaFunction getName)
     {
         var relationTable = GetNewTable();
-        relationTable[nameof(Relation.type)] = relation.RelationType.ToString();
-        relationTable[nameof(Relation.anime)] = AnimeToTable(relation.Related!, true, getName);
+        relationTable[nameof(RelationTable.type)] = relation.RelationType.ToString();
+        relationTable[nameof(RelationTable.anime)] = AnimeToTable(relation.Related!, true, getName);
         return relationTable;
     }
 
@@ -275,17 +275,17 @@ end
         if (aniDb is null)
             return null;
         var aniDbTable = GetNewTable();
-        aniDbTable[nameof(AniDb.id)] = aniDb.AniDBFileID;
-        aniDbTable[nameof(AniDb.censored)] = aniDb.Censored;
-        aniDbTable[nameof(AniDb.source)] = aniDb.Source;
-        aniDbTable[nameof(AniDb.version)] = aniDb.Version;
-        aniDbTable[nameof(AniDb.releasedate)] = DateTimeToTable(aniDb.ReleaseDate);
-        aniDbTable[nameof(AniDb.releasegroup)] = ReleaseGroupToTable(aniDb.ReleaseGroup);
+        aniDbTable[nameof(AniDbTable.id)] = aniDb.AniDBFileID;
+        aniDbTable[nameof(AniDbTable.censored)] = aniDb.Censored;
+        aniDbTable[nameof(AniDbTable.source)] = aniDb.Source;
+        aniDbTable[nameof(AniDbTable.version)] = aniDb.Version;
+        aniDbTable[nameof(AniDbTable.releasedate)] = DateTimeToTable(aniDb.ReleaseDate);
+        aniDbTable[nameof(AniDbTable.releasegroup)] = ReleaseGroupToTable(aniDb.ReleaseGroup);
         var mediaTable = GetNewTable();
-        mediaTable[nameof(AniDbMedia.sublanguages)] = GetNewArray(aniDb.MediaInfo.SubLanguages.Select(l => l.ToString()));
-        mediaTable[nameof(AniDbMedia.dublanguages)] = GetNewArray(aniDb.MediaInfo.AudioLanguages.Select(l => l.ToString()));
-        aniDbTable[nameof(AniDb.media)] = mediaTable;
-        aniDbTable[nameof(AniDb.description)] = aniDb.Description;
+        mediaTable[nameof(AniDbMediaTable.sublanguages)] = GetNewArray(aniDb.MediaInfo.SubLanguages.Select(l => l.ToString()));
+        mediaTable[nameof(AniDbMediaTable.dublanguages)] = GetNewArray(aniDb.MediaInfo.AudioLanguages.Select(l => l.ToString()));
+        aniDbTable[nameof(AniDbTable.media)] = mediaTable;
+        aniDbTable[nameof(AniDbTable.description)] = aniDb.Description;
         return aniDbTable;
     }
 
@@ -294,8 +294,8 @@ end
         if (releaseGroup is null || releaseGroup.ID == 0 || releaseGroup.Name == "raw/unknown")
             return null;
         var groupTable = GetNewTable();
-        groupTable[nameof(ReleaseGroup.name)] = releaseGroup.Name;
-        groupTable[nameof(ReleaseGroup.shortname)] = releaseGroup.ShortName;
+        groupTable[nameof(ReleaseGroupTable.name)] = releaseGroup.Name;
+        groupTable[nameof(ReleaseGroupTable.shortname)] = releaseGroup.ShortName;
         return groupTable;
     }
 
@@ -304,16 +304,16 @@ end
         if (_tableCache.TryGetValue((typeof(IEpisode), episode.ID), out var eObj))
             return eObj;
         var epTable = GetNewTable();
-        epTable[nameof(Episode.duration)] = episode.Runtime.TotalSeconds;
-        epTable[nameof(Episode.number)] = episode.EpisodeNumber;
-        epTable[nameof(Episode.type)] = episode.Type.ToString();
-        epTable[nameof(Episode.airdate)] = DateTimeToTable(episode.AirDate);
-        epTable[nameof(Episode.animeid)] = episode.SeriesID;
-        epTable[nameof(Episode.id)] = episode.ID;
-        epTable[nameof(Episode.titles)] = GetNewArray(episode.Titles.OrderBy(t => t.Title).Select(TitleToTable));
-        epTable[nameof(Episode.getname)] = getName;
-        epTable[nameof(Episode.prefix)] = Utils.EpPrefix[episode.Type];
-        epTable[nameof(Episode._classid)] = Episode._classidVal;
+        epTable[nameof(EpisodeTable.duration)] = episode.Runtime.TotalSeconds;
+        epTable[nameof(EpisodeTable.number)] = episode.EpisodeNumber;
+        epTable[nameof(EpisodeTable.type)] = episode.Type.ToString();
+        epTable[nameof(EpisodeTable.airdate)] = DateTimeToTable(episode.AirDate);
+        epTable[nameof(EpisodeTable.animeid)] = episode.SeriesID;
+        epTable[nameof(EpisodeTable.id)] = episode.ID;
+        epTable[nameof(EpisodeTable.titles)] = GetNewArray(episode.Titles.OrderBy(t => t.Title).Select(TitleToTable));
+        epTable[nameof(EpisodeTable.getname)] = getName;
+        epTable[nameof(EpisodeTable.prefix)] = Utils.EpPrefix[episode.Type];
+        epTable[nameof(EpisodeTable._classid)] = EpisodeTable._classidVal;
         _tableCache[(typeof(IEpisode), episode.ID)] = epTable;
         return epTable;
     }
@@ -321,30 +321,30 @@ end
     private LuaTable TitleToTable(AnimeTitle title)
     {
         var titleTable = GetNewTable();
-        titleTable[nameof(Title.name)] = title.Title;
-        titleTable[nameof(Title.language)] = title.Language.ToString();
-        titleTable[nameof(Title.languagecode)] = title.LanguageCode;
-        titleTable[nameof(Title.type)] = title.Type.ToString();
+        titleTable[nameof(TitleTable.name)] = title.Title;
+        titleTable[nameof(TitleTable.language)] = title.Language.ToString();
+        titleTable[nameof(TitleTable.languagecode)] = title.LanguageCode;
+        titleTable[nameof(TitleTable.type)] = title.Type.ToString();
         return titleTable;
     }
 
     private LuaTable FileToTable(IVideoFile file)
     {
         var fileTable = GetNewTable();
-        fileTable[nameof(LuaEnv.File.name)] = Path.GetFileNameWithoutExtension(file.FileName);
-        fileTable[nameof(LuaEnv.File.extension)] = Path.GetExtension(file.FileName);
-        fileTable[nameof(LuaEnv.File.path)] = file.Path;
-        fileTable[nameof(LuaEnv.File.size)] = file.Size;
-        fileTable[nameof(LuaEnv.File.earliestname)] = Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName);
+        fileTable[nameof(FileTable.name)] = Path.GetFileNameWithoutExtension(file.FileName);
+        fileTable[nameof(FileTable.extension)] = Path.GetExtension(file.FileName);
+        fileTable[nameof(FileTable.path)] = file.Path;
+        fileTable[nameof(FileTable.size)] = file.Size;
+        fileTable[nameof(FileTable.earliestname)] = Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName);
         var hashTable = GetNewTable();
-        hashTable[nameof(Hashes.crc)] = file.Video.Hashes.CRC;
-        hashTable[nameof(Hashes.md5)] = file.Video.Hashes.MD5;
-        hashTable[nameof(Hashes.ed2k)] = file.Video.Hashes.ED2K;
-        hashTable[nameof(Hashes.sha1)] = file.Video.Hashes.SHA1;
-        fileTable[nameof(LuaEnv.File.hashes)] = hashTable;
-        fileTable[nameof(LuaEnv.File.anidb)] = AniDbFileToTable(file.Video.AniDB);
-        fileTable[nameof(LuaEnv.File.media)] = MediaInfoToTable(file.Video.MediaInfo);
-        fileTable[nameof(LuaEnv.File.importfolder)] = ImportFolderToTable(file.ImportFolder);
+        hashTable[nameof(HashesTable.crc)] = file.Video.Hashes.CRC;
+        hashTable[nameof(HashesTable.md5)] = file.Video.Hashes.MD5;
+        hashTable[nameof(HashesTable.ed2k)] = file.Video.Hashes.ED2K;
+        hashTable[nameof(HashesTable.sha1)] = file.Video.Hashes.SHA1;
+        fileTable[nameof(FileTable.hashes)] = hashTable;
+        fileTable[nameof(FileTable.anidb)] = AniDbFileToTable(file.Video.AniDB);
+        fileTable[nameof(FileTable.media)] = MediaInfoToTable(file.Video.MediaInfo);
+        fileTable[nameof(FileTable.importfolder)] = ImportFolderToTable(file.ImportFolder);
         return fileTable;
     }
 
@@ -353,11 +353,11 @@ end
         if (_tableCache.TryGetValue((typeof(IImportFolder), folder.ID), out var eObj))
             return eObj;
         var importTable = GetNewTable();
-        importTable[nameof(ImportFolder.id)] = folder.ID;
-        importTable[nameof(ImportFolder.name)] = folder.Name;
-        importTable[nameof(ImportFolder.location)] = folder.Path;
-        importTable[nameof(ImportFolder.type)] = folder.DropFolderType.ToString();
-        importTable[nameof(ImportFolder._classid)] = ImportFolder._classidVal;
+        importTable[nameof(ImportFolderTable.id)] = folder.ID;
+        importTable[nameof(ImportFolderTable.name)] = folder.Name;
+        importTable[nameof(ImportFolderTable.location)] = folder.Path;
+        importTable[nameof(ImportFolderTable.type)] = folder.DropFolderType.ToString();
+        importTable[nameof(ImportFolderTable._classid)] = ImportFolderTable._classidVal;
         _tableCache[(typeof(IImportFolder), folder.ID)] = importTable;
         return importTable;
     }
@@ -367,33 +367,33 @@ end
         if (mediaInfo is null)
             return null;
         var mediaInfoTable = GetNewTable();
-        mediaInfoTable[nameof(Media.chaptered)] = mediaInfo.Chapters.Any();
+        mediaInfoTable[nameof(MediaTable.chaptered)] = mediaInfo.Chapters.Any();
         if (mediaInfo.VideoStream is { } video)
         {
             var videoTable = GetNewTable();
-            videoTable[nameof(Video.height)] = video.Height;
-            videoTable[nameof(Video.width)] = video.Width;
-            videoTable[nameof(Video.codec)] = video.Codec.Simplified;
-            videoTable[nameof(Video.res)] = video.Resolution;
-            videoTable[nameof(Video.bitrate)] = video.BitRate;
-            videoTable[nameof(Video.bitdepth)] = video.BitDepth;
-            videoTable[nameof(Video.framerate)] = video.FrameRate;
-            mediaInfoTable[nameof(Media.video)] = videoTable;
+            videoTable[nameof(VideoTable.height)] = video.Height;
+            videoTable[nameof(VideoTable.width)] = video.Width;
+            videoTable[nameof(VideoTable.codec)] = video.Codec.Simplified;
+            videoTable[nameof(VideoTable.res)] = video.Resolution;
+            videoTable[nameof(VideoTable.bitrate)] = video.BitRate;
+            videoTable[nameof(VideoTable.bitdepth)] = video.BitDepth;
+            videoTable[nameof(VideoTable.framerate)] = video.FrameRate;
+            mediaInfoTable[nameof(MediaTable.video)] = videoTable;
         }
 
-        mediaInfoTable[nameof(Media.duration)] = mediaInfo.Duration;
-        mediaInfoTable[nameof(Media.bitrate)] = mediaInfo.BitRate;
-        mediaInfoTable[nameof(Media.sublanguages)] = GetNewArray(mediaInfo.TextStreams.Select(s => s.Language.ToString()));
-        mediaInfoTable[nameof(Media.audio)] = GetNewArray(mediaInfo.AudioStreams.Select(a =>
+        mediaInfoTable[nameof(MediaTable.duration)] = mediaInfo.Duration;
+        mediaInfoTable[nameof(MediaTable.bitrate)] = mediaInfo.BitRate;
+        mediaInfoTable[nameof(MediaTable.sublanguages)] = GetNewArray(mediaInfo.TextStreams.Select(s => s.Language.ToString()));
+        mediaInfoTable[nameof(MediaTable.audio)] = GetNewArray(mediaInfo.AudioStreams.Select(a =>
         {
             var audioTable = GetNewTable();
-            audioTable[nameof(Audio.compressionmode)] = a.CompressionMode;
-            audioTable[nameof(Audio.channels)] =
+            audioTable[nameof(AudioTable.compressionmode)] = a.CompressionMode;
+            audioTable[nameof(AudioTable.channels)] =
                 !string.IsNullOrWhiteSpace(a.ChannelLayout) && a.ChannelLayout.Contains("LFE") ? a.Channels - 1 + 0.1 : a.Channels;
-            audioTable[nameof(Audio.samplingrate)] = a.SamplingRate;
-            audioTable[nameof(Audio.codec)] = a.Codec.Simplified;
-            audioTable[nameof(Audio.language)] = a.Language.ToString();
-            audioTable[nameof(Audio.title)] = a.Title;
+            audioTable[nameof(AudioTable.samplingrate)] = a.SamplingRate;
+            audioTable[nameof(AudioTable.codec)] = a.Codec.Simplified;
+            audioTable[nameof(AudioTable.language)] = a.Language.ToString();
+            audioTable[nameof(AudioTable.title)] = a.Title;
             return audioTable;
         }));
 
@@ -405,15 +405,15 @@ end
         if (dateTime is not { } dt)
             return null;
         var dateTimeTable = GetNewTable();
-        dateTimeTable[nameof(Date.year)] = dt.Year;
-        dateTimeTable[nameof(Date.month)] = dt.Month;
-        dateTimeTable[nameof(Date.day)] = dt.Day;
-        dateTimeTable[nameof(Date.yday)] = dt.DayOfYear;
-        dateTimeTable[nameof(Date.wday)] = (long)dt.DayOfWeek + 1;
-        dateTimeTable[nameof(Date.hour)] = dt.Hour;
-        dateTimeTable[nameof(Date.min)] = dt.Minute;
-        dateTimeTable[nameof(Date.sec)] = dt.Second;
-        dateTimeTable[nameof(Date.isdst)] = dt.IsDaylightSavingTime();
+        dateTimeTable[nameof(DateTable.year)] = dt.Year;
+        dateTimeTable[nameof(DateTable.month)] = dt.Month;
+        dateTimeTable[nameof(DateTable.day)] = dt.Day;
+        dateTimeTable[nameof(DateTable.yday)] = dt.DayOfYear;
+        dateTimeTable[nameof(DateTable.wday)] = (long)dt.DayOfWeek + 1;
+        dateTimeTable[nameof(DateTable.hour)] = dt.Hour;
+        dateTimeTable[nameof(DateTable.min)] = dt.Minute;
+        dateTimeTable[nameof(DateTable.sec)] = dt.Second;
+        dateTimeTable[nameof(DateTable.isdst)] = dt.IsDaylightSavingTime();
         return dateTimeTable;
     }
 

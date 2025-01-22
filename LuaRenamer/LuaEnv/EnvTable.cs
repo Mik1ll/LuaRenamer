@@ -2,9 +2,9 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Env : Table
+public class EnvTable : Table
 {
-    public static readonly Env Inst = new();
+    public static readonly EnvTable Inst = new();
     public string filename => Get();
     public string destination => Get();
     public string subfolder => Get();
@@ -13,14 +13,14 @@ public class Env : Table
     public string remove_illegal_chars => Get();
     public string skip_rename => Get();
     public string skip_move => Get();
-    public File file => new() { Fn = Get() };
-    public Anime anime => new() { Fn = Get() };
-    public Array<Anime> animes => new() { Fn = Get() };
-    public Episode episode => new() { Fn = Get() };
-    public Array<Episode> episodes => new() { Fn = Get() };
-    public Array<ImportFolder> importfolders => new() { Fn = Get() };
-    public Group group => new() { Fn = Get() };
-    public Array<Group> groups => new() { Fn = Get() };
+    public FileTable file => new() { Fn = Get() };
+    public AnimeTable anime => new() { Fn = Get() };
+    public ArrayTable<AnimeTable> animes => new() { Fn = Get() };
+    public EpisodeTable episode => new() { Fn = Get() };
+    public ArrayTable<EpisodeTable> episodes => new() { Fn = Get() };
+    public ArrayTable<ImportFolderTable> importfolders => new() { Fn = Get() };
+    public GroupTable group => new() { Fn = Get() };
+    public ArrayTable<GroupTable> groups => new() { Fn = Get() };
     public string AnimeType => Get();
     public string TitleType => Get();
     public string Language => Get();

@@ -2,14 +2,14 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class AniDb : Table
+public class AniDbTable : Table
 {
     public string id => Get();
     public string censored => Get();
     public string source => Get();
     public string version => Get();
-    public Date releasedate => new() { Fn = Get() };
+    public DateTable releasedate => new() { Fn = Get() };
     public string description => Get();
-    public ReleaseGroup releasegroup => new() { Fn = Get() };
-    public AniDbMedia media => new() { Fn = Get() };
+    public ReleaseGroupTable releasegroup => new() { Fn = Get() };
+    public AniDbMediaTable media => new() { Fn = Get() };
 }

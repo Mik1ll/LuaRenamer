@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Title : Table
+public class TitleTable : Table
 {
     public string name => Get();
     public string language => Get();

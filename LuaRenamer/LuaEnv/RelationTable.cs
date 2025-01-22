@@ -2,8 +2,8 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Relation : Table
+public class RelationTable : Table
 {
-    public Anime anime => new() { Fn = Get() };
+    public AnimeTable anime => new() { Fn = Get() };
     public string type => Get();
 }

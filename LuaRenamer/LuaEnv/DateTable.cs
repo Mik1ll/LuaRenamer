@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Date : Table
+public class DateTable : Table
 {
     public string year => Get();
     public string month => Get();

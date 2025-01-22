@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Audio : Table
+public class AudioTable : Table
 {
     public string compressionmode => Get();
     public string channels => Get();

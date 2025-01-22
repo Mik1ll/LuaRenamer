@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv;
 
-public class Video : Table
+public class VideoTable : Table
 {
     public string height => Get();
     public string width => Get();
