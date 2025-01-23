@@ -235,10 +235,9 @@ end
     private LuaTable AnimeToTable(ISeries anime, bool ignoreRelations, LuaFunction getName)
     {
         if (anime == null) throw new ArgumentNullException(nameof(anime));
-        if (_tableCache.TryGetValue((typeof(ISeries), anime.ID), out var eObj))
-            return eObj;
+        if (GetCachedOrNewTable((typeof(ISeries), anime.ID), out var animeTable))
+            return animeTable;
         var series = anime.ShokoSeries.FirstOrDefault();
-        var animeTable = GetNewTable();
         animeTable[nameof(AnimeTable.airdate)] = DateTimeToTable(anime.AirDate);
         animeTable[nameof(AnimeTable.enddate)] = DateTimeToTable(anime.EndDate);
         animeTable[nameof(AnimeTable.rating)] = anime.Rating;
@@ -258,7 +257,6 @@ end
             ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r => RelationToTable(r, getName)));
-        _tableCache[(typeof(ISeries), anime.ID)] = animeTable;
         return animeTable;
     }
 
@@ -301,9 +299,8 @@ end
 
     private LuaTable EpisodeToTable(IEpisode episode, LuaFunction getName)
     {
-        if (_tableCache.TryGetValue((typeof(IEpisode), episode.ID), out var eObj))
-            return eObj;
-        var epTable = GetNewTable();
+        if (GetCachedOrNewTable((typeof(IEpisode), episode.ID), out var epTable))
+            return epTable;
         epTable[nameof(EpisodeTable.duration)] = episode.Runtime.TotalSeconds;
         epTable[nameof(EpisodeTable.number)] = episode.EpisodeNumber;
         epTable[nameof(EpisodeTable.type)] = episode.Type.ToString();
@@ -314,7 +311,6 @@ end
         epTable[nameof(EpisodeTable.getname)] = getName;
         epTable[nameof(EpisodeTable.prefix)] = Utils.EpPrefix[episode.Type];
         epTable[nameof(EpisodeTable._classid)] = EpisodeTable._classidVal;
-        _tableCache[(typeof(IEpisode), episode.ID)] = epTable;
         return epTable;
     }
 
@@ -350,15 +346,13 @@ end
 
     private LuaTable ImportFolderToTable(IImportFolder folder)
     {
-        if (_tableCache.TryGetValue((typeof(IImportFolder), folder.ID), out var eObj))
-            return eObj;
-        var importTable = GetNewTable();
+        if (GetCachedOrNewTable((typeof(IImportFolder), folder.ID), out var importTable))
+            return importTable;
         importTable[nameof(ImportFolderTable.id)] = folder.ID;
         importTable[nameof(ImportFolderTable.name)] = folder.Name;
         importTable[nameof(ImportFolderTable.location)] = folder.Path;
         importTable[nameof(ImportFolderTable.type)] = folder.DropFolderType.ToString();
         importTable[nameof(ImportFolderTable._classid)] = ImportFolderTable._classidVal;
-        _tableCache[(typeof(IImportFolder), folder.ID)] = importTable;
         return importTable;
     }
 
@@ -430,5 +424,21 @@ end
         foreach (var item in list)
             table[i++] = item;
         return table;
+    }
+
+    /// <summary>
+    /// Checks cache for a table or creates a new one if one doesn't exist
+    /// </summary>
+    /// <returns>True if value was obtained from cache</returns>
+    private bool GetCachedOrNewTable((Type, int) key, out LuaTable value)
+    {
+        if (!_tableCache.TryGetValue(key, out value!))
+        {
+            value = GetNewTable();
+            _tableCache[key] = value;
+            return false;
+        }
+
+        return true;
     }
 }
