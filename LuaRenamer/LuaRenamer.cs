@@ -19,33 +19,25 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
 {
     private readonly ILogger<LuaRenamer> _logger;
 
-    public string Name { get; } = nameof(LuaRenamer);
-    public string Description { get; } = "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
-    public bool SupportsMoving { get; } = true;
-    public bool SupportsRenaming { get; } = true;
+    public LuaRenamer(ILogger<LuaRenamer> logger) => _logger = logger;
+
+    public string Name => nameof(LuaRenamer);
+    public string Description => "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
+    public bool SupportsMoving => true;
+    public bool SupportsRenaming => true;
 
     public LuaRenamerSettings? DefaultSettings
     {
         get
         {
             var defaultFile = new FileInfo(Path.Combine(LuaContext.LuaPath, "default.lua"));
-            if (defaultFile.Exists)
-            {
-                using var text = defaultFile.OpenText();
-                return new() { Script = text.ReadToEnd() };
-            }
-
-            return null;
+            if (!defaultFile.Exists) return null;
+            using var text = defaultFile.OpenText();
+            return new() { Script = text.ReadToEnd() };
         }
     }
 
-    public LuaRenamer(ILogger<LuaRenamer> logger)
-    {
-        _logger = logger;
-    }
-
-
-    private string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars)
+    private static string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars)
     {
         if (filename is not string)
             return args.File.FileName;
@@ -53,7 +45,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return fileNameWithExt.CleanPathSegment(removeIllegalChars, replaceIllegalChars);
     }
 
-    private string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
+    private static string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
     {
         List<string> newSubFolderSplit;
         switch (subfolder)
@@ -79,7 +71,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return newSubfolder;
     }
 
-    private IImportFolder GetNewDestination(object? destination, RelocationEventArgs<LuaRenamerSettings> args)
+    private static IImportFolder GetNewDestination(object? destination, RelocationEventArgs<LuaRenamerSettings> args)
     {
         IImportFolder? destfolder;
         switch (destination)
@@ -117,9 +109,9 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return destfolder;
     }
 
-    private (IImportFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationEventArgs<LuaRenamerSettings> args)
+    private static (IImportFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationEventArgs<LuaRenamerSettings> args)
     {
-        var availableLocations = args.Series.First().Videos
+        var availableLocations = args.Series[0].Videos
             .Where(vl => !string.Equals(vl.Hashes.ED2K, args.File.Video.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
             .SelectMany(vl => vl.Locations.Select(l => new
             {
@@ -142,7 +134,6 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
             ? videoFile.RelativePath[1..]
             : videoFile.RelativePath);
     }
-
 
     public RelocationResult GetNewPath(RelocationEventArgs<LuaRenamerSettings> args)
     {
