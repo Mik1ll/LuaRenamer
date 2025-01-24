@@ -188,7 +188,8 @@ end
 
         var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToTable(series.AnidbAnime, false, getName)).ToList();
         var episodes = _args.Episodes.Select(e => e.AnidbEpisode)
-            .OrderBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
+            .OrderBy(e => e.SeriesID)
+            .ThenBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
             .ThenBy(e => e.EpisodeNumber)
             .Select(e => EpisodeToTable(e, getName)).ToList();
         var groups = _args.Groups.Select(g => GroupToTable(g, getName)).ToList();
