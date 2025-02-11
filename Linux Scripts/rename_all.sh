@@ -49,7 +49,7 @@ if ! command -v jq >/dev/null 2>&1; then
   printf '%s\n' 'Please install jq to use this script.'
 fi
 
-if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host/api/v3/Init/Status" | jq -e '.State==2' >/dev/null; then
+if ! curl -s --connect-timeout 2 -H 'Accept: application/json' "http://$host/api/v3/Init/Status" | jq -e '.State == 2 // .State == "Started"' >/dev/null; then
   printf '%s\n' "Unable to connect or server not running/started at target http://$host"
   exit 1
 fi
