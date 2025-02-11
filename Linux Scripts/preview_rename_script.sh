@@ -2,8 +2,8 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] CONFIG_NAME
-Preview the rename/move results of the CONFIG.
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION]... SCRIPT_FILE
+Preview the rename/move results of the SCRIPT_FILE.
 
   -h, --help                Show help.
   -s, --host=HOST           Shoko server host. [default: localhost:8111]

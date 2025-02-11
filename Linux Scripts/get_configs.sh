@@ -2,7 +2,7 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [OPTION]
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION]...
 Get every config stored in Shoko.
 
   -h, --help                Show help.

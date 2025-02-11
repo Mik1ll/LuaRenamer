@@ -2,9 +2,9 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] SCRIPT
-Add or update a config on Shoko with the content of SCRIPT. The config name will
-be set to the SCRIPT's base file name.
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION]... SCRIPT_FILE
+Add or update a config on Shoko with the content of SCRIPT_FILE. The config name will
+be set to the SCRIPT_FILE's base file name.
 
   -h, --help                Show help.
   -s, --host=HOST           Shoko server host. [default: localhost:8111]

@@ -2,7 +2,7 @@
 
 usage() {
   cat >&2 <<EOF
-Usage: ${BASH_SOURCE[0]// /\\ } [OPTION] CONFIG_NAME
+Usage: ${BASH_SOURCE[0]// /\\ } [OPTION]... CONFIG_NAME
 Rename/move all files in Shoko using the CONFIG.
 
   -h, --help                Show help.
