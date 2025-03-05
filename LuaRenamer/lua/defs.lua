@@ -8,7 +8,7 @@
 ---@field size integer
 ---@field hashes Hashes
 ---@field anidb AniDb?
----@field media Media
+---@field media Media?
 ---@field importfolder ImportFolder
 local File = {}
 
