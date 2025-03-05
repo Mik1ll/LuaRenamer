@@ -51,7 +51,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         switch (subfolder)
         {
             case null:
-                newSubFolderSplit = [args.Series.First().PreferredTitle];
+                newSubFolderSplit = [args.Series[0].PreferredTitle];
                 break;
             case string str:
                 newSubFolderSplit = [str];
