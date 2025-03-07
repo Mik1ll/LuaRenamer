@@ -30,50 +30,52 @@ public class LuaContext : Lua
 
     #region Sandbox
 
-    private const string BaseEnv = """
-                                   return {
-                                     ipairs = ipairs,
-                                     next = next,
-                                     pairs = pairs,
-                                     pcall = pcall,
-                                     tonumber = tonumber,
-                                     tostring = tostring,
-                                     type = type,
-                                     select = select,
-                                     string = { byte = string.byte, char = string.char, find = string.find, 
-                                       format = string.format, gmatch = string.gmatch, gsub = string.gsub, 
-                                       len = string.len, lower = string.lower, match = string.match, 
-                                       rep = string.rep, reverse = string.reverse, sub = string.sub, 
-                                       upper = string.upper, pack = string.pack, unpack = string.unpack, packsize = string.packsize },
-                                     table = { concat = table.concat, insert = table.insert, move = table.move, pack = table.pack, remove = table.remove, 
-                                       sort = table.sort, unpack = table.unpack },
-                                     math = { abs = math.abs, acos = math.acos, asin = math.asin, 
-                                       atan = math.atan, ceil = math.ceil, cos = math.cos, 
-                                       deg = math.deg, exp = math.exp, floor = math.floor, 
-                                       fmod = math.fmod, huge = math.huge, 
-                                       log = math.log, max = math.max, maxinteger = math.maxinteger,
-                                       min = math.min, mininteger = math.mininteger, modf = math.modf, pi = math.pi,
-                                       rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
-                                       sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
-                                     os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
-                                     setmetatable = setmetatable,
-                                     getmetatable = getmetatable,
-                                     rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
-                                     utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
-                                     error = error,
-                                   }
-                                   """;
+    private const string BaseEnv =
+        """
+        return {
+          ipairs = ipairs,
+          next = next,
+          pairs = pairs,
+          pcall = pcall,
+          tonumber = tonumber,
+          tostring = tostring,
+          type = type,
+          select = select,
+          string = { byte = string.byte, char = string.char, find = string.find, 
+            format = string.format, gmatch = string.gmatch, gsub = string.gsub, 
+            len = string.len, lower = string.lower, match = string.match, 
+            rep = string.rep, reverse = string.reverse, sub = string.sub, 
+            upper = string.upper, pack = string.pack, unpack = string.unpack, packsize = string.packsize },
+          table = { concat = table.concat, insert = table.insert, move = table.move, pack = table.pack, remove = table.remove, 
+            sort = table.sort, unpack = table.unpack },
+          math = { abs = math.abs, acos = math.acos, asin = math.asin, 
+            atan = math.atan, ceil = math.ceil, cos = math.cos, 
+            deg = math.deg, exp = math.exp, floor = math.floor, 
+            fmod = math.fmod, huge = math.huge, 
+            log = math.log, max = math.max, maxinteger = math.maxinteger,
+            min = math.min, mininteger = math.mininteger, modf = math.modf, pi = math.pi,
+            rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
+            sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
+          os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
+          setmetatable = setmetatable,
+          getmetatable = getmetatable,
+          rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
+          utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
+          error = error,
+        }
+        """;
 
-    private const string SandboxFunction = """
-                                           return function (untrusted_code, env)
-                                             setmetatable(string, {__index = env.string})
-                                             local untrusted_function, message = load(untrusted_code, nil, 't', env)
-                                             if not untrusted_function then return nil, message end
-                                             result = {pcall(untrusted_function)}
-                                             setmetatable(string, nil)
-                                             return table.unpack(result)
-                                           end
-                                           """;
+    private const string SandboxFunction =
+        """
+        return function (untrusted_code, env)
+          setmetatable(string, {__index = env.string})
+          local untrusted_function, message = load(untrusted_code, nil, 't', env)
+          if not untrusted_function then return false, message end
+          result = {pcall(untrusted_function)}
+          setmetatable(string, nil)
+          return table.unpack(result)
+        end
+        """;
 
     #endregion
 
@@ -168,7 +170,7 @@ public class LuaContext : Lua
         var runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
         var luaEnv = CreateLuaEnv(runSandboxed);
         var retVal = runSandboxed.Call(_args.Settings.Script, luaEnv);
-        if (retVal.Length == 2 && (bool)retVal[0] != true && retVal[1] is string errStr)
+        if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
             throw new LuaRenamerException(errStr);
         return luaEnv;
     }

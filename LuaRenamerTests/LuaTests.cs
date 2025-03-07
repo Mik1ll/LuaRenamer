@@ -537,6 +537,6 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
         var args = MinimalArgs("filename = ");
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
-        ;
+        Assert.IsNotNull(res.Error);
     }
 }
