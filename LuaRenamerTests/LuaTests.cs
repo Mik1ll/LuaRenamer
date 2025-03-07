@@ -33,6 +33,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.ID).Returns(3);
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 && s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
+        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
         return new()
         {
             AvailableFolders = new List<IImportFolder>
@@ -83,6 +84,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
+        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new()
@@ -421,6 +423,7 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
         animeMock.SetupGet(a => a.ID).Returns(1);
         animeMock.SetupGet(a => a.PreferredTitle).Returns("blah2");
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
+        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
@@ -526,5 +529,14 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
             Assert.IsNotNull(res.Error);
         else
             Assert.IsNull(res.Error);
+    }
+
+    [TestMethod]
+    public void InvalidLuaTest()
+    {
+        var args = MinimalArgs("filename = ");
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var res = renamer.GetNewPath(args);
+        ;
     }
 }

@@ -80,6 +80,7 @@ local Audio = {}
 ---@field titles Title[]
 ---@field episodecounts table<EpisodeType, integer>
 ---@field relations Relation[] Note: relations are not populated for related anime
+---@field studios string[]
 local Anime = {}
 
 ---@param lang Language
