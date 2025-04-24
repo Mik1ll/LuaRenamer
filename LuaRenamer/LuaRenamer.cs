@@ -42,7 +42,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         if (filename is not string)
             return args.File.FileName;
         var fileNameWithExt = filename + Path.GetExtension(args.File.FileName);
-        return fileNameWithExt.CleanPathSegment(removeIllegalChars, replaceIllegalChars);
+        return fileNameWithExt.CleanPathSegment(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters);
     }
 
     private static string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
@@ -67,7 +67,9 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
-        var newSubfolder = Path.Combine(newSubFolderSplit.Select(f => f.CleanPathSegment(removeIllegalChars, replaceIllegalChars)).ToArray()).NormPath();
+        var newSubfolder = Path.Combine(newSubFolderSplit.Select(f =>
+            f.CleanPathSegment(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters)
+        ).ToArray()).NormPath();
         return newSubfolder;
     }
 
