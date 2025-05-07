@@ -37,15 +37,15 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         }
     }
 
-    private static string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, bool removeIllegalChars, bool replaceIllegalChars)
+    private static string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {
         if (filename is not string)
             return args.File.FileName;
         var fileNameWithExt = filename + Path.GetExtension(args.File.FileName);
-        return fileNameWithExt.CleanPathSegment(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters);
+        return filePathCleaner.CleanPathSegment(fileNameWithExt);
     }
 
-    private static string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, bool replaceIllegalChars, bool removeIllegalChars)
+    private static string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {
         List<string> newSubFolderSplit;
         switch (subfolder)
@@ -67,9 +67,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                 throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
-        var newSubfolder = Path.Combine(newSubFolderSplit.Select(f =>
-            f.CleanPathSegment(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters)
-        ).ToArray()).NormPath();
+        var newSubfolder = Path.Combine(filePathCleaner.CleanPathSegments(newSubFolderSplit.ToArray())).NormPath();
         return newSubfolder;
     }
 
@@ -160,16 +158,24 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
             var luaFilename = env[nameof(EnvTable.filename)];
             var luaDestination = env[nameof(EnvTable.destination)];
             var luaSubfolder = env[nameof(EnvTable.subfolder)];
+            var illegalCharsOverride = env[nameof(EnvTable.illegal_chars_override)] is LuaTable luaIllegalCharsOverride
+                ? lua.GetTableDict(luaIllegalCharsOverride)
+                    .Where(kvp => kvp is { Key: string, Value: string })
+                    .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()
+                : new Dictionary<string, string>();
+
+            var filePathCleaner = new FilePathCleaner(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters,
+                illegalCharsOverride);
 
             var result = new RelocationResult { SkipMove = skipMove, SkipRename = skipRename };
 
             if (args.MoveEnabled && !skipMove)
                 (result.DestinationImportFolder, result.Path) =
                     (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??
-                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, args, replaceIllegalChars, removeIllegalChars));
+                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, args, filePathCleaner));
 
             if (args.RenameEnabled && !skipRename)
-                result.FileName = GetNewFilename(luaFilename, args, removeIllegalChars, replaceIllegalChars);
+                result.FileName = GetNewFilename(luaFilename, args, filePathCleaner);
 
             return result;
         }

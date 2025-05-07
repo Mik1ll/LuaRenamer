@@ -13,6 +13,7 @@ public class EnvTable : Table
     public string remove_illegal_chars => Get();
     public string skip_rename => Get();
     public string skip_move => Get();
+    public string illegal_chars_override => Get();
     public FileTable file => new() { Fn = Get() };
     public AnimeTable anime => new() { Fn = Get() };
     public ArrayTable<AnimeTable> animes => new() { Fn = Get() };
