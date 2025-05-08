@@ -158,7 +158,7 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
             var luaFilename = env[nameof(EnvTable.filename)];
             var luaDestination = env[nameof(EnvTable.destination)];
             var luaSubfolder = env[nameof(EnvTable.subfolder)];
-            var illegalCharsOverride = env[nameof(EnvTable.illegal_chars_override)] is LuaTable luaIllegalCharsOverride
+            var illegalCharsOverride = env[nameof(EnvTable.illegal_chars_map)] is LuaTable luaIllegalCharsOverride
                 ? lua.GetTableDict(luaIllegalCharsOverride)
                     .Where(kvp => kvp is { Key: string, Value: string })
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()

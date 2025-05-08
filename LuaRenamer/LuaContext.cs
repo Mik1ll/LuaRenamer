@@ -201,7 +201,7 @@ public class LuaContext : Lua
         env[nameof(EnvTable.use_existing_anime_location)] = false;
         env[nameof(EnvTable.skip_rename)] = false;
         env[nameof(EnvTable.skip_move)] = false;
-        env[nameof(EnvTable.illegal_chars_override)] = GetNewTable();
+        env[nameof(EnvTable.illegal_chars_map)] = ReplaceMapToTable();
         env[nameof(EnvTable.animes)] = GetNewArray(animes);
         env[nameof(EnvTable.anime)] = animes.First();
         env[nameof(EnvTable.file)] = FileToTable(_args.File);
@@ -225,6 +225,14 @@ public class LuaContext : Lua
         foreach (var name in Enum.GetNames<T>())
             enumTable[name] = name;
         return enumTable;
+    }
+
+    private LuaTable ReplaceMapToTable()
+    {
+        var replaceMap = GetNewTable();
+        foreach (var kvp in FilePathCleaner.ReplaceMapDefaults)
+            replaceMap[kvp.Key] = kvp.Value;
+        return replaceMap;
     }
 
     private LuaTable GroupToTable(IShokoGroup group, LuaFunction getName)

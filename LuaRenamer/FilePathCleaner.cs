@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -11,10 +12,12 @@ public partial class FilePathCleaner(
     bool platformDependentIllegalChars,
     Dictionary<string, string> illegalCharsOverride)
 {
-    private readonly Dictionary<string, string> _replaceMap = new Dictionary<string, string>
-        {
-            { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" },
-        }.Concat(illegalCharsOverride).GroupBy(kvp => kvp.Key)
+    public static readonly FrozenDictionary<string, string> ReplaceMapDefaults = new Dictionary<string, string>
+    {
+        { "/", "／" }, { "<", "＜" }, { ">", "＞" }, { ":", "：" }, { "\\", "＼" }, { "|", "｜" }, { "?", "？" }, { "*", "＊" }, { "\"", "＂" },
+    }.ToFrozenDictionary();
+
+    private readonly Dictionary<string, string> _replaceMap = ReplaceMapDefaults.Concat(illegalCharsOverride).GroupBy(kvp => kvp.Key)
         .ToDictionary(g => g.Key, g => g.Last().Value);
 
     [GeneratedRegex("""[<>:"/\\|?*\x00-\x1F]""", RegexOptions.CultureInvariant)]
@@ -32,6 +35,8 @@ public partial class FilePathCleaner(
     {
         var windowsPathHandling = !platformDependentIllegalChars || RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         var illegalCharRegex = windowsPathHandling ? WindowsInvalidPathCharRegex() : OtherInvalidPathCharRegex();
+        if (illegalCharRegex.Match(string.Join(null, _replaceMap.Values)) is { Success: true } m)
+            throw new LuaRenamerException($"Illegal path replacement character: '{m.Value}'");
 
         var newSegments = new List<string>();
         foreach (var segment in segments)
