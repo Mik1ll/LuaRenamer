@@ -26,6 +26,8 @@ public class LuaContext : Lua
     private static string? _luaLinqText;
     public static readonly string LuaPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "lua");
     private readonly Dictionary<(Type, int), LuaTable> _tableCache = new();
+    private readonly IShokoSeries _primarySeries;
+    private readonly IShokoEpisode _primaryEpisode;
 
 
     #region Sandbox
@@ -125,23 +127,22 @@ public class LuaContext : Lua
           """;
 
     private string EpNums(int pad) => _args.Episodes.Select(se => se.AnidbEpisode)
-        .Where(e => e.SeriesID == _args.Series.First().AnidbAnimeID) // All episodes with same anime id
-        .OrderBy(e => e.EpisodeNumber)
-        .GroupBy(e => e.Type)
-        .OrderBy(g => g.Key)
-        .Aggregate("", (epString, epTypeGroup) =>
-            epString + " " + epTypeGroup.Aggregate( // Combine substring for each episode type
-                (InRange: false, LastNum: -1, EpSubstring: ""),
-                (tuple, ep) => (ep.EpisodeNumber == tuple.LastNum + 1, ep.EpisodeNumber,
-                        tuple.EpSubstring +
-                        (ep.EpisodeNumber != tuple.LastNum + 1 // Append to string if not in a range
-                            ? (tuple.InRange ? "-" + tuple.LastNum.ToString($"d{pad}") : "") + // If a range ended, append the last number
-                              " " + Utils.EpPrefix[epTypeGroup.Key] + ep.EpisodeNumber.ToString($"d{pad}") // Add current prefix and number
-                            : "")
-                    ),
-                tuple => tuple.EpSubstring + (tuple.InRange ? "-" + tuple.LastNum.ToString($"d{pad}") : "") // If a range ended, append the last number
-            ).Trim()
-        ).Trim();
+        .Where(e => e.SeriesID == _primarySeries.AnidbAnimeID)
+        .OrderBy(e => e.Type)
+        .ThenBy(e => e.EpisodeNumber)
+        .Aggregate((RangeOpen: false, PrevNum: -1, NumStr: new StringBuilder()), (acc, ep) =>
+            {
+                var oldRangeOpen = acc.RangeOpen;
+                acc.RangeOpen = ep.EpisodeNumber == acc.PrevNum + 1;
+                if (!acc.RangeOpen && oldRangeOpen)
+                    acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}"));
+                if (!acc.RangeOpen)
+                    acc.NumStr.Append(' ').Append(Utils.EpPrefix[ep.Type]).Append(ep.EpisodeNumber.ToString($"D{pad}"));
+                acc.PrevNum = ep.EpisodeNumber;
+                return acc;
+            },
+            acc => acc.RangeOpen ? acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}")) : acc.NumStr)
+        .ToString().Trim();
 
     private static readonly MethodInfo EpNumsMethod =
         typeof(LuaContext).GetMethod(nameof(EpNums), BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -152,6 +153,11 @@ public class LuaContext : Lua
     {
         _logger = logger;
         _args = args;
+        _primarySeries = _args.Series.OrderBy(s => s.AnidbAnimeID).First();
+        _primaryEpisode = _args.Episodes.Where(e => e.AnidbEpisode.SeriesID == _primarySeries.AnidbAnimeID)
+            .OrderBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
+            .ThenBy(e => e.EpisodeNumber)
+            .First();
         State.Encoding = Encoding.UTF8;
 
         if (!FileCacheStopwatch.IsRunning || FileCacheStopwatch.Elapsed > TimeSpan.FromSeconds(10) ||
@@ -188,12 +194,16 @@ public class LuaContext : Lua
         runSandboxed.Call(_luaUtilsText, env);
         var getName = (LuaFunction)runSandboxed.Call(GetNameFunction, env)[1];
 
-        var animes = _args.Series.OrderBy(s => s.AnidbAnimeID).Select(series => AnimeToTable(series.AnidbAnime, false, getName)).ToList();
-        var episodes = _args.Episodes.Select(e => e.AnidbEpisode)
-            .OrderBy(e => e.SeriesID)
-            .ThenBy(e => e.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
-            .ThenBy(e => e.EpisodeNumber)
-            .Select(e => EpisodeToTable(e, getName)).ToList();
+        var animes = _args.Series
+            .OrderBy(s => s.AnidbAnimeID != _primarySeries.AnidbAnimeID)
+            .ThenBy(s => s.AnidbAnimeID)
+            .Select(series => AnimeToTable(series.AnidbAnime, false, getName)).ToList();
+        var episodes = _args.Episodes
+            .OrderBy(e => e.AnidbEpisodeID != _primaryEpisode.AnidbEpisodeID)
+            .ThenBy(e => e.AnidbEpisode.SeriesID)
+            .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
+            .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
+            .Select(e => EpisodeToTable(e.AnidbEpisode, getName)).ToList();
         var groups = _args.Groups.Select(g => GroupToTable(g, getName)).ToList();
 
         env[nameof(EnvTable.replace_illegal_chars)] = false;
@@ -203,10 +213,10 @@ public class LuaContext : Lua
         env[nameof(EnvTable.skip_move)] = false;
         env[nameof(EnvTable.illegal_chars_map)] = ReplaceMapToTable();
         env[nameof(EnvTable.animes)] = GetNewArray(animes);
-        env[nameof(EnvTable.anime)] = animes.First();
+        env[nameof(EnvTable.anime)] = animes[0];
         env[nameof(EnvTable.file)] = FileToTable(_args.File);
         env[nameof(EnvTable.episodes)] = GetNewArray(episodes);
-        env[nameof(EnvTable.episode)] = episodes.First();
+        env[nameof(EnvTable.episode)] = episodes[0];
         env[nameof(EnvTable.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
         env[nameof(EnvTable.groups)] = GetNewArray(groups);
         env[nameof(EnvTable.group)] = groups.FirstOrDefault();
