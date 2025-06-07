@@ -85,7 +85,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
         animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
-        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
+        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname" && s.AnidbAnimeID == 3);
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new()
         {
