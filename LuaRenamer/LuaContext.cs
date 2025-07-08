@@ -220,6 +220,7 @@ public class LuaContext : Lua
         env[nameof(EnvTable.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
         env[nameof(EnvTable.groups)] = GetNewArray(groups);
         env[nameof(EnvTable.group)] = groups.FirstOrDefault();
+        env[nameof(EnvTable.tmdb)] = TmdbToTable();
         env[nameof(EnvTable.AnimeType)] = EnumToTable<AnimeType>();
         env[nameof(EnvTable.TitleType)] = EnumToTable<TitleType>();
         env[nameof(EnvTable.Language)] = EnumToTable<TitleLanguage>();
@@ -432,6 +433,51 @@ public class LuaContext : Lua
         dateTimeTable[nameof(DateTable.sec)] = dt.Second;
         dateTimeTable[nameof(DateTable.isdst)] = dt.IsDaylightSavingTime();
         return dateTimeTable;
+    }
+
+    private LuaTable TmdbToTable()
+    {
+        var tmdbTable = GetNewTable();
+        tmdbTable[nameof(TmdbTable.movies)] = GetNewArray(_args.Series[0].TmdbMovies.Select(m =>
+        {
+            var movieTable = GetNewTable();
+            movieTable[nameof(TmdbMovieTable.id)] = m.ID;
+            movieTable[nameof(TmdbMovieTable.titles)] = GetNewArray(m.Titles.Select(TitleToTable));
+            movieTable[nameof(TmdbMovieTable.defaultname)] = m.DefaultTitle;
+            movieTable[nameof(TmdbMovieTable.preferredname)] = m.PreferredTitle;
+            movieTable[nameof(TmdbMovieTable.rating)] = m.Rating;
+            movieTable[nameof(TmdbMovieTable.restricted)] = m.Restricted;
+            movieTable[nameof(TmdbMovieTable.studios)] = GetNewArray(m.Studios.Select(s => s.Name));
+            return movieTable;
+        }));
+        tmdbTable[nameof(TmdbTable.shows)] = GetNewArray(_args.Series[0].TmdbShows.Select(s =>
+        {
+            var showTable = GetNewTable();
+            showTable[nameof(TmdbShowTable.id)] = s.ID;
+            showTable[nameof(TmdbShowTable.titles)] = GetNewArray(s.Titles.Select(TitleToTable));
+            showTable[nameof(TmdbShowTable.defaultname)] = s.DefaultTitle;
+            showTable[nameof(TmdbShowTable.preferredname)] = s.PreferredTitle;
+            showTable[nameof(TmdbShowTable.rating)] = s.Rating;
+            showTable[nameof(TmdbShowTable.restricted)] = s.Restricted;
+            showTable[nameof(TmdbShowTable.studios)] = GetNewArray(s.Studios.Select(st => st.Name));
+            showTable[nameof(TmdbShowTable.episodecount)] = s.EpisodeCounts.Episodes;
+            return showTable;
+        }));
+        tmdbTable[nameof(TmdbTable.episodes)] = GetNewArray(_args.Episodes.Where(e => e.SeriesID == _primarySeries.ID)
+            .SelectMany(e => e.TmdbEpisodes.Select(e2 =>
+            {
+                var epTable = GetNewTable();
+                epTable[nameof(TmdbEpisodeTable.showid)] = e2.SeriesID;
+                epTable[nameof(TmdbEpisodeTable.id)] = e2.ID;
+                epTable[nameof(TmdbEpisodeTable.titles)] = GetNewArray(e2.Titles.Select(TitleToTable));
+                epTable[nameof(TmdbEpisodeTable.defaultname)] = e2.DefaultTitle;
+                epTable[nameof(TmdbEpisodeTable.preferredname)] = e2.PreferredTitle;
+                epTable[nameof(TmdbEpisodeTable.type)] = EnumToTable<EpisodeType>();
+                epTable[nameof(TmdbEpisodeTable.number)] = e2.EpisodeNumber;
+                epTable[nameof(TmdbEpisodeTable.seasonnumber)] = e2.SeasonNumber;
+                return epTable;
+            })));
+        return tmdbTable;
     }
 
     private LuaTable GetNewTable()

@@ -22,6 +22,7 @@ public class EnvTable : Table
     public ArrayTable<ImportFolderTable> importfolders => new() { Fn = Get() };
     public GroupTable group => new() { Fn = Get() };
     public ArrayTable<GroupTable> groups => new() { Fn = Get() };
+    public TmdbTable tmdb => new() { Fn = Get() };
     public string AnimeType => Get();
     public string TitleType => Get();
     public string Language => Get();
