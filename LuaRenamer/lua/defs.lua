@@ -141,3 +141,42 @@ local Group = {}
 ---@field type RelationType
 ---@field anime Anime
 local Relation = {}
+
+---@class (exact) TmdbMovie
+---@field id integer
+---@field titles Title[]
+---@field defaultname string
+---@field preferredname string
+---@field rating number
+---@field restricted boolean
+---@field studios string[]
+local TmdbMovie = {}
+
+---@class (exact) TmdbEpisode
+---@field id integer
+---@field showid integer
+---@field titles Title[]
+---@field defaultname string
+---@field preferredname string
+---@field rating number
+---@field type EpisodeType
+---@field number integer
+---@field seasonnumber integer
+local TmdbEpisode = {}
+
+---@class (exact) TmdbShow
+---@field id integer
+---@field titles Title[]
+---@field defaultname string
+---@field preferredname string
+---@field rating number
+---@field restricted boolean
+---@field studios string[]
+---@field episodecount integer
+local TmdbShow = {}
+
+---@class (exact) Tmdb
+---@field movies TmdbMovie[]
+---@field shows TmdbShow[]
+---@field episodes TmdbEpisode[]
+local Tmdb = {}

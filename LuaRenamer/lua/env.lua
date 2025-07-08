@@ -41,6 +41,9 @@ importfolders = nil
 groups = nil
 ---@type Group?
 group = nil
+---@type Tmdb
+tmdb = {}
+
 
 -- Output variables
 
