@@ -12,4 +12,5 @@ public class TmdbEpisodeTable : Table
     public string type => Get();
     public string number => Get();
     public string seasonnumber => Get();
+    public string getname => Get(':');
 }

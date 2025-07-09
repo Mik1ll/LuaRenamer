@@ -152,6 +152,12 @@ local Relation = {}
 ---@field studios string[]
 local TmdbMovie = {}
 
+
+---@param lang Language
+---@return string?
+function TmdbMovie:getname(lang)
+end
+
 ---@class (exact) TmdbEpisode
 ---@field id integer
 ---@field showid integer
@@ -164,6 +170,11 @@ local TmdbMovie = {}
 ---@field seasonnumber integer
 local TmdbEpisode = {}
 
+---@param lang Language
+---@return string?
+function TmdbEpisode:getname(lang)
+end
+
 ---@class (exact) TmdbShow
 ---@field id integer
 ---@field titles Title[]
@@ -174,6 +185,11 @@ local TmdbEpisode = {}
 ---@field studios string[]
 ---@field episodecount integer
 local TmdbShow = {}
+
+---@param lang Language
+---@return string?
+function TmdbShow:getname(lang)
+end
 
 ---@class (exact) Tmdb
 ---@field movies TmdbMovie[]

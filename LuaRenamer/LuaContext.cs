@@ -220,7 +220,7 @@ public class LuaContext : Lua
         env[nameof(EnvTable.importfolders)] = GetNewArray(_args.AvailableFolders.Select(ImportFolderToTable));
         env[nameof(EnvTable.groups)] = GetNewArray(groups);
         env[nameof(EnvTable.group)] = groups.FirstOrDefault();
-        env[nameof(EnvTable.tmdb)] = TmdbToTable();
+        env[nameof(EnvTable.tmdb)] = TmdbToTable(getName);
         env[nameof(EnvTable.AnimeType)] = EnumToTable<AnimeType>();
         env[nameof(EnvTable.TitleType)] = EnumToTable<TitleType>();
         env[nameof(EnvTable.Language)] = EnumToTable<TitleLanguage>();
@@ -435,7 +435,7 @@ public class LuaContext : Lua
         return dateTimeTable;
     }
 
-    private LuaTable TmdbToTable()
+    private LuaTable TmdbToTable(LuaFunction getName)
     {
         var tmdbTable = GetNewTable();
         tmdbTable[nameof(TmdbTable.movies)] = GetNewArray(_args.Series[0].TmdbMovies.Select(m =>
@@ -448,6 +448,7 @@ public class LuaContext : Lua
             movieTable[nameof(TmdbMovieTable.rating)] = m.Rating;
             movieTable[nameof(TmdbMovieTable.restricted)] = m.Restricted;
             movieTable[nameof(TmdbMovieTable.studios)] = GetNewArray(m.Studios.Select(s => s.Name));
+            movieTable[nameof(TmdbMovieTable.getname)] = getName;
             return movieTable;
         }));
         tmdbTable[nameof(TmdbTable.shows)] = GetNewArray(_args.Series[0].TmdbShows.Select(s =>
@@ -461,6 +462,7 @@ public class LuaContext : Lua
             showTable[nameof(TmdbShowTable.restricted)] = s.Restricted;
             showTable[nameof(TmdbShowTable.studios)] = GetNewArray(s.Studios.Select(st => st.Name));
             showTable[nameof(TmdbShowTable.episodecount)] = s.EpisodeCounts.Episodes;
+            showTable[nameof(TmdbShowTable.getname)] = getName;
             return showTable;
         }));
         tmdbTable[nameof(TmdbTable.episodes)] = GetNewArray(_args.Episodes.Where(e => e.SeriesID == _primarySeries.ID)
@@ -472,9 +474,10 @@ public class LuaContext : Lua
                 epTable[nameof(TmdbEpisodeTable.titles)] = GetNewArray(e2.Titles.Select(TitleToTable));
                 epTable[nameof(TmdbEpisodeTable.defaultname)] = e2.DefaultTitle;
                 epTable[nameof(TmdbEpisodeTable.preferredname)] = e2.PreferredTitle;
-                epTable[nameof(TmdbEpisodeTable.type)] = EnumToTable<EpisodeType>();
+                epTable[nameof(TmdbEpisodeTable.type)] = e2.Type.ToString();
                 epTable[nameof(TmdbEpisodeTable.number)] = e2.EpisodeNumber;
                 epTable[nameof(TmdbEpisodeTable.seasonnumber)] = e2.SeasonNumber;
+                epTable[nameof(TmdbEpisodeTable.getname)] = getName;
                 return epTable;
             })));
         return tmdbTable;
