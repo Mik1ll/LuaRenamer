@@ -13,7 +13,7 @@ public class AnimeTable : Table
     public string defaultname => Get();
     public string id => Get();
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
-    public string getname => Get(':');
+    public string getname(string lang, string? include_unofficial = null) => GetFunc([lang, include_unofficial], ':');
     public string episodecounts => Get();
     public ArrayTable<RelationTable> relations => new() { Fn = Get() };
     public string studios => Get();

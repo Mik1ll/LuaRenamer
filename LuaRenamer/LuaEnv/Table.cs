@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace LuaRenamer.LuaEnv;
 
@@ -7,4 +8,7 @@ public class Table
     public string Fn { get; init; } = "";
     public override string ToString() => Fn;
     protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
+
+    protected string GetFunc(string?[] args, char sep = '.', [CallerMemberName] string memberName = "") =>
+        Get(sep, memberName) + "(" + string.Join(", ", args.Where(a => !string.IsNullOrWhiteSpace(a))) + ")";
 }

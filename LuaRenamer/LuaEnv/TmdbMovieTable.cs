@@ -11,5 +11,5 @@ public class TmdbMovieTable : Table
     public string rating => Get();
     public string restricted => Get();
     public string studios => Get();
-    public string getname => Get(':');
+    public string getname(string lang) => GetFunc([lang], ':');
 }

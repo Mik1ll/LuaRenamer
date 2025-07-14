@@ -12,5 +12,5 @@ public class TmdbShowTable : Table
     public string restricted => Get();
     public string studios => Get();
     public string episodecount => Get();
-    public string getname => Get(':');
+    public string getname(string lang) => GetFunc([lang], ':');
 }

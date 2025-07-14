@@ -31,7 +31,11 @@ public class LuaTests
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
-        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 && s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname");
+        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
+                                                     s.AnidbAnime == animeMock.Object &&
+                                                     s.PreferredTitle == "shokoseriesprefname" &&
+                                                     s.TmdbMovies == new List<IMovie>() &&
+                                                     s.TmdbShows == new List<ISeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
         return new()
@@ -51,7 +55,10 @@ public class LuaTests
             Episodes = new List<IShokoEpisode>
             {
                 Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == new List<AnimeTitle>() && e.Type == EpisodeType.Episode)),
+                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 &&
+                                                              e.Titles == new List<AnimeTitle>() &&
+                                                              e.Type == EpisodeType.Episode) &&
+                    se.TmdbEpisodes == new List<IEpisode>()),
             },
             Series = new List<IShokoSeries>
             {
@@ -84,8 +91,13 @@ public class LuaTests
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
-        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
-        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnime == animeMock.Object && s.PreferredTitle == "shokoseriesprefname" && s.AnidbAnimeID == 3);
+        animeMock.SetupGet(a => a.Studios).Returns([]);
+        var shokoSeries = Mock.Of<IShokoSeries>(s =>
+            s.AnidbAnime == animeMock.Object &&
+            s.PreferredTitle == "shokoseriesprefname" &&
+            s.AnidbAnimeID == 3 &&
+            s.TmdbMovies == new List<IMovie>() &&
+            s.TmdbShows == new List<ISeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new()
         {
@@ -151,10 +163,11 @@ public class LuaTests
             Episodes =
             [
                 Mock.Of<IShokoEpisode>(se => se.AnidbEpisode == Mock.Of<IEpisode>(e =>
-                    e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
-                    e.EpisodeNumber == 5 &&
-                    e.Type == EpisodeType.Episode &&
-                    e.SeriesID == 3)),
+                                                 e.Titles == new List<AnimeTitle> { new() { Title = "episodeTitle1" } } &&
+                                                 e.EpisodeNumber == 5 &&
+                                                 e.Type == EpisodeType.Episode &&
+                                                 e.SeriesID == 3) &&
+                                             se.TmdbEpisodes == new List<IEpisode>()),
             ],
             Series = args.Series,
             Groups = args.Groups,
@@ -239,42 +252,29 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
     [TestMethod]
     public void TestEpisodeNumbers()
     {
-        var args = MinimalArgs($"{EnvTable.Inst.filename} = {EnvTable.Inst.episode_numbers}(3)");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = {EnvTable.Inst.episode_numbers("3")}");
         var titles = args.Episodes[0].AnidbEpisode.Titles;
+        int[] seriesIds = [3, 3, 3, 2, 3, 6, 3, 3, 3, 9, 3, 3, 3];
+        int[] epNums = [6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2];
+        EpisodeType[] epTypes =
+        [
+            EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Episode, EpisodeType.Special, EpisodeType.Episode, EpisodeType.Credits,
+            EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Other,
+        ];
+        IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes);
+        var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
+            se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == z.seriesId &&
+                                                      e.Titles == titles &&
+                                                      e.EpisodeNumber == z.epNum &&
+                                                      e.Type == z.epType) &&
+            se.TmdbEpisodes == new List<IEpisode>())).ToList();
+
         args = new()
         {
             Settings = args.Settings,
             AvailableFolders = args.AvailableFolders,
             File = args.File,
-            Episodes = new List<IShokoEpisode>
-            {
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 6 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 12 && e.Type == EpisodeType.Other)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 5 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 2 && e.Titles == titles && e.EpisodeNumber == 22 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 2 && e.Type == EpisodeType.Special)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 6 && e.Titles == titles && e.EpisodeNumber == 20 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 5 && e.Type == EpisodeType.Credits)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 7 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 1 && e.Type == EpisodeType.Other)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 9 && e.Titles == titles && e.EpisodeNumber == 4 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 9 && e.Type == EpisodeType.Other)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 3 && e.Type == EpisodeType.Episode)),
-                Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 && e.Titles == titles && e.EpisodeNumber == 2 && e.Type == EpisodeType.Other)),
-            },
+            Episodes = eps,
             Series = args.Series,
             Groups = args.Groups,
             MoveEnabled = true,
@@ -289,7 +289,7 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}) .. {EnvTable.Inst.episode.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}, true) .. {EnvTable.Inst.episode.getname}({EnvTable.Inst.Language}.{nameof(TitleLanguage.Romaji)}, true)");
+            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}")} .. {EnvTable.Inst.episode.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}", "true")} .. {EnvTable.Inst.episode.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.Romaji)}", "true")}");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange([
             new()
             {

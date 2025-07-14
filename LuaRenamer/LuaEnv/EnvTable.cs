@@ -29,7 +29,7 @@ public class EnvTable : Table
     public string EpisodeType => Get();
     public string ImportFolderType => Get();
     public string RelationType => Get();
-    public string episode_numbers => Get();
+    public string episode_numbers(string pad) => GetFunc([pad]);
     public string logdebug => Get();
     public string log => Get();
     public string logwarn => Get();
