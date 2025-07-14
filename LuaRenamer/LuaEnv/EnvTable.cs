@@ -1,5 +1,7 @@
 ﻿// ReSharper disable InconsistentNaming
 
+using Shoko.Plugin.Abstractions.DataModels;
+
 namespace LuaRenamer.LuaEnv;
 
 public class EnvTable : Table
@@ -23,12 +25,12 @@ public class EnvTable : Table
     public GroupTable group => new() { Fn = Get() };
     public ArrayTable<GroupTable> groups => new() { Fn = Get() };
     public TmdbTable tmdb => new() { Fn = Get() };
-    public string AnimeType => Get();
-    public string TitleType => Get();
-    public string Language => Get();
-    public string EpisodeType => Get();
-    public string ImportFolderType => Get();
-    public string RelationType => Get();
+    public EnumTable<AnimeType> AnimeType => new() { Fn = Get() };
+    public EnumTable<TitleType> TitleType => new() { Fn = Get() };
+    public EnumTable<TitleLanguage> Language => new() { Fn = Get() };
+    public EnumTable<EpisodeType> EpisodeType => new() { Fn = Get() };
+    public EnumTable<DropFolderType> ImportFolderType => new() { Fn = Get() };
+    public EnumTable<RelationType> RelationType => new() { Fn = Get() };
     public string episode_numbers(string pad) => GetFunc([pad]);
     public string logdebug => Get();
     public string log => Get();

@@ -37,7 +37,7 @@ public class LuaTests
                                                      s.TmdbMovies == new List<IMovie>() &&
                                                      s.TmdbShows == new List<ISeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
+        animeMock.SetupGet(a => a.Studios).Returns([]);
         return new()
         {
             AvailableFolders = new List<IImportFolder>
@@ -83,7 +83,7 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{EnvTable.Inst.filename} = tostring({EnvTable.Inst.anime.type} == {EnvTable.Inst.AnimeType}.{nameof(AnimeType.Movie)})");
+        var args = MinimalArgs($"{EnvTable.Inst.filename} = tostring({EnvTable.Inst.anime.type} == {EnvTable.Inst.AnimeType[AnimeType.Movie]})");
         var animeMock = new Mock<ISeries>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
@@ -183,9 +183,10 @@ public class LuaTests
     public void TestImportFolder()
     {
         var args = MinimalArgs(
-            $@"
-local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnvTable.Inst.ImportFolderType}.{nameof(DropFolderType.Both)}):first()
-{EnvTable.Inst.destination} = fld");
+            $"""
+             local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnvTable.Inst.ImportFolderType[DropFolderType.Both]}):first()
+             {EnvTable.Inst.destination} = fld
+             """);
         args = new()
         {
             Settings = args.Settings,
@@ -289,7 +290,7 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}")} .. {EnvTable.Inst.episode.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.English)}", "true")} .. {EnvTable.Inst.episode.getname($"{EnvTable.Inst.Language}.{nameof(TitleLanguage.Romaji)}", "true")}");
+            $"{EnvTable.Inst.filename} = {EnvTable.Inst.anime.getname(EnvTable.Inst.Language[TitleLanguage.English])} .. {EnvTable.Inst.episode.getname(EnvTable.Inst.Language[TitleLanguage.English], "true")} .. {EnvTable.Inst.episode.getname(EnvTable.Inst.Language[TitleLanguage.Romaji], "true")}");
         ((List<AnimeTitle>)args.Series[0].AnidbAnime.Titles).AddRange([
             new()
             {
@@ -405,12 +406,12 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
         var defsEnv = new Lua();
         defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
         var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.Language], (LuaTable)sandboxEnv[EnvTable.Inst.Language]);
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.AnimeType], (LuaTable)sandboxEnv[EnvTable.Inst.AnimeType]);
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.TitleType], (LuaTable)sandboxEnv[EnvTable.Inst.TitleType]);
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.EpisodeType], (LuaTable)sandboxEnv[EnvTable.Inst.EpisodeType]);
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.ImportFolderType], (LuaTable)sandboxEnv[EnvTable.Inst.ImportFolderType]);
-        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.RelationType], (LuaTable)sandboxEnv[EnvTable.Inst.RelationType]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.Language.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.Language.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.AnimeType.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.AnimeType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.TitleType.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.TitleType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.EpisodeType.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.EpisodeType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.ImportFolderType.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.ImportFolderType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvTable.Inst.RelationType.Fn], (LuaTable)sandboxEnv[EnvTable.Inst.RelationType.Fn]);
     }
 
     [TestMethod]
@@ -423,7 +424,7 @@ local fld = from({EnvTable.Inst.importfolders.Fn}):where('{nameof(ImportFolderTa
         animeMock.SetupGet(a => a.ID).Returns(1);
         animeMock.SetupGet(a => a.PreferredTitle).Returns("blah2");
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
-        animeMock.SetupGet(a => a.Studios).Returns(Array.Empty<IStudio>());
+        animeMock.SetupGet(a => a.Studios).Returns([]);
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
