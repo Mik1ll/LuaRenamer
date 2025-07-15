@@ -42,7 +42,7 @@ groups = nil
 ---@type Group?
 group = nil
 ---@type Tmdb
-tmdb = {}
+tmdb = nil
 
 
 -- Output variables

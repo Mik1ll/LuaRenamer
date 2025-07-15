@@ -10,5 +10,5 @@ public class Table
     protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
 
     protected string GetFunc(string?[] args, char sep = '.', [CallerMemberName] string memberName = "") =>
-        Get(sep, memberName) + "(" + string.Join(", ", args.Where(a => !string.IsNullOrWhiteSpace(a))) + ")";
+        Get(sep, memberName) + "(" + string.Join(", ", args.TakeWhile(a => !string.IsNullOrWhiteSpace(a))) + ")";
 }

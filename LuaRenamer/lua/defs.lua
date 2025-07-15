@@ -86,8 +86,7 @@ local Anime = {}
 ---@param lang Language
 ---@param include_unofficial? boolean
 ---@return string?
-function Anime:getname(lang, include_unofficial)
-end
+function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Title
 ---@field name string
@@ -121,8 +120,7 @@ local Episode = {}
 
 ---@param lang Language
 ---@return string?
-function Episode:getname(lang)
-end
+function Episode:getname(lang) end
 
 ---@class (exact) ImportFolder
 ---@field id integer
@@ -152,11 +150,9 @@ local Relation = {}
 ---@field studios string[]
 local TmdbMovie = {}
 
-
 ---@param lang Language
 ---@return string?
-function TmdbMovie:getname(lang)
-end
+function TmdbMovie:getname(lang) end
 
 ---@class (exact) TmdbEpisode
 ---@field id integer
@@ -172,8 +168,7 @@ local TmdbEpisode = {}
 
 ---@param lang Language
 ---@return string?
-function TmdbEpisode:getname(lang)
-end
+function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbShow
 ---@field id integer
@@ -188,8 +183,7 @@ local TmdbShow = {}
 
 ---@param lang Language
 ---@return string?
-function TmdbShow:getname(lang)
-end
+function TmdbShow:getname(lang) end
 
 ---@class (exact) Tmdb
 ---@field movies TmdbMovie[]
