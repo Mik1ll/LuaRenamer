@@ -221,12 +221,12 @@ public class LuaContext : Lua
         env[nameof(EnvTable.groups)] = GetNewArray(groups);
         env[nameof(EnvTable.group)] = groups.FirstOrDefault();
         env[nameof(EnvTable.tmdb)] = TmdbToTable(getName);
-        env[nameof(EnvTable.AnimeType)] = EnumToTable<AnimeType>();
-        env[nameof(EnvTable.TitleType)] = EnumToTable<TitleType>();
-        env[nameof(EnvTable.Language)] = EnumToTable<TitleLanguage>();
-        env[nameof(EnvTable.EpisodeType)] = EnumToTable<EpisodeType>();
-        env[nameof(EnvTable.ImportFolderType)] = EnumToTable<DropFolderType>();
-        env[nameof(EnvTable.RelationType)] = EnumToTable<RelationType>();
+        env[nameof(EnumsTable.AnimeType)] = EnumToTable<AnimeType>();
+        env[nameof(EnumsTable.TitleType)] = EnumToTable<TitleType>();
+        env[nameof(EnumsTable.Language)] = EnumToTable<TitleLanguage>();
+        env[nameof(EnumsTable.EpisodeType)] = EnumToTable<EpisodeType>();
+        env[nameof(EnumsTable.ImportFolderType)] = EnumToTable<DropFolderType>();
+        env[nameof(EnumsTable.RelationType)] = EnumToTable<RelationType>();
         return env;
     }
 
@@ -423,15 +423,15 @@ public class LuaContext : Lua
         if (dateTime is not { } dt)
             return null;
         var dateTimeTable = GetNewTable();
-        dateTimeTable[nameof(DateTable.year)] = dt.Year;
-        dateTimeTable[nameof(DateTable.month)] = dt.Month;
-        dateTimeTable[nameof(DateTable.day)] = dt.Day;
-        dateTimeTable[nameof(DateTable.yday)] = dt.DayOfYear;
-        dateTimeTable[nameof(DateTable.wday)] = (long)dt.DayOfWeek + 1;
-        dateTimeTable[nameof(DateTable.hour)] = dt.Hour;
-        dateTimeTable[nameof(DateTable.min)] = dt.Minute;
-        dateTimeTable[nameof(DateTable.sec)] = dt.Second;
-        dateTimeTable[nameof(DateTable.isdst)] = dt.IsDaylightSavingTime();
+        dateTimeTable[nameof(DateTimeTable.year)] = dt.Year;
+        dateTimeTable[nameof(DateTimeTable.month)] = dt.Month;
+        dateTimeTable[nameof(DateTimeTable.day)] = dt.Day;
+        dateTimeTable[nameof(DateTimeTable.yday)] = dt.DayOfYear;
+        dateTimeTable[nameof(DateTimeTable.wday)] = (long)dt.DayOfWeek + 1;
+        dateTimeTable[nameof(DateTimeTable.hour)] = dt.Hour;
+        dateTimeTable[nameof(DateTimeTable.min)] = dt.Minute;
+        dateTimeTable[nameof(DateTimeTable.sec)] = dt.Second;
+        dateTimeTable[nameof(DateTimeTable.isdst)] = dt.IsDaylightSavingTime();
         return dateTimeTable;
     }
 
@@ -512,5 +512,11 @@ public class LuaContext : Lua
         }
 
         return true;
+    }
+
+    public void GenerateTypeDefinitions()
+    {
+        var generator = new LuaDocsGenerator(LuaPath);
+        generator.GenerateDefinitionFiles();
     }
 }

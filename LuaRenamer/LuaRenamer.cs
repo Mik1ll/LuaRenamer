@@ -98,10 +98,10 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                     destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderTable.id)])) ??
                                  throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderTable.id)]}");
                 else
-                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {EnvTable.Inst.importfolders} variable");
+                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from {EnvTable.importfolders} variable");
                 break;
             default:
-                throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from {EnvTable.Inst.importfolders} variable");
+                throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from {EnvTable.importfolders} variable");
         }
 
         if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))

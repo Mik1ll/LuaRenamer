@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LuaRenamer.LuaEnv;
+namespace LuaRenamer.LuaEnv.BaseTypes;
 
 public class EnumTable<T> : Table where T : Enum
 {

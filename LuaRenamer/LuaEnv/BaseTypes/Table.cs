@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace LuaRenamer.LuaEnv;
+namespace LuaRenamer.LuaEnv.BaseTypes;
 
 public class Table
 {

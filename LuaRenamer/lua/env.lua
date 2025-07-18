@@ -59,5 +59,5 @@ replace_illegal_chars = false
 remove_illegal_chars = false
 skip_rename = false
 skip_move = false
----@type { [string]: string }
-illegal_chars_map = {}
+---@type table<string, string>
+illegal_chars_map = nil

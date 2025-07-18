@@ -112,7 +112,7 @@ local DateTime = {}
 ---@field number integer
 ---@field prefix string
 ---@field type EpisodeType
----@field airdate DateTime
+---@field airdate DateTime?
 ---@field animeid integer
 ---@field id integer
 ---@field titles Title[]

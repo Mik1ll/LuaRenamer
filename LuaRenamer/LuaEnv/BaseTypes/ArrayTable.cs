@@ -1,4 +1,4 @@
-﻿namespace LuaRenamer.LuaEnv;
+﻿namespace LuaRenamer.LuaEnv.BaseTypes;
 
 public class ArrayTable<T> : Table where T : Table, new()
 {
