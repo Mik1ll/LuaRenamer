@@ -3,6 +3,7 @@ using System.Text;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using Shoko.Plugin.Abstractions.DataModels;
 
 namespace LuaDefsGenerator;
 
@@ -68,15 +69,126 @@ public class Generator
         File.WriteAllText(Path.Combine(_outputPath, "defs.lua"), sb.ToString());
     }
 
+    private static readonly HashSet<TitleLanguage> AnidbLangs =
+    [
+        TitleLanguage.Japanese,
+        TitleLanguage.Romaji,
+        TitleLanguage.English,
+        TitleLanguage.Chinese,
+        TitleLanguage.ChineseSimplified,
+        TitleLanguage.ChineseTraditional,
+        TitleLanguage.Pinyin,
+        TitleLanguage.Korean,
+        TitleLanguage.KoreanTranscription,
+        TitleLanguage.Afrikaans,
+        TitleLanguage.Albanian,
+        TitleLanguage.Arabic,
+        TitleLanguage.Bengali,
+        TitleLanguage.Bosnian,
+        TitleLanguage.Bulgarian,
+        TitleLanguage.MyanmarBurmese,
+        TitleLanguage.Croatian,
+        TitleLanguage.Czech,
+        TitleLanguage.Danish,
+        TitleLanguage.Dutch,
+        TitleLanguage.Esperanto,
+        TitleLanguage.Estonian,
+        TitleLanguage.Filipino,
+        TitleLanguage.Finnish,
+        TitleLanguage.French,
+        TitleLanguage.Georgian,
+        TitleLanguage.German,
+        TitleLanguage.Greek,
+        TitleLanguage.HaitianCreole,
+        TitleLanguage.Hebrew,
+        TitleLanguage.Hindi,
+        TitleLanguage.Hungarian,
+        TitleLanguage.Icelandic,
+        TitleLanguage.Indonesian,
+        TitleLanguage.Italian,
+        TitleLanguage.Javanese,
+        TitleLanguage.Latin,
+        TitleLanguage.Latvian,
+        TitleLanguage.Lithuanian,
+        TitleLanguage.Malaysian,
+        TitleLanguage.Mongolian,
+        TitleLanguage.Nepali,
+        TitleLanguage.Norwegian,
+        TitleLanguage.Persian,
+        TitleLanguage.Polish,
+        TitleLanguage.Portuguese,
+        TitleLanguage.BrazilianPortuguese,
+        TitleLanguage.Romanian,
+        TitleLanguage.Russian,
+        TitleLanguage.Serbian,
+        TitleLanguage.Sinhala,
+        TitleLanguage.Slovak,
+        TitleLanguage.Slovenian,
+        TitleLanguage.Spanish,
+        TitleLanguage.Basque,
+        TitleLanguage.Catalan,
+        TitleLanguage.Galician,
+        TitleLanguage.Swedish,
+        TitleLanguage.Tamil,
+        TitleLanguage.Tatar,
+        TitleLanguage.Telugu,
+        TitleLanguage.Thai,
+        TitleLanguage.ThaiTranscription,
+        TitleLanguage.Turkish,
+        TitleLanguage.Ukrainian,
+        TitleLanguage.Urdu,
+        TitleLanguage.Vietnamese,
+    ];
+
     private void GenerateEnumsFile()
     {
+        var enumsType = typeof(EnumsTable);
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
+        foreach (var prop in enumsType.GetProperties(BindingFlags.Public | BindingFlags.Static))
+        {
+            var enumType = prop.PropertyType.GenericTypeArguments[0];
 
-        // Add your enum types here if any
-        // This would come from a separate configuration or scanning of enum types
+            sb.Append($"---@enum {prop.Name}\n");
+            sb.Append($"{prop.Name} = {{\n");
 
-//        File.WriteAllText(Path.Combine(_outputPath, "enums.lua"), sb.ToString());
+            if (enumType == typeof(TitleLanguage))
+            {
+                var lkup = Enum.GetValues<TitleLanguage>().ToLookup(t => t switch
+                {
+                    TitleLanguage.Japanese or TitleLanguage.Romaji or TitleLanguage.English or TitleLanguage.Chinese or TitleLanguage.Pinyin
+                        or TitleLanguage.Korean or TitleLanguage.KoreanTranscription => 0,
+                    TitleLanguage.Unknown or TitleLanguage.Main or TitleLanguage.None => 3,
+                    _ => AnidbLangs.Contains(t) ? 1 : 2,
+                }, t => t.ToString());
+                sb.Append("\n--#region AniDB Languages\n");
+                CreateMappings(lkup[0]);
+                sb.Append('\n');
+                CreateMappings(lkup[1].Order(StringComparer.Ordinal));
+                sb.Append("--#endregion\n");
+                sb.Append("\n--#region Other Languages\n");
+                CreateMappings(lkup[2].Order(StringComparer.Ordinal));
+                sb.Append("--#endregion\n\n");
+                CreateMappings(lkup[3]);
+            }
+            else
+            {
+                CreateMappings(Enum.GetNames(enumType));
+            }
+
+            sb.Append("}\n\n");
+        }
+
+        sb.Length--;
+
+        File.WriteAllText(Path.Combine(_outputPath, "enums.lua"), sb.ToString());
+        return;
+
+        void CreateMappings(IEnumerable<string> enumerable)
+        {
+            foreach (var name in enumerable)
+                sb.Append($"    {name} = \"{name}\",\n");
+        }
     }
 
     private static void GenerateFunctionAnnotations(StringBuilder sb, MemberInfo member, string functionName)
@@ -130,7 +242,7 @@ public class Generator
         }
 
         sb.Length--;
-        
+
         File.WriteAllText(Path.Combine(_outputPath, "env.lua"), sb.ToString());
     }
 

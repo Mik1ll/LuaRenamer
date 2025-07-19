@@ -5,7 +5,7 @@ ImportFolderType = {
     Excluded = "Excluded",
     Source = "Source",
     Destination = "Destination",
-    Both = "Both"
+    Both = "Both",
 }
 
 ---@enum AnimeType
@@ -15,7 +15,7 @@ AnimeType = {
     TVSeries = "TVSeries",
     TVSpecial = "TVSpecial",
     Web = "Web",
-    Other = "Other"
+    Other = "Other",
 }
 
 ---@enum EpisodeType
@@ -25,7 +25,7 @@ EpisodeType = {
     Special = "Special",
     Trailer = "Trailer",
     Parody = "Parody",
-    Other = "Other"
+    Other = "Other",
 }
 
 ---@enum TitleType
@@ -36,29 +36,32 @@ TitleType = {
     Short = "Short",
     Synonym = "Synonym",
     TitleCard = "TitleCard",
-    KanjiReading = "KanjiReading"
+    KanjiReading = "KanjiReading",
 }
 
 ---@enum Language
 Language = {
 
 --#region AniDB Languages
-    Japanese = "Japanese",
-    Romaji = "Romaji",
     English = "English",
-    Chinese = "Chinese",
-    ChineseSimplified = "ChineseSimplified",
-    ChineseTraditional = "ChineseTraditional",
-    Pinyin = "Pinyin",
+    Romaji = "Romaji",
+    Japanese = "Japanese",
     Korean = "Korean",
+    Chinese = "Chinese",
+    Pinyin = "Pinyin",
     KoreanTranscription = "KoreanTranscription",
+
     Afrikaans = "Afrikaans",
     Albanian = "Albanian",
     Arabic = "Arabic",
+    Basque = "Basque",
     Bengali = "Bengali",
     Bosnian = "Bosnian",
+    BrazilianPortuguese = "BrazilianPortuguese",
     Bulgarian = "Bulgarian",
-    MyanmarBurmese = "MyanmarBurmese",
+    Catalan = "Catalan",
+    ChineseSimplified = "ChineseSimplified",
+    ChineseTraditional = "ChineseTraditional",
     Croatian = "Croatian",
     Czech = "Czech",
     Danish = "Danish",
@@ -68,6 +71,7 @@ Language = {
     Filipino = "Filipino",
     Finnish = "Finnish",
     French = "French",
+    Galician = "Galician",
     Georgian = "Georgian",
     German = "German",
     Greek = "Greek",
@@ -84,12 +88,12 @@ Language = {
     Lithuanian = "Lithuanian",
     Malaysian = "Malaysian",
     Mongolian = "Mongolian",
+    MyanmarBurmese = "MyanmarBurmese",
     Nepali = "Nepali",
     Norwegian = "Norwegian",
     Persian = "Persian",
     Polish = "Polish",
     Portuguese = "Portuguese",
-    BrazilianPortuguese = "BrazilianPortuguese",
     Romanian = "Romanian",
     Russian = "Russian",
     Serbian = "Serbian",
@@ -97,9 +101,6 @@ Language = {
     Slovak = "Slovak",
     Slovenian = "Slovenian",
     Spanish = "Spanish",
-    Basque = "Basque",
-    Catalan = "Catalan",
-    Galician = "Galician",
     Swedish = "Swedish",
     Tamil = "Tamil",
     Tatar = "Tatar",
@@ -168,9 +169,9 @@ Language = {
     Zulu = "Zulu",
 --#endregion
 
+    Unknown = "Unknown",
     Main = "Main",
     None = "None",
-    Unknown = "Unknown",
 }
 
 ---@enum RelationType
@@ -185,5 +186,5 @@ RelationType = {
     FullStory = "FullStory",
     Sequel = "Sequel",
     SideStory = "SideStory",
-    Summary = "Summary"
+    Summary = "Summary",
 }
