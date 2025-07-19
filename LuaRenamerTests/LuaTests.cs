@@ -322,25 +322,25 @@ public class LuaTests
             new()
             {
                 Title = "episodeTitle1",
-                Language = TitleLanguage.English,
-                Type = TitleType.Short,
+                Language = TitleLanguage.Spanish,
+                Type = TitleType.None,
             },
             new()
             {
-                Title = "episdoeTitle2",
+                Title = "episodeTitle2",
                 Language = TitleLanguage.English,
-                Type = TitleType.Synonym,
+                Type = TitleType.None,
             },
             new()
             {
                 Title = "episodeTitle3",
                 Language = TitleLanguage.Romaji,
-                Type = TitleType.Synonym,
+                Type = TitleType.None,
             },
         });
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
-        Assert.AreEqual("animeTitle4episdoeTitle2episodeTitle3.mp4", res.FileName);
+        Assert.AreEqual("animeTitle4episodeTitle2episodeTitle3.mp4", res.FileName);
     }
 
     [TestMethod]
