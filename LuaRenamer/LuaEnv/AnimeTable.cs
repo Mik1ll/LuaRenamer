@@ -46,7 +46,7 @@ public class AnimeTable : Table
     [LuaType("function")]
     [LuaDescription("Get the anime title in the specified language")]
     [LuaParameter("lang", "Language", "The language to get the title in")]
-    [LuaParameter("include_unofficial", "boolean", "Whether to include unofficial titles")]
+    [LuaParameter("include_unofficial", "boolean|nil", "Whether to include unofficial titles")]
     [LuaReturnType("string", Nillable = true)]
     public string getname(string lang, string? include_unofficial = null) => GetFunc([lang, include_unofficial], ':');
 

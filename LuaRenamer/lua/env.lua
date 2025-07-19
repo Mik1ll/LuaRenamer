@@ -29,18 +29,18 @@ function logerror(message) end
 file = nil
 ---@type Anime
 anime = nil
----@type Episode
-episode = nil
 ---@type Anime[]
 animes = nil
+---@type Episode
+episode = nil
 ---@type Episode[]
 episodes = nil
 ---@type ImportFolder[]
 importfolders = nil
----@type Group[]
-groups = nil
 ---@type Group?
 group = nil
+---@type Group[]
+groups = nil
 ---@type Tmdb
 tmdb = nil
 

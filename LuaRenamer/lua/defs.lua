@@ -1,72 +1,20 @@
 ---@meta
 
----@class (exact) File
----@field name string
----@field extension string
----@field earliestname string?
----@field path string
----@field size integer
----@field hashes Hashes
----@field anidb AniDb?
----@field media Media?
----@field importfolder ImportFolder
-local File = {}
-
----@class (exact) Hashes
----@field crc string?
----@field md5 string?
----@field ed2k string
----@field sha1 string?
-local Hashes = {}
-
 ---@class (exact) AniDb
+---@field id integer
 ---@field censored boolean
 ---@field source string
 ---@field version integer
 ---@field releasedate DateTime
----@field releasegroup ReleaseGroup?
----@field id integer
 ---@field description string
+---@field releasegroup ReleaseGroup?
 ---@field media AniDbMedia
 local AniDb = {}
-
----@class (exact) ReleaseGroup
----@field name string
----@field shortname string
-local ReleaseGroup = {}
 
 ---@class (exact) AniDbMedia
 ---@field sublanguages Language[]
 ---@field dublanguages Language[]
 local AniDbMedia = {}
-
----@class (exact) Media
----@field chaptered boolean
----@field video Video?
----@field duration integer
----@field bitrate integer
----@field sublanguages string[]
----@field audio Audio[]
-local Media = {}
-
----@class (exact) Video
----@field height integer
----@field width integer
----@field codec string
----@field res string
----@field bitrate integer
----@field bitdepth integer
----@field framerate number
-local Video = {}
-
----@class (exact) Audio
----@field compressionmode string
----@field channels number
----@field samplingrate integer
----@field codec string
----@field language string
----@field title string?
-local Audio = {}
 
 ---@class (exact) Anime
 ---@field airdate DateTime?
@@ -88,12 +36,14 @@ local Anime = {}
 ---@return string?
 function Anime:getname(lang, include_unofficial) end
 
----@class (exact) Title
----@field name string
----@field language Language
----@field languagecode string
----@field type TitleType
-local Title = {}
+---@class (exact) Audio
+---@field compressionmode string
+---@field channels number
+---@field samplingrate integer
+---@field codec string
+---@field language string
+---@field title string?
+local Audio = {}
 
 ---@class (exact) DateTime
 ---@field year integer
@@ -110,17 +60,42 @@ local DateTime = {}
 ---@class (exact) Episode
 ---@field duration integer
 ---@field number integer
----@field prefix string
 ---@field type EpisodeType
 ---@field airdate DateTime?
 ---@field animeid integer
 ---@field id integer
 ---@field titles Title[]
+---@field prefix string
 local Episode = {}
 
 ---@param lang Language
 ---@return string?
 function Episode:getname(lang) end
+
+---@class (exact) File
+---@field name string
+---@field extension string
+---@field path string
+---@field size integer
+---@field importfolder ImportFolder
+---@field earliestname string?
+---@field media Media?
+---@field anidb AniDb?
+---@field hashes Hashes
+local File = {}
+
+---@class (exact) Group
+---@field name string
+---@field mainanime Anime
+---@field animes Anime[]
+local Group = {}
+
+---@class (exact) Hashes
+---@field crc string?
+---@field md5 string?
+---@field ed2k string
+---@field sha1 string?
+local Hashes = {}
 
 ---@class (exact) ImportFolder
 ---@field id integer
@@ -129,16 +104,52 @@ function Episode:getname(lang) end
 ---@field type ImportFolderType
 local ImportFolder = {}
 
----@class (exact) Group
----@field name string
----@field mainanime Anime
----@field animes Anime[]
-local Group = {}
+---@class (exact) Media
+---@field chaptered boolean
+---@field duration integer
+---@field bitrate integer
+---@field sublanguages string[]
+---@field audio Audio[]
+---@field video Video?
+local Media = {}
 
 ---@class (exact) Relation
----@field type RelationType
 ---@field anime Anime
+---@field type RelationType
 local Relation = {}
+
+---@class (exact) ReleaseGroup
+---@field name string
+---@field shortname string
+local ReleaseGroup = {}
+
+---@class (exact) Title
+---@field name string
+---@field language Language
+---@field languagecode string
+---@field type TitleType
+local Title = {}
+
+---@class (exact) Tmdb
+---@field movies TmdbMovie[]
+---@field shows TmdbShow[]
+---@field episodes TmdbEpisode[]
+local Tmdb = {}
+
+---@class (exact) TmdbEpisode
+---@field id integer
+---@field showid integer
+---@field titles Title[]
+---@field defaultname string
+---@field preferredname string
+---@field type EpisodeType
+---@field number integer
+---@field seasonnumber integer
+local TmdbEpisode = {}
+
+---@param lang Language
+---@return string?
+function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbMovie
 ---@field id integer
@@ -153,22 +164,6 @@ local TmdbMovie = {}
 ---@param lang Language
 ---@return string?
 function TmdbMovie:getname(lang) end
-
----@class (exact) TmdbEpisode
----@field id integer
----@field showid integer
----@field titles Title[]
----@field defaultname string
----@field preferredname string
----@field rating number
----@field type EpisodeType
----@field number integer
----@field seasonnumber integer
-local TmdbEpisode = {}
-
----@param lang Language
----@return string?
-function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbShow
 ---@field id integer
@@ -185,8 +180,12 @@ local TmdbShow = {}
 ---@return string?
 function TmdbShow:getname(lang) end
 
----@class (exact) Tmdb
----@field movies TmdbMovie[]
----@field shows TmdbShow[]
----@field episodes TmdbEpisode[]
-local Tmdb = {}
+---@class (exact) Video
+---@field height integer
+---@field width integer
+---@field codec string
+---@field res string
+---@field bitrate integer
+---@field bitdepth integer
+---@field framerate number
+local Video = {}

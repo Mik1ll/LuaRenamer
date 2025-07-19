@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,7 +27,7 @@ public class LuaDocsGenerator
         var types = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => t.Namespace == "LuaRenamer.LuaEnv" && t.IsSubclassOf(typeof(Table)))
-            .OrderBy(t => t.Name)
+            .OrderBy(t => t.Name.Replace("Table", ""), StringComparer.Ordinal)
             .ToList();
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
@@ -91,7 +92,12 @@ public class LuaDocsGenerator
             sb.Append($"---@param {param.Name} {param.Type} {param.Description}\n");
 
         if (returnAttr is not null)
-            sb.Append($"---@return {returnAttr.Type}\n");
+        {
+            var type = returnAttr.Type;
+            if (returnAttr.Nillable)
+                type += "|nil";
+            sb.Append($"---@return {type}\n");
+        }
 
         sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
     }
