@@ -23,8 +23,6 @@ public class ImportFolderTable : Table
     [LuaDescription("Type of the import folder (Source, Destination, etc.)")]
     public string type => Get();
 
-    [LuaType("string")]
-    [LuaDescription("Class identifier for cross-API linking")]
     public string _classid => Get();
     public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
 }

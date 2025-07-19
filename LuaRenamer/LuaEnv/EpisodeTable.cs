@@ -45,8 +45,6 @@ public class EpisodeTable : Table
     [LuaDescription("Episode number prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
     public string prefix => Get();
 
-    [LuaType("string")]
-    [LuaDescription("Class identifier for cross-API linking")]
     public string _classid => Get();
     public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
 }

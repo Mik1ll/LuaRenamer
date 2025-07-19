@@ -55,15 +55,13 @@ public class AnimeTable : Table
     public string episodecounts => Get();
 
     [LuaType("Relation[]")]
-    [LuaDescription("Related anime entries")]
+    [LuaDescription("Related anime entries, not populated for nested Anime entries")]
     public ArrayTable<RelationTable> relations => new() { Fn = Get() };
 
     [LuaType("string[]")]
     [LuaDescription("List of studios that produced the anime")]
     public string studios => Get();
 
-    [LuaType("string")]
-    [LuaDescription("Class identifier for cross-API linking")]
     public string _classid => Get();
     public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
 }

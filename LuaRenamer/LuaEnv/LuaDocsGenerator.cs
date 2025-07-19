@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,26 +25,29 @@ public class LuaDocsGenerator
     {
         var types = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(t => t.Namespace == "LuaRenamer.LuaEnv" && t.IsSubclassOf(typeof(Table))).ToList();
+            .Where(t => t.Namespace == "LuaRenamer.LuaEnv" && t.IsSubclassOf(typeof(Table)))
+            .OrderBy(t => t.Name)
+            .ToList();
         var sb = new StringBuilder();
-        sb.AppendLine("---@meta\n");
+        sb.Append("---@meta\n\n");
+
 
         foreach (var type in types)
         {
             var className = type.Name.Replace("Table", "");
-            sb.AppendLine($"---@class (exact) {className}");
+            var functions = new List<MemberInfo>();
+            sb.Append($"---@class (exact) {className}\n");
 
             // Generate fields
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
-                var typeAttr = prop.GetCustomAttribute<LuaTypeAttribute>();
+                var typeAttr = member.GetCustomAttribute<LuaTypeAttribute>();
                 if (typeAttr is null)
                     continue;
 
-                var fieldName = prop.Name;
                 if (typeAttr.Type == "function")
                 {
-                    GenerateFunctionAnnotations(sb, prop, $"{className}:{fieldName}");
+                    functions.Add(member);
                     continue;
                 }
 
@@ -51,12 +55,15 @@ public class LuaDocsGenerator
                 if (typeAttr.Nillable)
                     luaType += "|nil";
 
-                var descAttr = prop.GetCustomAttribute<LuaDescriptionAttribute>();
+                var descAttr = member.GetCustomAttribute<LuaDescriptionAttribute>();
 
-                sb.AppendLine($"---@field {fieldName} {luaType}{(descAttr != null ? $" # {descAttr.Description}" : "")}");
+                sb.Append($"---@field {member.Name} {luaType}{(descAttr is not null ? $" # {descAttr.Description}" : "")}\n");
             }
 
-            sb.AppendLine($"local {className} = {{}}\n");
+            sb.Append($"local {className} = {{}}\n\n");
+
+            foreach (var member in functions)
+                GenerateFunctionAnnotations(sb, member, $"{className}:{member.Name}");
         }
 
         File.WriteAllText(Path.Combine(_outputPath, "defs.lua"), sb.ToString());
@@ -65,7 +72,7 @@ public class LuaDocsGenerator
     private void GenerateEnumsFile()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("---@meta\n");
+        sb.Append("---@meta\n\n");
 
         // Add your enum types here if any
         // This would come from a separate configuration or scanning of enum types
@@ -73,39 +80,38 @@ public class LuaDocsGenerator
         File.WriteAllText(Path.Combine(_outputPath, "enums.lua"), sb.ToString());
     }
 
-    private static void GenerateFunctionAnnotations(StringBuilder sb, PropertyInfo prop, string functionName)
+    private static void GenerateFunctionAnnotations(StringBuilder sb, MemberInfo member, string functionName)
     {
-        var parameters = prop.GetCustomAttributes<LuaParameterAttribute>().ToList();
-        var returnAttr = prop.GetCustomAttribute<LuaReturnTypeAttribute>();
+        var parameters = member.GetCustomAttributes<LuaParameterAttribute>().ToList();
+        var returnAttr = member.GetCustomAttribute<LuaReturnTypeAttribute>();
 
-        AppendDescriptionAnnotation(sb, prop);
+        AppendDescriptionAnnotation(sb, member);
 
         foreach (var param in parameters)
-            sb.AppendLine($"---@param {param.Name} {param.Type} {param.Description}");
+            sb.Append($"---@param {param.Name} {param.Type} {param.Description}\n");
 
         if (returnAttr is not null)
-            sb.AppendLine($"---@return {returnAttr.Type}");
+            sb.Append($"---@return {returnAttr.Type}\n");
 
-        sb.AppendLine($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n");
+        sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
     }
 
     private void GenerateEnvFile()
     {
         var envType = typeof(EnvTable);
         var sb = new StringBuilder();
-        sb.AppendLine("---@meta\n");
+        sb.Append("---@meta\n\n");
 
         // Generate global variable definitions
-        foreach (var prop in envType.GetProperties(BindingFlags.Public | BindingFlags.Static))
+        foreach (var prop in envType.GetMembers(BindingFlags.Public | BindingFlags.Static))
         {
             var typeAttr = prop.GetCustomAttribute<LuaTypeAttribute>();
             if (typeAttr is null)
                 continue;
 
-            var fieldName = prop.Name;
             if (typeAttr.Type == "function")
             {
-                GenerateFunctionAnnotations(sb, prop, fieldName);
+                GenerateFunctionAnnotations(sb, prop, prop.Name);
                 continue;
             }
 
@@ -115,17 +121,17 @@ public class LuaDocsGenerator
             if (typeAttr.Nillable)
                 type += "|nil";
 
-            sb.AppendLine($"---@type {type}");
-            sb.AppendLine($"{fieldName} = {typeAttr.DefaultValue}\n");
+            sb.Append($"---@type {type}\n");
+            sb.Append($"{prop.Name} = {typeAttr.DefaultValue}\n\n");
         }
 
         File.WriteAllText(Path.Combine(_outputPath, "env.lua"), sb.ToString());
     }
 
-    private static void AppendDescriptionAnnotation(StringBuilder sb, PropertyInfo prop)
+    private static void AppendDescriptionAnnotation(StringBuilder sb, MemberInfo member)
     {
-        var descAttr = prop.GetCustomAttribute<LuaDescriptionAttribute>();
+        var descAttr = member.GetCustomAttribute<LuaDescriptionAttribute>();
         if (descAttr is not null)
-            sb.AppendLine($"---{descAttr.Description}");
+            sb.Append($"---{descAttr.Description}\n");
     }
 }
