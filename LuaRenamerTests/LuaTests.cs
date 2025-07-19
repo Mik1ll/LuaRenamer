@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using LuaDefsGenerator;
 using LuaRenamer;
 using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
@@ -545,7 +546,7 @@ public class LuaTests
     public void TestLuaDocsGenerator()
     {
         var outputPath = Path.GetTempPath();
-        var generator = new LuaDocsGenerator(outputPath);
+        var generator = new Generator(outputPath);
         generator.GenerateDefinitionFiles();
         Console.WriteLine($"Generated docs: \"{outputPath}\"");
     }

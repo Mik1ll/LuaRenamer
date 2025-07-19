@@ -277,6 +277,13 @@
           "System.Text.Encodings.Web": "6.0.0"
         }
       },
+      "luadefsgenerator": {
+        "type": "Project",
+        "dependencies": {
+          "LuaRenamer": "[1.0.0, )",
+          "Shoko.Plugin.Abstractions": "[4.2.0-beta4, )"
+        }
+      },
       "luarenamer": {
         "type": "Project",
         "dependencies": {

@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
+using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 
-namespace LuaRenamer.LuaEnv;
+namespace LuaDefsGenerator;
 
-public class LuaDocsGenerator
+public class Generator
 {
     private readonly string _outputPath;
 
-    public LuaDocsGenerator(string outputPath) => _outputPath = outputPath;
+    public Generator(string outputPath) => _outputPath = Path.GetFullPath(outputPath);
 
     public void GenerateDefinitionFiles()
     {
@@ -24,8 +21,7 @@ public class LuaDocsGenerator
 
     private void GenerateDefsFile()
     {
-        var types = Assembly.GetExecutingAssembly()
-            .GetTypes()
+        var types = typeof(Table).Assembly.DefinedTypes
             .Where(t => t.Namespace == "LuaRenamer.LuaEnv" && t.IsSubclassOf(typeof(Table)))
             .OrderBy(t => t.Name.Replace("Table", ""), StringComparer.Ordinal)
             .ToList();
@@ -67,6 +63,8 @@ public class LuaDocsGenerator
                 GenerateFunctionAnnotations(sb, member, $"{className}:{member.Name}");
         }
 
+        sb.Length--;
+
         File.WriteAllText(Path.Combine(_outputPath, "defs.lua"), sb.ToString());
     }
 
@@ -78,7 +76,7 @@ public class LuaDocsGenerator
         // Add your enum types here if any
         // This would come from a separate configuration or scanning of enum types
 
-        File.WriteAllText(Path.Combine(_outputPath, "enums.lua"), sb.ToString());
+//        File.WriteAllText(Path.Combine(_outputPath, "enums.lua"), sb.ToString());
     }
 
     private static void GenerateFunctionAnnotations(StringBuilder sb, MemberInfo member, string functionName)
@@ -131,6 +129,8 @@ public class LuaDocsGenerator
             sb.Append($"{prop.Name} = {typeAttr.DefaultValue}\n\n");
         }
 
+        sb.Length--;
+        
         File.WriteAllText(Path.Combine(_outputPath, "env.lua"), sb.ToString());
     }
 

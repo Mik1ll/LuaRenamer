@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <InvariantGlobalization>true</InvariantGlobalization>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.2.0-beta4" />
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command='dotnet exec "$(TargetPath)" "$(SolutionDir)LuaRenamer/lua/"' WorkingDirectory="$(TargetDir)" />
+    </Target>
+</Project>

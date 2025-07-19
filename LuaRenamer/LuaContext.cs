@@ -513,10 +513,4 @@ public class LuaContext : Lua
 
         return true;
     }
-
-    public void GenerateTypeDefinitions()
-    {
-        var generator = new LuaDocsGenerator(LuaPath);
-        generator.GenerateDefinitionFiles();
-    }
 }

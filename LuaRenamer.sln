@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LuaRenamer", "LuaRenamer\Lu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LuaRenamerTests", "LuaRenamerTests\LuaRenamerTests.csproj", "{B208D612-0247-4766-93CB-ABB0010F436C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LuaDefsGenerator", "LuaDefsGenerator\LuaDefsGenerator.csproj", "{3C73C4C5-747C-4D12-90D9-DD5386FBCBD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B208D612-0247-4766-93CB-ABB0010F436C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B208D612-0247-4766-93CB-ABB0010F436C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B208D612-0247-4766-93CB-ABB0010F436C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C73C4C5-747C-4D12-90D9-DD5386FBCBD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C73C4C5-747C-4D12-90D9-DD5386FBCBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C73C4C5-747C-4D12-90D9-DD5386FBCBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C73C4C5-747C-4D12-90D9-DD5386FBCBD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

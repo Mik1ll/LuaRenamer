@@ -1,191 +1,196 @@
 ---@meta
 
 ---@class (exact) AniDb
----@field id integer
----@field censored boolean
----@field source string
----@field version integer
----@field releasedate DateTime
----@field description string
----@field releasegroup ReleaseGroup?
----@field media AniDbMedia
+---@field id integer # AniDB file ID
+---@field censored boolean # Whether the release is censored
+---@field source string # Source of the release (e.g., 'DVD', 'BD', etc.)
+---@field version integer # Version number of the release
+---@field releasedate DateTime # Release date of the file
+---@field description string # Description or notes about the release
+---@field releasegroup ReleaseGroup|nil # Information about the release group
+---@field media AniDbMedia # Media information from AniDB
 local AniDb = {}
 
 ---@class (exact) AniDbMedia
----@field sublanguages Language[]
----@field dublanguages Language[]
+---@field sublanguages Language[] # List of subtitle languages available in the release
+---@field dublanguages Language[] # List of audio languages available in the release
 local AniDbMedia = {}
 
 ---@class (exact) Anime
----@field airdate DateTime?
----@field enddate DateTime?
----@field rating number
----@field restricted boolean
----@field type AnimeType
----@field preferredname string
----@field defaultname string
----@field id integer
----@field titles Title[]
----@field episodecounts table<EpisodeType, integer>
----@field relations Relation[] Note: relations are not populated for related anime
----@field studios string[]
+---@field airdate DateTime|nil # First air date of the anime
+---@field enddate DateTime|nil # Last air date of the anime
+---@field rating number # Average rating of the anime
+---@field restricted boolean # Whether the anime is age-restricted
+---@field type AnimeType # Type of the anime (Movie, TVSeries, etc.)
+---@field preferredname string # The preferred title for the anime
+---@field defaultname string # The default title for the anime
+---@field id integer # Unique identifier for the anime
+---@field titles Title[] # All available titles for the anime
+---@field episodecounts table<EpisodeType, integer> # Count of episodes by type
+---@field relations Relation[] # Related anime entries, not populated for nested Anime entries
+---@field studios string[] # List of studios that produced the anime
 local Anime = {}
 
----@param lang Language
----@param include_unofficial? boolean
----@return string?
+---Get the anime title in the specified language
+---@param lang Language The language to get the title in
+---@param include_unofficial boolean|nil Whether to include unofficial titles
+---@return string|nil
 function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Audio
----@field compressionmode string
----@field channels number
----@field samplingrate integer
----@field codec string
----@field language string
----@field title string?
+---@field compressionmode string # Audio compression mode
+---@field channels number # Number of audio channels
+---@field samplingrate integer # Audio sampling rate in Hz
+---@field codec string # Audio codec name
+---@field language string # Audio track language
+---@field title string|nil # Audio track title or name
 local Audio = {}
 
 ---@class (exact) DateTime
----@field year integer
----@field month integer
----@field day integer
----@field yday integer
----@field wday integer
----@field hour integer
----@field min integer
----@field sec integer
----@field isdst boolean
+---@field year integer # Year (four digits)
+---@field month integer # Month (1-12)
+---@field day integer # Day of the month (1-31)
+---@field yday integer # Day of the year (1-366)
+---@field wday integer # Day of the week (1-7, 1 is Sunday)
+---@field hour integer # Hour (0-23)
+---@field min integer # Minute (0-59)
+---@field sec integer # Second (0-59)
+---@field isdst boolean # Is Daylight Saving Time in effect
 local DateTime = {}
 
 ---@class (exact) Episode
----@field duration integer
----@field number integer
----@field type EpisodeType
----@field airdate DateTime?
----@field animeid integer
----@field id integer
----@field titles Title[]
----@field prefix string
+---@field duration integer # Duration of the episode in seconds
+---@field number integer # Episode number
+---@field type EpisodeType # Type of episode (Episode, Special, etc.)
+---@field airdate DateTime|nil # Air date of the episode
+---@field animeid integer # ID of the anime this episode belongs to
+---@field id integer # Unique identifier for the episode
+---@field titles Title[] # All available titles for the episode
+---@field prefix string # Episode number prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')
 local Episode = {}
 
----@param lang Language
----@return string?
+---Get the episode title in the specified language
+---@param lang Language The language to get the title in
+---@return string|nil
 function Episode:getname(lang) end
 
 ---@class (exact) File
----@field name string
----@field extension string
----@field path string
----@field size integer
----@field importfolder ImportFolder
----@field earliestname string?
----@field media Media?
----@field anidb AniDb?
----@field hashes Hashes
+---@field name string # The name of the file without extension
+---@field extension string # The file extension including the dot
+---@field path string # The full path to the file
+---@field size integer # The file size in bytes
+---@field importfolder ImportFolder # The import folder containing this file
+---@field earliestname string|nil # The earliest known name of the file
+---@field media Media|nil # Media information for the file
+---@field anidb AniDb|nil # AniDB information for the file
+---@field hashes Hashes # File hashes including CRC, MD5, ED2K and SHA1
 local File = {}
 
 ---@class (exact) Group
----@field name string
----@field mainanime Anime
----@field animes Anime[]
+---@field name string # The name of the group
+---@field mainanime Anime # The main anime in the group
+---@field animes Anime[] # All animes in the group
 local Group = {}
 
 ---@class (exact) Hashes
----@field crc string?
----@field md5 string?
----@field ed2k string
----@field sha1 string?
+---@field crc string|nil # CRC32 hash of the file
+---@field md5 string|nil # MD5 hash of the file
+---@field ed2k string # ED2K hash of the file
+---@field sha1 string|nil # SHA1 hash of the file
 local Hashes = {}
 
 ---@class (exact) ImportFolder
----@field id integer
----@field name string
----@field location string
----@field type ImportFolderType
+---@field id integer # Unique identifier for the import folder
+---@field name string # Name of the import folder
+---@field location string # File system path to the import folder
+---@field type ImportFolderType # Type of the import folder (Source, Destination, etc.)
 local ImportFolder = {}
 
 ---@class (exact) Media
----@field chaptered boolean
----@field duration integer
----@field bitrate integer
----@field sublanguages string[]
----@field audio Audio[]
----@field video Video?
+---@field chaptered boolean # Whether the media file contains chapters
+---@field duration integer # Duration of the media in seconds
+---@field bitrate integer # Overall bitrate of the media file
+---@field sublanguages string[] # List of subtitle languages
+---@field audio Audio[] # List of audio tracks
+---@field video Video|nil # Video stream information
 local Media = {}
 
 ---@class (exact) Relation
----@field anime Anime
----@field type RelationType
+---@field anime Anime # The related anime
+---@field type RelationType # Type of relation between the anime
 local Relation = {}
 
 ---@class (exact) ReleaseGroup
----@field name string
----@field shortname string
+---@field name string # Full name of the release group
+---@field shortname string # Abbreviated name or acronym of the release group
 local ReleaseGroup = {}
 
 ---@class (exact) Title
----@field name string
----@field language Language
----@field languagecode string
----@field type TitleType
+---@field name string # The title text
+---@field language Language # Language of the title
+---@field languagecode string # ISO language code
+---@field type TitleType # Type of title (Main, Official, etc.)
 local Title = {}
 
 ---@class (exact) Tmdb
----@field movies TmdbMovie[]
----@field shows TmdbShow[]
----@field episodes TmdbEpisode[]
+---@field movies TmdbMovie[] # List of TMDB movies
+---@field shows TmdbShow[] # List of TMDB shows
+---@field episodes TmdbEpisode[] # List of TMDB episodes
 local Tmdb = {}
 
 ---@class (exact) TmdbEpisode
----@field id integer
----@field showid integer
----@field titles Title[]
----@field defaultname string
----@field preferredname string
----@field type EpisodeType
----@field number integer
----@field seasonnumber integer
+---@field id integer # TMDB episode ID
+---@field showid integer # TMDB show ID
+---@field titles Title[] # All available titles for the episode
+---@field defaultname string # Default episode title
+---@field preferredname string # Preferred episode title
+---@field type EpisodeType # Type of episode
+---@field number integer # Episode number within the season
+---@field seasonnumber integer # Season number
 local TmdbEpisode = {}
 
----@param lang Language
----@return string?
+---Get the episode title in the specified language
+---@param lang Language The language to get the title in
+---@return string|nil
 function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbMovie
----@field id integer
----@field titles Title[]
----@field defaultname string
----@field preferredname string
----@field rating number
----@field restricted boolean
----@field studios string[]
+---@field id integer # TMDB movie ID
+---@field titles Title[] # All available titles for the movie
+---@field defaultname string # Default movie title
+---@field preferredname string # Preferred movie title
+---@field rating number # Movie rating
+---@field restricted boolean # Whether the movie is age-restricted
+---@field studios string[] # List of production studios
 local TmdbMovie = {}
 
----@param lang Language
----@return string?
+---Get the movie title in the specified language
+---@param lang Language The language to get the title in
+---@return string|nil
 function TmdbMovie:getname(lang) end
 
 ---@class (exact) TmdbShow
----@field id integer
----@field titles Title[]
----@field defaultname string
----@field preferredname string
----@field rating number
----@field restricted boolean
----@field studios string[]
----@field episodecount integer
+---@field id integer # TMDB show ID
+---@field titles Title[] # All available titles for the show
+---@field defaultname string # Default show title
+---@field preferredname string # Preferred show title
+---@field rating number # Show rating
+---@field restricted boolean # Whether the show is age-restricted
+---@field studios string[] # List of production studios
+---@field episodecount integer # Total number of episodes
 local TmdbShow = {}
 
----@param lang Language
----@return string?
+---Get the show title in the specified language
+---@param lang Language The language to get the title in
+---@return string|nil
 function TmdbShow:getname(lang) end
 
 ---@class (exact) Video
----@field height integer
----@field width integer
----@field codec string
----@field res string
----@field bitrate integer
----@field bitdepth integer
----@field framerate number
+---@field height integer # Video height in pixels
+---@field width integer # Video width in pixels
+---@field codec string # Video codec name
+---@field res string # Resolution string (e.g., '1080p', '720p')
+---@field bitrate integer # Video bitrate in bits per second
+---@field bitdepth integer # Color depth in bits per channel
+---@field framerate number # Frame rate in frames per second
 local Video = {}
