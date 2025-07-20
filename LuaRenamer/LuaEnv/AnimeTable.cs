@@ -5,60 +5,61 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Anime)]
 public class AnimeTable : Table
 {
-    [LuaType("DateTime", Nillable = true)]
+    [LuaType(LuaTypeNames.DateTime, Nillable = true)]
     [LuaDescription("First air date of the anime")]
     public DateTimeTable airdate => new() { Fn = Get() };
 
-    [LuaType("DateTime", Nillable = true)]
+    [LuaType(LuaTypeNames.DateTime, Nillable = true)]
     [LuaDescription("Last air date of the anime")]
     public DateTimeTable enddate => new() { Fn = Get() };
 
-    [LuaType("number")]
+    [LuaType(LuaTypeNames.number)]
     [LuaDescription("Average rating of the anime")]
     public string rating => Get();
 
-    [LuaType("boolean")]
+    [LuaType(LuaTypeNames.boolean)]
     [LuaDescription("Whether the anime is age-restricted")]
     public string restricted => Get();
 
-    [LuaType("AnimeType")]
+    [LuaType(nameof(EnumsTable.AnimeType))]
     [LuaDescription("Type of the anime (Movie, TVSeries, etc.)")]
     public string type => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("The preferred title for the anime")]
     public string preferredname => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("The default title for the anime")]
     public string defaultname => Get();
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Unique identifier for the anime")]
     public string id => Get();
 
-    [LuaType("Title[]")]
+    [LuaType($"{LuaTypeNames.Title}[]")]
     [LuaDescription("All available titles for the anime")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType("function")]
+    [LuaType(LuaTypeNames.function)]
     [LuaDescription("Get the anime title in the specified language")]
-    [LuaParameter("lang", "Language", "The language to get the title in")]
-    [LuaParameter("include_unofficial", "boolean|nil", "Whether to include unofficial titles")]
-    [LuaReturnType("string", Nillable = true)]
+    [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
+    [LuaParameter("include_unofficial", $"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether to include unofficial titles")]
+    [LuaReturnType(LuaTypeNames.@string, Nillable = true)]
     public string getname(string lang, string? include_unofficial = null) => GetFunc([lang, include_unofficial], ':');
 
-    [LuaType("table<EpisodeType, integer>")]
+    [LuaType($"{LuaTypeNames.table}<{nameof(EnumsTable.EpisodeType)}, {LuaTypeNames.integer}>")]
     [LuaDescription("Count of episodes by type")]
     public string episodecounts => Get();
 
-    [LuaType("Relation[]")]
+    [LuaType($"{LuaTypeNames.Relation}[]")]
     [LuaDescription("Related anime entries, not populated for nested Anime entries")]
     public ArrayTable<RelationTable> relations => new() { Fn = Get() };
 
-    [LuaType("string[]")]
+    [LuaType($"{LuaTypeNames.@string}[]")]
     [LuaDescription("List of studios that produced the anime")]
     public string studios => Get();
 

@@ -23,8 +23,9 @@ public class Generator
     private void GenerateDefsFile()
     {
         var types = typeof(Table).Assembly.DefinedTypes
-            .Where(t => t.Namespace == "LuaRenamer.LuaEnv" && t.IsSubclassOf(typeof(Table)))
-            .OrderBy(t => t.Name.Replace("Table", ""), StringComparer.Ordinal)
+            .Select(t => new { LuaTypeAttribute = t.GetCustomAttribute<LuaTypeAttribute>(), Type = t })
+            .Where(t => t.LuaTypeAttribute is not null)
+            .OrderBy(t => t.LuaTypeAttribute!.Type, StringComparer.Ordinal)
             .ToList();
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
@@ -32,12 +33,12 @@ public class Generator
 
         foreach (var type in types)
         {
-            var className = type.Name.Replace("Table", "");
+            var className = type.LuaTypeAttribute!.Type;
             var functions = new List<MemberInfo>();
             sb.Append($"---@class (exact) {className}\n");
 
             // Generate fields
-            foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var member in type.Type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
                 var typeAttr = member.GetCustomAttribute<LuaTypeAttribute>();
                 if (typeAttr is null)

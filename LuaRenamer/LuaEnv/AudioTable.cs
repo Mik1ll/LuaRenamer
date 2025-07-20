@@ -5,29 +5,30 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Audio)]
 public class AudioTable : Table
 {
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Audio compression mode")]
     public string compressionmode => Get();
 
-    [LuaType("number")]
+    [LuaType(LuaTypeNames.number)]
     [LuaDescription("Number of audio channels")]
     public string channels => Get();
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Audio sampling rate in Hz")]
     public string samplingrate => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Audio codec name")]
     public string codec => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Audio track language")]
     public string language => Get();
 
-    [LuaType("string", Nillable = true)]
+    [LuaType(LuaTypeNames.@string, Nillable = true)]
     [LuaDescription("Audio track title or name")]
     public string title => Get();
 }

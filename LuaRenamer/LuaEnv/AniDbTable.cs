@@ -5,37 +5,38 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.AniDb)]
 public class AniDbTable : Table
 {
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("AniDB file ID")]
     public string id => Get();
 
-    [LuaType("boolean")]
+    [LuaType(LuaTypeNames.boolean)]
     [LuaDescription("Whether the release is censored")]
     public string censored => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Source of the release (e.g., 'DVD', 'BD', etc.)")]
     public string source => Get();
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Version number of the release")]
     public string version => Get();
 
-    [LuaType("DateTime")]
+    [LuaType(LuaTypeNames.DateTime)]
     [LuaDescription("Release date of the file")]
     public DateTimeTable releasedate => new() { Fn = Get() };
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Description or notes about the release")]
     public string description => Get();
 
-    [LuaType("ReleaseGroup", Nillable = true)]
+    [LuaType(LuaTypeNames.ReleaseGroup, Nillable = true)]
     [LuaDescription("Information about the release group")]
     public ReleaseGroupTable releasegroup => new() { Fn = Get() };
 
-    [LuaType("AniDbMedia")]
+    [LuaType(LuaTypeNames.AniDbMedia)]
     [LuaDescription("Media information from AniDB")]
     public AniDbMediaTable media => new() { Fn = Get() };
 }

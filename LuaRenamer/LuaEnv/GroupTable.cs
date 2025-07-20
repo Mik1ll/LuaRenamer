@@ -5,17 +5,18 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Group)]
 public class GroupTable : Table
 {
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("The name of the group")]
     public string name => Get();
 
-    [LuaType("Anime")]
+    [LuaType(LuaTypeNames.Anime)]
     [LuaDescription("The main anime in the group")]
     public AnimeTable mainanime => new() { Fn = Get() };
 
-    [LuaType("Anime[]")]
+    [LuaType($"{LuaTypeNames.Anime}[]")]
     [LuaDescription("All animes in the group")]
     public ArrayTable<AnimeTable> animes => new() { Fn = Get() };
 }

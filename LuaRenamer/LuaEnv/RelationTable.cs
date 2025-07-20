@@ -5,13 +5,14 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Relation)]
 public class RelationTable : Table
 {
-    [LuaType("Anime")]
+    [LuaType(LuaTypeNames.Anime)]
     [LuaDescription("The related anime")]
     public AnimeTable anime => new() { Fn = Get() };
 
-    [LuaType("RelationType")]
+    [LuaType(nameof(EnumsTable.RelationType))]
     [LuaDescription("Type of relation between the anime")]
     public string type => Get();
 }

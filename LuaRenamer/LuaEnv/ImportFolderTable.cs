@@ -5,21 +5,22 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.ImportFolder)]
 public class ImportFolderTable : Table
 {
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Unique identifier for the import folder")]
     public string id => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Name of the import folder")]
     public string name => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("File system path to the import folder")]
     public string location => Get();
 
-    [LuaType("ImportFolderType")]
+    [LuaType(nameof(EnumsTable.ImportFolderType))]
     [LuaDescription("Type of the import folder (Source, Destination, etc.)")]
     public string type => Get();
 

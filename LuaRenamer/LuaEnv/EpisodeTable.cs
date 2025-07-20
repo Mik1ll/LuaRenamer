@@ -5,43 +5,44 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Episode)]
 public class EpisodeTable : Table
 {
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Duration of the episode in seconds")]
     public string duration => Get();
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Episode number")]
     public string number => Get();
 
-    [LuaType("EpisodeType")]
+    [LuaType(nameof(EnumsTable.EpisodeType))]
     [LuaDescription("Type of episode (Episode, Special, etc.)")]
     public string type => Get();
 
-    [LuaType("DateTime", Nillable = true)]
+    [LuaType(LuaTypeNames.DateTime, Nillable = true)]
     [LuaDescription("Air date of the episode")]
     public DateTimeTable airdate => new() { Fn = Get() };
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("ID of the anime this episode belongs to")]
     public string animeid => Get();
 
-    [LuaType("integer")]
+    [LuaType(LuaTypeNames.integer)]
     [LuaDescription("Unique identifier for the episode")]
     public string id => Get();
 
-    [LuaType("Title[]")]
+    [LuaType($"{LuaTypeNames.Title}[]")]
     [LuaDescription("All available titles for the episode")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType("function")]
+    [LuaType(LuaTypeNames.function)]
     [LuaDescription("Get the episode title in the specified language")]
-    [LuaParameter("lang", "Language", "The language to get the title in")]
-    [LuaReturnType("string", Nillable = true)]
+    [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
+    [LuaReturnType(LuaTypeNames.@string, Nillable = true)]
     public string getname(string lang) => GetFunc([lang], ':');
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("Episode number prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
     public string prefix => Get();
 

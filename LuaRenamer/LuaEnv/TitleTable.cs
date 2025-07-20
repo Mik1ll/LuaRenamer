@@ -5,21 +5,22 @@ using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.LuaEnv;
 
+[LuaType(LuaTypeNames.Title)]
 public class TitleTable : Table
 {
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("The title text")]
     public string name => Get();
 
-    [LuaType("Language")]
+    [LuaType(nameof(EnumsTable.Language))]
     [LuaDescription("Language of the title")]
     public string language => Get();
 
-    [LuaType("string")]
+    [LuaType(LuaTypeNames.@string)]
     [LuaDescription("ISO language code")]
     public string languagecode => Get();
 
-    [LuaType("TitleType")]
+    [LuaType(nameof(EnumsTable.TitleType))]
     [LuaDescription("Type of title (Main, Official, etc.)")]
     public string type => Get();
 }

@@ -2,7 +2,7 @@
 
 namespace LuaRenamer.LuaEnv.Attributes;
 
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method)]
 public class LuaReturnTypeAttribute : Attribute
 {
     public string Type { get; }
