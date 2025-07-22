@@ -3,7 +3,7 @@
 ---@class (exact) AniDb
 ---@field id integer # AniDB file ID
 ---@field censored boolean # Whether the release is censored
----@field source string # Source of the release (e.g., 'DVD', 'BD', etc.)
+---@field source string # Source media of the release e.g. DVD, BD, Web, etc.
 ---@field version integer # Version number of the release
 ---@field releasedate DateTime # Release date of the file
 ---@field description string # Description or notes about the release
@@ -24,7 +24,7 @@ local AniDbMedia = {}
 ---@field type AnimeType # Type of the anime (Movie, TVSeries, etc.)
 ---@field preferredname string # The preferred title for the anime
 ---@field defaultname string # The default title for the anime
----@field id integer # Unique identifier for the anime
+---@field id integer # AniDB anime ID
 ---@field titles Title[] # All available titles for the anime
 ---@field episodecounts table<EpisodeType, integer> # Count of episodes by type
 ---@field relations Relation[] # Related anime entries, not populated for nested Anime entries
@@ -39,7 +39,7 @@ function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Audio
 ---@field compressionmode string # Audio compression mode
----@field channels number # Number of audio channels
+---@field channels number # Number of audio channels, may have decimal part '.1'
 ---@field samplingrate integer # Audio sampling rate in Hz
 ---@field codec string # Audio codec name
 ---@field language string # Audio track language
@@ -61,12 +61,12 @@ local DateTime = {}
 ---@class (exact) Episode
 ---@field duration integer # Duration of the episode in seconds
 ---@field number integer # Episode number
----@field type EpisodeType # Type of episode (Episode, Special, etc.)
+---@field type EpisodeType # Type of the episode
 ---@field airdate DateTime|nil # Air date of the episode
 ---@field animeid integer # ID of the anime this episode belongs to
----@field id integer # Unique identifier for the episode
+---@field id integer # AniDB episode ID
 ---@field titles Title[] # All available titles for the episode
----@field prefix string # Episode number prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')
+---@field prefix string # Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')
 local Episode = {}
 
 ---Get the episode title in the specified language
@@ -81,9 +81,9 @@ function Episode:getname(lang) end
 ---@field size integer # The file size in bytes
 ---@field importfolder ImportFolder # The import folder containing this file
 ---@field earliestname string|nil # The earliest known name of the file
----@field media Media|nil # Media information for the file
+---@field media Media|nil # Media information (via MediaInfo) for the file
 ---@field anidb AniDb|nil # AniDB information for the file
----@field hashes Hashes # File hashes including CRC, MD5, ED2K and SHA1
+---@field hashes Hashes # File hashes
 local File = {}
 
 ---@class (exact) Group
@@ -100,10 +100,10 @@ local Group = {}
 local Hashes = {}
 
 ---@class (exact) ImportFolder
----@field id integer # Unique identifier for the import folder
+---@field id integer # The Shoko import folder ID
 ---@field name string # Name of the import folder
 ---@field location string # File system path to the import folder
----@field type ImportFolderType # Type of the import folder (Source, Destination, etc.)
+---@field type ImportFolderType # Type of the import folder
 local ImportFolder = {}
 
 ---@class (exact) Media
@@ -129,13 +129,13 @@ local ReleaseGroup = {}
 ---@field name string # The title text
 ---@field language Language # Language of the title
 ---@field languagecode string # ISO language code
----@field type TitleType # Type of title (Main, Official, etc.)
+---@field type TitleType # Type of the title
 local Title = {}
 
 ---@class (exact) Tmdb
----@field movies TmdbMovie[] # List of TMDB movies
----@field shows TmdbShow[] # List of TMDB shows
----@field episodes TmdbEpisode[] # List of TMDB episodes
+---@field movies TmdbMovie[] # List of TMDB movies related to the file
+---@field shows TmdbShow[] # List of TMDB shows related to the file
+---@field episodes TmdbEpisode[] # List of TMDB episodes related to the file
 local Tmdb = {}
 
 ---@class (exact) TmdbEpisode
@@ -189,7 +189,7 @@ function TmdbShow:getname(lang) end
 ---@field height integer # Video height in pixels
 ---@field width integer # Video width in pixels
 ---@field codec string # Video codec name
----@field res string # Resolution string (e.g., '1080p', '720p')
+---@field res string # Resolution string e.g. '1080p', '720p', etc.
 ---@field bitrate integer # Video bitrate in bits per second
 ---@field bitdepth integer # Color depth in bits per channel
 ---@field framerate number # Frame rate in frames per second

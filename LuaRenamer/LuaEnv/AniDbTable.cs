@@ -14,7 +14,7 @@ public class AniDbTable : Table
     [LuaType(LuaTypeNames.boolean, "Whether the release is censored")]
     public string censored => Get();
 
-    [LuaType(LuaTypeNames.@string, "Source of the release (e.g., 'DVD', 'BD', etc.)")]
+    [LuaType(LuaTypeNames.@string, "Source media of the release e.g. DVD, BD, Web, etc.")]
     public string source => Get();
 
     [LuaType(LuaTypeNames.integer, "Version number of the release")]

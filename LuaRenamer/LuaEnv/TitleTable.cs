@@ -17,6 +17,6 @@ public class TitleTable : Table
     [LuaType(LuaTypeNames.@string, "ISO language code")]
     public string languagecode => Get();
 
-    [LuaType(nameof(EnumsTable.TitleType), "Type of title (Main, Official, etc.)")]
+    [LuaType(nameof(EnumsTable.TitleType), "Type of the title")]
     public string type => Get();
 }

@@ -11,7 +11,7 @@ public class AudioTable : Table
     [LuaType(LuaTypeNames.@string, "Audio compression mode")]
     public string compressionmode => Get();
 
-    [LuaType(LuaTypeNames.number, "Number of audio channels")]
+    [LuaType(LuaTypeNames.number, "Number of audio channels, may have decimal part '.1'")]
     public string channels => Get();
 
     [LuaType(LuaTypeNames.integer, "Audio sampling rate in Hz")]

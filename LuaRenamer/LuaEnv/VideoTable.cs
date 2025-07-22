@@ -17,7 +17,7 @@ public class VideoTable : Table
     [LuaType(LuaTypeNames.@string, "Video codec name")]
     public string codec => Get();
 
-    [LuaType(LuaTypeNames.@string, "Resolution string (e.g., '1080p', '720p')")]
+    [LuaType(LuaTypeNames.@string, "Resolution string e.g. '1080p', '720p', etc.")]
     public string res => Get();
 
     [LuaType(LuaTypeNames.integer, "Video bitrate in bits per second")]

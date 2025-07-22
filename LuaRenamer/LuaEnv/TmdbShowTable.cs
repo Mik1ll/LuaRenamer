@@ -33,7 +33,7 @@ public class TmdbShowTable : Table
     public string episodecount => Get();
 
     [LuaType(LuaTypeNames.function, "Get the show title in the specified language")]
-    [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
+    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
 }

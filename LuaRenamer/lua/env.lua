@@ -33,7 +33,7 @@ file = nil
 ---@type Anime
 anime = nil
 
----All animes related to the current file
+---All anime related to the current file
 ---@type Anime[]
 animes = nil
 
@@ -49,11 +49,11 @@ episodes = nil
 ---@type ImportFolder[]
 importfolders = nil
 
----The group for the current file
+---The group containing the primary anime
 ---@type Group|nil
 group = nil
 
----All available groups
+---All groups containing anime related to the current file
 ---@type Group[]
 groups = nil
 
@@ -65,15 +65,15 @@ tmdb = nil
 ---@type string|nil
 filename = nil
 
----Output: The destination path or ImportFolder to move to
+---Output: Import folder name / full directory path / ImportFolder that specifies the destination
 ---@type string|ImportFolder|nil
 destination = nil
 
----Output: The subfolder(s) to create and move to
+---Output: The subfolder to move the file to, must be an array table if there is more than one directory component
 ---@type string|string[]|nil
 subfolder = nil
 
----Output: Whether to use the existing anime location
+---Output: Whether to use the existing location of files from the same anime to determine the output destination/subfolder.
 ---@type boolean
 use_existing_anime_location = false
 
@@ -81,7 +81,7 @@ use_existing_anime_location = false
 ---@type boolean
 replace_illegal_chars = false
 
----Output: Whether to remove illegal characters
+---Output: Whether to remove illegal characters entirely
 ---@type boolean
 remove_illegal_chars = false
 

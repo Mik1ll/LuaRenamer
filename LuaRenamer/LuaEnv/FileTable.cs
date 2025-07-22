@@ -26,12 +26,12 @@ public class FileTable : Table
     [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "The earliest known name of the file")]
     public string earliestname => Get();
 
-    [LuaType($"{LuaTypeNames.Media}|{LuaTypeNames.nil}", "Media information for the file")]
+    [LuaType($"{LuaTypeNames.Media}|{LuaTypeNames.nil}", "Media information (via MediaInfo) for the file")]
     public MediaTable media => new() { Fn = Get() };
 
     [LuaType($"{LuaTypeNames.AniDb}|{LuaTypeNames.nil}", "AniDB information for the file")]
     public AniDbTable anidb => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.Hashes, "File hashes including CRC, MD5, ED2K and SHA1")]
+    [LuaType(LuaTypeNames.Hashes, "File hashes")]
     public HashesTable hashes => new() { Fn = Get() };
 }

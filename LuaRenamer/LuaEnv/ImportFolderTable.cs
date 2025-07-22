@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.ImportFolder)]
 public class ImportFolderTable : Table
 {
-    [LuaType(LuaTypeNames.integer, "Unique identifier for the import folder")]
+    [LuaType(LuaTypeNames.integer, "The Shoko import folder ID")]
     public string id => Get();
 
     [LuaType(LuaTypeNames.@string, "Name of the import folder")]
@@ -17,7 +17,7 @@ public class ImportFolderTable : Table
     [LuaType(LuaTypeNames.@string, "File system path to the import folder")]
     public string location => Get();
 
-    [LuaType(nameof(EnumsTable.ImportFolderType), "Type of the import folder (Source, Destination, etc.)")]
+    [LuaType(nameof(EnumsTable.ImportFolderType), "Type of the import folder")]
     public string type => Get();
 
     public string _classid => Get();

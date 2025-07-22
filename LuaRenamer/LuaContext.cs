@@ -204,7 +204,9 @@ public class LuaContext : Lua
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
             .Select(e => EpisodeToTable(e.AnidbEpisode, getName)).ToList();
-        var groups = _args.Groups.Select(g => GroupToTable(g, getName)).ToList();
+        var groups = _args.Groups
+            .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
+            .Select(g => GroupToTable(g, getName)).ToList();
 
         env[nameof(EnvTable.replace_illegal_chars)] = false;
         env[nameof(EnvTable.remove_illegal_chars)] = false;

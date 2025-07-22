@@ -14,7 +14,7 @@ public class EpisodeTable : Table
     [LuaType(LuaTypeNames.integer, "Episode number")]
     public string number => Get();
 
-    [LuaType(nameof(EnumsTable.EpisodeType), "Type of episode (Episode, Special, etc.)")]
+    [LuaType(nameof(EnumsTable.EpisodeType), "Type of the episode")]
     public string type => Get();
 
     [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the episode")]
@@ -23,18 +23,18 @@ public class EpisodeTable : Table
     [LuaType(LuaTypeNames.integer, "ID of the anime this episode belongs to")]
     public string animeid => Get();
 
-    [LuaType(LuaTypeNames.integer, "Unique identifier for the episode")]
+    [LuaType(LuaTypeNames.integer, "AniDB episode ID")]
     public string id => Get();
 
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the episode")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
     [LuaType(LuaTypeNames.function, "Get the episode title in the specified language")]
-    [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
+    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
 
-    [LuaType(LuaTypeNames.@string, "Episode number prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
+    [LuaType(LuaTypeNames.@string, "Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
     public string prefix => Get();
 
     public string _classid => Get();

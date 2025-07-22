@@ -29,15 +29,15 @@ public class AnimeTable : Table
     [LuaType(LuaTypeNames.@string, "The default title for the anime")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.integer, "Unique identifier for the anime")]
+    [LuaType(LuaTypeNames.integer, "AniDB anime ID")]
     public string id => Get();
 
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the anime")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
     [LuaType(LuaTypeNames.function, "Get the anime title in the specified language")]
-    [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaParameter("include_unofficial", $"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether to include unofficial titles")]
+    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
+    [LuaParameter(nameof(include_unofficial), $"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether to include unofficial titles")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang, string? include_unofficial = null) => GetFunc([lang, include_unofficial], ':');
 
