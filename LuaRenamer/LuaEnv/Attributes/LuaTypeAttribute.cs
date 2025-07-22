@@ -6,8 +6,8 @@ namespace LuaRenamer.LuaEnv.Attributes;
 public class LuaTypeAttribute : Attribute
 {
     public string Type { get; }
-    public bool Nillable { get; init; }
-    public string DefaultValue { get; init; } = "nil";
+    public string? Description { get; }
+    public string DefaultValue { get; init; } = LuaTypeNames.nil;
 
-    public LuaTypeAttribute(string type) => Type = type;
+    public LuaTypeAttribute(string type, string? description = null) => (Type, Description) = (type, description);
 }

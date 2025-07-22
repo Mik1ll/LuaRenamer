@@ -8,31 +8,24 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Video)]
 public class VideoTable : Table
 {
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Video height in pixels")]
+    [LuaType(LuaTypeNames.integer, "Video height in pixels")]
     public string height => Get();
 
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Video width in pixels")]
+    [LuaType(LuaTypeNames.integer, "Video width in pixels")]
     public string width => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Video codec name")]
+    [LuaType(LuaTypeNames.@string, "Video codec name")]
     public string codec => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Resolution string (e.g., '1080p', '720p')")]
+    [LuaType(LuaTypeNames.@string, "Resolution string (e.g., '1080p', '720p')")]
     public string res => Get();
 
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Video bitrate in bits per second")]
+    [LuaType(LuaTypeNames.integer, "Video bitrate in bits per second")]
     public string bitrate => Get();
 
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Color depth in bits per channel")]
+    [LuaType(LuaTypeNames.integer, "Color depth in bits per channel")]
     public string bitdepth => Get();
 
-    [LuaType(LuaTypeNames.number)]
-    [LuaDescription("Frame rate in frames per second")]
+    [LuaType(LuaTypeNames.number, "Frame rate in frames per second")]
     public string framerate => Get();
 }

@@ -8,41 +8,32 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.TmdbShow)]
 public class TmdbShowTable : Table
 {
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("TMDB show ID")]
+    [LuaType(LuaTypeNames.integer, "TMDB show ID")]
     public string id => Get();
 
-    [LuaType($"{LuaTypeNames.Title}[]")]
-    [LuaDescription("All available titles for the show")]
+    [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the show")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Default show title")]
+    [LuaType(LuaTypeNames.@string, "Default show title")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Preferred show title")]
+    [LuaType(LuaTypeNames.@string, "Preferred show title")]
     public string preferredname => Get();
 
-    [LuaType(LuaTypeNames.number)]
-    [LuaDescription("Show rating")]
+    [LuaType(LuaTypeNames.number, "Show rating")]
     public string rating => Get();
 
-    [LuaType(LuaTypeNames.boolean)]
-    [LuaDescription("Whether the show is age-restricted")]
+    [LuaType(LuaTypeNames.boolean, "Whether the show is age-restricted")]
     public string restricted => Get();
 
-    [LuaType($"{LuaTypeNames.@string}[]")]
-    [LuaDescription("List of production studios")]
+    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
     public string studios => Get();
 
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Total number of episodes")]
+    [LuaType(LuaTypeNames.integer, "Total number of episodes")]
     public string episodecount => Get();
 
-    [LuaType(LuaTypeNames.function)]
-    [LuaDescription("Get the show title in the specified language")]
+    [LuaType(LuaTypeNames.function, "Get the show title in the specified language")]
     [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaReturnType(LuaTypeNames.@string, Nillable = true)]
+    [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
 }

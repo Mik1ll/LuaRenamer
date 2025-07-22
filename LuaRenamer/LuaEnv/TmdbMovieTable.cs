@@ -8,37 +8,29 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.TmdbMovie)]
 public class TmdbMovieTable : Table
 {
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("TMDB movie ID")]
+    [LuaType(LuaTypeNames.integer, "TMDB movie ID")]
     public string id => Get();
 
-    [LuaType($"{LuaTypeNames.Title}[]")]
-    [LuaDescription("All available titles for the movie")]
+    [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the movie")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Default movie title")]
+    [LuaType(LuaTypeNames.@string, "Default movie title")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Preferred movie title")]
+    [LuaType(LuaTypeNames.@string, "Preferred movie title")]
     public string preferredname => Get();
 
-    [LuaType(LuaTypeNames.number)]
-    [LuaDescription("Movie rating")]
+    [LuaType(LuaTypeNames.number, "Movie rating")]
     public string rating => Get();
 
-    [LuaType(LuaTypeNames.boolean)]
-    [LuaDescription("Whether the movie is age-restricted")]
+    [LuaType(LuaTypeNames.boolean, "Whether the movie is age-restricted")]
     public string restricted => Get();
 
-    [LuaType($"{LuaTypeNames.@string}[]")]
-    [LuaDescription("List of production studios")]
+    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
     public string studios => Get();
 
-    [LuaType(LuaTypeNames.function)]
-    [LuaDescription("Get the movie title in the specified language")]
+    [LuaType(LuaTypeNames.function, "Get the movie title in the specified language")]
     [LuaParameter("lang", nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaReturnType(LuaTypeNames.@string, Nillable = true)]
+    [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
 }

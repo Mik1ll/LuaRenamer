@@ -8,11 +8,9 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.ReleaseGroup)]
 public class ReleaseGroupTable : Table
 {
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Full name of the release group")]
+    [LuaType(LuaTypeNames.@string, "Full name of the release group")]
     public string name => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Abbreviated name or acronym of the release group")]
+    [LuaType(LuaTypeNames.@string, "Abbreviated name or acronym of the release group")]
     public string shortname => Get();
 }

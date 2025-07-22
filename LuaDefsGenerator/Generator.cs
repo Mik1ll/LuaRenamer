@@ -34,35 +34,25 @@ public class Generator
         foreach (var type in types)
         {
             var className = type.LuaTypeAttribute!.Type;
-            var functions = new List<MemberInfo>();
+            var functions = new List<(MemberInfo member, LuaTypeAttribute typeAttr)>();
             sb.Append($"---@class (exact) {className}\n");
 
             // Generate fields
             foreach (var member in type.Type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
-                var typeAttr = member.GetCustomAttribute<LuaTypeAttribute>();
-                if (typeAttr is null)
+                if (member.GetCustomAttribute<LuaTypeAttribute>() is not { } typeAttr)
                     continue;
 
-                if (typeAttr.Type == "function")
-                {
-                    functions.Add(member);
-                    continue;
-                }
-
-                var luaType = typeAttr.Type;
-                if (typeAttr.Nillable)
-                    luaType += "|nil";
-
-                var descAttr = member.GetCustomAttribute<LuaDescriptionAttribute>();
-
-                sb.Append($"---@field {member.Name} {luaType}{(descAttr is not null ? $" # {descAttr.Description}" : "")}\n");
+                if (typeAttr.Type == LuaTypeNames.function)
+                    functions.Add((member, typeAttr));
+                else
+                    sb.Append($"---@field {member.Name} {typeAttr.Type}{(typeAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
             }
 
             sb.Append($"local {className} = {{}}\n\n");
 
-            foreach (var member in functions)
-                GenerateFunctionAnnotations(sb, member, $"{className}:{member.Name}");
+            foreach (var func in functions)
+                GenerateFunctionAnnotations(sb, func.member, func.typeAttr, $"{className}:{func.member.Name}");
         }
 
         sb.Length--;
@@ -192,23 +182,17 @@ public class Generator
         }
     }
 
-    private static void GenerateFunctionAnnotations(StringBuilder sb, MemberInfo member, string functionName)
+    private static void GenerateFunctionAnnotations(StringBuilder sb, MemberInfo member, LuaTypeAttribute typeAttr, string functionName)
     {
+        if (typeAttr.Description is { } description)
+            sb.Append($"---{description}\n");
+
         var parameters = member.GetCustomAttributes<LuaParameterAttribute>().ToList();
-        var returnAttr = member.GetCustomAttribute<LuaReturnTypeAttribute>();
-
-        AppendDescriptionAnnotation(sb, member);
-
         foreach (var param in parameters)
             sb.Append($"---@param {param.Name} {param.Type} {param.Description}\n");
 
-        if (returnAttr is not null)
-        {
-            var type = returnAttr.Type;
-            if (returnAttr.Nillable)
-                type += "|nil";
-            sb.Append($"---@return {type}\n");
-        }
+        if (member.GetCustomAttribute<LuaReturnTypeAttribute>() is { } returnAttr)
+            sb.Append($"---@return {returnAttr.Type}\n");
 
         sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
     }
@@ -222,35 +206,24 @@ public class Generator
         // Generate global variable definitions
         foreach (var prop in envType.GetMembers(BindingFlags.Public | BindingFlags.Static))
         {
-            var typeAttr = prop.GetCustomAttribute<LuaTypeAttribute>();
-            if (typeAttr is null)
+            if (prop.GetCustomAttribute<LuaTypeAttribute>() is not { } typeAttr)
                 continue;
 
-            if (typeAttr.Type == "function")
+            if (typeAttr.Type == LuaTypeNames.function)
             {
-                GenerateFunctionAnnotations(sb, prop, prop.Name);
-                continue;
+                GenerateFunctionAnnotations(sb, prop, typeAttr, prop.Name);
             }
-
-            AppendDescriptionAnnotation(sb, prop);
-
-            var type = typeAttr.Type;
-            if (typeAttr.Nillable)
-                type += "|nil";
-
-            sb.Append($"---@type {type}\n");
-            sb.Append($"{prop.Name} = {typeAttr.DefaultValue}\n\n");
+            else
+            {
+                if (typeAttr.Description is { } description)
+                    sb.Append($"---{description}\n");
+                sb.Append($"---@type {typeAttr.Type}\n");
+                sb.Append($"{prop.Name} = {typeAttr.DefaultValue}\n\n");
+            }
         }
 
         sb.Length--;
 
         File.WriteAllText(Path.Combine(_outputPath, "env.lua"), sb.ToString());
-    }
-
-    private static void AppendDescriptionAnnotation(StringBuilder sb, MemberInfo member)
-    {
-        var descAttr = member.GetCustomAttribute<LuaDescriptionAttribute>();
-        if (descAttr is not null)
-            sb.Append($"---{descAttr.Description}\n");
     }
 }

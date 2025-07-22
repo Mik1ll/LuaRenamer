@@ -8,20 +8,16 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.ImportFolder)]
 public class ImportFolderTable : Table
 {
-    [LuaType(LuaTypeNames.integer)]
-    [LuaDescription("Unique identifier for the import folder")]
+    [LuaType(LuaTypeNames.integer, "Unique identifier for the import folder")]
     public string id => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("Name of the import folder")]
+    [LuaType(LuaTypeNames.@string, "Name of the import folder")]
     public string name => Get();
 
-    [LuaType(LuaTypeNames.@string)]
-    [LuaDescription("File system path to the import folder")]
+    [LuaType(LuaTypeNames.@string, "File system path to the import folder")]
     public string location => Get();
 
-    [LuaType(nameof(EnumsTable.ImportFolderType))]
-    [LuaDescription("Type of the import folder (Source, Destination, etc.)")]
+    [LuaType(nameof(EnumsTable.ImportFolderType), "Type of the import folder (Source, Destination, etc.)")]
     public string type => Get();
 
     public string _classid => Get();

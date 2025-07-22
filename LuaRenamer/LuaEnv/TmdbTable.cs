@@ -8,15 +8,12 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Tmdb)]
 public class TmdbTable : Table
 {
-    [LuaType($"{LuaTypeNames.TmdbMovie}[]")]
-    [LuaDescription("List of TMDB movies")]
+    [LuaType($"{LuaTypeNames.TmdbMovie}[]", "List of TMDB movies")]
     public ArrayTable<TmdbMovieTable> movies => new() { Fn = Get() };
 
-    [LuaType($"{LuaTypeNames.TmdbShow}[]")]
-    [LuaDescription("List of TMDB shows")]
+    [LuaType($"{LuaTypeNames.TmdbShow}[]", "List of TMDB shows")]
     public ArrayTable<TmdbShowTable> shows => new() { Fn = Get() };
 
-    [LuaType($"{LuaTypeNames.TmdbEpisode}[]")]
-    [LuaDescription("List of TMDB episodes")]
+    [LuaType($"{LuaTypeNames.TmdbEpisode}[]", "List of TMDB episodes")]
     public ArrayTable<TmdbEpisodeTable> episodes => new() { Fn = Get() };
 }

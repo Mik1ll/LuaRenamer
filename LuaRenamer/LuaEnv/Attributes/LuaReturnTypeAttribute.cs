@@ -6,7 +6,6 @@ namespace LuaRenamer.LuaEnv.Attributes;
 public class LuaReturnTypeAttribute : Attribute
 {
     public string Type { get; }
-    public bool Nillable { get; init; }
 
     public LuaReturnTypeAttribute(string type) => Type = type;
 }

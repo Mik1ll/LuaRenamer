@@ -8,11 +8,9 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Relation)]
 public class RelationTable : Table
 {
-    [LuaType(LuaTypeNames.Anime)]
-    [LuaDescription("The related anime")]
+    [LuaType(LuaTypeNames.Anime, "The related anime")]
     public AnimeTable anime => new() { Fn = Get() };
 
-    [LuaType(nameof(EnumsTable.RelationType))]
-    [LuaDescription("Type of relation between the anime")]
+    [LuaType(nameof(EnumsTable.RelationType), "Type of relation between the anime")]
     public string type => Get();
 }
