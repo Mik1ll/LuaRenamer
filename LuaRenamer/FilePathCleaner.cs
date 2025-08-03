@@ -23,7 +23,7 @@ public partial class FilePathCleaner(
     [GeneratedRegex("""[<>:"/\\|?*\x00-\x1F]""", RegexOptions.CultureInvariant)]
     private static partial Regex WindowsInvalidPathCharRegex();
 
-    [GeneratedRegex("/")]
+    [GeneratedRegex("""[/\0]""")]
     private static partial Regex OtherInvalidPathCharRegex();
 
     [GeneratedRegex("""^(CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])(\..*)?$""", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

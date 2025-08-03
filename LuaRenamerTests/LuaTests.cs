@@ -550,4 +550,13 @@ public class LuaTests
         generator.GenerateDefinitionFiles();
         Console.WriteLine($"Generated docs: \"{outputPath}\"");
     }
+
+    [TestMethod]
+    public void NullCharTest()
+    {
+        var args = MinimalArgs("filename = 'test\\x00test'");
+        var renamer = new LuaRenamer.LuaRenamer(Logmock);
+        var res = renamer.GetNewPath(args);
+        Assert.AreEqual("test_test.mp4", res.FileName);
+    }
 }
