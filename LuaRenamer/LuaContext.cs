@@ -208,9 +208,9 @@ public class LuaContext : Lua
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
             .Select(g => GroupToTable(g, getName)).ToList();
 
-        env[nameof(EnvTable.replace_illegal_chars)] = false;
-        env[nameof(EnvTable.remove_illegal_chars)] = false;
-        env[nameof(EnvTable.use_existing_anime_location)] = false;
+        env[nameof(EnvTable.replace_illegal_chars)] = _args.Settings.ReplaceIllegalCharacters;
+        env[nameof(EnvTable.remove_illegal_chars)] = _args.Settings.RemoveIllegalCharacters;
+        env[nameof(EnvTable.use_existing_anime_location)] = _args.Settings.UseExistingAnimeLocation;
         env[nameof(EnvTable.skip_rename)] = false;
         env[nameof(EnvTable.skip_move)] = false;
         env[nameof(EnvTable.illegal_chars_map)] = ReplaceMapToTable();
