@@ -1,6 +1,3 @@
-remove_illegal_chars = false
-replace_illegal_chars = true
-
 local maxnamelen = 35
 local animelanguage = Language.English
 local episodelanguage = Language.English
