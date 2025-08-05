@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
+      "KeraLua": {
+        "type": "Direct",
+        "requested": "[1.4.6, )",
+        "resolved": "1.4.6",
+        "contentHash": "e6qbD58l8S3YN0oQdDvG06aty+l3wUW0kO7b2ZfruWjSZu4grl0OHJ/zR9wrr49TdCN4CMLkt8glOjPPnoHcGw=="
+      },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
         "requested": "[8.0.0, )",
@@ -34,6 +40,15 @@
           "Microsoft.Testing.Extensions.TrxReport": "1.6.2"
         }
       },
+      "NLua": {
+        "type": "Direct",
+        "requested": "[1.7.5, )",
+        "resolved": "1.7.5",
+        "contentHash": "ACDMZiuJxQWw3rMeP7nPIIOid5fv2Bp66XKr7q1+vJdfcr9AZ8NRqoKOAf0ZsZGBUODEZhEbwliuwgo0T0s2XA==",
+        "dependencies": {
+          "KeraLua": "1.4.4"
+        }
+      },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
         "requested": "[4.2.0, )",
@@ -50,11 +65,6 @@
         "dependencies": {
           "System.Diagnostics.EventLog": "6.0.0"
         }
-      },
-      "KeraLua": {
-        "type": "Transitive",
-        "resolved": "1.4.3",
-        "contentHash": "kHPPwi6s2nH+q6CT5rgY2C3hPCAZdFmoxRm0hsjTkQdUlhtTsoIPd/FUfx/5WdzgbT/IEVP5avB9/QLT0rPMaw=="
       },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
@@ -214,14 +224,6 @@
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
-      "NLua": {
-        "type": "Transitive",
-        "resolved": "1.7.4",
-        "contentHash": "2KZtcTk0ZRROBAnVrXoEF1Pru1r4rTVQ8Ev5YYmMOjhV6lLosD2S/AKkoHNWe7Er6Swuav2nliVQm12i/zoG6w==",
-        "dependencies": {
-          "KeraLua": "1.4.3"
-        }
-      },
       "System.Buffers": {
         "type": "Transitive",
         "resolved": "4.5.1",
@@ -280,15 +282,18 @@
       "luadefsgenerator": {
         "type": "Project",
         "dependencies": {
+          "KeraLua": "[1.4.6, )",
           "LuaRenamer": "[1.0.0, )",
+          "NLua": "[1.7.5, )",
           "Shoko.Plugin.Abstractions": "[4.2.0, )"
         }
       },
       "luarenamer": {
         "type": "Project",
         "dependencies": {
+          "KeraLua": "[1.4.6, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.0, )",
-          "NLua": "[1.7.4, )",
+          "NLua": "[1.7.5, )",
           "Shoko.Plugin.Abstractions": "[4.2.0, )"
         }
       }
