@@ -32,6 +32,12 @@ public class TmdbShowTable : Table
     [LuaType(LuaTypeNames.integer, "Total number of episodes")]
     public string episodecount => Get();
 
+    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the show")]
+    public string airdate => Get();
+
+    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "End date of the show")]
+    public string enddate => Get();
+
     [LuaType(LuaTypeNames.function, "Get the show title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]

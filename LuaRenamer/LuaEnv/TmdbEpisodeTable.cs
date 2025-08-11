@@ -32,6 +32,9 @@ public class TmdbEpisodeTable : Table
     [LuaType(LuaTypeNames.integer, "Season number")]
     public string seasonnumber => Get();
 
+    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the episode")]
+    public string airdate => Get();
+
     [LuaType(LuaTypeNames.function, "Get the episode title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]

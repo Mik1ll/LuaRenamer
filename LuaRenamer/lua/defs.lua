@@ -147,6 +147,7 @@ local Tmdb = {}
 ---@field type EpisodeType # Type of episode
 ---@field number integer # Episode number within the season
 ---@field seasonnumber integer # Season number
+---@field airdate DateTime|nil # Air date of the episode
 local TmdbEpisode = {}
 
 ---Get the episode title in the specified language
@@ -162,6 +163,7 @@ function TmdbEpisode:getname(lang) end
 ---@field rating number # Movie rating
 ---@field restricted boolean # Whether the movie is age-restricted
 ---@field studios string[] # List of production studios
+---@field airdate DateTime|nil # Air date of the movie
 local TmdbMovie = {}
 
 ---Get the movie title in the specified language
@@ -178,6 +180,8 @@ function TmdbMovie:getname(lang) end
 ---@field restricted boolean # Whether the show is age-restricted
 ---@field studios string[] # List of production studios
 ---@field episodecount integer # Total number of episodes
+---@field airdate DateTime|nil # Air date of the show
+---@field enddate DateTime|nil # End date of the show
 local TmdbShow = {}
 
 ---Get the show title in the specified language

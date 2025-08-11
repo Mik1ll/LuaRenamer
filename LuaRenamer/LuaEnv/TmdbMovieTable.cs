@@ -29,6 +29,9 @@ public class TmdbMovieTable : Table
     [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
     public string studios => Get();
 
+    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the movie")]
+    public string airdate => Get();
+
     [LuaType(LuaTypeNames.function, "Get the movie title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]

@@ -450,6 +450,7 @@ public class LuaContext : Lua
             movieTable[nameof(TmdbMovieTable.rating)] = m.Rating;
             movieTable[nameof(TmdbMovieTable.restricted)] = m.Restricted;
             movieTable[nameof(TmdbMovieTable.studios)] = GetNewArray(m.Studios.Select(s => s.Name));
+            movieTable[nameof(TmdbMovieTable.airdate)] = DateTimeToTable(m.ReleaseDate);
             movieTable[nameof(TmdbMovieTable.getname)] = getName;
             return movieTable;
         }));
@@ -464,6 +465,8 @@ public class LuaContext : Lua
             showTable[nameof(TmdbShowTable.restricted)] = s.Restricted;
             showTable[nameof(TmdbShowTable.studios)] = GetNewArray(s.Studios.Select(st => st.Name));
             showTable[nameof(TmdbShowTable.episodecount)] = s.EpisodeCounts.Episodes;
+            showTable[nameof(TmdbShowTable.airdate)] = DateTimeToTable(s.AirDate);
+            showTable[nameof(TmdbShowTable.enddate)] = DateTimeToTable(s.EndDate);
             showTable[nameof(TmdbShowTable.getname)] = getName;
             return showTable;
         }));
@@ -479,6 +482,7 @@ public class LuaContext : Lua
                 epTable[nameof(TmdbEpisodeTable.type)] = e2.Type.ToString();
                 epTable[nameof(TmdbEpisodeTable.number)] = e2.EpisodeNumber;
                 epTable[nameof(TmdbEpisodeTable.seasonnumber)] = e2.SeasonNumber;
+                epTable[nameof(TmdbEpisodeTable.airdate)] = DateTimeToTable(e2.AirDate);
                 epTable[nameof(TmdbEpisodeTable.getname)] = getName;
                 return epTable;
             })));
@@ -506,13 +510,9 @@ public class LuaContext : Lua
     /// <returns>True if value was obtained from cache</returns>
     private bool GetCachedOrNewTable((Type, int) key, out LuaTable value)
     {
-        if (!_tableCache.TryGetValue(key, out value!))
-        {
-            value = GetNewTable();
-            _tableCache[key] = value;
-            return false;
-        }
-
-        return true;
+        if (_tableCache.TryGetValue(key, out value!)) return true;
+        value = GetNewTable();
+        _tableCache[key] = value;
+        return false;
     }
 }
