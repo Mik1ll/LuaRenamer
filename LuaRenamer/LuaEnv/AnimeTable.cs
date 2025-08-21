@@ -47,9 +47,6 @@ public class AnimeTable : Table
     [LuaType($"{LuaTypeNames.Relation}[]", "Related anime entries, not populated for nested Anime entries")]
     public ArrayTable<RelationTable> relations => new() { Fn = Get() };
 
-    [LuaType($"{LuaTypeNames.@string}[]", "List of studios that produced the anime")]
-    public string studios => Get();
-
     public string _classid => Get();
     public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
 }

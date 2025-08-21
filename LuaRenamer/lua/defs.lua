@@ -28,7 +28,6 @@ local AniDbMedia = {}
 ---@field titles Title[] # All available titles for the anime
 ---@field episodecounts table<EpisodeType, integer> # Count of episodes by type
 ---@field relations Relation[] # Related anime entries, not populated for nested Anime entries
----@field studios string[] # List of studios that produced the anime
 local Anime = {}
 
 ---Get the anime title in the specified language
@@ -161,8 +160,6 @@ function TmdbEpisode:getname(lang) end
 ---@field defaultname string # Default movie title
 ---@field preferredname string # Preferred movie title
 ---@field rating number # Movie rating
----@field restricted boolean # Whether the movie is age-restricted
----@field studios string[] # List of production studios
 ---@field airdate DateTime|nil # Air date of the movie
 local TmdbMovie = {}
 
@@ -178,7 +175,6 @@ function TmdbMovie:getname(lang) end
 ---@field preferredname string # Preferred show title
 ---@field rating number # Show rating
 ---@field restricted boolean # Whether the show is age-restricted
----@field studios string[] # List of production studios
 ---@field episodecount integer # Total number of episodes
 ---@field airdate DateTime|nil # Air date of the show
 ---@field enddate DateTime|nil # End date of the show

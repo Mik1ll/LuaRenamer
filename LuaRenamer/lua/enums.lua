@@ -16,8 +16,6 @@ AnimeType = {
     TVSpecial = "TVSpecial",
     Web = "Web",
     Other = "Other",
-    MusicVideo = "MusicVideo",
-    Unknown = "Unknown",
 }
 
 ---@enum EpisodeType

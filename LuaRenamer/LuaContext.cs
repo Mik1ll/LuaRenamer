@@ -273,7 +273,6 @@ public class LuaContext : Lua
         animeTable[nameof(AnimeTable.id)] = anime.ID;
         animeTable[nameof(AnimeTable.titles)] = GetNewArray(anime.Titles.OrderBy(t => t.Title).Select(TitleToTable));
         animeTable[nameof(AnimeTable.getname)] = getName;
-        animeTable[nameof(AnimeTable.studios)] = GetNewArray(anime.Studios.Select(st => st.Name));
         animeTable[nameof(AnimeTable._classid)] = AnimeTable._classidVal;
         var epCountTable = GetNewTable();
         foreach (var epType in Enum.GetValues<EpisodeType>())
@@ -448,8 +447,6 @@ public class LuaContext : Lua
             movieTable[nameof(TmdbMovieTable.defaultname)] = m.DefaultTitle;
             movieTable[nameof(TmdbMovieTable.preferredname)] = m.PreferredTitle;
             movieTable[nameof(TmdbMovieTable.rating)] = m.Rating;
-            movieTable[nameof(TmdbMovieTable.restricted)] = m.Restricted;
-            movieTable[nameof(TmdbMovieTable.studios)] = GetNewArray(m.Studios.Select(s => s.Name));
             movieTable[nameof(TmdbMovieTable.airdate)] = DateTimeToTable(m.ReleaseDate);
             movieTable[nameof(TmdbMovieTable.getname)] = getName;
             return movieTable;
@@ -463,7 +460,6 @@ public class LuaContext : Lua
             showTable[nameof(TmdbShowTable.preferredname)] = s.PreferredTitle;
             showTable[nameof(TmdbShowTable.rating)] = s.Rating;
             showTable[nameof(TmdbShowTable.restricted)] = s.Restricted;
-            showTable[nameof(TmdbShowTable.studios)] = GetNewArray(s.Studios.Select(st => st.Name));
             showTable[nameof(TmdbShowTable.episodecount)] = s.EpisodeCounts.Episodes;
             showTable[nameof(TmdbShowTable.airdate)] = DateTimeToTable(s.AirDate);
             showTable[nameof(TmdbShowTable.enddate)] = DateTimeToTable(s.EndDate);

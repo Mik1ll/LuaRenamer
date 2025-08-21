@@ -15,7 +15,7 @@
     <ItemGroup>
         <PackageReference Include="KeraLua" Version="1.4.6" />
         <PackageReference Include="NLua" Version="1.7.5" />
-        <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.2.0" />
+        <PackageReference Include="Shoko.Plugin.Abstractions" Version="4.1.0" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

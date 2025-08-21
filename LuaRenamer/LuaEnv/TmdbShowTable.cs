@@ -26,9 +26,6 @@ public class TmdbShowTable : Table
     [LuaType(LuaTypeNames.boolean, "Whether the show is age-restricted")]
     public string restricted => Get();
 
-    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
-    public string studios => Get();
-
     [LuaType(LuaTypeNames.integer, "Total number of episodes")]
     public string episodecount => Get();
 

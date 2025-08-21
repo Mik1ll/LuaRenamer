@@ -51,12 +51,9 @@
       },
       "Shoko.Plugin.Abstractions": {
         "type": "Direct",
-        "requested": "[4.2.0, )",
-        "resolved": "4.2.0",
-        "contentHash": "JCQflBeIWV67v2JdMQgm23TegA5r6g/OiXedSAdAEJxsgrQQgzxL0qioP1tt9AUfIMX5KDK2ZY8sCJExFenfgw==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection": "8.0.0"
-        }
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "pUniaaemvw/swFJbgpN6Ty17UaNK/+zwdGaSRjPNXJY/7ej9V9XT6EHOtHGBFvcdYTxWE62DTcxIunXbdiTzhQ=="
       },
       "Castle.Core": {
         "type": "Transitive",
@@ -83,14 +80,6 @@
         "type": "Transitive",
         "resolved": "2.0.0",
         "contentHash": "QcZrCETsBJqy/vQpFtJc+jSXQ0K5sucQ6NUFbTNVHD4vfZZOwjZ/3sBzczkC4DityhD3AVO/+K/+9ioLs1AgRA=="
-      },
-      "Microsoft.Extensions.DependencyInjection": {
-        "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "V8S3bsm50ig6JSyrbcJJ8bW2b9QLGouz+G1miK3UTaOWmMtFwNNNzUf4AleyDWUmTrWMLNnFSLEQtxmxgNQnNQ==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
-        }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
@@ -285,7 +274,7 @@
           "KeraLua": "[1.4.6, )",
           "LuaRenamer": "[1.0.0, )",
           "NLua": "[1.7.5, )",
-          "Shoko.Plugin.Abstractions": "[4.2.0, )"
+          "Shoko.Plugin.Abstractions": "[4.1.0, )"
         }
       },
       "luarenamer": {
@@ -294,7 +283,7 @@
           "KeraLua": "[1.4.6, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.0, )",
           "NLua": "[1.7.5, )",
-          "Shoko.Plugin.Abstractions": "[4.2.0, )"
+          "Shoko.Plugin.Abstractions": "[4.1.0, )"
         }
       }
     }

@@ -23,12 +23,6 @@ public class TmdbMovieTable : Table
     [LuaType(LuaTypeNames.number, "Movie rating")]
     public string rating => Get();
 
-    [LuaType(LuaTypeNames.boolean, "Whether the movie is age-restricted")]
-    public string restricted => Get();
-
-    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
-    public string studios => Get();
-
     [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the movie")]
     public string airdate => Get();
 

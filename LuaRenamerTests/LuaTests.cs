@@ -38,7 +38,6 @@ public class LuaTests
                                                      s.TmdbMovies == new List<IMovie>() &&
                                                      s.TmdbShows == new List<ISeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        animeMock.SetupGet(a => a.Studios).Returns([]);
         return new()
         {
             AvailableFolders = new List<IImportFolder>
@@ -92,7 +91,6 @@ public class LuaTests
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
-        animeMock.SetupGet(a => a.Studios).Returns([]);
         var shokoSeries = Mock.Of<IShokoSeries>(s =>
             s.AnidbAnime == animeMock.Object &&
             s.PreferredTitle == "shokoseriesprefname" &&
@@ -425,7 +423,6 @@ public class LuaTests
         animeMock.SetupGet(a => a.ID).Returns(1);
         animeMock.SetupGet(a => a.PreferredTitle).Returns("blah2");
         animeMock.SetupGet(a => a.Titles).Returns(new List<AnimeTitle>());
-        animeMock.SetupGet(a => a.Studios).Returns([]);
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
