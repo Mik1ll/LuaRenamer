@@ -50,6 +50,12 @@ public class AnimeTable : Table
     [LuaType($"{LuaTypeNames.@string}[]", "List of studios that produced the anime")]
     public string studios => Get();
 
+    [LuaType($"{LuaTypeNames.@string}[]", "List of anime series tags")]
+    public string tags => Get();
+
+    [LuaType($"{LuaTypeNames.@string}[]", "List of custom Shoko tags")]
+    public string customtags => Get();
+
     public string _classid => Get();
     public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
 }

@@ -39,6 +39,8 @@ public class LuaTests
                                                      s.TmdbShows == new List<ISeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         animeMock.SetupGet(a => a.Studios).Returns([]);
+        animeMock.SetupGet(a => a.Tags).Returns([]);
+        animeMock.SetupGet(a => a.CustomTags).Returns([]);
         return new()
         {
             AvailableFolders = new List<IImportFolder>
@@ -93,6 +95,8 @@ public class LuaTests
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
         animeMock.SetupGet(a => a.Studios).Returns([]);
+        animeMock.SetupGet(a => a.Tags).Returns([]);
+        animeMock.SetupGet(a => a.CustomTags).Returns([]);
         var shokoSeries = Mock.Of<IShokoSeries>(s =>
             s.AnidbAnime == animeMock.Object &&
             s.PreferredTitle == "shokoseriesprefname" &&
@@ -437,6 +441,8 @@ public class LuaTests
             r.Related == animeMock.Object
         ));
         animeMock.SetupGet(a => a.ShokoSeries).Returns([]);
+        animeMock.SetupGet(a => a.Tags).Returns([]);
+        animeMock.SetupGet(a => a.CustomTags).Returns([]);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetNewPath(args);
         Assert.AreEqual("blah2AlternativeSetting0.mp4", res.FileName);

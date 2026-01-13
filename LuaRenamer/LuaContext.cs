@@ -283,6 +283,8 @@ public class LuaContext : Lua
             ? []
             : anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID)
                 .Select(r => RelationToTable(r, getName)));
+        animeTable[nameof(AnimeTable.tags)] = GetNewArray(anime.Tags.Select(t => t.Name));
+        animeTable[nameof(AnimeTable.customtags)] = GetNewArray(anime.CustomTags.Select(t => t.Name));
         return animeTable;
     }
 

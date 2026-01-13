@@ -29,6 +29,8 @@ local AniDbMedia = {}
 ---@field episodecounts table<EpisodeType, integer> # Count of episodes by type
 ---@field relations Relation[] # Related anime entries, not populated for nested Anime entries
 ---@field studios string[] # List of studios that produced the anime
+---@field tags string[] # List of anime series tags
+---@field customtags string[] # List of custom Shoko tags
 local Anime = {}
 
 ---Get the anime title in the specified language
