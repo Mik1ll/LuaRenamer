@@ -4,9 +4,9 @@
     "net8.0": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.7, )",
-        "resolved": "1.4.7",
-        "contentHash": "CFkQpPGxCQYDjaum3oT9rFtMjQV/Pru10I2Lr6w5h6kMMyZUQ47s6Px3Uh0n0jIwvTijEVhHsiym2rREJX+huw=="
+        "requested": "[1.4.5, )",
+        "resolved": "1.4.5",
+        "contentHash": "EL/XPSpSSaBuKjVIg69BUaNzZ44m9zjgHd5IL0SMsSxsAW37YaMtLJeY2jwLB0aOpYNPOcHJkxL9JsHAqk6MFQ=="
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
@@ -19,11 +19,11 @@
       },
       "NLua": {
         "type": "Direct",
-        "requested": "[1.7.6, )",
-        "resolved": "1.7.6",
-        "contentHash": "wmXyLco2qvS1vfkUY50FineJtScRFiLPvuXNvylj+V7QK0CUPj8fhHzOJzNCVzybLLz/Rwi0MX8lW/nbbcERTw==",
+        "requested": "[1.7.5, )",
+        "resolved": "1.7.5",
+        "contentHash": "ACDMZiuJxQWw3rMeP7nPIIOid5fv2Bp66XKr7q1+vJdfcr9AZ8NRqoKOAf0ZsZGBUODEZhEbwliuwgo0T0s2XA==",
         "dependencies": {
-          "KeraLua": "1.4.7"
+          "KeraLua": "1.4.4"
         }
       },
       "Shoko.Plugin.Abstractions": {
@@ -52,25 +52,25 @@
     "net8.0/linux-arm64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.7, )",
-        "resolved": "1.4.7",
-        "contentHash": "CFkQpPGxCQYDjaum3oT9rFtMjQV/Pru10I2Lr6w5h6kMMyZUQ47s6Px3Uh0n0jIwvTijEVhHsiym2rREJX+huw=="
+        "requested": "[1.4.5, )",
+        "resolved": "1.4.5",
+        "contentHash": "EL/XPSpSSaBuKjVIg69BUaNzZ44m9zjgHd5IL0SMsSxsAW37YaMtLJeY2jwLB0aOpYNPOcHJkxL9JsHAqk6MFQ=="
       }
     },
     "net8.0/linux-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.7, )",
-        "resolved": "1.4.7",
-        "contentHash": "CFkQpPGxCQYDjaum3oT9rFtMjQV/Pru10I2Lr6w5h6kMMyZUQ47s6Px3Uh0n0jIwvTijEVhHsiym2rREJX+huw=="
+        "requested": "[1.4.5, )",
+        "resolved": "1.4.5",
+        "contentHash": "EL/XPSpSSaBuKjVIg69BUaNzZ44m9zjgHd5IL0SMsSxsAW37YaMtLJeY2jwLB0aOpYNPOcHJkxL9JsHAqk6MFQ=="
       }
     },
     "net8.0/win-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.7, )",
-        "resolved": "1.4.7",
-        "contentHash": "CFkQpPGxCQYDjaum3oT9rFtMjQV/Pru10I2Lr6w5h6kMMyZUQ47s6Px3Uh0n0jIwvTijEVhHsiym2rREJX+huw=="
+        "requested": "[1.4.5, )",
+        "resolved": "1.4.5",
+        "contentHash": "EL/XPSpSSaBuKjVIg69BUaNzZ44m9zjgHd5IL0SMsSxsAW37YaMtLJeY2jwLB0aOpYNPOcHJkxL9JsHAqk6MFQ=="
       }
     }
   }
