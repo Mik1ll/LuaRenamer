@@ -303,7 +303,7 @@ public class LuaContext : Lua
 
     private LuaTable? AniDbFileToTable(IReleaseInfo? aniDb)
     {
-        if (aniDb is not { ReleaseURI: var releaseUri } || (releaseUri?.StartsWith("https://anidb.net/file/") ?? false))
+        if (aniDb is not { ReleaseURI: var releaseUri } || !(releaseUri?.StartsWith("https://anidb.net/file/") ?? false))
             return null;
         var aniDbTable = GetNewTable();
         aniDbTable[nameof(AniDbTable.id)] = int.Parse(aniDb.ReleaseURI![23..]);
@@ -330,9 +330,9 @@ public class LuaContext : Lua
         return groupTable;
     }
 
-    private LuaTable EpisodeToTable(IEpisode episode, LuaFunction getName)
+    private LuaTable EpisodeToTable(IAnidbEpisode episode, LuaFunction getName)
     {
-        if (GetCachedOrNewTable((typeof(IEpisode), episode.ID), out var epTable))
+        if (GetCachedOrNewTable((typeof(IAnidbEpisode), episode.ID), out var epTable))
             return epTable;
         epTable[nameof(EpisodeTable.duration)] = episode.Runtime.TotalSeconds;
         epTable[nameof(EpisodeTable.number)] = episode.EpisodeNumber;
