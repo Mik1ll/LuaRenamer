@@ -1,0 +1,12 @@
+﻿<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Publish win-x64" type="DotNetFolderPublish" factoryName="Publish to folder">
+        <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU"
+                      target_folder="$PROJECT_DIR$/LuaRenamer/bin/Release/net8.0/win-x64/publish" target_framework="net8.0" uuid_high="-7231564228443681272"
+                      uuid_low="-7584279782353970681">
+            <runtimes>
+                <item value="win-x64" />
+            </runtimes>
+        </riderPublish>
+        <method v="2" />
+    </configuration>
+</component>
