@@ -40,17 +40,12 @@
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
         <PropertyGroup>
-            <ZipDir>$(PublishDir)ZipDir/</ZipDir>
-            <ZipDestination>$(PublishDir)../$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipDestination>
+            <ZipName>$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipName>
+            <ZipDir>$(PublishDir)../../</ZipDir>
+            <ZipDir Condition="'$(RuntimeIdentifier)' == ''">$(PublishDir)../</ZipDir>
         </PropertyGroup>
 
-        <ItemGroup>
-            <ZipOut Include="$(PublishDir)**/*" />
-        </ItemGroup>
-
-        <Copy SourceFiles="@(ZipOut)" DestinationFolder="$(ZipDir)$(ProjectName)/%(RecursiveDir)" />
-        <ZipDirectory SourceDirectory="$(ZipDir)" DestinationFile="$(ZipDestination)" Overwrite="true" />
-        <RemoveDir Directories="$(ZipDir)" />
+        <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ZipDir)$(ZipName)" Overwrite="true" />
     </Target>
 
 </Project>
