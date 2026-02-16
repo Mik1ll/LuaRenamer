@@ -17,8 +17,11 @@ using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Stub;
+using Shoko.Abstractions.Metadata.Tmdb;
+using Shoko.Abstractions.Plugin;
 using Shoko.Abstractions.Release;
 using Shoko.Abstractions.Relocation;
+using Shoko.Abstractions.Services;
 using Shoko.Abstractions.Video;
 
 namespace LuaRenamerTests;
@@ -36,15 +39,16 @@ public class LuaTests
         var animeMock = new Mock<IAnidbAnime>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Title).Returns("blah");
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
         animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
                                                      s.AnidbAnime == animeMock.Object &&
                                                      s.Title == "shokoseriesprefname" &&
-                                                     s.TmdbMovies == new List<IMovie>() &&
-                                                     s.TmdbShows == new List<ISeries>() &&
-                                                     s.Tags == new List<IShokoTag>());
+                                                     s.TmdbMovies == new List<ITmdbMovie>() &&
+                                                     s.TmdbShows == new List<ITmdbShow>() &&
+                                                     s.Tags == new List<IShokoTagForSeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         animeMock.SetupGet(a => a.Studios).Returns([]);
         animeMock.SetupGet(a => a.Tags).Returns([]);
@@ -62,14 +66,14 @@ public class LuaTests
                 file.ManagedFolderID == importFolder.ID &&
                 file.ManagedFolder == importFolder &&
                 file.VideoID == 25 &&
-                file.Video == Mock.Of<IVideo>(vi => vi.ED2K == "abc123")),
+                file.Video == Mock.Of<IVideo>(vi => vi.ED2K == "abc123" && vi.Hashes == new List<IHashDigest>())),
             Episodes = new List<IShokoEpisode>
             {
                 Mock.Of<IShokoEpisode>(se =>
-                    se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == 3 &&
+                    se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == 3 &&
                                                               e.Titles == new List<ITitle>() &&
                                                               e.Type == EpisodeType.Episode) &&
-                    se.TmdbEpisodes == new List<IEpisode>()),
+                    se.TmdbEpisodes == new List<ITmdbEpisode>()),
             },
             Series = new List<IShokoSeries>
             {
@@ -98,6 +102,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
         animeMock.SetupGet(a => a.Title).Returns("blah");
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
         animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
@@ -107,9 +112,9 @@ public class LuaTests
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
-            s.TmdbMovies == new List<IMovie>() &&
-            s.TmdbShows == new List<ISeries>() &&
-            s.Tags == new List<IShokoTag>());
+            s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbShows == new List<ITmdbShow>() &&
+            s.Tags == new List<IShokoTagForSeries>());
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new(new()
         {
@@ -145,8 +150,9 @@ public class LuaTests
                 file.ManagedFolder == Mock.Of<IManagedFolder>() &&
                 file.Video == Mock.Of<IVideo>(vi =>
                     vi.ED2K == "abc123" &&
-                    vi.Hashes == Mock.Of<IReadOnlyList<IHashDigest>>() &&
+                    vi.Hashes == new List<IHashDigest>() &&
                     vi.ReleaseInfo == Mock.Of<IReleaseInfo>(adb =>
+                        adb.ReleaseURI == "https://anidb.net/file/1234" &&
                         adb.ReleasedAt == new DateOnly(2022, 02, 03) && adb.MediaInfo == Mock.Of<IReleaseMediaInfo>(m => m.AudioLanguages == new List<TitleLanguage>() && m.SubtitleLanguages == new List<TitleLanguage>())))
             ),
             Episodes = args.Episodes,
@@ -171,12 +177,12 @@ public class LuaTests
             File = args.File,
             Episodes =
             [
-                Mock.Of<IShokoEpisode>(se => se.AnidbEpisode == Mock.Of<IEpisode>(e =>
+                Mock.Of<IShokoEpisode>(se => se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e =>
                                                  e.Titles == new List<ITitle> { new TitleStub() { Value = "episodeTitle1", Language = TitleLanguage.Unknown, LanguageCode = "unk", Source = DataSource.User } } &&
                                                  e.EpisodeNumber == 5 &&
                                                  e.Type == EpisodeType.Episode &&
                                                  e.SeriesID == 3) &&
-                                             se.TmdbEpisodes == new List<IEpisode>()),
+                                             se.TmdbEpisodes == new List<ITmdbEpisode>()),
             ],
             Series = args.Series,
             Groups = args.Groups,
@@ -272,11 +278,11 @@ public class LuaTests
         ];
         IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes);
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
-            se.AnidbEpisode == Mock.Of<IEpisode>(e => e.SeriesID == z.seriesId &&
+            se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == z.seriesId &&
                                                       e.Titles == titles &&
                                                       e.EpisodeNumber == z.epNum &&
                                                       e.Type == z.epType) &&
-            se.TmdbEpisodes == new List<IEpisode>())).ToList();
+            se.TmdbEpisodes == new List<ITmdbEpisode>())).ToList();
 
         args = new(new()
         {
@@ -444,6 +450,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.ID).Returns(1);
         animeMock.SetupGet(a => a.Title).Returns("blah2");
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
         animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         animeMock.SetupGet(a => a.Studios).Returns([]);
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>
@@ -514,7 +521,7 @@ public class LuaTests
     public void TestDefaultScript()
     {
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
-        var defaultScript = renamer.DefaultSettings;
+        var defaultScript = LuaRenamerSettings.New(Mock.Of<IConfigurationService>(), Mock.Of<IPluginManager>());
         Assert.IsNotNull(defaultScript?.Script);
     }
 
