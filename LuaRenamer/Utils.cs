@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Abstractions.Enums;
 
 namespace LuaRenamer;
 

@@ -1,5 +1,5 @@
 ﻿using LuaRenamer.LuaEnv.BaseTypes;
-using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Abstractions.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
