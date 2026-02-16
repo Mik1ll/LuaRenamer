@@ -8,10 +8,24 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
 using Shoko.Abstractions.Enums;
+using Shoko.Abstractions.Plugin;
 using Shoko.Abstractions.Relocation;
+using Shoko.Abstractions.Utilities;
 using Shoko.Abstractions.Video;
 
 namespace LuaRenamer;
+
+public class Plugin : IPlugin
+{
+    public Guid ID => UuidUtility.GetV5(typeof(Plugin).FullName!);
+
+
+    public string Name => nameof(LuaRenamer);
+
+    public string Description => """
+        Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).
+    """;
+}
 
 public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 {
@@ -20,20 +34,10 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
     public LuaRenamer(ILogger<LuaRenamer> logger) => _logger = logger;
 
     public string Name => nameof(LuaRenamer);
-    public string Description => "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
-    public bool SupportsMoving => true;
-    public bool SupportsRenaming => true;
 
-    public LuaRenamerSettings? DefaultSettings
-    {
-        get
-        {
-            var defaultFile = new FileInfo(Path.Combine(LuaContext.LuaPath, "default.lua"));
-            if (!defaultFile.Exists) return null;
-            using var text = defaultFile.OpenText();
-            return new() { Script = text.ReadToEnd() };
-        }
-    }
+    public string Description => """
+        Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).
+    """;
 
     private static string GetNewFilename(object? filename, RelocationContext<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {
