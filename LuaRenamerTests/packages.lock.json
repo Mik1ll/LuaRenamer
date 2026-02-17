@@ -49,13 +49,14 @@
           "KeraLua": "1.4.4"
         }
       },
-      "Shoko.Plugin.Abstractions": {
+      "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[5.2.0, )",
-        "resolved": "5.2.0",
-        "contentHash": "ZrRZ5LQIY5ai3lTk0EgyTjvOPFeU7gFPZ/t0kcw46zo+AUF8tlU2wfdYO3akNYhlRLwNoY7/oK0BcuU69gTjbw==",
+        "requested": "[6.0.0-alpha.1, )",
+        "resolved": "6.0.0-alpha.1",
+        "contentHash": "ejM71YOkWUP26KGXQKByE2VrIA0NxVKLiMrj0/KD1h8KcdmlJnZMBr6jMtksf0pxLyIW8Cezd7GLF8PDv1XvJQ==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection": "8.0.0"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "NJsonSchema": "11.1.0"
         }
       },
       "Castle.Core": {
@@ -83,14 +84,6 @@
         "type": "Transitive",
         "resolved": "2.0.0",
         "contentHash": "QcZrCETsBJqy/vQpFtJc+jSXQ0K5sucQ6NUFbTNVHD4vfZZOwjZ/3sBzczkC4DityhD3AVO/+K/+9ioLs1AgRA=="
-      },
-      "Microsoft.Extensions.DependencyInjection": {
-        "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "V8S3bsm50ig6JSyrbcJJ8bW2b9QLGouz+G1miK3UTaOWmMtFwNNNzUf4AleyDWUmTrWMLNnFSLEQtxmxgNQnNQ==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
-        }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
@@ -219,10 +212,30 @@
           "MSTest.Analyzers": "3.8.2"
         }
       },
+      "Namotion.Reflection": {
+        "type": "Transitive",
+        "resolved": "3.2.0",
+        "contentHash": "YfGjDPzMEs3vRMI4CMkJwOg75SV5JEDV72kMccD2GCo++TfgOYb5ZTpABYq3dUQqFtnAPpqMKM+deLlrUwnN1g=="
+      },
       "Newtonsoft.Json": {
         "type": "Transitive",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "NJsonSchema": {
+        "type": "Transitive",
+        "resolved": "11.1.0",
+        "contentHash": "H7QO+bM/2uzF81mVyy4U8ha4MXS9eOX06rTvBgJKquzIuLUGuiOTc4nknkCFKW7mr+xnWgzY7Spevz5ZEK8fGg==",
+        "dependencies": {
+          "NJsonSchema.Annotations": "11.1.0",
+          "Namotion.Reflection": "3.2.0",
+          "Newtonsoft.Json": "13.0.3"
+        }
+      },
+      "NJsonSchema.Annotations": {
+        "type": "Transitive",
+        "resolved": "11.1.0",
+        "contentHash": "2gU72pKhMLrQt7TjHv+nrb8CxxgUaBk2SD/CaB5f00SxuWdOT4YVQaGy+jTVx+8IgQit+9WWMvBWU9f6U2HNiQ=="
       },
       "System.Buffers": {
         "type": "Transitive",
@@ -285,7 +298,7 @@
           "KeraLua": "[1.4.5, )",
           "LuaRenamer": "[1.0.0, )",
           "NLua": "[1.7.5, )",
-          "Shoko.Plugin.Abstractions": "[5.2.0, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.1, )"
         }
       },
       "luarenamer": {
@@ -294,7 +307,7 @@
           "KeraLua": "[1.4.5, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.0, )",
           "NLua": "[1.7.5, )",
-          "Shoko.Plugin.Abstractions": "[5.2.0, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.1, )"
         }
       }
     }

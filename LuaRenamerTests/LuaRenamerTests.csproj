@@ -15,7 +15,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="MSTest" Version="3.8.2" />
         <PackageReference Include="NLua" Version="1.7.5" />
-        <PackageReference Include="Shoko.Plugin.Abstractions" Version="5.2.0" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.1" />
     </ItemGroup>
 
     <ItemGroup>

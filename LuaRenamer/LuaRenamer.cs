@@ -7,37 +7,39 @@ using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
-using Shoko.Plugin.Abstractions;
-using Shoko.Plugin.Abstractions.Attributes;
-using Shoko.Plugin.Abstractions.DataModels;
-using Shoko.Plugin.Abstractions.Events;
+using Shoko.Abstractions.Enums;
+using Shoko.Abstractions.Plugin;
+using Shoko.Abstractions.Relocation;
+using Shoko.Abstractions.Utilities;
+using Shoko.Abstractions.Video;
 
 namespace LuaRenamer;
 
-[RenamerID(nameof(LuaRenamer))]
-public class LuaRenamer : IRenamer<LuaRenamerSettings>
+public class Plugin : IPlugin
+{
+    public Guid ID => UuidUtility.GetV5(typeof(Plugin).FullName!);
+
+
+    public string Name => nameof(LuaRenamer);
+
+    public string Description => """
+        Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).
+    """;
+}
+
+public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 {
     private readonly ILogger<LuaRenamer> _logger;
 
     public LuaRenamer(ILogger<LuaRenamer> logger) => _logger = logger;
 
     public string Name => nameof(LuaRenamer);
-    public string Description => "Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).";
-    public bool SupportsMoving => true;
-    public bool SupportsRenaming => true;
 
-    public LuaRenamerSettings? DefaultSettings
-    {
-        get
-        {
-            var defaultFile = new FileInfo(Path.Combine(LuaContext.LuaPath, "default.lua"));
-            if (!defaultFile.Exists) return null;
-            using var text = defaultFile.OpenText();
-            return new() { Script = text.ReadToEnd() };
-        }
-    }
+    public string Description => """
+        Lua scripting environment for renaming/moving. Written by Mikill(Discord)/Mik1ll(Github).
+    """;
 
-    private static string GetNewFilename(object? filename, RelocationEventArgs<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
+    private static string GetNewFilename(object? filename, RelocationContext<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {
         if (filename is not string)
             return args.File.FileName;
@@ -45,13 +47,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return filePathCleaner.CleanPathSegment(fileNameWithExt);
     }
 
-    private static string GetNewSubfolder(object? subfolder, RelocationEventArgs<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
+    private static string GetNewSubfolder(object? subfolder, RelocationContext<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {
         List<string> newSubFolderSplit;
         switch (subfolder)
         {
             case null:
-                newSubFolderSplit = [args.Series[0].PreferredTitle];
+                newSubFolderSplit = [args.Series[0].Title];
                 break;
             case string str:
                 newSubFolderSplit = [str];
@@ -71,9 +73,9 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return newSubfolder;
     }
 
-    private static IImportFolder GetNewDestination(object? destination, RelocationEventArgs<LuaRenamerSettings> args)
+    private static IManagedFolder GetNewDestination(object? destination, RelocationContext<LuaRenamerSettings> args)
     {
-        IImportFolder? destfolder;
+        IManagedFolder? destfolder;
         switch (destination)
         {
             case null:
@@ -109,23 +111,23 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
         return destfolder;
     }
 
-    private static (IImportFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationEventArgs<LuaRenamerSettings> args)
+    private static (IManagedFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationContext<LuaRenamerSettings> args)
     {
         var availableLocations = args.Series[0].Videos
-            .Where(vl => !string.Equals(vl.Hashes.ED2K, args.File.Video.Hashes.ED2K, StringComparison.OrdinalIgnoreCase))
-            .SelectMany(vl => vl.Locations.Select(l => new
+            .Where(vl => !string.Equals(vl.ED2K, args.File.Video.ED2K, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(vl => vl.Files.Select(l => new
             {
-                l.ImportFolder,
+                l.ManagedFolder,
                 SubFolder = SubfolderFromRelativePath(l),
             }))
             .Where(vlp => !string.IsNullOrWhiteSpace(vlp.SubFolder) &&
-                          (vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Destination) ||
-                           vlp.ImportFolder.DropFolderType.HasFlag(DropFolderType.Excluded))).ToList();
+                          (vlp.ManagedFolder.DropFolderType.HasFlag(DropFolderType.Destination) ||
+                           vlp.ManagedFolder.DropFolderType.HasFlag(DropFolderType.Excluded))).ToList();
         var bestLocation = availableLocations.GroupBy(l => l.SubFolder)
             .OrderByDescending(g => g.ToList().Count).Select(g => g.First())
             .FirstOrDefault();
         if (string.IsNullOrWhiteSpace(bestLocation?.SubFolder)) return null;
-        return (bestLocation.ImportFolder, bestLocation.SubFolder);
+        return (bestLocation.ManagedFolder, bestLocation.SubFolder);
     }
 
     private static string? SubfolderFromRelativePath(IVideoFile videoFile)
@@ -135,13 +137,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
             : videoFile.RelativePath);
     }
 
-    public RelocationResult GetNewPath(RelocationEventArgs<LuaRenamerSettings> args)
+    public RelocationResult GetPath(RelocationContext<LuaRenamerSettings> args)
     {
         try
         {
             if (args.File.Video is null)
                 throw new LuaRenamerException("File did not have video info");
-            if (args.Settings.Script is null)
+            if (args.Configuration.Script is null)
                 throw new LuaRenamerException("Script is null");
             if (args.Series.Count == 0)
                 throw new LuaRenamerException("No anime info");
@@ -164,13 +166,13 @@ public class LuaRenamer : IRenamer<LuaRenamerSettings>
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()
                 : new Dictionary<string, string>();
 
-            var filePathCleaner = new FilePathCleaner(removeIllegalChars, replaceIllegalChars, args.Settings.PlatformDependentIllegalCharacters,
+            var filePathCleaner = new FilePathCleaner(removeIllegalChars, replaceIllegalChars, args.Configuration.PlatformDependentIllegalCharacters,
                 illegalCharsOverride);
 
             var result = new RelocationResult { SkipMove = skipMove, SkipRename = skipRename };
 
             if (args.MoveEnabled && !skipMove)
-                (result.DestinationImportFolder, result.Path) =
+                (result.ManagedFolder, result.Path) =
                     (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??
                     (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, args, filePathCleaner));
 

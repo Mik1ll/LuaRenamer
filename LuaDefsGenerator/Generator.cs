@@ -3,7 +3,7 @@ using System.Text;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
-using Shoko.Plugin.Abstractions.DataModels;
+using Shoko.Abstractions.Enums;
 
 namespace LuaDefsGenerator;
 
