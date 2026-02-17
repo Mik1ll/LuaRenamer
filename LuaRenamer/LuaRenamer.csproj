@@ -40,16 +40,19 @@
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
         <PropertyGroup>
-            <ZipDir>$(PublishDir)ZipDir/</ZipDir>
-            <ZipDestination>$(PublishDir)../$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipDestination>
+            <ZipDir>$(PublishDir)Zip/</ZipDir>
+            <_ParentDir>$([MSBuild]::NormalizeDirectory('$(PublishDir)', '..'))</_ParentDir>
+            <ZipOutDir>$(PublishDir)../</ZipOutDir>
+            <ZipOutDir Condition="'$(RuntimeIdentifier)' != '' And $(_ParentDir.EndsWith('$(RuntimeIdentifier)$([System.IO.Path]::DirectorySeparatorChar)'))">$(PublishDir)../../</ZipOutDir>
+            <ZipName>$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipName>
         </PropertyGroup>
 
         <ItemGroup>
-            <ZipOut Include="$(PublishDir)**/*" />
+            <ZipItems Include="$(PublishDir)**/*" />
         </ItemGroup>
 
-        <Copy SourceFiles="@(ZipOut)" DestinationFolder="$(ZipDir)$(ProjectName)/%(RecursiveDir)" />
-        <ZipDirectory SourceDirectory="$(ZipDir)" DestinationFile="$(ZipDestination)" Overwrite="true" />
+        <Copy SourceFiles="@(ZipItems)" DestinationFolder="$(ZipDir)$(ProjectName)/%(RecursiveDir)" />
+        <ZipDirectory SourceDirectory="$(ZipDir)" DestinationFile="$(ZipOutDir)$(ZipName)" Overwrite="true" />
         <RemoveDir Directories="$(ZipDir)" />
     </Target>
 
