@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KeraLua" Version="1.4.5" />
+        <PackageReference Include="KeraLua" Version="1.4.9" />
         <PackageReference Include="Moq" Version="4.20.72" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-        <PackageReference Include="MSTest" Version="3.8.2" />
-        <PackageReference Include="NLua" Version="1.7.5" />
+        <PackageReference Include="MSTest" Version="4.1.0" />
+        <PackageReference Include="NLua" Version="1.7.8" />
         <PackageReference Include="Shoko.Plugin.Abstractions" Version="5.2.0" />
     </ItemGroup>
 
