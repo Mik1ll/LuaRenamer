@@ -44,7 +44,7 @@
             <_ParentDir>$([MSBuild]::NormalizeDirectory('$(PublishDir)', '..'))</_ParentDir>
             <ZipOutDir>$(PublishDir)../</ZipOutDir>
             <ZipOutDir Condition="'$(RuntimeIdentifier)' != '' And $(_ParentDir.EndsWith('$(RuntimeIdentifier)$([System.IO.Path]::DirectorySeparatorChar)'))">$(PublishDir)../../</ZipOutDir>
-            <ZipName>$(ProjectName)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable"))_$(GitInfo).zip</ZipName>
+            <ZipName>$(ProjectName)_$(GitInfo)_$([MSBuild]::ValueOrDefault("$(RuntimeIdentifier)","Portable")).zip</ZipName>
         </PropertyGroup>
 
         <ItemGroup>
