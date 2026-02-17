@@ -308,7 +308,7 @@ public class LuaContext : Lua
         var aniDbTable = GetNewTable();
         aniDbTable[nameof(AniDbTable.id)] = int.Parse(aniDb.ReleaseURI![23..]);
         aniDbTable[nameof(AniDbTable.censored)] = aniDb.IsCensored;
-        aniDbTable[nameof(AniDbTable.source)] = aniDb.Source;
+        aniDbTable[nameof(AniDbTable.source)] = Enum.GetName(aniDb.Source);
         aniDbTable[nameof(AniDbTable.version)] = aniDb.Version;
         aniDbTable[nameof(AniDbTable.releasedate)] = DateTimeToTable(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified));
         aniDbTable[nameof(AniDbTable.releasegroup)] = ReleaseGroupToTable(aniDb.Group);
@@ -322,7 +322,7 @@ public class LuaContext : Lua
 
     private LuaTable? ReleaseGroupToTable(IReleaseGroup? releaseGroup)
     {
-        if (releaseGroup is null || releaseGroup.ID is null || releaseGroup.Name == "raw/unknown")
+        if (releaseGroup?.ID is null || releaseGroup.Name == "raw/unknown")
             return null;
         var groupTable = GetNewTable();
         groupTable[nameof(ReleaseGroupTable.name)] = releaseGroup.Name;

@@ -9,7 +9,7 @@
                 </option>
                 <option name="executable">
                     <ExecutableSnapshot>
-                        <option name="id" value="runConfig:Publish to folder.Publish win-x64" />
+                        <option name="id" value="buildSolution:762f34" />
                     </ExecutableSnapshot>
                 </option>
             </ExecutableRowSnapshot>
@@ -28,12 +28,24 @@
             <ExecutableRowSnapshot>
                 <option name="condition">
                     <ConditionSnapshot>
-                        <option name="type" value="afterPreviousFinished" />
+                        <option name="type" value="afterPreviousStarted" />
                     </ConditionSnapshot>
                 </option>
                 <option name="executable">
                     <ExecutableSnapshot>
                         <option name="id" value="runConfig:Publish to folder.Publish linux-arm64" />
+                    </ExecutableSnapshot>
+                </option>
+            </ExecutableRowSnapshot>
+            <ExecutableRowSnapshot>
+                <option name="condition">
+                    <ConditionSnapshot>
+                        <option name="type" value="afterPreviousStarted" />
+                    </ConditionSnapshot>
+                </option>
+                <option name="executable">
+                    <ExecutableSnapshot>
+                        <option name="id" value="runConfig:Publish to folder.Publish win-x64" />
                     </ExecutableSnapshot>
                 </option>
             </ExecutableRowSnapshot>
