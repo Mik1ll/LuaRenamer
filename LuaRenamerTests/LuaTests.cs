@@ -400,7 +400,7 @@ public class LuaTests
     [TestMethod]
     public void TestLogAbstractionVersion()
     {
-        Assert.AreEqual("8.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
+        Assert.AreEqual("10.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
     }
 
 
