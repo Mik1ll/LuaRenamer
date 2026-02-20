@@ -265,18 +265,24 @@ public class LuaTests
     }
 
     [TestMethod]
-    public void TestEpisodeNumbers()
+    
+    // @formatter:off
+    [DataRow(
+        new[]      {  3,  3, 3,  2, 3,  6, 3, 3, 3, 9, 3, 3, 3 },
+        new[]      {  6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2 },
+        new byte[] {  1,  6, 1,  1, 3,  1, 2, 1, 6, 1, 6, 1, 6 },
+        3, "003 005-007 C005 S002 O001-002 O009 O012.mp4")]
+    [DataRow(
+        new []     { 3, 3 },
+        new []     { 1, 2 },
+        new byte[] { 1, 2 },
+        2, "01 C02.mp4")]
+    // @formatter:on
+    public void TestEpisodeNumbers(int[] seriesIds, int[] epNums, byte[] epTypes, int pad, string expected)
     {
-        var args = MinimalArgs($"{EnvTable.filename} = {EnvTable.episode_numbers("3")}");
+        var args = MinimalArgs($"{EnvTable.filename} = {EnvTable.episode_numbers(pad.ToString())}");
         var titles = args.Episodes[0].AnidbEpisode.Titles;
-        int[] seriesIds = [3, 3, 3, 2, 3, 6, 3, 3, 3, 9, 3, 3, 3];
-        int[] epNums = [6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2];
-        EpisodeType[] epTypes =
-        [
-            EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Episode, EpisodeType.Special, EpisodeType.Episode, EpisodeType.Credits,
-            EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Other, EpisodeType.Episode, EpisodeType.Other,
-        ];
-        IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes);
+        IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes.Cast<EpisodeType>());
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
             se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == z.seriesId &&
                                                       e.Titles == titles &&
@@ -296,7 +302,7 @@ public class LuaTests
         }, args.Configuration);
         var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var res = renamer.GetPath(args);
-        Assert.AreEqual("003 005-007 C005 S002 O001-002 O009 O012.mp4", res.FileName);
+        Assert.AreEqual(expected, res.FileName);
     }
 
     [TestMethod]

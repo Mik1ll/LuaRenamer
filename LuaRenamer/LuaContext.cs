@@ -135,15 +135,15 @@ public class LuaContext : Lua
         .Where(e => e.SeriesID == _primarySeries.AnidbAnimeID)
         .OrderBy(e => e.Type)
         .ThenBy(e => e.EpisodeNumber)
-        .Aggregate((RangeOpen: false, PrevNum: -1, NumStr: new StringBuilder()), (acc, ep) =>
+        .Aggregate((RangeOpen: false, PrevNum: -1, PrevType: (EpisodeType)0, NumStr: new StringBuilder()), (acc, ep) =>
             {
                 var oldRangeOpen = acc.RangeOpen;
-                acc.RangeOpen = ep.EpisodeNumber == acc.PrevNum + 1;
+                acc.RangeOpen = ep.EpisodeNumber == acc.PrevNum + 1 && acc.PrevType == ep.Type;
                 if (!acc.RangeOpen && oldRangeOpen)
                     acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}"));
                 if (!acc.RangeOpen)
                     acc.NumStr.Append(' ').Append(Utils.EpPrefix[ep.Type]).Append(ep.EpisodeNumber.ToString($"D{pad}"));
-                acc.PrevNum = ep.EpisodeNumber;
+                (acc.PrevNum, acc.PrevType) = (ep.EpisodeNumber, ep.Type);
                 return acc;
             },
             acc => acc.RangeOpen ? acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}")) : acc.NumStr)
