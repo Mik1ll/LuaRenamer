@@ -131,23 +131,14 @@ public class LuaContext : Lua
           end
           """;
 
-    private string EpNums(int pad) => _args.Episodes.Select(se => se.AnidbEpisode)
+    private string EpNums(int pad) => string.Join(' ', _args.Episodes.Select(se => se.AnidbEpisode)
         .Where(e => e.SeriesID == _primarySeries.AnidbAnimeID)
-        .OrderBy(e => e.Type)
-        .ThenBy(e => e.EpisodeNumber)
-        .Aggregate((RangeOpen: false, PrevNum: -1, PrevType: (EpisodeType)0, NumStr: new StringBuilder()), (acc, ep) =>
-            {
-                var oldRangeOpen = acc.RangeOpen;
-                acc.RangeOpen = ep.EpisodeNumber == acc.PrevNum + 1 && acc.PrevType == ep.Type;
-                if (!acc.RangeOpen && oldRangeOpen)
-                    acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}"));
-                if (!acc.RangeOpen)
-                    acc.NumStr.Append(' ').Append(Utils.EpPrefix[ep.Type]).Append(ep.EpisodeNumber.ToString($"D{pad}"));
-                (acc.PrevNum, acc.PrevType) = (ep.EpisodeNumber, ep.Type);
-                return acc;
-            },
-            acc => acc.RangeOpen ? acc.NumStr.Append('-').Append(acc.PrevNum.ToString($"D{pad}")) : acc.NumStr)
-        .ToString().Trim();
+        .OrderBy(e => e.Type).ThenBy(e => e.EpisodeNumber)
+        .Select((e, i) => (e.Type, RangeId: e.EpisodeNumber - i, Num: e.EpisodeNumber)) // RangeId effectively groups sequences of numbers
+        .GroupBy(x => (x.Type, x.RangeId))
+        .Select(g => g.First().Num is var fn && g.Last().Num is var ln && Utils.EpPrefix[g.Key.Type] is var pre && "D" + pad is var fmt && fn == ln
+            ? $"{pre}{fn.ToString(fmt)}"
+            : $"{pre}{fn.ToString(fmt)}-{ln.ToString(fmt)}"));
 
     private static readonly MethodInfo EpNumsMethod =
         typeof(LuaContext).GetMethod(nameof(EpNums), BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -274,7 +265,8 @@ public class LuaContext : Lua
         animeTable[nameof(AnimeTable.restricted)] = anime.Restricted;
         animeTable[nameof(AnimeTable.type)] = anime.Type.ToString();
         animeTable[nameof(AnimeTable.preferredname)] = string.IsNullOrWhiteSpace(series?.Title) ? anime.Title : series.Title;
-        animeTable[nameof(AnimeTable.defaultname)] = string.IsNullOrWhiteSpace(series?.DefaultTitle?.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value;
+        animeTable[nameof(AnimeTable.defaultname)] =
+            string.IsNullOrWhiteSpace(series?.DefaultTitle.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value;
         animeTable[nameof(AnimeTable.id)] = anime.ID;
         animeTable[nameof(AnimeTable.titles)] = GetNewArray(anime.Titles.OrderBy(t => t.Value).Select(TitleToTable));
         animeTable[nameof(AnimeTable.getname)] = getName;

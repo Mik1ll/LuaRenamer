@@ -268,15 +268,35 @@ public class LuaTests
     
     // @formatter:off
     [DataRow(
-        new[]      {  3,  3, 3,  2, 3,  6, 3, 3, 3, 9, 3, 3, 3 },
-        new[]      {  6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2 },
-        new byte[] {  1,  6, 1,  1, 3,  1, 2, 1, 6, 1, 6, 1, 6 },
-        3, "003 005-007 C005 S002 O001-002 O009 O012.mp4")]
+        new []     { 3, 3, 3 },
+        new []     { 1, 3, 5 },
+        new byte[] { 1, 1, 1 },
+        2, "01 03 05.mp4")]
+    [DataRow(
+        new []     { 3, 3, 3, 3 },
+        new []     { 1, 2, 1, 2 },
+        new byte[] { 1, 1, 2, 2 },
+        2, "01-02 C01-02.mp4")]
+    [DataRow(
+        new []     { 3, 3, 3, 3, 3 },
+        new []     { 5, 1, 3, 2, 4 },
+        new byte[] { 1, 1, 1, 1, 1 },
+        2, "01-05.mp4")]
+    [DataRow(
+        new []     { 3,   3,  3,  3 },
+        new []     { 10, 11, 12, 13 },
+        new byte[] {  1,  1,  2,  2 },
+        2, "10-11 C12-13.mp4")]
     [DataRow(
         new []     { 3, 3 },
         new []     { 1, 2 },
         new byte[] { 1, 2 },
         2, "01 C02.mp4")]
+    [DataRow(
+        new[]      {  3,  3, 3,  2, 3,  6, 3, 3, 3, 9, 3, 3, 3 },
+        new[]      {  6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2 },
+        new byte[] {  1,  6, 1,  1, 3,  1, 2, 1, 6, 1, 6, 1, 6 },
+        3, "003 005-007 C005 S002 O001-002 O009 O012.mp4")]
     // @formatter:on
     public void TestEpisodeNumbers(int[] seriesIds, int[] epNums, byte[] epTypes, int pad, string expected)
     {
