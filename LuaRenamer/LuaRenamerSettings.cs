@@ -42,5 +42,6 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
     public bool PlatformDependentIllegalCharacters { get; set; }
 
     [CodeEditor(CodeEditorLanguage.Lua)]
+    [Visibility(Size = DisplayElementSize.Full)]
     public string Script { get; set; } = string.Empty;
 }
