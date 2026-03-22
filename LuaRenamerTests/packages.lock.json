@@ -50,9 +50,9 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.2, )",
-        "resolved": "6.0.0-alpha.2",
-        "contentHash": "y/sL9+yzV0l8wThZ2/h3V/eI1iv2wtbBAGI4VT/kwtHXBMVqZ9L6q5uLiVgTTtmBuyCJae5sLd/bbCKYYiD6gw==",
+        "requested": "[6.0.0-alpha.13, )",
+        "resolved": "6.0.0-alpha.13",
+        "contentHash": "GiZSAK1Rbl5ZNcPrsLLAzldt/+O5Gt9q9CQDyoR8KTIXnMMZfUIoFQzQvrR7irzBaTmGuIH2lCgbbKLe0BWutg==",
         "dependencies": {
           "NJsonSchema": "11.5.2"
         }
@@ -232,7 +232,7 @@
           "KeraLua": "[1.4.9, )",
           "LuaRenamer": "[1.0.0, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.2, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.13, )"
         }
       },
       "luarenamer": {
@@ -241,7 +241,7 @@
           "KeraLua": "[1.4.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.2, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.13, )"
         }
       }
     },

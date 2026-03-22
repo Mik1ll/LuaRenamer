@@ -10,14 +10,15 @@ using System.Text;
 using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
-using Shoko.Abstractions.Enums;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
+using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
-using Shoko.Abstractions.Release;
-using Shoko.Abstractions.Relocation;
 using Shoko.Abstractions.Video;
+using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Media;
+using Shoko.Abstractions.Video.Release;
+using Shoko.Abstractions.Video.Relocation;
 using File = System.IO.File;
 
 namespace LuaRenamer;

@@ -7,11 +7,11 @@ using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
-using Shoko.Abstractions.Enums;
 using Shoko.Abstractions.Plugin;
-using Shoko.Abstractions.Relocation;
 using Shoko.Abstractions.Utilities;
 using Shoko.Abstractions.Video;
+using Shoko.Abstractions.Video.Enums;
+using Shoko.Abstractions.Video.Relocation;
 
 namespace LuaRenamer;
 

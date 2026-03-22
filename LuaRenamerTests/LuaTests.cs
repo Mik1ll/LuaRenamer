@@ -11,18 +11,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;
-using Shoko.Abstractions.Enums;
-using Shoko.Abstractions.Hashing;
+using Shoko.Abstractions.Config.Services;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
+using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Stub;
 using Shoko.Abstractions.Metadata.Tmdb;
 using Shoko.Abstractions.Plugin;
-using Shoko.Abstractions.Release;
-using Shoko.Abstractions.Relocation;
-using Shoko.Abstractions.Services;
 using Shoko.Abstractions.Video;
+using Shoko.Abstractions.Video.Enums;
+using Shoko.Abstractions.Video.Hashing;
+using Shoko.Abstractions.Video.Release;
+using Shoko.Abstractions.Video.Relocation;
 
 namespace LuaRenamerTests;
 
