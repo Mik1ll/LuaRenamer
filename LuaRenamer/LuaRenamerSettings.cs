@@ -4,8 +4,8 @@ using LuaRenamer.LuaEnv;
 using Shoko.Abstractions.Config;
 using Shoko.Abstractions.Config.Attributes;
 using Shoko.Abstractions.Config.Enums;
+using Shoko.Abstractions.Config.Services;
 using Shoko.Abstractions.Plugin;
-using Shoko.Abstractions.Services;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
@@ -42,5 +42,6 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
     public bool PlatformDependentIllegalCharacters { get; set; }
 
     [CodeEditor(CodeEditorLanguage.Lua)]
+    [Visibility(Size = DisplayElementSize.Full)]
     public string Script { get; set; } = string.Empty;
 }

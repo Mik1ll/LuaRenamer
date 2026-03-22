@@ -1,5 +1,6 @@
 ﻿using LuaRenamer.LuaEnv.BaseTypes;
-using Shoko.Abstractions.Enums;
+using Shoko.Abstractions.Metadata.Enums;
+using Shoko.Abstractions.Video.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
