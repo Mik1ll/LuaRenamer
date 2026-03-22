@@ -35,25 +35,27 @@ public class LuaTests
     private static RelocationContext<LuaRenamerSettings> MinimalArgs(string script)
     {
         var importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
-                                                       i.DropFolderType == DropFolderType.Destination &&
-                                                       i.Name == "testimport");
+            i.DropFolderType == DropFolderType.Destination &&
+            i.Name == "testimport");
         var animeMock = new Mock<IAnidbAnime>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Title).Returns("blah");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
+        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
         animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
         var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
-                                                     s.AnidbAnime == animeMock.Object &&
-                                                     s.Title == "shokoseriesprefname" &&
-                                                     s.TmdbMovies == new List<ITmdbMovie>() &&
-                                                     s.TmdbShows == new List<ITmdbShow>() &&
-                                                     s.Tags == new List<IShokoTagForSeries>());
+            s.AnidbAnime == animeMock.Object &&
+            s.Title == "shokoseriesprefname" &&
+            s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbShows == new List<ITmdbShow>() &&
+            s.Tags == new List<IShokoTagForSeries>() &&
+            s.DefaultTitle == titleMock);
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         animeMock.SetupGet(a => a.Studios).Returns([]);
         animeMock.SetupGet(a => a.Tags).Returns([]);
-        return new(new()
+        return new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             CancellationToken = CancellationToken.None,
             AvailableFolders = new List<IManagedFolder>
@@ -72,8 +74,8 @@ public class LuaTests
             {
                 Mock.Of<IShokoEpisode>(se =>
                     se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == 3 &&
-                                                              e.Titles == new List<ITitle>() &&
-                                                              e.Type == EpisodeType.Episode) &&
+                        e.Titles == new List<ITitle>() &&
+                        e.Type == EpisodeType.Episode) &&
                     se.TmdbEpisodes == new List<ITmdbEpisode>()),
             },
             Series = new List<IShokoSeries>
@@ -83,7 +85,7 @@ public class LuaTests
             Groups = new List<IShokoGroup>(),
             RenameEnabled = true,
             MoveEnabled = true,
-        }, new() { Script = script });
+        }, new LuaRenamerSettings { Script = script });
     }
 
     [TestMethod]
@@ -103,7 +105,8 @@ public class LuaTests
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
         animeMock.SetupGet(a => a.Title).Returns("blah");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
+        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
         animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
         animeMock.SetupGet(a => a.ID).Returns(3);
@@ -115,9 +118,10 @@ public class LuaTests
             s.AnidbAnimeID == 3 &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
             s.TmdbShows == new List<ITmdbShow>() &&
-            s.Tags == new List<IShokoTagForSeries>());
+            s.Tags == new List<IShokoTagForSeries>() &&
+            s.DefaultTitle == titleMock);
         animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        args = new(new()
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
             File = args.File,
@@ -142,7 +146,7 @@ public class LuaTests
         var args = MinimalArgs($"{EnvTable.filename} = os.date('%c', os.time({EnvTable.file.anidb.releasedate}))");
         var path = args.File.Path;
         var name = args.File.FileName;
-        args = new(new()
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
             File = Mock.Of<IVideoFile>(file =>
@@ -154,7 +158,8 @@ public class LuaTests
                     vi.Hashes == new List<IHashDigest>() &&
                     vi.ReleaseInfo == Mock.Of<IReleaseInfo>(adb =>
                         adb.ReleaseURI == "https://anidb.net/file/1234" &&
-                        adb.ReleasedAt == new DateOnly(2022, 02, 03) && adb.MediaInfo == Mock.Of<IReleaseMediaInfo>(m => m.AudioLanguages == new List<TitleLanguage>() && m.SubtitleLanguages == new List<TitleLanguage>())))
+                        adb.ReleasedAt == new DateOnly(2022, 02, 03) && adb.MediaInfo == Mock.Of<IReleaseMediaInfo>(m =>
+                            m.AudioLanguages == new List<TitleLanguage>() && m.SubtitleLanguages == new List<TitleLanguage>())))
             ),
             Episodes = args.Episodes,
             Series = args.Series,
@@ -172,18 +177,19 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $"{EnvTable.filename} = {EnvTable.episode.titles[1].name} .. ' ' .. {EnvTable.episode.number} .. ' ' .. {EnvTable.episode.type}");
-        args = new(new()
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
             File = args.File,
             Episodes =
             [
                 Mock.Of<IShokoEpisode>(se => se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e =>
-                                                 e.Titles == new List<ITitle> { new TitleStub() { Value = "episodeTitle1", Language = TitleLanguage.Unknown, LanguageCode = "unk", Source = DataSource.User } } &&
-                                                 e.EpisodeNumber == 5 &&
-                                                 e.Type == EpisodeType.Episode &&
-                                                 e.SeriesID == 3) &&
-                                             se.TmdbEpisodes == new List<ITmdbEpisode>()),
+                        e.Titles == new List<ITitle>
+                            { new TitleStub { Value = "episodeTitle1", Language = TitleLanguage.Unknown, LanguageCode = "unk", Source = DataSource.User } } &&
+                        e.EpisodeNumber == 5 &&
+                        e.Type == EpisodeType.Episode &&
+                        e.SeriesID == 3) &&
+                    se.TmdbEpisodes == new List<ITmdbEpisode>()),
             ],
             Series = args.Series,
             Groups = args.Groups,
@@ -200,10 +206,10 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $"""
-             local fld = from({EnvTable.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnumsTable.ImportFolderType[DropFolderType.Both]}):first()
-             {EnvTable.destination} = fld
-             """);
-        args = new(new()
+            local fld = from({EnvTable.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnumsTable.ImportFolderType[DropFolderType.Both]}):first()
+            {EnvTable.destination} = fld
+            """);
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders =
                 args.AvailableFolders.Append(Mock.Of<IManagedFolder>(i => i.ID == 1 && i.DropFolderType == DropFolderType.Both && i.Name == "testimport"))
@@ -222,19 +228,19 @@ public class LuaTests
 
     [TestMethod]
     [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
-             "filename = from(array):select(function(v) return #v; end):dump()", "q{ 4, 5, 9 }")]
+        "filename = from(array):select(function(v) return #v; end):dump()", "q{ 4, 5, 9 }")]
     [DataRow("local array = { { say='ciao', lang='ita' }, { say='hello', lang='eng' }, }\n" +
-             "filename = from(array):select('say'):dump()", "q{ ciao, hello }")]
+        "filename = from(array):select('say'):dump()", "q{ ciao, hello }")]
     [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
-             "filename = from(array):selectMany(function(v) return { v, #v }; end):dump()  ", "q{ ciao, 4, hello, ...6 }")]
+        "filename = from(array):selectMany(function(v) return { v, #v }; end):dump()  ", "q{ ciao, 4, hello, ...6 }")]
     [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
-             "filename = ''\n" +
-             "from(array):foreach(function (a, blah) filename = filename .. a .. blah end, 'blah')", "ciaoblahhelloblahau revoirblah")]
+        "filename = ''\n" +
+        "from(array):foreach(function (a, blah) filename = filename .. a .. blah end, 'blah')", "ciaoblahhelloblahau revoirblah")]
     [DataRow("local array = { { say='ciao', lang='ita' }, { say='hello', lang='eng' }, { say='au revoir', lang='fre' }}\n" +
-             "array = from(array):where('lang', 'ita', 'fre'):toArray()\n" +
-             "filename = array[1].say .. array[2].say .. (array[3] and array[3].say or '')", "ciaoau revoir")]
+        "array = from(array):where('lang', 'ita', 'fre'):toArray()\n" +
+        "filename = array[1].say .. array[2].say .. (array[3] and array[3].say or '')", "ciaoau revoir")]
     [DataRow("local array = { 'ciao', 'hello', 'au revoir' }\n" +
-             "filename = tostring(from(array):whereIndex(function (i, v) return ((i % 2)~=0); end):count())", "2")]
+        "filename = tostring(from(array):whereIndex(function (i, v) return ((i % 2)~=0); end):count())", "2")]
     [DataRow("filename = table.concat(from({'a', 'b', 'c'}):concat({'d', 'e'}):toArray())", "abcde")]
     [DataRow("filename = table.concat(from({'ablah', 'blahb', 'blac'}):where(function(a, extra) return string.find(a, extra) end, 'blah'):toArray())",
         "ablahblahb")]
@@ -306,12 +312,12 @@ public class LuaTests
         IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes.Cast<EpisodeType>());
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
             se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == z.seriesId &&
-                                                      e.Titles == titles &&
-                                                      e.EpisodeNumber == z.epNum &&
-                                                      e.Type == z.epType) &&
+                e.Titles == titles &&
+                e.EpisodeNumber == z.epNum &&
+                e.Type == z.epType) &&
             se.TmdbEpisodes == new List<ITmdbEpisode>())).ToList();
 
-        args = new(new()
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
             File = args.File,
@@ -332,7 +338,7 @@ public class LuaTests
         var args = MinimalArgs(
             $"{EnvTable.filename} = {EnvTable.anime.getname(EnumsTable.Language[TitleLanguage.English])} .. {EnvTable.episode.getname(EnumsTable.Language[TitleLanguage.English])} .. {EnvTable.episode.getname(EnumsTable.Language[TitleLanguage.Romaji])}");
         ((List<ITitle>)args.Series[0].AnidbAnime.Titles).AddRange([
-            new TitleStub()
+            new TitleStub
             {
                 Value = "animeTitle1",
                 Language = TitleLanguage.English,
@@ -340,7 +346,7 @@ public class LuaTests
                 Type = TitleType.Short,
                 Source = DataSource.AniDB,
             },
-            new TitleStub()
+            new TitleStub
             {
                 Value = "animeTitle2",
                 Language = TitleLanguage.Japanese,
@@ -348,7 +354,7 @@ public class LuaTests
                 Type = TitleType.Official,
                 Source = DataSource.AniDB,
             },
-            new TitleStub()
+            new TitleStub
             {
                 Value = "animeTitle3",
                 Language = TitleLanguage.Romaji,
@@ -356,7 +362,7 @@ public class LuaTests
                 Type = TitleType.Synonym,
                 Source = DataSource.AniDB,
             },
-            new TitleStub()
+            new TitleStub
             {
                 Value = "animeTitle4",
                 Language = TitleLanguage.English,
@@ -367,7 +373,7 @@ public class LuaTests
         ]);
         ((List<ITitle>)args.Episodes[0].AnidbEpisode.Titles).AddRange(new List<ITitle>
         {
-            new TitleStub()
+            new TitleStub
             {
                 Value = "episodeTitle1",
                 Language = TitleLanguage.Spanish,
@@ -375,7 +381,7 @@ public class LuaTests
                 Type = TitleType.None,
                 Source = DataSource.AniDB,
             },
-            new TitleStub()
+            new TitleStub
             {
                 Value = "episodeTitle2",
                 Language = TitleLanguage.English,
@@ -383,7 +389,7 @@ public class LuaTests
                 Type = TitleType.None,
                 Source = DataSource.AniDB,
             },
-            new TitleStub()
+            new TitleStub
             {
                 Value = "episodeTitle3",
                 Language = TitleLanguage.Romaji,
@@ -483,7 +489,7 @@ public class LuaTests
         animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
-                                                     r2.RelationType == RelationType.Prequel),
+                r2.RelationType == RelationType.Prequel),
         });
         animeMock.SetupGet(a => a.ID).Returns(4);
         ((List<IRelatedMetadata<ISeries, ISeries>>)args.Series[0].AnidbAnime.RelatedSeries).Add(Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r =>
@@ -547,9 +553,8 @@ public class LuaTests
     [TestMethod]
     public void TestDefaultScript()
     {
-        var renamer = new LuaRenamer.LuaRenamer(Logmock);
         var defaultScript = LuaRenamerSettings.New(Mock.Of<IConfigurationService>(), Mock.Of<IPluginManager>());
-        Assert.IsNotNull(defaultScript?.Script);
+        Assert.IsNotNull(defaultScript.Script);
     }
 
     [TestMethod]

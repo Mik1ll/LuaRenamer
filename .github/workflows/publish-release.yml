@@ -8,6 +8,8 @@ on:
 jobs:
   publish-release:
     runs-on: ubuntu-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     permissions:
       contents: write
     steps:
@@ -17,10 +19,18 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+    - name: Restore
+      run: dotnet restore --locked-mode
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-restore --no-build --verbosity normal
     - name: Publish
       run: |
         for rid in "win-x64" "linux-x64" "linux-arm64"; do
-          dotnet publish ./LuaRenamer/LuaRenamer.csproj -c Release -r "$rid" -o "./publish/$rid"
+          dotnet publish ./LuaRenamer/LuaRenamer.csproj --no-restore --no-build -c Release -r "$rid" -o "./publish/$rid"
         done
     - name: Release
       env:
