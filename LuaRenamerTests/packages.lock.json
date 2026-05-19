@@ -50,11 +50,11 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.13, )",
-        "resolved": "6.0.0-alpha.13",
-        "contentHash": "GiZSAK1Rbl5ZNcPrsLLAzldt/+O5Gt9q9CQDyoR8KTIXnMMZfUIoFQzQvrR7irzBaTmGuIH2lCgbbKLe0BWutg==",
+        "requested": "[6.0.0-alpha.21, )",
+        "resolved": "6.0.0-alpha.21",
+        "contentHash": "+HV8cBADed6evd3y/0Fh/7PHQUU3FfltCbSz8SoEHtNpK8HW4/xrgJq5e+M+4vBIW0ntm52imlM+1XOet6uzDQ==",
         "dependencies": {
-          "NJsonSchema": "11.5.2"
+          "NJsonSchema": "11.6.0"
         }
       },
       "Castle.Core": {
@@ -198,8 +198,8 @@
       },
       "Namotion.Reflection": {
         "type": "Transitive",
-        "resolved": "3.4.3",
-        "contentHash": "KLk2gLR9f8scM82EiL+p9TONXXPy9+IAZVMzJOA/Wsa7soZD7UJGG6j0fq0D9ZoVnBRRnSeEC7kShhRo3Olgaw=="
+        "resolved": "3.5.0",
+        "contentHash": "FnASiAaTGSmB4SaSroIwnK4ph9noFIXZpPOMezDqWw5S/TNakzSnawPeM7u0Auq1/EqJXeqG4s6UjfrGBH33Ow=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
@@ -208,18 +208,18 @@
       },
       "NJsonSchema": {
         "type": "Transitive",
-        "resolved": "11.5.2",
-        "contentHash": "CAmnt4tnylb82Ro6f2EFIGz8rmThuCsITECUNqGhVEQ5VvxV+XwsTPz6LF58MbvUEV1jVcH+uxxljgM/etgK7A==",
+        "resolved": "11.6.0",
+        "contentHash": "7pTW5GK5lTwdnPrBuCNDm0xdIavmBRpiAmiqOQ4wkLYP153l7eANZL1ioKNOdA1TuMffhFqzk4jQk4yQt/5QMA==",
         "dependencies": {
-          "NJsonSchema.Annotations": "11.5.2",
-          "Namotion.Reflection": "3.4.3",
+          "NJsonSchema.Annotations": "11.6.0",
+          "Namotion.Reflection": "3.5.0",
           "Newtonsoft.Json": "13.0.3"
         }
       },
       "NJsonSchema.Annotations": {
         "type": "Transitive",
-        "resolved": "11.5.2",
-        "contentHash": "OfYQgNzJZb1r/gR5vza0DbBLxnmcITDhA5CXFuX1qxuP3rRdQMjbIz5VyDVHCU1QxyrfAymzajbh7iszEvyFGQ=="
+        "resolved": "11.6.0",
+        "contentHash": "X4iFD2iAJbcrfF7r20TVWl7BPFyKIuhRvlNtKfKY+OdX/84J2ZPNa6SinFtWeCGPD8MNUVrzFjhuVu1SrVQrcg=="
       },
       "System.Diagnostics.EventLog": {
         "type": "Transitive",
@@ -232,7 +232,7 @@
           "KeraLua": "[1.4.9, )",
           "LuaRenamer": "[1.0.0, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.13, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.21, )"
         }
       },
       "luarenamer": {
@@ -241,7 +241,7 @@
           "KeraLua": "[1.4.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.13, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.21, )"
         }
       }
     },

@@ -260,8 +260,8 @@ public class LuaContext : Lua
         if (GetCachedOrNewTable((typeof(IAnidbAnime), anime.ID), out var animeTable))
             return animeTable;
         var series = anime.ShokoSeries.FirstOrDefault();
-        animeTable[nameof(AnimeTable.airdate)] = DateTimeToTable(anime.AirDate);
-        animeTable[nameof(AnimeTable.enddate)] = DateTimeToTable(anime.EndDate);
+        animeTable[nameof(AnimeTable.airdate)] = DateTimeToTable(anime.AirDate?.ToDateTime());
+        animeTable[nameof(AnimeTable.enddate)] = DateTimeToTable(anime.EndDate?.ToDateTime());
         animeTable[nameof(AnimeTable.rating)] = anime.Rating;
         animeTable[nameof(AnimeTable.restricted)] = anime.Restricted;
         animeTable[nameof(AnimeTable.type)] = anime.Type.ToString();
@@ -465,8 +465,8 @@ public class LuaContext : Lua
             showTable[nameof(TmdbShowTable.restricted)] = s.Restricted;
             showTable[nameof(TmdbShowTable.studios)] = GetNewArray(s.Studios.Select(st => st.Name));
             showTable[nameof(TmdbShowTable.episodecount)] = s.EpisodeCounts.Episodes;
-            showTable[nameof(TmdbShowTable.airdate)] = DateTimeToTable(s.AirDate);
-            showTable[nameof(TmdbShowTable.enddate)] = DateTimeToTable(s.EndDate);
+            showTable[nameof(TmdbShowTable.airdate)] = DateTimeToTable(s.AirDate?.ToDateTime());
+            showTable[nameof(TmdbShowTable.enddate)] = DateTimeToTable(s.EndDate?.ToDateTime());
             showTable[nameof(TmdbShowTable.getname)] = getName;
             return showTable;
         }));
