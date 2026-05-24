@@ -47,6 +47,8 @@ jobs:
         IS_PRERELEASE=$(gh release view "$TAG" --repo "${{ github.repository }}" --json isPrerelease -q .isPrerelease)
         CHANNEL=$([[ "$IS_PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
 
+        ABSTRACTION_VERSION=$(sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' ./LuaRenamer/LuaRenamer.csproj | head -1)
+
         ARCHIVES_JSON="[]"
         shopt -s nullglob
         for ZIP in ./publish/*.zip; do
@@ -57,7 +59,7 @@ jobs:
           URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${ZIP_BASENAME}"
           ARCHIVE_ENTRY=$(jq -n \
             --arg runtime "$RID" \
-            --arg abstraction "6.0.0" \
+            --arg abstraction "$ABSTRACTION_VERSION" \
             --arg url "$URL" \
             --arg checksum "$CHECKSUM" \
             '{runtime: $runtime, abstraction: $abstraction, url: $url, checksum: $checksum}')
