@@ -7,6 +7,9 @@
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>12</LangVersion>
+        <Authors>Mik1ll</Authors>
+        <RepositoryUrl>https://github.com/Mik1ll/LuaRenamer</RepositoryUrl>
+        <PackageTags>relocation-provider, lua, scripting</PackageTags>
         <Nullable>enable</Nullable>
         <!--<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>-->
         <Deterministic>true</Deterministic>

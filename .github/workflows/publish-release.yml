@@ -36,3 +36,49 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: gh release create "$GITHUB_REF_NAME" ./publish/*.zip --generate-notes --verify-tag --prerelease
+    - name: Update Manifest
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG="$GITHUB_REF_NAME"
+        VERSION="${TAG#v}"
+        SOURCE_REVISION=$(git rev-list -n 1 "$TAG")
+        RELEASED_AT=$(git log -1 --format=%cI "$SOURCE_REVISION")
+        IS_PRERELEASE=$(gh release view "$TAG" --repo "${{ github.repository }}" --json isPrerelease -q .isPrerelease)
+        CHANNEL=$([[ "$IS_PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
+
+        ARCHIVES_JSON="[]"
+        shopt -s nullglob
+        for ZIP in ./publish/*.zip; do
+          ZIP_BASENAME=$(basename "$ZIP")
+          RID="${ZIP_BASENAME##*_}"
+          RID="${RID%.zip}"
+          CHECKSUM=$(sha256sum "$ZIP" | awk '{ print $1 }')
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${ZIP_BASENAME}"
+          ARCHIVE_ENTRY=$(jq -n \
+            --arg runtime "$RID" \
+            --arg abstraction "6.0.0" \
+            --arg url "$URL" \
+            --arg checksum "$CHECKSUM" \
+            '{runtime: $runtime, abstraction: $abstraction, url: $url, checksum: $checksum}')
+          ARCHIVES_JSON=$(echo "$ARCHIVES_JSON" | jq --argjson entry "$ARCHIVE_ENTRY" '. += [$entry]')
+        done
+
+        RELEASE_ENTRY=$(jq -n \
+          --arg version "$VERSION" \
+          --arg tag "$TAG" \
+          --arg source_revision "$SOURCE_REVISION" \
+          --arg released_at "$RELEASED_AT" \
+          --arg channel "$CHANNEL" \
+          --argjson archives "$ARCHIVES_JSON" \
+          '{version: $version, tag: $tag, source_revision: $source_revision, released_at: $released_at, channel: $channel, release_notes: null, archives: $archives}')
+
+        jq --argjson release "$RELEASE_ENTRY" '
+          .releases |= [ $release ] + (. | map(select(.version != $release.version)))
+        ' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add manifest.json
+        git commit -m "ci: update manifest for ${TAG}"
+        git push origin HEAD:master

@@ -9,6 +9,19 @@ For support/questions join the [Shoko Discord server](https://discord.gg/shokoan
 
 ## Installation
 
+### Plugin Manager (Recommended)
+
+1. Open the Shoko Web UI and navigate to **Settings → Plugins → Repositories**.
+2. Add the manifest URL:
+   ```
+   https://raw.githubusercontent.com/Mik1ll/LuaRenamer/master/manifest.json
+   ```
+3. Go to **Settings → Plugins → Browse** and find **LuaRenamer**.
+4. Click **Install** on the desired version.
+5. Restart Shoko Server.
+
+### Manual
+
 1. Download the [the release appropriate for your Shoko Server version](https://github.com/Mik1ll/LuaRenamer/releases).
     - The [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest) should be compatible with current Stable.
     - Pre-releases will be compatible with Shoko Daily depending on the Abstractions Version, check release notes and [Shoko Server tags](https://github.com/ShokoAnime/ShokoServer/tags) for compatibility.
