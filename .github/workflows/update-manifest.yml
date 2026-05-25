@@ -3,6 +3,12 @@ name: Update Manifest
 on:
   release:
     types: [released, prereleased]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to process (e.g. v1.2.3)
+        required: true
+        type: string
 
 concurrency:
   group: update-manifest
@@ -21,8 +27,7 @@ jobs:
     - name: Update manifest entry
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TAG: ${{ github.event.release.tag_name }}
-        PRERELEASE: ${{ github.event.release.prerelease }}
+        TAG: ${{ github.event.release.tag_name || inputs.tag }}
         REPO: ${{ github.repository }}
       run: |
         git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
@@ -33,7 +38,9 @@ jobs:
 
         ABSTRACTION_VERSION=$(git show "${TAG}:LuaRenamer/LuaRenamer.csproj" | sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' | head -1)
 
-        ASSETS_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}" --jq '.assets')
+        RELEASE_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}")
+        PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+        ASSETS_JSON=$(echo "$RELEASE_JSON" | jq '.assets')
 
         ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "$REPO" --arg tag "$TAG" '
           [ .[] | select(.name | endswith(".zip")) | {
