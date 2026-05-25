@@ -34,12 +34,12 @@ jobs:
         VERSION="${TAG#v}"; VERSION="${VERSION%%-*}"
         SOURCE_REVISION=$(git rev-list -n 1 "$TAG")
         RELEASED_AT=$(git log -1 --format=%cI "$SOURCE_REVISION")
-        CHANNEL=$([[ "$PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
 
         ABSTRACTION_VERSION=$(git show "${TAG}:LuaRenamer/LuaRenamer.csproj" | sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' | head -1)
 
         RELEASE_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}")
         PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+        CHANNEL=$([[ "$PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
         RELEASE_NOTES=$(echo "$RELEASE_JSON" | jq -r '.body')
         ASSETS_JSON=$(echo "$RELEASE_JSON" | jq '.assets')
 
