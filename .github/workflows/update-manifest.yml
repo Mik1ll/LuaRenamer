@@ -1,0 +1,69 @@
+name: Update Manifest
+
+on:
+  release:
+    types: [released, prereleased]
+
+concurrency:
+  group: update-manifest
+  cancel-in-progress: false
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: manifest
+        fetch-depth: 0
+    - name: Update manifest entry
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.event.release.tag_name }}
+        IS_PRERELEASE: ${{ github.event.release.prerelease }}
+      run: |
+        git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
+        VERSION="${TAG#v}"
+        SOURCE_REVISION=$(git rev-list -n 1 "$TAG")
+        RELEASED_AT=$(git log -1 --format=%cI "$SOURCE_REVISION")
+        CHANNEL=$([[ "$IS_PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
+
+        ABSTRACTION_VERSION=$(git show "${TAG}:LuaRenamer/LuaRenamer.csproj" | sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' | head -1)
+
+        ASSETS_JSON=$(gh api "repos/${{ github.repository }}/releases/tags/${TAG}" --jq '.assets')
+
+        ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "${{ github.repository }}" --arg tag "$TAG" '
+          [ .[] | select(.name | endswith(".zip")) | {
+              runtime: (.name | gsub(".*_"; "") | gsub("\\.zip$"; "")),
+              abstraction: $abstraction,
+              url: "https://github.com/\($repo)/releases/download/\($tag)/\(.name)",
+              checksum: (.digest | ltrimstr("sha256:"))
+            }
+          ]
+        ')
+
+        RELEASE_ENTRY=$(jq -n \
+          --arg version "$VERSION" \
+          --arg tag "$TAG" \
+          --arg source_revision "$SOURCE_REVISION" \
+          --arg released_at "$RELEASED_AT" \
+          --arg channel "$CHANNEL" \
+          --argjson archives "$ARCHIVES_JSON" \
+          '{version: $version, tag: $tag, source_revision: $source_revision, released_at: $released_at, channel: $channel, release_notes: null, archives: $archives}')
+
+        jq --argjson release "$RELEASE_ENTRY" '
+          .releases |= [ $release ] + (. | map(select(.version != $release.version or .channel != $release.channel)))
+        ' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
+
+        if git diff --quiet manifest.json; then
+          echo "manifest.json unchanged, skipping commit"
+          exit 0
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add manifest.json
+        git commit -m "ci: update manifest for ${TAG} (${CHANNEL})"
+        git push origin HEAD:manifest
