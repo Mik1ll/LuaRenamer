@@ -40,6 +40,7 @@ jobs:
 
         RELEASE_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}")
         PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+        RELEASE_NOTES=$(echo "$RELEASE_JSON" | jq -r '.body')
         ASSETS_JSON=$(echo "$RELEASE_JSON" | jq '.assets')
 
         ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "$REPO" --arg tag "$TAG" '
@@ -58,8 +59,9 @@ jobs:
           --arg source_revision "$SOURCE_REVISION" \
           --arg released_at "$RELEASED_AT" \
           --arg channel "$CHANNEL" \
+          --arg release_notes "$RELEASE_NOTES" \
           --argjson archives "$ARCHIVES_JSON" \
-          '{version: $version, tag: $tag, source_revision: $source_revision, released_at: $released_at, channel: $channel, release_notes: null, archives: $archives}')
+          '{version: $version, tag: $tag, source_revision: $source_revision, released_at: $released_at, channel: $channel, release_notes: $release_notes, archives: $archives}')
 
         jq --argjson release "$RELEASE_ENTRY" '
           .releases |= [ $release ] + (. | map(select(.version != $release.version or .channel != $release.channel)))
