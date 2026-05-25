@@ -13,6 +13,34 @@
   "image_url": null,
   "releases": [
     {
+      "version": "5.10.3",
+      "tag": "v5.10.3-stable-5.3.1",
+      "source_revision": "4f8f6bb4a2d4178b7a9208430e59a3b1258a38e6",
+      "released_at": "2026-02-19T21:14:42-08:00",
+      "channel": "Stable",
+      "release_notes": "## What's Changed\r\n* Fix episode_numbers and add test (compat) by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/121\r\n\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v5.10.2-stable-5.3.1...v5.10.3-stable-5.3.1",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_linux-arm64.zip",
+          "checksum": "7e4bcb53af506276c40f885088438053daa4056cdc79350e5db7c9596654fbe2"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_linux-x64.zip",
+          "checksum": "bf073cd227509f5340cb36a7c6078a5dd2002e1fef5712bfa585d0ce53054c55"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_win-x64.zip",
+          "checksum": "066314d1a6414669a45d9220c3939ac11f7af8c317e55f4ee7bebbb07c9d7f96"
+        }
+      ]
+    },
+    {
       "version": "6.0.5",
       "tag": "v6.0.5-abstr-6.0.0-alpha.21",
       "source_revision": "f54e18942357b5ec9d0c29a5c3c011b6dcc1f55f",
