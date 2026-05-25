@@ -22,19 +22,19 @@
       "archives": [
         {
           "runtime": "linux-arm64",
-          "abstraction": "",
+          "abstraction": "5.3.0",
           "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_linux-arm64.zip",
           "checksum": "7e4bcb53af506276c40f885088438053daa4056cdc79350e5db7c9596654fbe2"
         },
         {
           "runtime": "linux-x64",
-          "abstraction": "",
+          "abstraction": "5.3.0",
           "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_linux-x64.zip",
           "checksum": "bf073cd227509f5340cb36a7c6078a5dd2002e1fef5712bfa585d0ce53054c55"
         },
         {
           "runtime": "win-x64",
-          "abstraction": "",
+          "abstraction": "5.3.0",
           "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v5.10.3-stable-5.3.1/LuaRenamer_v5.10.3-stable-5.3.1-0-g4f8f6bb_win-x64.zip",
           "checksum": "066314d1a6414669a45d9220c3939ac11f7af8c317e55f4ee7bebbb07c9d7f96"
         }
