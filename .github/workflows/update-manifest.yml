@@ -22,23 +22,24 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TAG: ${{ github.event.release.tag_name }}
-        IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        PRERELEASE: ${{ github.event.release.prerelease }}
+        REPO: ${{ github.repository }}
       run: |
         git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
-        VERSION="${TAG#v}"
+        VERSION="${TAG#v}"; VERSION="${VERSION%%-*}"
         SOURCE_REVISION=$(git rev-list -n 1 "$TAG")
         RELEASED_AT=$(git log -1 --format=%cI "$SOURCE_REVISION")
-        CHANNEL=$([[ "$IS_PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
+        CHANNEL=$([[ "$PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
 
         ABSTRACTION_VERSION=$(git show "${TAG}:LuaRenamer/LuaRenamer.csproj" | sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' | head -1)
 
-        ASSETS_JSON=$(gh api "repos/${{ github.repository }}/releases/tags/${TAG}" --jq '.assets')
+        ASSETS_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}" --jq '.assets')
 
-        ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "${{ github.repository }}" --arg tag "$TAG" '
+        ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "$REPO" --arg tag "$TAG" '
           [ .[] | select(.name | endswith(".zip")) | {
               runtime: (.name | gsub(".*_"; "") | gsub("\\.zip$"; "")),
               abstraction: $abstraction,
-              url: "https://github.com/\($repo)/releases/download/\($tag)/\(.name)",
+              url: .browser_download_url,
               checksum: (.digest | ltrimstr("sha256:"))
             }
           ]
