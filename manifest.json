@@ -12,5 +12,33 @@
   ],
   "image_url": null,
   "releases": [
+    {
+      "version": "6.0.5",
+      "tag": "v6.0.5-abstr-6.0.0-alpha.21",
+      "source_revision": "f54e18942357b5ec9d0c29a5c3c011b6dcc1f55f",
+      "released_at": "2026-05-19T07:08:21-07:00",
+      "channel": "Stable",
+      "release_notes": "## What's Changed\n* Update to Shoko.Abstractions 6.0.0-alpha.21 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/126\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.0.4-abstr-6.0.0-alpha.13...v6.0.5-abstr-6.0.0-alpha.21",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.0.5-abstr-6.0.0-alpha.21/LuaRenamer_v6.0.5-abstr-6.0.0-alpha.21-0-gf54e189_linux-arm64.zip",
+          "checksum": "a4fa71e2018705fe11a11bf8e9247c535c1c25c23314da2b7f8ac1b04e33d3c8"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.0.5-abstr-6.0.0-alpha.21/LuaRenamer_v6.0.5-abstr-6.0.0-alpha.21-0-gf54e189_linux-x64.zip",
+          "checksum": "21560d4ce88d63ef10c3b6450b40974c869627430cc23967bea6b1f91baaf6f0"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.0.5-abstr-6.0.0-alpha.21/LuaRenamer_v6.0.5-abstr-6.0.0-alpha.21-0-gf54e189_win-x64.zip",
+          "checksum": "618ebf19a54d16ec954f3de210a5ab19e04039d0ed314395102114d0b09de5a3"
+        }
+      ]
+    }
   ]
 }
