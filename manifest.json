@@ -13,6 +13,34 @@
   "image_url": null,
   "releases": [
     {
+      "version": "6.1.0",
+      "tag": "v6.1.0-abstr-6.0.0-alpha.33",
+      "source_revision": "7600babb9285df258a1e9e2b5b488bee6156e031",
+      "released_at": "2026-05-30T23:17:06-07:00",
+      "channel": "Dev",
+      "release_notes": "## What's Changed\r\n* Add plugin manifest and package metadata by @revam in https://github.com/Mik1ll/LuaRenamer/pull/128\r\n* Fix action by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/130\r\n* Add seasons by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/131\r\n* Refactor LuaContext by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/132\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.0.5-abstr-6.0.0-alpha.21...v6.1.0-abstr-6.0.0-alpha.33",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.1.0-abstr-6.0.0-alpha.33/LuaRenamer_v6.1.0-abstr-6.0.0-alpha.33-0-g7600bab_linux-arm64.zip",
+          "checksum": "55de41d1b074ae2a548c1f217dd88b94fc2a5105000267c0a32292592884dbac"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.1.0-abstr-6.0.0-alpha.33/LuaRenamer_v6.1.0-abstr-6.0.0-alpha.33-0-g7600bab_linux-x64.zip",
+          "checksum": "3185f36a45e533fca7139c15cb211e48cfd4539b76400400e967a4a66e5e53a2"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.1.0-abstr-6.0.0-alpha.33/LuaRenamer_v6.1.0-abstr-6.0.0-alpha.33-0-g7600bab_win-x64.zip",
+          "checksum": "ae1c3e508381693df8a9cfc2f296775d89019b06badd2533f5ce8f302e3eb948"
+        }
+      ]
+    },
+    {
       "version": "5.10.3",
       "tag": "v5.10.3-stable-5.3.1",
       "source_revision": "4f8f6bb4a2d4178b7a9208430e59a3b1258a38e6",
