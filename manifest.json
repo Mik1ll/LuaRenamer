@@ -10,7 +10,7 @@
     "lua",
     "scripting"
   ],
-  "image_url": null,
+  "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "releases": [
     {
       "version": "6.1.0",
