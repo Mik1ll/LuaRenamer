@@ -239,7 +239,7 @@ public class LuaContext : Lua
         => TableFrom([.. FilePathCleaner.ReplaceMapDefaults.Select(kvp => (kvp.Key, (object?)kvp.Value))]);
 
     private LuaTable GroupToTable(IShokoGroup group, LuaFunction getName) => TableFrom([
-        (nameof(GroupTable.name), group.PreferredTitle),
+        (nameof(GroupTable.name), group.Title),
         (nameof(GroupTable.mainanime), AnimeToTable(group.MainSeries.AnidbAnime, false, getName)),
         (nameof(GroupTable.animes), ArrayFrom(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getName)))),
     ]);
@@ -404,8 +404,8 @@ public class LuaContext : Lua
         (nameof(TmdbTable.movies), ArrayFrom(_args.Series[0].TmdbMovies.Select(m => TableFrom([
             (nameof(TmdbMovieTable.id), m.ID),
             (nameof(TmdbMovieTable.titles), ArrayFrom(m.Titles.Select(TitleToTable))),
-            (nameof(TmdbMovieTable.defaultname), m.DefaultTitle),
-            (nameof(TmdbMovieTable.preferredname), m.PreferredTitle),
+            (nameof(TmdbMovieTable.defaultname), m.DefaultTitle.Value),
+            (nameof(TmdbMovieTable.preferredname), m.Title),
             (nameof(TmdbMovieTable.rating), m.Rating),
             (nameof(TmdbMovieTable.restricted), m.Restricted),
             (nameof(TmdbMovieTable.studios), ArrayFrom(m.Studios.Select(s => s.Name))),
@@ -415,8 +415,8 @@ public class LuaContext : Lua
         (nameof(TmdbTable.shows), ArrayFrom(_args.Series[0].TmdbShows.Select(s => TableFrom([
             (nameof(TmdbShowTable.id), s.ID),
             (nameof(TmdbShowTable.titles), ArrayFrom(s.Titles.Select(TitleToTable))),
-            (nameof(TmdbShowTable.defaultname), s.DefaultTitle),
-            (nameof(TmdbShowTable.preferredname), s.PreferredTitle),
+            (nameof(TmdbShowTable.defaultname), s.DefaultTitle.Value),
+            (nameof(TmdbShowTable.preferredname), s.Title),
             (nameof(TmdbShowTable.rating), s.Rating),
             (nameof(TmdbShowTable.restricted), s.Restricted),
             (nameof(TmdbShowTable.studios), ArrayFrom(s.Studios.Select(st => st.Name))),
@@ -431,8 +431,8 @@ public class LuaContext : Lua
                 (nameof(TmdbEpisodeTable.showid), e2.SeriesID),
                 (nameof(TmdbEpisodeTable.id), e2.ID),
                 (nameof(TmdbEpisodeTable.titles), ArrayFrom(e2.Titles.Select(TitleToTable))),
-                (nameof(TmdbEpisodeTable.defaultname), e2.DefaultTitle),
-                (nameof(TmdbEpisodeTable.preferredname), e2.PreferredTitle),
+                (nameof(TmdbEpisodeTable.defaultname), e2.DefaultTitle.Value),
+                (nameof(TmdbEpisodeTable.preferredname), e2.Title),
                 (nameof(TmdbEpisodeTable.type), e2.Type.ToString()),
                 (nameof(TmdbEpisodeTable.number), e2.EpisodeNumber),
                 (nameof(TmdbEpisodeTable.seasonnumber), e2.SeasonNumber),
