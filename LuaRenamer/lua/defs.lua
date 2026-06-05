@@ -2,11 +2,11 @@
 
 ---@class (exact) AniDb
 ---@field id integer # AniDB file ID
----@field censored boolean # Whether the release is censored
+---@field censored boolean|nil # Whether the release is censored
 ---@field source string # Source media of the release e.g. DVD, BD, Web, etc.
 ---@field version integer # Version number of the release
----@field releasedate DateTime # Release date of the file
----@field description string # Description or notes about the release
+---@field releasedate DateTime|nil # Release date of the file
+---@field description string|nil # Description or notes about the release
 ---@field releasegroup ReleaseGroup|nil # Information about the release group
 ---@field media AniDbMedia # Media information from AniDB
 local AniDb = {}
@@ -90,7 +90,7 @@ function Episode:getname(lang) end
 local File = {}
 
 ---@class (exact) Group
----@field name string # The name of the group
+---@field name string|nil # The name of the group
 ---@field mainanime Anime # The main anime in the group
 ---@field animes Anime[] # All animes in the group
 local Group = {}
@@ -150,11 +150,11 @@ local Tmdb = {}
 ---@field id integer # TMDB episode ID
 ---@field showid integer # TMDB show ID
 ---@field titles Title[] # All available titles for the episode
----@field defaultname string # Default episode title
----@field preferredname string # Preferred episode title
+---@field defaultname string|nil # Default episode title
+---@field preferredname string|nil # Preferred episode title
 ---@field type EpisodeType # Type of episode
 ---@field number integer # Episode number within the season
----@field seasonnumber integer # Season number
+---@field seasonnumber integer|nil # Season number
 ---@field airdate DateTime|nil # Air date of the episode
 local TmdbEpisode = {}
 
@@ -166,8 +166,8 @@ function TmdbEpisode:getname(lang) end
 ---@class (exact) TmdbMovie
 ---@field id integer # TMDB movie ID
 ---@field titles Title[] # All available titles for the movie
----@field defaultname string # Default movie title
----@field preferredname string # Preferred movie title
+---@field defaultname string|nil # Default movie title
+---@field preferredname string|nil # Preferred movie title
 ---@field rating number # Movie rating
 ---@field restricted boolean # Whether the movie is age-restricted
 ---@field studios string[] # List of production studios
@@ -182,8 +182,8 @@ function TmdbMovie:getname(lang) end
 ---@class (exact) TmdbShow
 ---@field id integer # TMDB show ID
 ---@field titles Title[] # All available titles for the show
----@field defaultname string # Default show title
----@field preferredname string # Preferred show title
+---@field defaultname string|nil # Default show title
+---@field preferredname string|nil # Preferred show title
 ---@field rating number # Show rating
 ---@field restricted boolean # Whether the show is age-restricted
 ---@field studios string[] # List of production studios

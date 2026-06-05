@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Group)]
 public class GroupTable : Table
 {
-    [LuaType(LuaTypeNames.@string, "The name of the group")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "The name of the group")]
     public string name => Get();
 
     [LuaType(LuaTypeNames.Anime, "The main anime in the group")]

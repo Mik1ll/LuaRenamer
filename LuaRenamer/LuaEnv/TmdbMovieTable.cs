@@ -14,10 +14,10 @@ public class TmdbMovieTable : Table
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the movie")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string, "Default movie title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default movie title")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.@string, "Preferred movie title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred movie title")]
     public string preferredname => Get();
 
     [LuaType(LuaTypeNames.number, "Movie rating")]

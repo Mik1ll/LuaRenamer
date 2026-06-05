@@ -14,10 +14,10 @@ public class TmdbShowTable : Table
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the show")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string, "Default show title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default show title")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.@string, "Preferred show title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred show title")]
     public string preferredname => Get();
 
     [LuaType(LuaTypeNames.number, "Show rating")]
@@ -29,7 +29,7 @@ public class TmdbShowTable : Table
     [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
     public string studios => Get();
 
-    [LuaType(LuaTypeNames.integer, "Total number of episodes")]
+    [LuaType($"{LuaTypeNames.integer}", "Total number of episodes")]
     public string episodecount => Get();
 
     [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the show")]

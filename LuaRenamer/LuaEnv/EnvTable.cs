@@ -59,15 +59,15 @@ public class EnvTable : RootTable
     [LuaType(LuaTypeNames.Tmdb, "TMDB information for the current file")]
     public static TmdbTable tmdb => new() { Fn = Get() };
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Output: The filename to rename to")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Output: The filename to rename to", Output = true)]
     public static string filename => Get();
 
     [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.ImportFolder}|{LuaTypeNames.nil}",
-        $"Output: Import folder name / full directory path / {nameof(LuaTypeNames.ImportFolder)} that specifies the destination")]
+        $"Output: Import folder name / full directory path / {nameof(LuaTypeNames.ImportFolder)} that specifies the destination", Output = true)]
     public static string destination => Get();
 
     [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.@string}[]|{LuaTypeNames.nil}",
-        "Output: The subfolder to move the file to, must be an array table if there is more than one directory component")]
+        "Output: The subfolder to move the file to, must be an array table if there is more than one directory component", Output = true)]
     public static string subfolder => Get();
 
     [LuaType(LuaTypeNames.boolean,

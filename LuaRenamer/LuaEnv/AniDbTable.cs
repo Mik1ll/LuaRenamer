@@ -11,7 +11,7 @@ public class AniDbTable : Table
     [LuaType(LuaTypeNames.integer, "AniDB file ID")]
     public string id => Get();
 
-    [LuaType(LuaTypeNames.boolean, "Whether the release is censored")]
+    [LuaType($"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether the release is censored")]
     public string censored => Get();
 
     [LuaType(LuaTypeNames.@string, "Source media of the release e.g. DVD, BD, Web, etc.")]
@@ -20,10 +20,10 @@ public class AniDbTable : Table
     [LuaType(LuaTypeNames.integer, "Version number of the release")]
     public string version => Get();
 
-    [LuaType(LuaTypeNames.DateTime, "Release date of the file")]
+    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Release date of the file")]
     public DateTimeTable releasedate => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string, "Description or notes about the release")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Description or notes about the release")]
     public string description => Get();
 
     [LuaType($"{LuaTypeNames.ReleaseGroup}|{LuaTypeNames.nil}", "Information about the release group")]

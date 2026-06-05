@@ -17,10 +17,10 @@ public class TmdbEpisodeTable : Table
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the episode")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 
-    [LuaType(LuaTypeNames.@string, "Default episode title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default episode title")]
     public string defaultname => Get();
 
-    [LuaType(LuaTypeNames.@string, "Preferred episode title")]
+    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred episode title")]
     public string preferredname => Get();
 
     [LuaType(nameof(EnumsTable.EpisodeType), "Type of episode")]
@@ -29,7 +29,7 @@ public class TmdbEpisodeTable : Table
     [LuaType(LuaTypeNames.integer, "Episode number within the season")]
     public string number => Get();
 
-    [LuaType(LuaTypeNames.integer, "Season number")]
+    [LuaType($"{LuaTypeNames.integer}|{LuaTypeNames.nil}", "Season number")]
     public string seasonnumber => Get();
 
     [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the episode")]
