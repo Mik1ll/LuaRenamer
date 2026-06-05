@@ -2,7 +2,7 @@ name: Update Manifest
 
 on:
   release:
-    types: [published, edited]
+    types: [released]
   workflow_dispatch:
     inputs:
       tag:
