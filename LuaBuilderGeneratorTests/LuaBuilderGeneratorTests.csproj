@@ -13,7 +13,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
         <PackageReference Include="NLua" Version="1.7.8" />
         <PackageReference Include="KeraLua" Version="1.4.9" />
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.33" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" />
     </ItemGroup>
 
     <ItemGroup>

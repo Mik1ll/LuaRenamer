@@ -50,11 +50,12 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.33, )",
-        "resolved": "6.0.0-alpha.33",
-        "contentHash": "sU843296mDQW61G5y8Yb4NchzBzr+uhXU61ymKF/ArYm/7z533L/gPm5Kca+Emmbtmj1tCRIwS314z2cDi7mxA==",
+        "requested": "[6.0.0-alpha.43, )",
+        "resolved": "6.0.0-alpha.43",
+        "contentHash": "ctxyo4mK+LTLKhK8m5oj7GXeusEdt3UFrj05rL2cocuSPyLsLNyMxbT9szVGtvaJfyfMpCrXsNs93tb9/l670A==",
         "dependencies": {
-          "NJsonSchema": "11.6.1"
+          "NJsonSchema": "11.6.1",
+          "Newtonsoft.Json": "13.0.4"
         }
       },
       "Castle.Core": {
@@ -203,8 +204,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "NJsonSchema": {
         "type": "Transitive",
@@ -232,7 +233,7 @@
           "KeraLua": "[1.4.9, )",
           "LuaRenamer": "[1.0.0, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.33, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
       },
       "luarenamer": {
@@ -241,7 +242,7 @@
           "KeraLua": "[1.4.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
           "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.33, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
       }
     },
