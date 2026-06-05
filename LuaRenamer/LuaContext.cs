@@ -251,7 +251,7 @@ public class LuaContext : Lua
 
     private LuaRef<GroupTable> GroupToTable(IShokoGroup group, LuaFunction getName) =>
         new GroupTableBuilder(GetNewTable())
-            .name(group.PreferredTitle?.Value)
+            .name(string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value)
             .mainanime(AnimeToTable(group.MainSeries.AnidbAnime, false, getName))
             .animes(ArrayOf(group.AllSeries.Select(a => AnimeToTable(a.AnidbAnime, false, getName))))
             .Build();
