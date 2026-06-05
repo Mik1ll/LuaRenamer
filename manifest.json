@@ -13,6 +13,34 @@
   "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "releases": [
     {
+      "version": "6.2.0",
+      "tag": "v6.2.0-abstr-6.0.0-alpha.43",
+      "source_revision": "2288a52327055b151c8623f1166740361511bc5a",
+      "released_at": "2026-06-04T23:35:16-07:00",
+      "channel": "Dev",
+      "release_notes": "## What's Changed\n* Change release types in update-manifest workflow by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/133\n* Change GH_TOKEN to use MY_GITHUB_RELEASE_PAT by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/134\n* Upload plugin manifest banner by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/135\n* Add compile-time type safety for Lua table bindings via source generator by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/137\n* Update Shoko.Abstractions package to version 6.0.0-alpha.43 across all projects by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/138\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.1.0-abstr-6.0.0-alpha.33...v6.2.0-abstr-6.0.0-alpha.43",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.2.0-abstr-6.0.0-alpha.43/LuaRenamer_v6.2.0-abstr-6.0.0-alpha.43-0-g2288a52_linux-arm64.zip",
+          "checksum": "efcce7e2375b725766d8862b59f74f21755211571472738a6ac9d5fd01355a4e"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.2.0-abstr-6.0.0-alpha.43/LuaRenamer_v6.2.0-abstr-6.0.0-alpha.43-0-g2288a52_linux-x64.zip",
+          "checksum": "ee959ccd5f74fbc20d21ff3f0849d1f10a94d69b45a214b0feb5c87a85d17dda"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.2.0-abstr-6.0.0-alpha.43/LuaRenamer_v6.2.0-abstr-6.0.0-alpha.43-0-g2288a52_win-x64.zip",
+          "checksum": "943ffb51aff5df627a6a9b0da0d4518e2781eb21e12f116bdec38a34671b93d2"
+        }
+      ]
+    },
+    {
       "version": "6.1.0",
       "tag": "v6.1.0-abstr-6.0.0-alpha.33",
       "source_revision": "7600babb9285df258a1e9e2b5b488bee6156e031",
