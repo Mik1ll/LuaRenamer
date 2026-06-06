@@ -77,8 +77,8 @@ public class BuilderGenerator : IIncrementalGenerator
         var typeFqn = type.ToDisplayString(Fq);
         var builderName = $"{type.Name}Builder";
 
-        // Collect every bound field: its property name, C# type, and the expression (in terms of the
-        // property name) that converts the typed value to what is stored in the LuaTable.
+        // Collect every bound field: its member name, C# type, and the expression (in terms of the
+        // init accessor's `value`) that converts the typed value to what is stored in the LuaTable.
         var members = new List<(string Name, string ParamType, string Assign)>();
         foreach (var member in type.GetMembers())
         {
@@ -89,12 +89,12 @@ public class BuilderGenerator : IIncrementalGenerator
                     if (GetBool(attr, "Output"))
                         continue;
                     var (paramType, assignFmt) = map.Map(GetString(attr, 0)!);
-                    members.Add((prop.Name, paramType, string.Format(assignFmt, prop.Name)));
+                    members.Add((prop.Name, paramType, string.Format(assignFmt, "value")));
                     break;
                 }
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method when GetLuaType(method) is not null:
                 {
-                    members.Add((method.Name, LuaFunction, method.Name));
+                    members.Add((method.Name, LuaFunction, "value"));
                     break;
                 }
                 // Enum globals (EnumsTable): EnumTable<T> properties carry no [LuaType].
@@ -102,7 +102,7 @@ public class BuilderGenerator : IIncrementalGenerator
                     when GetLuaType(enumProp) is null:
                 {
                     var enumFqn = et.TypeArguments[0].ToDisplayString(Fq);
-                    members.Add((enumProp.Name, $"{Bt}.LuaEnumRef<{enumFqn}>", $"{enumProp.Name}.Table"));
+                    members.Add((enumProp.Name, $"{Bt}.LuaEnumRef<{enumFqn}>", "value.Table"));
                     break;
                 }
             }
@@ -110,22 +110,27 @@ public class BuilderGenerator : IIncrementalGenerator
 
         sb.Append($"internal sealed class {builderName}\n{{\n");
         sb.Append($"    private readonly {LuaTable} _t;\n\n");
-        sb.Append($"    public {builderName}({LuaTable} table)\n    {{\n        _t = table;\n    }}\n\n");
-
-        // One `required` init member per field forces every field to be set in the object initializer
-        // (omitting one is a compile error), nullable fields included.
-        foreach (var m in members)
-            sb.Append($"    public required {m.ParamType} {m.Name} {{ get; init; }}\n");
-        sb.Append("\n");
-
-        // Build() flushes the typed members into the untyped LuaTable.
-        sb.Append($"    public {(isTable ? $"{Bt}.LuaRef<{typeFqn}>" : LuaTable)} Build()\n    {{\n");
+        sb.Append($"    public {builderName}({LuaTable} table)\n    {{\n        _t = table;\n");
         if (type.GetMembers("_classidVal").OfType<IFieldSymbol>().Any(f => f.IsConst))
             sb.Append($"        _t[\"_classid\"] = {typeFqn}._classidVal;\n");
+        sb.Append("    }\n\n");
+
+        // One `required` init member per field writes straight into the LuaTable; `required` forces
+        // every field to be set in the object initializer (omitting one is a compile error), nullable
+        // fields included.
         foreach (var m in members)
-            sb.Append($"        _t[\"{m.Name}\"] = {m.Assign};\n");
-        sb.Append(isTable ? "        return new(_t);\n" : "        return _t;\n");
-        sb.Append("    }\n}\n\n");
+            sb.Append($"    public required {m.ParamType} {m.Name} {{ init => _t[\"{m.Name}\"] = {m.Assign}; }}\n");
+
+        // A typed-handle implicit conversion replaces Build() for table builders, so a populated
+        // builder is the LuaRef<T>. Root builders mutate the env table in place and are used as a
+        // statement, so they need no conversion.
+        if (isTable)
+        {
+            sb.Append("\n");
+            sb.Append($"    public static implicit operator {Bt}.LuaRef<{typeFqn}>({builderName} b) => new(b._t);\n");
+        }
+
+        sb.Append("}\n\n");
     }
 
     private static AttributeData? GetLuaType(ISymbol symbol) =>

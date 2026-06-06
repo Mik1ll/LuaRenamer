@@ -77,65 +77,58 @@ public class BuilderGeneratorTests
     [TestMethod]
     public void ScalarMapping()
     {
-        AssertContains("public required double rating { get; init; }");
-        AssertContains("public required long id { get; init; }");
-        AssertContains("public required bool restricted { get; init; }");
-        AssertContains("public required string preferredname { get; init; }");
+        // Each field is a `required` init member that writes straight into the LuaTable.
+        AssertContains("public required double rating { init => _t[\"rating\"] = value; }");
+        AssertContains("public required long id { init => _t[\"id\"] = value; }");
+        AssertContains("public required bool restricted { init => _t[\"restricted\"] = value; }");
+        AssertContains("public required string preferredname { init => _t[\"preferredname\"] = value; }");
         // Nullable string (PreferredTitle-fed field corrected to string|nil).
-        AssertContains("public required string? name { get; init; }");
-        // Build() flushes the typed scalar straight into the LuaTable.
-        AssertContains("_t[\"rating\"] = rating;");
+        AssertContains("public required string? name { init => _t[\"name\"] = value; }");
     }
 
     [TestMethod]
     public void EnumMapping()
     {
-        // Member accepts the CLR enum; Build() stringifies to match the enum-name Lua tables.
-        AssertContains("public required global::Shoko.Abstractions.Metadata.Enums.AnimeType type { get; init; }");
-        AssertContains("_t[\"type\"] = type.ToString();");
+        // Member accepts the CLR enum; the setter stringifies to match the enum-name Lua tables.
+        AssertContains("public required global::Shoko.Abstractions.Metadata.Enums.AnimeType type { init => _t[\"type\"] = value.ToString(); }");
     }
 
     [TestMethod]
     public void NestedAndNullableMapping()
     {
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.DateTimeTable>? airdate { get; init; }");
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.ReleaseGroupTable>? releasegroup { get; init; }");
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.AnimeTable> mainanime { get; init; }");
-        // Nullable ref unwraps with ?.Table, non-null with .Table.
-        AssertContains("_t[\"airdate\"] = airdate?.Table;");
-        AssertContains("_t[\"mainanime\"] = mainanime.Table;");
+        // Nullable ref unwraps with value?.Table, non-null with value.Table.
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.DateTimeTable>? airdate { init => _t[\"airdate\"] = value?.Table; }");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.ReleaseGroupTable>? releasegroup { init => _t[\"releasegroup\"] = value?.Table; }");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.AnimeTable> mainanime { init => _t[\"mainanime\"] = value.Table; }");
     }
 
     [TestMethod]
     public void ArrayMapping()
     {
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.TitleTable>> titles { get; init; }");
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<string> studios { get; init; }");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.TitleTable>> titles { init => _t[\"titles\"] = value.Table; }");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<string> studios { init => _t[\"studios\"] = value.Table; }");
         // Enum array (Language[]) maps to an enum-typed LuaArray.
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<global::Shoko.Abstractions.Metadata.Enums.TitleLanguage> sublanguages { get; init; }");
-        AssertContains("_t[\"titles\"] = titles.Table;");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaArray<global::Shoko.Abstractions.Metadata.Enums.TitleLanguage> sublanguages { init => _t[\"sublanguages\"] = value.Table; }");
     }
 
     [TestMethod]
     public void MapMapping()
     {
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaMap<global::Shoko.Abstractions.Metadata.Enums.EpisodeType, long> episodecounts { get; init; }");
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaMap<string, string> illegal_chars_map { get; init; }");
-        AssertContains("_t[\"episodecounts\"] = episodecounts.Table;");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaMap<global::Shoko.Abstractions.Metadata.Enums.EpisodeType, long> episodecounts { init => _t[\"episodecounts\"] = value.Table; }");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaMap<string, string> illegal_chars_map { init => _t[\"illegal_chars_map\"] = value.Table; }");
     }
 
     [TestMethod]
     public void FunctionMapping()
     {
-        AssertContains("public required global::NLua.LuaFunction getname { get; init; }");
-        AssertContains("public required global::NLua.LuaFunction log { get; init; }");
-        AssertContains("_t[\"getname\"] = getname;");
+        AssertContains("public required global::NLua.LuaFunction getname { init => _t[\"getname\"] = value; }");
+        AssertContains("public required global::NLua.LuaFunction log { init => _t[\"log\"] = value; }");
     }
 
     [TestMethod]
     public void ClassidAutoSet()
     {
-        // Tables carrying a _classidVal const get _classid auto-set at the top of Build().
+        // Tables carrying a _classidVal const get _classid auto-set in the constructor.
         AssertContains("_t[\"_classid\"] = global::LuaRenamer.LuaEnv.AnimeTable._classidVal;");
         // A table without _classidVal must not reference a _classidVal member.
         Assert.IsFalse(_source.Contains("global::LuaRenamer.LuaEnv.TitleTable._classidVal", StringComparison.Ordinal),
@@ -155,15 +148,16 @@ public class BuilderGeneratorTests
     }
 
     [TestMethod]
-    public void EnumGlobalsAndBuildReturns()
+    public void EnumGlobalsAndHandleConversions()
     {
         // Enum global member: Lua name "Language" resolves to CLR TitleLanguage via EnumsTable.
-        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaEnumRef<global::Shoko.Abstractions.Metadata.Enums.TitleLanguage> Language { get; init; }");
-        AssertContains("_t[\"Language\"] = Language.Table;");
-        // Root builders return the underlying LuaTable; table builders return a typed LuaRef.
-        AssertContains("public global::NLua.LuaTable Build()");
-        AssertContains("return _t;");
-        AssertContains("public global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.AnimeTable> Build()");
-        AssertContains("return new(_t);");
+        AssertContains("public required global::LuaRenamer.LuaEnv.BaseTypes.LuaEnumRef<global::Shoko.Abstractions.Metadata.Enums.TitleLanguage> Language { init => _t[\"Language\"] = value.Table; }");
+        // Table builders implicitly convert to their typed handle (replacing Build()).
+        AssertContains("public static implicit operator global::LuaRenamer.LuaEnv.BaseTypes.LuaRef<global::LuaRenamer.LuaEnv.AnimeTable>(AnimeTableBuilder b) => new(b._t);");
+        // Root builders mutate the env table in place: no handle, no conversion.
+        Assert.IsFalse(_source.Contains("LuaRef<global::LuaRenamer.LuaEnv.EnvTable>", StringComparison.Ordinal),
+            "EnvTableBuilder is a root builder and must not expose a LuaRef handle.");
+        Assert.IsFalse(_source.Contains("LuaRef<global::LuaRenamer.LuaEnv.EnumsTable>", StringComparison.Ordinal),
+            "EnumsTableBuilder is a root builder and must not expose a LuaRef handle.");
     }
 }
