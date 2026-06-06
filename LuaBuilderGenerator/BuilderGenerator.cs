@@ -74,17 +74,12 @@ public class BuilderGenerator : IIncrementalGenerator
 
     private static void EmitBuilder(StringBuilder sb, INamedTypeSymbol type, TypeMapper map, bool isTable)
     {
-        var className = type.Name;
         var typeFqn = type.ToDisplayString(Fq);
-        var builderName = $"{className}Builder";
+        var builderName = $"{type.Name}Builder";
 
-        sb.Append($"internal sealed class {builderName}\n{{\n");
-        sb.Append($"    private readonly {LuaTable} _t;\n\n");
-        sb.Append($"    public {builderName}({LuaTable} table)\n    {{\n        _t = table;\n");
-        if (type.GetMembers("_classidVal").OfType<IFieldSymbol>().Any(f => f.IsConst))
-            sb.Append($"        _t[\"_classid\"] = {typeFqn}._classidVal;\n");
-        sb.Append("    }\n\n");
-
+        // Collect every bound field: its property name, C# type, and the expression (in terms of the
+        // property name) that converts the typed value to what is stored in the LuaTable.
+        var members = new List<(string Name, string ParamType, string Assign)>();
         foreach (var member in type.GetMembers())
         {
             switch (member)
@@ -93,14 +88,13 @@ public class BuilderGenerator : IIncrementalGenerator
                 {
                     if (GetBool(attr, "Output"))
                         continue;
-                    var luaType = GetString(attr, 0)!;
-                    var (paramType, assign) = map.Map(luaType);
-                    EmitSetter(sb, builderName, prop.Name, paramType, $"_t[\"{prop.Name}\"] = {assign};");
+                    var (paramType, assignFmt) = map.Map(GetString(attr, 0)!);
+                    members.Add((prop.Name, paramType, string.Format(assignFmt, prop.Name)));
                     break;
                 }
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method when GetLuaType(method) is not null:
                 {
-                    EmitSetter(sb, builderName, method.Name, LuaFunction, $"_t[\"{method.Name}\"] = v;");
+                    members.Add((method.Name, LuaFunction, method.Name));
                     break;
                 }
                 // Enum globals (EnumsTable): EnumTable<T> properties carry no [LuaType].
@@ -108,21 +102,31 @@ public class BuilderGenerator : IIncrementalGenerator
                     when GetLuaType(enumProp) is null:
                 {
                     var enumFqn = et.TypeArguments[0].ToDisplayString(Fq);
-                    EmitSetter(sb, builderName, enumProp.Name, $"{Bt}.LuaEnumRef<{enumFqn}>", $"_t[\"{enumProp.Name}\"] = v.Table;");
+                    members.Add((enumProp.Name, $"{Bt}.LuaEnumRef<{enumFqn}>", $"{enumProp.Name}.Table"));
                     break;
                 }
             }
         }
 
-        if (isTable)
-            sb.Append($"    public {Bt}.LuaRef<{typeFqn}> Build() => new(_t);\n");
-        else
-            sb.Append($"    public {LuaTable} Build() => _t;\n");
-        sb.Append("}\n\n");
-    }
+        sb.Append($"internal sealed class {builderName}\n{{\n");
+        sb.Append($"    private readonly {LuaTable} _t;\n\n");
+        sb.Append($"    public {builderName}({LuaTable} table)\n    {{\n        _t = table;\n    }}\n\n");
 
-    private static void EmitSetter(StringBuilder sb, string builderName, string name, string paramType, string body) =>
-        sb.Append($"    public {builderName} {name}({paramType} v) {{ {body} return this; }}\n");
+        // One `required` init member per field forces every field to be set in the object initializer
+        // (omitting one is a compile error), nullable fields included.
+        foreach (var m in members)
+            sb.Append($"    public required {m.ParamType} {m.Name} {{ get; init; }}\n");
+        sb.Append("\n");
+
+        // Build() flushes the typed members into the untyped LuaTable.
+        sb.Append($"    public {(isTable ? $"{Bt}.LuaRef<{typeFqn}>" : LuaTable)} Build()\n    {{\n");
+        if (type.GetMembers("_classidVal").OfType<IFieldSymbol>().Any(f => f.IsConst))
+            sb.Append($"        _t[\"_classid\"] = {typeFqn}._classidVal;\n");
+        foreach (var m in members)
+            sb.Append($"        _t[\"{m.Name}\"] = {m.Assign};\n");
+        sb.Append(isTable ? "        return new(_t);\n" : "        return _t;\n");
+        sb.Append("    }\n}\n\n");
+    }
 
     private static AttributeData? GetLuaType(ISymbol symbol) =>
         symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "LuaTypeAttribute");
@@ -147,8 +151,9 @@ public class BuilderGenerator : IIncrementalGenerator
     }
 }
 
-/// <summary>Maps a Lua type annotation string to a C# parameter type and the assignment expression
-/// (in terms of the parameter named <c>v</c>) used to write the value into the LuaTable.</summary>
+/// <summary>Maps a Lua type annotation string to a C# member type and a <see cref="string.Format"/>
+/// template for the assignment expression that writes the typed value into the LuaTable; the single
+/// <c>{0}</c> placeholder is filled with the member name (e.g. <c>"{0}?.Table"</c>).</summary>
 internal sealed class TypeMapper(
     Dictionary<string, INamedTypeSymbol> tableByLua,
     Dictionary<string, ITypeSymbol> enumByLua)
@@ -168,7 +173,7 @@ internal sealed class TypeMapper(
         if (lua.EndsWith("[]"))
         {
             var elem = ElementType(lua.Substring(0, lua.Length - 2));
-            return ($"{Bt}.LuaArray<{elem}>{(nullable ? "?" : "")}", nullable ? "v?.Table" : "v.Table");
+            return ($"{Bt}.LuaArray<{elem}>{(nullable ? "?" : "")}", nullable ? "{0}?.Table" : "{0}.Table");
         }
 
         if (lua.StartsWith("table<") && lua.EndsWith(">"))
@@ -177,24 +182,24 @@ internal sealed class TypeMapper(
             var comma = inner.IndexOf(',');
             var k = Scalar(inner.Substring(0, comma).Trim());
             var val = Scalar(inner.Substring(comma + 1).Trim());
-            return ($"{Bt}.LuaMap<{k}, {val}>{(nullable ? "?" : "")}", nullable ? "v?.Table" : "v.Table");
+            return ($"{Bt}.LuaMap<{k}, {val}>{(nullable ? "?" : "")}", nullable ? "{0}?.Table" : "{0}.Table");
         }
 
         switch (lua)
         {
-            case "number": return ($"double{(nullable ? "?" : "")}", "v");
-            case "integer": return ($"long{(nullable ? "?" : "")}", "v");
-            case "boolean": return ($"bool{(nullable ? "?" : "")}", "v");
-            case "string": return ($"string{(nullable ? "?" : "")}", "v");
+            case "number": return ($"double{(nullable ? "?" : "")}", "{0}");
+            case "integer": return ($"long{(nullable ? "?" : "")}", "{0}");
+            case "boolean": return ($"bool{(nullable ? "?" : "")}", "{0}");
+            case "string": return ($"string{(nullable ? "?" : "")}", "{0}");
         }
 
         if (enumByLua.TryGetValue(lua, out var enumSym))
-            return ($"{enumSym.ToDisplayString(Fq)}{(nullable ? "?" : "")}", nullable ? "v?.ToString()" : "v.ToString()");
+            return ($"{enumSym.ToDisplayString(Fq)}{(nullable ? "?" : "")}", nullable ? "{0}?.ToString()" : "{0}.ToString()");
 
         if (tableByLua.TryGetValue(lua, out var tableSym))
-            return ($"{Bt}.LuaRef<{tableSym.ToDisplayString(Fq)}>{(nullable ? "?" : "")}", nullable ? "v?.Table" : "v.Table");
+            return ($"{Bt}.LuaRef<{tableSym.ToDisplayString(Fq)}>{(nullable ? "?" : "")}", nullable ? "{0}?.Table" : "{0}.Table");
 
-        return ($"object{(nullable ? "?" : "")}", "v");
+        return ($"object{(nullable ? "?" : "")}", "{0}");
     }
 
     // The generic element type of LuaArray<T> for a "T[]" field.
