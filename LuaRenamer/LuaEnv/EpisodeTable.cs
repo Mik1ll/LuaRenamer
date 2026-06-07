@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Episode)]
 public partial class EpisodeTable : LuaTableWriter
 {
     internal EpisodeTable(LuaTable t) : base(t, _classidVal) { }

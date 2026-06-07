@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Media)]
 public partial class MediaTable : LuaTableWriter
 {
     internal MediaTable(LuaTable t) : base(t) { }

@@ -18,6 +18,9 @@ public class Generator
 
     public Generator(string outputPath) => _outputPath = Path.GetFullPath(outputPath);
 
+    private static string StripTable(string name) =>
+        name.EndsWith("Table") ? name[..^5] : name;
+
     public void GenerateDefinitionFiles()
     {
         GenerateDefsFile();
@@ -42,26 +45,21 @@ public class Generator
     {
         var ctx = new NullabilityInfoContext();
         var types = typeof(Table).Assembly.DefinedTypes
-            .Select(t => new { LuaTypeAttribute = t.GetCustomAttribute<LuaTypeAttribute>(), Type = t })
-            .Where(t => t.LuaTypeAttribute is not null)
-            .OrderBy(t => t.LuaTypeAttribute!.Type, StringComparer.Ordinal)
+            .Where(t => t.IsClass && !t.IsAbstract && typeof(LuaTableWriter).IsAssignableFrom(t) && t != typeof(EnvTable))
+            .OrderBy(t => StripTable(t.Name), StringComparer.Ordinal)
             .ToList();
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
         foreach (var type in types)
         {
-            var className = type.LuaTypeAttribute!.Type;
+            var className = StripTable(type.Name);
             var functions = new List<(PropertyInfo prop, LuaFieldAttribute fieldAttr)>();
             sb.Append($"---@class (exact) {className}\n");
 
-            foreach (var member in type.Type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (member.GetCustomAttribute<LuaTypeAttribute>() is { } typeAttr)
-                {
-                    sb.Append($"---@field {member.Name} {typeAttr.Type}{(typeAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
-                }
-                else if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
+                if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
                 {
                     if (prop.PropertyType.IsGenericType &&
                         prop.PropertyType.GetGenericTypeDefinition() == typeof(LuaFunctionRef<>))
@@ -135,8 +133,7 @@ public class Generator
         if (def == typeof(LuaRef<>))
         {
             var tableType = args[0];
-            var luaTypeAttr = tableType.GetCustomAttribute<LuaTypeAttribute>();
-            return luaTypeAttr?.Type ?? tableType.Name;
+            return StripTable(tableType.Name);
         }
 
         if (def == typeof(LuaArray<>))
@@ -320,17 +317,10 @@ public class Generator
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
-        foreach (var member in envType.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
+        foreach (var prop in envType.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
                                 .Where(p => !p.PropertyType.IsGenericType || p.PropertyType.GetGenericTypeDefinition() != typeof(LuaEnumRef<>)))
         {
-            if (member.GetCustomAttribute<LuaTypeAttribute>() is { } typeAttr)
-            {
-                if (typeAttr.Description is { } description)
-                    sb.Append($"---{description}\n");
-                sb.Append($"---@type {typeAttr.Type}\n");
-                sb.Append($"{member.Name} = {typeAttr.DefaultValue}\n\n");
-            }
-            else if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
+            if (prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
             {
                 if (prop.PropertyType.IsGenericType &&
                     prop.PropertyType.GetGenericTypeDefinition() == typeof(LuaFunctionRef<>))

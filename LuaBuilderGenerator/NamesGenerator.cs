@@ -43,7 +43,7 @@ public class NamesGenerator : IIncrementalGenerator
 
         foreach (var t in types.OrderBy(t => t.Name, System.StringComparer.Ordinal))
         {
-            var isTable = t.GetAttributes().Any(a => a.AttributeClass?.Name == "LuaTypeAttribute");
+            var isTable = InheritsFromLuaTableWriter(t);
             var isRoot = t.Name == "EnvTable";
 
             if (!isTable && !isRoot)
@@ -58,9 +58,8 @@ public class NamesGenerator : IIncrementalGenerator
     private static void EmitNames(StringBuilder sb, INamedTypeSymbol type, bool isRoot)
     {
         var namesClass = TableToNames(type.Name);
-        var baseClass = isRoot ? $"{Bt}.RootTable" : $"{Bt}.Table";
 
-        sb.Append($"public sealed class {namesClass} : {baseClass}\n{{\n");
+        sb.Append($"public sealed class {namesClass} : {Bt}.Table\n{{\n");
 
         foreach (var member in type.GetMembers())
         {
@@ -86,7 +85,7 @@ public class NamesGenerator : IIncrementalGenerator
                         args.Add(name);
                     }
                     var body = isRoot
-                        ? $"GetFunc([{string.Join(", ", args)}])"
+                        ? $"GetFuncStatic([{string.Join(", ", args)}])"
                         : $"GetFunc([{string.Join(", ", args)}], ':')";
                     sb.Append($"    public {staticKw}string {prop.Name}({string.Join(", ", pars)}) => {body};\n");
                     break;
@@ -94,7 +93,7 @@ public class NamesGenerator : IIncrementalGenerator
                 // Bound data field: [LuaField] on a property.
                 case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null:
                 {
-                    EmitNavProp(sb, prop.Name, prop.Type, staticKw);
+                    EmitNavProp(sb, prop.Name, prop.Type, staticKw, isRoot);
                     break;
                 }
             }
@@ -103,8 +102,10 @@ public class NamesGenerator : IIncrementalGenerator
         sb.Append("}\n\n");
     }
 
-    private static void EmitNavProp(StringBuilder sb, string name, ITypeSymbol ts, string staticKw)
+    private static void EmitNavProp(StringBuilder sb, string name, ITypeSymbol ts, string staticKw, bool isRoot)
     {
+        var getCall = isRoot ? "GetStatic()" : "Get()";
+
         // Nullable<T> wrapping a struct (LuaRef<T>?, long?, enum?, bool?)
         if (ts is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullSym)
         {
@@ -113,11 +114,11 @@ public class NamesGenerator : IIncrementalGenerator
             {
                 // LuaRef<T>? — always emitted as a navigable (non-nullable) nav property.
                 var navType = TableToNames(luaRef.TypeArguments[0].Name);
-                sb.Append($"    public {staticKw}{navType} {name} => new() {{ Fn = Get() }};\n");
+                sb.Append($"    public {staticKw}{navType} {name} => new() {{ Fn = {getCall} }};\n");
                 return;
             }
             // Scalar? (long?, bool?, enum?) — leaf string.
-            sb.Append($"    public {staticKw}string {name} => Get();\n");
+            sb.Append($"    public {staticKw}string {name} => {getCall};\n");
             return;
         }
 
@@ -128,7 +129,7 @@ public class NamesGenerator : IIncrementalGenerator
                 case "LuaRef" when named.TypeArguments.Length == 1:
                 {
                     var navType = TableToNames(named.TypeArguments[0].Name);
-                    sb.Append($"    public {staticKw}{navType} {name} => new() {{ Fn = Get() }};\n");
+                    sb.Append($"    public {staticKw}{navType} {name} => new() {{ Fn = {getCall} }};\n");
                     return;
                 }
                 case "LuaArray" when named.TypeArguments.Length == 1:
@@ -137,29 +138,29 @@ public class NamesGenerator : IIncrementalGenerator
                     if (elem is INamedTypeSymbol { Name: "LuaRef", TypeArguments.Length: 1 } elemRef)
                     {
                         var elemNav = TableToNames(elemRef.TypeArguments[0].Name);
-                        sb.Append($"    public {staticKw}{Bt}.ArrayTable<{elemNav}> {name} => new() {{ Fn = Get() }};\n");
+                        sb.Append($"    public {staticKw}{Bt}.ArrayTable<{elemNav}> {name} => new() {{ Fn = {getCall} }};\n");
                         return;
                     }
                     // LuaArray<scalar> — leaf string.
-                    sb.Append($"    public {staticKw}string {name} => Get();\n");
+                    sb.Append($"    public {staticKw}string {name} => {getCall};\n");
                     return;
                 }
                 case "LuaMap":
-                    sb.Append($"    public {staticKw}string {name} => Get();\n");
+                    sb.Append($"    public {staticKw}string {name} => {getCall};\n");
                     return;
                 case "LuaEnumRef" when named.TypeArguments.Length == 1:
                 {
                     var enumType = named.TypeArguments[0];
                     var fqEnum = enumType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                     var pascalName = char.ToUpper(name[0]) + name.Substring(1); // camelCase → PascalCase
-                    sb.Append($"    public {staticKw}{Bt}.EnumTable<{fqEnum}> {pascalName} => new() {{ Fn = Get() }};\n");
+                    sb.Append($"    public {staticKw}{Bt}.EnumTable<{fqEnum}> {pascalName} => new() {{ Fn = {getCall} }};\n");
                     return;
                 }
             }
         }
 
         // Scalars (long, double, bool, string, string?, enum) — leaf string.
-        sb.Append($"    public {staticKw}string {name} => Get();\n");
+        sb.Append($"    public {staticKw}string {name} => {getCall};\n");
     }
 
     private static string TableToNames(string name) =>
@@ -168,8 +169,16 @@ public class NamesGenerator : IIncrementalGenerator
     private static AttributeData? GetAttr(ISymbol s, string attrName) =>
         s.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == attrName);
 
-    private static bool GetBool(AttributeData attr, string name) =>
-        attr.NamedArguments.FirstOrDefault(n => n.Key == name).Value.Value is true;
+    private static bool InheritsFromLuaTableWriter(INamedTypeSymbol type)
+    {
+        var current = type.BaseType;
+        while (current is not null)
+        {
+            if (current.Name == "LuaTableWriter") return true;
+            current = current.BaseType;
+        }
+        return false;
+    }
 
     private static INamespaceSymbol? GetNamespace(INamespaceSymbol root, IEnumerable<string> parts)
     {

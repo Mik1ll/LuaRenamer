@@ -7,7 +7,6 @@ using Shoko.Abstractions.Video.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.ImportFolder)]
 public partial class ImportFolderTable : LuaTableWriter
 {
     internal ImportFolderTable(LuaTable t) : base(t, _classidVal) { }

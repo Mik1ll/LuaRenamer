@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.File)]
 public partial class FileTable : LuaTableWriter
 {
     internal FileTable(LuaTable t) : base(t) { }

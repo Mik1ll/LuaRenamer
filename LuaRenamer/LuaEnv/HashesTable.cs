@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Hashes)]
 public partial class HashesTable : LuaTableWriter
 {
     internal HashesTable(LuaTable t) : base(t) { }

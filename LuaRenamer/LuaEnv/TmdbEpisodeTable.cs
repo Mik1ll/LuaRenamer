@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.TmdbEpisode)]
 public partial class TmdbEpisodeTable : LuaTableWriter
 {
     internal TmdbEpisodeTable(LuaTable t) : base(t) { }

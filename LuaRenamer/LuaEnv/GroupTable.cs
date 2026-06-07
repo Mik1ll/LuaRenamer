@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Group)]
 public partial class GroupTable : LuaTableWriter
 {
     internal GroupTable(LuaTable t) : base(t) { }

@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Relation)]
 public partial class RelationTable : LuaTableWriter
 {
     internal RelationTable(LuaTable t) : base(t) { }

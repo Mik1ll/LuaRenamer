@@ -3,9 +3,7 @@ using System;
 namespace LuaRenamer.LuaEnv.Attributes;
 
 /// <summary>
-/// Marks a bound data property on a schema table class. The Lua type is inferred from the C# property
-/// type; no type string is needed. Use <see cref="LuaTypeAttribute"/> for function members, complex
-/// output union types, and class-level Lua name annotations.
+/// Marks a bound data property on a schema table class. The Lua type is inferred from the C# property type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public class LuaFieldAttribute : Attribute

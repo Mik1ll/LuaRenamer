@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Season)]
 public partial class SeasonTable : LuaTableWriter
 {
     internal SeasonTable(LuaTable t) : base(t) { }

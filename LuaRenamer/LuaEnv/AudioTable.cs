@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Audio)]
 public partial class AudioTable : LuaTableWriter
 {
     internal AudioTable(LuaTable t) : base(t) { }

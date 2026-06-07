@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Anime)]
 public partial class AnimeTable : LuaTableWriter
 {
     internal AnimeTable(LuaTable t) : base(t, _classidVal) { }

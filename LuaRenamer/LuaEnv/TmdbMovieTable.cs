@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.TmdbMovie)]
 public partial class TmdbMovieTable : LuaTableWriter
 {
     internal TmdbMovieTable(LuaTable t) : base(t) { }

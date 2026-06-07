@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.TmdbShow)]
 public partial class TmdbShowTable : LuaTableWriter
 {
     internal TmdbShowTable(LuaTable t) : base(t) { }

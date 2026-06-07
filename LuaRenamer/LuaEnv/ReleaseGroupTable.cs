@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.ReleaseGroup)]
 public partial class ReleaseGroupTable : LuaTableWriter
 {
     internal ReleaseGroupTable(LuaTable t) : base(t) { }

@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Video)]
 public partial class VideoTable : LuaTableWriter
 {
     internal VideoTable(LuaTable t) : base(t) { }

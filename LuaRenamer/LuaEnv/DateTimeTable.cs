@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.DateTime)]
 public partial class DateTimeTable : LuaTableWriter
 {
     internal DateTimeTable(LuaTable t) : base(t) { }

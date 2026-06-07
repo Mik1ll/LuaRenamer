@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.AniDb)]
 public partial class AniDbTable : LuaTableWriter
 {
     internal AniDbTable(LuaTable t) : base(t) { }

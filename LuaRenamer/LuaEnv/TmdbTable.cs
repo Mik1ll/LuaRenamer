@@ -6,7 +6,6 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Tmdb)]
 public partial class TmdbTable : LuaTableWriter
 {
     internal TmdbTable(LuaTable t) : base(t) { }

@@ -11,4 +11,9 @@ public class Table
 
     protected string GetFunc(string?[] args, char sep = '.', [CallerMemberName] string memberName = "") =>
         Get(sep, memberName) + "(" + string.Join(", ", args.TakeWhile(a => !string.IsNullOrWhiteSpace(a))) + ")";
+
+    protected static string GetStatic([CallerMemberName] string memberName = "") => memberName;
+
+    protected static string GetFuncStatic(string?[] args, [CallerMemberName] string memberName = "") =>
+        GetStatic(memberName) + "(" + string.Join(", ", args.TakeWhile(a => !string.IsNullOrWhiteSpace(a))) + ")";
 }

@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.Title)]
 public partial class TitleTable : LuaTableWriter
 {
     internal TitleTable(LuaTable t) : base(t) { }

@@ -7,7 +7,6 @@ using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-[LuaType(LuaTypeNames.AniDbMedia)]
 public partial class AniDbMediaTable : LuaTableWriter
 {
     internal AniDbMediaTable(LuaTable t) : base(t) { }
