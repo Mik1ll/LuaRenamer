@@ -11,25 +11,17 @@ public class EnumsTable : LuaRootTableWriter
     internal EnumsTable(LuaTable t) : base(t) { }
 
     [LuaField]
-    public required LuaEnumRef<DropFolderType> importFolderType { init => Set(value.Table, nameof(ImportFolderType)); }
+    public required LuaEnumRef<DropFolderType> importFolderType { init => Set(value.Table, "ImportFolderType"); }
     [LuaField]
-    public required LuaEnumRef<AnimeType> animeType { init => Set(value.Table, nameof(AnimeType)); }
+    public required LuaEnumRef<AnimeType> animeType { init => Set(value.Table, "AnimeType"); }
     [LuaField]
-    public required LuaEnumRef<EpisodeType> episodeType { init => Set(value.Table, nameof(EpisodeType)); }
+    public required LuaEnumRef<EpisodeType> episodeType { init => Set(value.Table, "EpisodeType"); }
     [LuaField]
-    public required LuaEnumRef<TitleType> titleType { init => Set(value.Table, nameof(TitleType)); }
+    public required LuaEnumRef<TitleType> titleType { init => Set(value.Table, "TitleType"); }
     [LuaField]
-    public required LuaEnumRef<TitleLanguage> language { init => Set(value.Table, nameof(Language)); }
+    public required LuaEnumRef<TitleLanguage> language { init => Set(value.Table, "Language"); }
     [LuaField]
-    public required LuaEnumRef<RelationType> relationType { init => Set(value.Table, nameof(RelationType)); }
+    public required LuaEnumRef<RelationType> relationType { init => Set(value.Table, "RelationType"); }
     [LuaField]
-    public required LuaEnumRef<YearlySeason> seasonName { init => Set(value.Table, nameof(SeasonName)); }
-
-    public static EnumTable<DropFolderType> ImportFolderType => new() { Fn = Get() };
-    public static EnumTable<AnimeType> AnimeType => new() { Fn = Get() };
-    public static EnumTable<EpisodeType> EpisodeType => new() { Fn = Get() };
-    public static EnumTable<TitleType> TitleType => new() { Fn = Get() };
-    public static EnumTable<TitleLanguage> Language => new() { Fn = Get() };
-    public static EnumTable<RelationType> RelationType => new() { Fn = Get() };
-    public static EnumTable<YearlySeason> SeasonName => new() { Fn = Get() };
+    public required LuaEnumRef<YearlySeason> seasonName { init => Set(value.Table, "SeasonName"); }
 }
