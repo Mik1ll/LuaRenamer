@@ -3,7 +3,7 @@ using NLua;
 
 namespace LuaRenamer.LuaEnv.BaseTypes;
 
-public abstract class LuaTableWriter : Table
+public abstract class LuaTableWriter
 {
     protected readonly LuaTable _t;
 

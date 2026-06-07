@@ -148,6 +148,9 @@ public class Generator
         if (def == typeof(LuaMap<,>))
             return $"table<{InferLuaTypeForInner(args[0])}, {InferLuaTypeForInner(args[1])}>";
 
+        if (def == typeof(LuaUnion<,>))
+            return InferLuaTypeForInner(args[0]) + "|" + InferLuaTypeForInner(args[1]);
+
         return LuaTypeNames.table;
     }
 

@@ -52,16 +52,14 @@ public partial class EnvTable : LuaRootTableWriter
     [LuaField("TMDB information for the current file")]
     public required LuaRef<TmdbTable> tmdb { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Output: The filename to rename to", Output = true)]
-    public static string filename => Get();
+    [LuaField("Output: The filename to rename to", Output = true)]
+    public static string? filename { get; }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.ImportFolder}|{LuaTypeNames.nil}",
-        $"Output: Import folder name / full directory path / {nameof(LuaTypeNames.ImportFolder)} that specifies the destination", Output = true)]
-    public static string destination => Get();
+    [LuaField($"Output: Import folder name / full directory path / {nameof(LuaTypeNames.ImportFolder)} that specifies the destination", Output = true)]
+    public static LuaUnion<string, LuaRef<ImportFolderTable>>? destination { get; }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.@string}[]|{LuaTypeNames.nil}",
-        "Output: The subfolder to move the file to, must be an array table if there is more than one directory component", Output = true)]
-    public static string subfolder => Get();
+    [LuaField("Output: The subfolder to move the file to, must be an array table if there is more than one directory component", Output = true)]
+    public static LuaUnion<string, LuaArray<string>>? subfolder { get; }
 
     [LuaField("Output: Whether to use the existing location of files from the same anime to determine the output destination/subfolder.",
         DefaultValue = "false")]

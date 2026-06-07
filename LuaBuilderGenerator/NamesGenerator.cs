@@ -100,14 +100,13 @@ public class NamesGenerator : IIncrementalGenerator
                 case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null:
                 {
                     if (GetBool(GetAttr(prop, "LuaFieldAttribute")!, "Output"))
-                        continue;
+                    {
+                        sb.Append($"    public {staticKw}string {prop.Name} => Get();\n");
+                        break;
+                    }
                     EmitNavProp(sb, prop.Name, prop.Type, staticKw);
                     break;
                 }
-                // Output field with complex union Lua type — still a leaf string navigation property.
-                case IPropertySymbol prop when GetAttr(prop, "LuaTypeAttribute") is { } typeAttr && GetBool(typeAttr, "Output"):
-                    sb.Append($"    public {staticKw}string {prop.Name} => Get();\n");
-                    break;
             }
         }
 

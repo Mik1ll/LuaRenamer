@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv.BaseTypes;
 /// table <typeparamref name="T"/>. Produced by the <c>*ToTable</c> builders in LuaContext and
 /// consumed by the generated table builders to give compile-time structural type safety.
 /// </summary>
-public readonly struct LuaRef<T>(LuaTable table) where T : Table
+public readonly struct LuaRef<T>(LuaTable table) where T : LuaTableWriter
 {
     public LuaTable Table { get; } = table;
 }

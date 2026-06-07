@@ -493,7 +493,7 @@ public class LuaContext : Lua
             airdate = DateTimeToTable(episode.AirDateWithTime),
         };
 
-    private LuaArray<LuaRef<T>> ArrayOf<T>(IEnumerable<LuaRef<T>> items) where T : Table
+    private LuaArray<LuaRef<T>> ArrayOf<T>(IEnumerable<LuaRef<T>> items) where T : LuaTableWriter
     {
         var table = GetNewTable();
         var i = 1;
@@ -536,7 +536,7 @@ public class LuaContext : Lua
     /// builds and caches a new one. The table is cached <em>before</em> <paramref name="build"/> runs so
     /// recursive references (e.g. Anime → relations → Anime) resolve to the same table.
     /// </summary>
-    private LuaRef<TTable> Cached<TKey, TTable>(int id, Func<LuaTable, LuaRef<TTable>> build) where TTable : Table
+    private LuaRef<TTable> Cached<TKey, TTable>(int id, Func<LuaTable, LuaRef<TTable>> build) where TTable : LuaTableWriter
     {
         var key = (typeof(TKey), id);
         if (_tableCache.TryGetValue(key, out var cached))
