@@ -44,14 +44,9 @@ public class NamesGenerator : IIncrementalGenerator
         foreach (var t in types.OrderBy(t => t.Name, System.StringComparer.Ordinal))
         {
             var isTable = t.GetAttributes().Any(a => a.AttributeClass?.Name == "LuaTypeAttribute");
-            var isRoot = t.BaseType?.Name is "RootTable" or "LuaRootTableWriter";
+            var isRoot = t.Name == "EnvTable";
 
             if (!isTable && !isRoot)
-                continue;
-
-            // Skip RootTable subclasses with no [LuaField] members (i.e. EnumsTable).
-            if (isRoot && !t.GetMembers().OfType<IPropertySymbol>()
-                    .Any(p => p.GetAttributes().Any(a => a.AttributeClass?.Name == "LuaFieldAttribute")))
                 continue;
 
             EmitNames(sb, t, isRoot);

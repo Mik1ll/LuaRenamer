@@ -217,17 +217,13 @@ public class LuaContext : Lua
             groups = ArrayOf(groups),
             group = groups.Count > 0 ? groups[0] : null,
             tmdb = TmdbToTable(),
-        };
-
-        _ = new EnumsTable(env)
-        {
-            importFolderType = EnumToTable<DropFolderType>(),
-            animeType = EnumToTable<AnimeType>(),
-            episodeType = EnumToTable<EpisodeType>(),
-            titleType = EnumToTable<TitleType>(),
-            language = EnumToTable<TitleLanguage>(),
-            relationType = EnumToTable<RelationType>(),
-            seasonName = EnumToTable<YearlySeason>(),
+            ImportFolderType = EnumToTable<DropFolderType>(),
+            AnimeType = EnumToTable<AnimeType>(),
+            EpisodeType = EnumToTable<EpisodeType>(),
+            TitleType = EnumToTable<TitleType>(),
+            Language = EnumToTable<TitleLanguage>(),
+            RelationType = EnumToTable<RelationType>(),
+            SeasonName = EnumToTable<YearlySeason>(),
         };
 
         return env;

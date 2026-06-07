@@ -28,12 +28,12 @@ public class Generator
     private static Dictionary<Type, string> BuildEnumMap()
     {
         var result = new Dictionary<Type, string>();
-        foreach (var prop in typeof(EnumsTable).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        foreach (var prop in typeof(EnvTable).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                      .Where(p => p.PropertyType.IsGenericType &&
                                  p.PropertyType.GetGenericTypeDefinition() == typeof(LuaEnumRef<>)))
         {
             var enumType = prop.PropertyType.GetGenericArguments()[0];
-            result[enumType] = char.ToUpper(prop.Name[0]) + prop.Name.Substring(1); // camelCase → PascalCase
+            result[enumType] = prop.Name;
         }
         return result;
     }
@@ -227,7 +227,7 @@ public class Generator
 
     private void GenerateEnumsFile()
     {
-        var enumsType = typeof(EnumsTable);
+        var enumsType = typeof(EnvTable);
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
         foreach (var prop in enumsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -235,7 +235,7 @@ public class Generator
                                  p.PropertyType.GetGenericTypeDefinition() == typeof(LuaEnumRef<>)))
         {
             var enumType = prop.PropertyType.GenericTypeArguments[0];
-            var propName = char.ToUpper(prop.Name[0]) + prop.Name.Substring(1); // camelCase → PascalCase
+            var propName = prop.Name;
 
             sb.Append($"---@enum {propName}\n");
             sb.Append($"{propName} = {{\n");
@@ -320,7 +320,8 @@ public class Generator
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
-        foreach (var member in envType.GetMembers(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
+        foreach (var member in envType.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
+                                .Where(p => !p.PropertyType.IsGenericType || p.PropertyType.GetGenericTypeDefinition() != typeof(LuaEnumRef<>)))
         {
             if (member.GetCustomAttribute<LuaTypeAttribute>() is { } typeAttr)
             {

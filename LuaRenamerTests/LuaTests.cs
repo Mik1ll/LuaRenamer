@@ -102,7 +102,7 @@ public class LuaTests
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{EnvNames.filename} = tostring({EnvNames.anime.type} == {EnumsNames.AnimeType[AnimeType.Movie]})");
+        var args = MinimalArgs($"{EnvNames.filename} = tostring({EnvNames.anime.type} == {EnvNames.AnimeType[AnimeType.Movie]})");
         var animeMock = new Mock<IAnidbAnime>();
         animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
         animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
@@ -209,7 +209,7 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $"""
-            local fld = from({EnvNames.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnumsNames.ImportFolderType[DropFolderType.Both]}):first()
+            local fld = from({EnvNames.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnvNames.ImportFolderType[DropFolderType.Both]}):first()
             {EnvNames.destination} = fld
             """);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
@@ -339,7 +339,7 @@ public class LuaTests
     public void TestGetTitle()
     {
         var args = MinimalArgs(
-            $"{EnvNames.filename} = {EnvNames.anime.getname(EnumsNames.Language[TitleLanguage.English])} .. {EnvNames.episode.getname(EnumsNames.Language[TitleLanguage.English])} .. {EnvNames.episode.getname(EnumsNames.Language[TitleLanguage.Romaji])}");
+            $"{EnvNames.filename} = {EnvNames.anime.getname(EnvNames.Language[TitleLanguage.English])} .. {EnvNames.episode.getname(EnvNames.Language[TitleLanguage.English])} .. {EnvNames.episode.getname(EnvNames.Language[TitleLanguage.Romaji])}");
         ((List<ITitle>)args.Series[0].AnidbAnime.Titles).AddRange([
             new TitleStub
             {
@@ -469,13 +469,13 @@ public class LuaTests
         var defsEnv = new Lua();
         defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
         var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
-        CompareEnums((LuaTable)defsEnv[EnumsNames.Language.Fn], (LuaTable)sandboxEnv[EnumsNames.Language.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.AnimeType.Fn], (LuaTable)sandboxEnv[EnumsNames.AnimeType.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.TitleType.Fn], (LuaTable)sandboxEnv[EnumsNames.TitleType.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.EpisodeType.Fn], (LuaTable)sandboxEnv[EnumsNames.EpisodeType.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.ImportFolderType.Fn], (LuaTable)sandboxEnv[EnumsNames.ImportFolderType.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.RelationType.Fn], (LuaTable)sandboxEnv[EnumsNames.RelationType.Fn]);
-        CompareEnums((LuaTable)defsEnv[EnumsNames.SeasonName.Fn], (LuaTable)sandboxEnv[EnumsNames.SeasonName.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.Language.Fn], (LuaTable)sandboxEnv[EnvNames.Language.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.AnimeType.Fn], (LuaTable)sandboxEnv[EnvNames.AnimeType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.TitleType.Fn], (LuaTable)sandboxEnv[EnvNames.TitleType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.EpisodeType.Fn], (LuaTable)sandboxEnv[EnvNames.EpisodeType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.ImportFolderType.Fn], (LuaTable)sandboxEnv[EnvNames.ImportFolderType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.RelationType.Fn], (LuaTable)sandboxEnv[EnvNames.RelationType.Fn]);
+        CompareEnums((LuaTable)defsEnv[EnvNames.SeasonName.Fn], (LuaTable)sandboxEnv[EnvNames.SeasonName.Fn]);
     }
 
     [TestMethod]

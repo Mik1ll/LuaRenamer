@@ -3,10 +3,12 @@
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
+using Shoko.Abstractions.Metadata.Enums;
+using Shoko.Abstractions.Video.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-public partial class EnvTable : LuaRootTableWriter
+public partial class EnvTable : LuaTableWriter
 {
     internal EnvTable(LuaTable t) : base(t) { }
 
@@ -79,4 +81,19 @@ public partial class EnvTable : LuaRootTableWriter
 
     [LuaField("Output: Map of illegal characters to their replacements")]
     public required LuaMap<string, string> illegal_chars_map { init => Set(value.Table); }
+
+    [LuaField]
+    public required LuaEnumRef<DropFolderType> ImportFolderType { init => Set(value.Table, "ImportFolderType"); }
+    [LuaField]
+    public required LuaEnumRef<AnimeType> AnimeType { init => Set(value.Table, "AnimeType"); }
+    [LuaField]
+    public required LuaEnumRef<EpisodeType> EpisodeType { init => Set(value.Table, "EpisodeType"); }
+    [LuaField]
+    public required LuaEnumRef<TitleType> TitleType { init => Set(value.Table, "TitleType"); }
+    [LuaField]
+    public required LuaEnumRef<TitleLanguage> Language { init => Set(value.Table, "Language"); }
+    [LuaField]
+    public required LuaEnumRef<RelationType> RelationType { init => Set(value.Table, "RelationType"); }
+    [LuaField]
+    public required LuaEnumRef<YearlySeason> SeasonName { init => Set(value.Table, "SeasonName"); }
 }
