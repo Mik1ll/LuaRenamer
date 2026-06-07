@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -8,39 +9,32 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class EnvTable : LuaRootTableWriter
 {
-    internal EnvTable(LuaTable t, LuaFunction episode_numbers, LuaFunction logdebug, LuaFunction log, LuaFunction logwarn, LuaFunction logerror) : base(t)
-    {
-        _t["episode_numbers"] = episode_numbers;
-        _t["logdebug"] = logdebug;
-        _t["log"] = log;
-        _t["logwarn"] = logwarn;
-        _t["logerror"] = logerror;
-    }
+    internal EnvTable(LuaTable t) : base(t) { }
 
     [LuaType(LuaTypeNames.function, "Returns formatted episode numbers with padding")]
-    [LuaParameter(nameof(pad), LuaTypeNames.integer, "The amount of padding to use")]
+    [LuaParameter("pad", LuaTypeNames.integer, "The amount of padding to use")]
     [LuaReturnType(LuaTypeNames.@string)]
-    public static string episode_numbers(string pad) => GetFunc([pad]);
+    public required Func<int, string> episode_numbers { init => Set(value); }
 
     [LuaType(LuaTypeNames.function, "Log with Debug log level")]
-    [LuaParameter(nameof(message), LuaTypeNames.@string, "The message to log")]
+    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
     [LuaReturnType(LuaTypeNames.nil)]
-    public static string logdebug(string message) => GetFunc([message]);
+    public required Action<string> logdebug { init => Set(value); }
 
     [LuaType(LuaTypeNames.function, "Log with Information log level")]
-    [LuaParameter(nameof(message), LuaTypeNames.@string, "The message to log")]
+    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
     [LuaReturnType(LuaTypeNames.nil)]
-    public static string log(string message) => GetFunc([message]);
+    public required Action<string> log { init => Set(value); }
 
     [LuaType(LuaTypeNames.function, "Log with Warning log level")]
-    [LuaParameter(nameof(message), LuaTypeNames.@string, "The message to log")]
+    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
     [LuaReturnType(LuaTypeNames.nil)]
-    public static string logwarn(string message) => GetFunc([message]);
+    public required Action<string> logwarn { init => Set(value); }
 
     [LuaType(LuaTypeNames.function, "Log with Error log level")]
-    [LuaParameter(nameof(message), LuaTypeNames.@string, "The message to log")]
+    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
     [LuaReturnType(LuaTypeNames.nil)]
-    public static string logerror(string message) => GetFunc([message]);
+    public required Action<string> logerror { init => Set(value); }
 
     [LuaField("The current file being processed")]
     public required LuaRef<FileTable> file { init => Set(value.Table); }

@@ -96,19 +96,15 @@ public class LuaContext : Lua
 
     // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void LogDebug(string message) => _logger.LogDebug(message);
-    private static readonly MethodInfo LogDebugMethod = typeof(LuaContext).GetMethod(nameof(LogDebug), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void Log(string message) => _logger.LogInformation(message);
-    private static readonly MethodInfo LogMethod = typeof(LuaContext).GetMethod(nameof(Log), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void LogWarn(string message) => _logger.LogWarning(message);
-    private static readonly MethodInfo LogWarnMethod = typeof(LuaContext).GetMethod(nameof(LogWarn), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
     private void LogError(string message) => _logger.LogError(message);
-    private static readonly MethodInfo LogErrorMethod = typeof(LuaContext).GetMethod(nameof(LogError), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     #endregion
 
@@ -143,9 +139,6 @@ public class LuaContext : Lua
         .Select(g => g.First().Num is var fn && g.Last().Num is var ln && Utils.EpPrefix[g.Key.Type] is var pre && "D" + pad is var fmt && fn == ln
             ? $"{pre}{fn.ToString(fmt)}"
             : $"{pre}{fn.ToString(fmt)}-{ln.ToString(fmt)}"));
-
-    private static readonly MethodInfo EpNumsMethod =
-        typeof(LuaContext).GetMethod(nameof(EpNums), BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     #endregion
 
@@ -202,13 +195,13 @@ public class LuaContext : Lua
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
             .Select(GroupToTable).ToList();
 
-        _ = new EnvTable(env,
-            episode_numbers: Bind(EpNumsMethod),
-            logdebug: Bind(LogDebugMethod),
-            log: Bind(LogMethod),
-            logwarn: Bind(LogWarnMethod),
-            logerror: Bind(LogErrorMethod))
+        _ = new EnvTable(env)
         {
+            episode_numbers = EpNums,
+            logdebug = LogDebug,
+            log = Log,
+            logwarn = LogWarn,
+            logerror = LogError,
             replace_illegal_chars = _args.Configuration.ReplaceIllegalCharacters,
             remove_illegal_chars = _args.Configuration.RemoveIllegalCharacters,
             use_existing_anime_location = _args.Configuration.UseExistingAnimeLocation,
@@ -226,14 +219,16 @@ public class LuaContext : Lua
             tmdb = TmdbToTable(),
         };
 
-        _ = new EnumsTable(env,
-            importFolderType: EnumToTable<DropFolderType>(),
-            animeType: EnumToTable<AnimeType>(),
-            episodeType: EnumToTable<EpisodeType>(),
-            titleType: EnumToTable<TitleType>(),
-            language: EnumToTable<TitleLanguage>(),
-            relationType: EnumToTable<RelationType>(),
-            seasonName: EnumToTable<YearlySeason>());
+        _ = new EnumsTable(env)
+        {
+            importFolderType = EnumToTable<DropFolderType>(),
+            animeType = EnumToTable<AnimeType>(),
+            episodeType = EnumToTable<EpisodeType>(),
+            titleType = EnumToTable<TitleType>(),
+            language = EnumToTable<TitleLanguage>(),
+            relationType = EnumToTable<RelationType>(),
+            seasonName = EnumToTable<YearlySeason>(),
+        };
 
         return env;
     }
@@ -530,8 +525,6 @@ public class LuaContext : Lua
         NewTable("_");
         return GetTable("_");
     }
-
-    private LuaFunction Bind(MethodInfo method) => RegisterFunction("_", this, method);
 
     /// <summary>
     /// Returns the cached handle for a (<typeparamref name="TKey"/>, <paramref name="id"/>) entity, or

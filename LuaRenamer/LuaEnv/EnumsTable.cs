@@ -7,23 +7,15 @@ namespace LuaRenamer.LuaEnv;
 
 public class EnumsTable : LuaRootTableWriter
 {
-    internal EnumsTable(LuaTable t,
-        LuaEnumRef<DropFolderType> importFolderType,
-        LuaEnumRef<AnimeType> animeType,
-        LuaEnumRef<EpisodeType> episodeType,
-        LuaEnumRef<TitleType> titleType,
-        LuaEnumRef<TitleLanguage> language,
-        LuaEnumRef<RelationType> relationType,
-        LuaEnumRef<YearlySeason> seasonName) : base(t)
-    {
-        _t[nameof(ImportFolderType)] = importFolderType.Table;
-        _t[nameof(AnimeType)] = animeType.Table;
-        _t[nameof(EpisodeType)] = episodeType.Table;
-        _t[nameof(TitleType)] = titleType.Table;
-        _t[nameof(Language)] = language.Table;
-        _t[nameof(RelationType)] = relationType.Table;
-        _t[nameof(SeasonName)] = seasonName.Table;
-    }
+    internal EnumsTable(LuaTable t) : base(t) { }
+
+    public required LuaEnumRef<DropFolderType> importFolderType { init => Set(value.Table, nameof(ImportFolderType)); }
+    public required LuaEnumRef<AnimeType> animeType { init => Set(value.Table, nameof(AnimeType)); }
+    public required LuaEnumRef<EpisodeType> episodeType { init => Set(value.Table, nameof(EpisodeType)); }
+    public required LuaEnumRef<TitleType> titleType { init => Set(value.Table, nameof(TitleType)); }
+    public required LuaEnumRef<TitleLanguage> language { init => Set(value.Table, nameof(Language)); }
+    public required LuaEnumRef<RelationType> relationType { init => Set(value.Table, nameof(RelationType)); }
+    public required LuaEnumRef<YearlySeason> seasonName { init => Set(value.Table, nameof(SeasonName)); }
 
     public static EnumTable<DropFolderType> ImportFolderType => new() { Fn = Get() };
     public static EnumTable<AnimeType> AnimeType => new() { Fn = Get() };
