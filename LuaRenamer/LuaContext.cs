@@ -131,7 +131,7 @@ public class LuaContext : Lua
           end
           """;
 
-    private string EpNums(int pad) => string.Join(' ', _args.Episodes.Select(se => se.AnidbEpisode)
+    private string EpNums(long pad) => string.Join(' ', _args.Episodes.Select(se => se.AnidbEpisode)
         .Where(e => e.SeriesID == _primarySeries.AnidbAnimeID)
         .OrderBy(e => e.Type).ThenBy(e => e.EpisodeNumber)
         .Select((e, i) => (e.Type, RangeId: e.EpisodeNumber - i, Num: e.EpisodeNumber)) // RangeId effectively groups sequences of numbers
@@ -197,11 +197,11 @@ public class LuaContext : Lua
 
         _ = new EnvTable(env)
         {
-            episode_numbers = EpNums,
-            logdebug = LogDebug,
-            log = Log,
-            logwarn = LogWarn,
-            logerror = LogError,
+            episode_numbers = (Func<long, string>)EpNums,
+            logdebug = (Action<string>)LogDebug,
+            log = (Action<string>)Log,
+            logwarn = (Action<string>)LogWarn,
+            logerror = (Action<string>)LogError,
             replace_illegal_chars = _args.Configuration.ReplaceIllegalCharacters,
             remove_illegal_chars = _args.Configuration.RemoveIllegalCharacters,
             use_existing_anime_location = _args.Configuration.UseExistingAnimeLocation,
@@ -259,8 +259,9 @@ public class LuaContext : Lua
         return Cached<IAnidbAnime, AnimeTable>(anime.ID, tbl =>
         {
             var series = anime.ShokoSeries.FirstOrDefault();
-            return new AnimeTable(tbl, getname: _getName)
+            return new AnimeTable(tbl)
             {
+                getname = _getName,
                 airdate = DateTimeToTable(anime.AirDate?.ToDateTime()),
                 enddate = DateTimeToTable(anime.EndDate?.ToDateTime()),
                 rating = anime.Rating,
@@ -330,8 +331,9 @@ public class LuaContext : Lua
     }
 
     private LuaRef<EpisodeTable> EpisodeToTable(IAnidbEpisode episode) =>
-        Cached<IAnidbEpisode, EpisodeTable>(episode.ID, tbl => new EpisodeTable(tbl, getname: _getName)
+        Cached<IAnidbEpisode, EpisodeTable>(episode.ID, tbl => new EpisodeTable(tbl)
         {
+            getname = _getName,
             duration = (long)episode.Runtime.TotalSeconds,
             number = episode.EpisodeNumber,
             type = episode.Type,
@@ -446,8 +448,9 @@ public class LuaContext : Lua
         };
 
     private LuaRef<TmdbMovieTable> TmdbMovieToTable(ITmdbMovie movie) =>
-        new TmdbMovieTable(GetNewTable(), getname: _getName)
+        new TmdbMovieTable(GetNewTable())
         {
+            getname = _getName,
             id = movie.ID,
             titles = ArrayOf(movie.Titles.Select(TitleToTable)),
             defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
@@ -459,8 +462,9 @@ public class LuaContext : Lua
         };
 
     private LuaRef<TmdbShowTable> TmdbShowToTable(ITmdbShow show) =>
-        new TmdbShowTable(GetNewTable(), getname: _getName)
+        new TmdbShowTable(GetNewTable())
         {
+            getname = _getName,
             id = show.ID,
             titles = ArrayOf(show.Titles.Select(TitleToTable)),
             defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
@@ -475,8 +479,9 @@ public class LuaContext : Lua
         };
 
     private LuaRef<TmdbEpisodeTable> TmdbEpisodeToTable(ITmdbEpisode episode) =>
-        new TmdbEpisodeTable(GetNewTable(), getname: _getName)
+        new TmdbEpisodeTable(GetNewTable())
         {
+            getname = _getName,
             showid = episode.SeriesID,
             id = episode.ID,
             titles = ArrayOf(episode.Titles.Select(TitleToTable)),

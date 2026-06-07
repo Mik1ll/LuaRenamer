@@ -19,9 +19,6 @@ public class NamesGenerator : IIncrementalGenerator
     private const string Ns = "LuaRenamer.LuaEnv";
     private const string Bt = "global::LuaRenamer.LuaEnv.BaseTypes";
 
-    private static readonly SymbolDisplayFormat FqNullable = SymbolDisplayFormat.FullyQualifiedFormat
-        .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var source = context.CompilationProvider.Select(static (compilation, _) => Build(compilation));
@@ -76,6 +73,29 @@ public class NamesGenerator : IIncrementalGenerator
 
             switch (member)
             {
+                // Function binding property: LuaFunctionRef<TDelegate> with [LuaField].
+                // Must be matched before the generic [LuaField] data case since these props also carry [LuaField].
+                case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null
+                    && prop.Type is INamedTypeSymbol { Name: "LuaFunctionRef", TypeArguments.Length: 1 } funcRef
+                    && funcRef.TypeArguments[0] is INamedTypeSymbol del:
+                {
+                    var ta = del.TypeArguments;
+                    var n = del.Name == "Func" ? ta.Length - 1 : ta.Length;
+                    var pars = new List<string>();
+                    var args = new List<string>();
+                    for (var i = 0; i < n; i++)
+                    {
+                        var isNull = ta[i] is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T }
+                            || ta[i].NullableAnnotation == NullableAnnotation.Annotated;
+                        pars.Add(isNull ? $"string? p{i} = null" : $"string p{i}");
+                        args.Add($"p{i}");
+                    }
+                    var body = isRoot
+                        ? $"GetFunc([{string.Join(", ", args)}])"
+                        : $"GetFunc([{string.Join(", ", args)}], ':')";
+                    sb.Append($"    public {staticKw}string {prop.Name}({string.Join(", ", pars)}) => {body};\n");
+                    break;
+                }
                 // Bound data field: [LuaField] on a property.
                 case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null:
                 {
@@ -88,32 +108,6 @@ public class NamesGenerator : IIncrementalGenerator
                 case IPropertySymbol prop when GetAttr(prop, "LuaTypeAttribute") is { } typeAttr && GetBool(typeAttr, "Output"):
                     sb.Append($"    public {staticKw}string {prop.Name} => Get();\n");
                     break;
-                // Function binding property: [LuaType(function)] on a Func/Action property.
-                case IPropertySymbol prop when GetAttr(prop, "LuaTypeAttribute") is not null
-                    && prop.Type is INamedTypeSymbol { Name: "Func" or "Action" }:
-                {
-                    var paramAttrs = prop.GetAttributes()
-                        .Where(a => a.AttributeClass?.Name == "LuaParameterAttribute")
-                        .Select(a => a.ConstructorArguments.Length > 0 ? a.ConstructorArguments[0].Value as string ?? "" : "")
-                        .ToList();
-                    var paramList = string.Join(", ", paramAttrs.Select(n => $"string {n}"));
-                    var argArray = string.Join(", ", paramAttrs);
-                    var body = isRoot ? $"GetFunc([{argArray}])" : $"GetFunc([{argArray}], ':')";
-                    sb.Append($"    public {staticKw}string {prop.Name}({paramList}) => {body};\n");
-                    break;
-                }
-                // Function member: [LuaType(function)] on an ordinary method.
-                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method when GetAttr(method, "LuaTypeAttribute") is not null:
-                {
-                    var paramList = string.Join(", ", method.Parameters.Select(FormatParam));
-                    var argArray = string.Join(", ", method.Parameters.Select(p => p.Name));
-                    // Root functions are called with () syntax; instance methods use : syntax in Lua.
-                    var body = isRoot
-                        ? $"GetFunc([{argArray}])"
-                        : $"GetFunc([{argArray}], ':')";
-                    sb.Append($"    public {staticKw}string {method.Name}({paramList}) => {body};\n");
-                    break;
-                }
             }
         }
 
@@ -164,19 +158,19 @@ public class NamesGenerator : IIncrementalGenerator
                 case "LuaMap":
                     sb.Append($"    public {staticKw}string {name} => Get();\n");
                     return;
+                case "LuaEnumRef" when named.TypeArguments.Length == 1:
+                {
+                    var enumType = named.TypeArguments[0];
+                    var fqEnum = enumType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    var pascalName = char.ToUpper(name[0]) + name.Substring(1); // camelCase → PascalCase
+                    sb.Append($"    public {staticKw}{Bt}.EnumTable<{fqEnum}> {pascalName} => new() {{ Fn = Get() }};\n");
+                    return;
+                }
             }
         }
 
         // Scalars (long, double, bool, string, string?, enum) — leaf string.
         sb.Append($"    public {staticKw}string {name} => Get();\n");
-    }
-
-    private static string FormatParam(IParameterSymbol p)
-    {
-        var typeStr = p.Type.ToDisplayString(FqNullable);
-        return p.HasExplicitDefaultValue
-            ? $"{typeStr} {p.Name} = {(p.ExplicitDefaultValue is null ? "null" : $"\"{p.ExplicitDefaultValue}\"")}"
-            : $"{typeStr} {p.Name}";
     }
 
     private static string TableToNames(string name) =>

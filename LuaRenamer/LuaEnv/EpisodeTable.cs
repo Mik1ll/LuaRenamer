@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -10,8 +11,10 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Episode)]
 public partial class EpisodeTable : LuaTableWriter
 {
-    internal EpisodeTable(LuaTable t, LuaFunction getname) : base(t, _classidVal)
-        => _t["getname"] = getname;
+    internal EpisodeTable(LuaTable t) : base(t, _classidVal) { }
+
+    [LuaField("Get the title in the specified language")]
+    public required LuaFunctionRef<Func<TitleLanguage, string?>> getname { init => Set(value.Value); }
 
     [LuaField("Duration of the episode in seconds")]
     public required long duration { init => Set(value); }
@@ -33,11 +36,6 @@ public partial class EpisodeTable : LuaTableWriter
 
     [LuaField("All available titles for the episode")]
     public required LuaArray<LuaRef<TitleTable>> titles { init => Set(value.Table); }
-
-    [LuaType(LuaTypeNames.function, "Get the episode title in the specified language")]
-    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
-    public string getname(string lang) => GetFunc([lang], ':');
 
     [LuaField("Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
     public required string prefix { init => Set(value); }

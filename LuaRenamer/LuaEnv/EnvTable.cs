@@ -11,30 +11,20 @@ public partial class EnvTable : LuaRootTableWriter
 {
     internal EnvTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.function, "Returns formatted episode numbers with padding")]
-    [LuaParameter("pad", LuaTypeNames.integer, "The amount of padding to use")]
-    [LuaReturnType(LuaTypeNames.@string)]
-    public required Func<int, string> episode_numbers { init => Set(value); }
+    [LuaField("Returns formatted episode numbers with padding")]
+    public required LuaFunctionRef<Func<long, string>> episode_numbers { init => Set(value.Value); }
 
-    [LuaType(LuaTypeNames.function, "Log with Debug log level")]
-    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
-    [LuaReturnType(LuaTypeNames.nil)]
-    public required Action<string> logdebug { init => Set(value); }
+    [LuaField("Log with Debug log level")]
+    public required LuaFunctionRef<Action<string>> logdebug { init => Set(value.Value); }
 
-    [LuaType(LuaTypeNames.function, "Log with Information log level")]
-    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
-    [LuaReturnType(LuaTypeNames.nil)]
-    public required Action<string> log { init => Set(value); }
+    [LuaField("Log with Information log level")]
+    public required LuaFunctionRef<Action<string>> log { init => Set(value.Value); }
 
-    [LuaType(LuaTypeNames.function, "Log with Warning log level")]
-    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
-    [LuaReturnType(LuaTypeNames.nil)]
-    public required Action<string> logwarn { init => Set(value); }
+    [LuaField("Log with Warning log level")]
+    public required LuaFunctionRef<Action<string>> logwarn { init => Set(value.Value); }
 
-    [LuaType(LuaTypeNames.function, "Log with Error log level")]
-    [LuaParameter("message", LuaTypeNames.@string, "The message to log")]
-    [LuaReturnType(LuaTypeNames.nil)]
-    public required Action<string> logerror { init => Set(value); }
+    [LuaField("Log with Error log level")]
+    public required LuaFunctionRef<Action<string>> logerror { init => Set(value.Value); }
 
     [LuaField("The current file being processed")]
     public required LuaRef<FileTable> file { init => Set(value.Table); }
