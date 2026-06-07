@@ -1,16 +1,22 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
+using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.AniDbMedia)]
-public class AniDbMediaTable : Table
+public partial class AniDbMediaTable : LuaTableWriter
 {
-    [LuaType($"{nameof(EnumsTable.Language)}[]", "List of subtitle languages available in the release")]
-    public string sublanguages => Get();
+    internal AniDbMediaTable(LuaTable t) : base(t) { }
 
-    [LuaType($"{nameof(EnumsTable.Language)}[]", "List of audio languages available in the release")]
-    public string dublanguages => Get();
+    [LuaField("List of subtitle languages available in the release")]
+    public required LuaArray<TitleLanguage> sublanguages { init => Set(value.Table); }
+
+    [LuaField("List of audio languages available in the release")]
+    public required LuaArray<TitleLanguage> dublanguages { init => Set(value.Table); }
+
+    public static implicit operator LuaRef<AniDbMediaTable>(AniDbMediaTable t) => new(t._t);
 }

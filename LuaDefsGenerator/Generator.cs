@@ -11,6 +11,10 @@ public class Generator
 {
     private readonly string _outputPath;
 
+    // Maps CLR enum type -> Lua name (e.g. typeof(AnimeType) -> "AnimeType").
+    // Built once from EnumsTable's EnumTable<T> properties.
+    private static readonly Dictionary<Type, string> EnumToLuaName = BuildEnumMap();
+
     public Generator(string outputPath) => _outputPath = Path.GetFullPath(outputPath);
 
     public void GenerateDefinitionFiles()
@@ -20,8 +24,22 @@ public class Generator
         GenerateEnvFile();
     }
 
+    private static Dictionary<Type, string> BuildEnumMap()
+    {
+        var result = new Dictionary<Type, string>();
+        foreach (var prop in typeof(EnumsTable).GetProperties(BindingFlags.Public | BindingFlags.Static))
+        {
+            if (!prop.PropertyType.IsGenericType) continue;
+            if (prop.PropertyType.GetGenericTypeDefinition() != typeof(EnumTable<>)) continue;
+            var enumType = prop.PropertyType.GetGenericArguments()[0];
+            result[enumType] = prop.Name;
+        }
+        return result;
+    }
+
     private void GenerateDefsFile()
     {
+        var ctx = new NullabilityInfoContext();
         var types = typeof(Table).Assembly.DefinedTypes
             .Select(t => new { LuaTypeAttribute = t.GetCustomAttribute<LuaTypeAttribute>(), Type = t })
             .Where(t => t.LuaTypeAttribute is not null)
@@ -30,23 +48,26 @@ public class Generator
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
-
         foreach (var type in types)
         {
             var className = type.LuaTypeAttribute!.Type;
             var functions = new List<(MemberInfo member, LuaTypeAttribute typeAttr)>();
             sb.Append($"---@class (exact) {className}\n");
 
-            // Generate fields
             foreach (var member in type.Type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (member.GetCustomAttribute<LuaTypeAttribute>() is not { } typeAttr)
-                    continue;
-
-                if (typeAttr.Type == LuaTypeNames.function)
-                    functions.Add((member, typeAttr));
-                else
-                    sb.Append($"---@field {member.Name} {typeAttr.Type}{(typeAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
+                if (member.GetCustomAttribute<LuaTypeAttribute>() is { } typeAttr)
+                {
+                    if (typeAttr.Type == LuaTypeNames.function)
+                        functions.Add((member, typeAttr));
+                    else
+                        sb.Append($"---@field {member.Name} {typeAttr.Type}{(typeAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
+                }
+                else if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
+                {
+                    var luaType = InferLuaType(prop, ctx);
+                    sb.Append($"---@field {member.Name} {luaType}{(fieldAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
+                }
             }
 
             sb.Append($"local {className} = {{}}\n\n");
@@ -58,6 +79,59 @@ public class Generator
         sb.Length--;
 
         File.WriteAllText(Path.Combine(_outputPath, "defs.lua"), sb.ToString());
+    }
+
+    private static string InferLuaType(PropertyInfo prop, NullabilityInfoContext ctx)
+    {
+        var t = prop.PropertyType;
+
+        // Nullable<T> struct wrapper (LuaRef<T>?, long?, bool?, enum?)
+        if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+        {
+            var inner = t.GetGenericArguments()[0];
+            return InferLuaTypeForInner(inner) + "|nil";
+        }
+
+        // Nullable reference type (string?)
+        var nullInfo = ctx.Create(prop);
+        var isNullableRef = t.IsClass && (nullInfo.ReadState == NullabilityState.Nullable || nullInfo.WriteState == NullabilityState.Nullable);
+
+        return InferLuaTypeForInner(t) + (isNullableRef ? "|nil" : "");
+    }
+
+    private static string InferLuaTypeForInner(Type t)
+    {
+        if (t == typeof(long)) return LuaTypeNames.integer;
+        if (t == typeof(double)) return LuaTypeNames.number;
+        if (t == typeof(bool)) return LuaTypeNames.boolean;
+        if (t == typeof(string)) return LuaTypeNames.@string;
+
+        if (t.IsEnum)
+            return EnumToLuaName.TryGetValue(t, out var name) ? name : t.Name;
+
+        if (!t.IsGenericType)
+            return LuaTypeNames.table;
+
+        var def = t.GetGenericTypeDefinition();
+        var args = t.GetGenericArguments();
+
+        if (def == typeof(LuaRef<>))
+        {
+            var tableType = args[0];
+            var luaTypeAttr = tableType.GetCustomAttribute<LuaTypeAttribute>();
+            return luaTypeAttr?.Type ?? tableType.Name;
+        }
+
+        if (def == typeof(LuaArray<>))
+        {
+            var elem = args[0];
+            return InferLuaTypeForInner(elem) + "[]";
+        }
+
+        if (def == typeof(LuaMap<,>))
+            return $"table<{InferLuaTypeForInner(args[0])}, {InferLuaTypeForInner(args[1])}>";
+
+        return LuaTypeNames.table;
     }
 
     private static readonly HashSet<TitleLanguage> AnidbLangs =
@@ -200,26 +274,34 @@ public class Generator
 
     private void GenerateEnvFile()
     {
+        var ctx = new NullabilityInfoContext();
         var envType = typeof(EnvTable);
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
-        // Generate global variable definitions
-        foreach (var prop in envType.GetMembers(BindingFlags.Public | BindingFlags.Static))
+        foreach (var member in envType.GetMembers(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
         {
-            if (prop.GetCustomAttribute<LuaTypeAttribute>() is not { } typeAttr)
-                continue;
-
-            if (typeAttr.Type == LuaTypeNames.function)
+            if (member.GetCustomAttribute<LuaTypeAttribute>() is { } typeAttr)
             {
-                GenerateFunctionAnnotations(sb, prop, typeAttr, prop.Name);
+                if (typeAttr.Type == LuaTypeNames.function)
+                {
+                    GenerateFunctionAnnotations(sb, member, typeAttr, member.Name);
+                }
+                else
+                {
+                    if (typeAttr.Description is { } description)
+                        sb.Append($"---{description}\n");
+                    sb.Append($"---@type {typeAttr.Type}\n");
+                    sb.Append($"{member.Name} = {typeAttr.DefaultValue}\n\n");
+                }
             }
-            else
+            else if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
             {
-                if (typeAttr.Description is { } description)
-                    sb.Append($"---{description}\n");
-                sb.Append($"---@type {typeAttr.Type}\n");
-                sb.Append($"{prop.Name} = {typeAttr.DefaultValue}\n\n");
+                var luaType = InferLuaType(prop, ctx);
+                if (fieldAttr.Description is { } desc)
+                    sb.Append($"---{desc}\n");
+                sb.Append($"---@type {luaType}\n");
+                sb.Append($"{prop.Name} = {fieldAttr.DefaultValue}\n\n");
             }
         }
 

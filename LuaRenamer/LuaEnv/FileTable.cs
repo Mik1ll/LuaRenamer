@@ -1,37 +1,42 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.File)]
-public class FileTable : Table
+public partial class FileTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.@string, "The name of the file without extension")]
-    public string name => Get();
+    internal FileTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.@string, "The file extension including the dot")]
-    public string extension => Get();
+    [LuaField("The name of the file without extension")]
+    public required string name { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "The full path to the file")]
-    public string path => Get();
+    [LuaField("The file extension including the dot")]
+    public required string extension { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "The file size in bytes")]
-    public string size => Get();
+    [LuaField("The full path to the file")]
+    public required string path { init => Set(value); }
 
-    [LuaType(LuaTypeNames.ImportFolder, "The import folder containing this file")]
-    public ImportFolderTable importfolder => new() { Fn = Get() };
+    [LuaField("The file size in bytes")]
+    public required long size { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "The earliest known name of the file")]
-    public string earliestname => Get();
+    [LuaField("The import folder containing this file")]
+    public required LuaRef<ImportFolderTable> importfolder { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.Media}|{LuaTypeNames.nil}", "Media information (via MediaInfo) for the file")]
-    public MediaTable media => new() { Fn = Get() };
+    [LuaField("The earliest known name of the file")]
+    public required string? earliestname { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.AniDb}|{LuaTypeNames.nil}", "AniDB information for the file")]
-    public AniDbTable anidb => new() { Fn = Get() };
+    [LuaField("Media information (via MediaInfo) for the file")]
+    public required LuaRef<MediaTable>? media { init => Set(value?.Table); }
 
-    [LuaType(LuaTypeNames.Hashes, "File hashes")]
-    public HashesTable hashes => new() { Fn = Get() };
+    [LuaField("AniDB information for the file")]
+    public required LuaRef<AniDbTable>? anidb { init => Set(value?.Table); }
+
+    [LuaField("File hashes")]
+    public required LuaRef<HashesTable> hashes { init => Set(value.Table); }
+
+    public static implicit operator LuaRef<FileTable>(FileTable t) => new(t._t);
 }

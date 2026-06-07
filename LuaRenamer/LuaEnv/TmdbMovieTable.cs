@@ -1,39 +1,45 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.TmdbMovie)]
-public class TmdbMovieTable : Table
+public partial class TmdbMovieTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "TMDB movie ID")]
-    public string id => Get();
+    internal TmdbMovieTable(LuaTable t, LuaFunction getname) : base(t)
+        => _t["getname"] = getname;
 
-    [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the movie")]
-    public ArrayTable<TitleTable> titles => new() { Fn = Get() };
+    [LuaField("TMDB movie ID")]
+    public required long id { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default movie title")]
-    public string defaultname => Get();
+    [LuaField("All available titles for the movie")]
+    public required LuaArray<LuaRef<TitleTable>> titles { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred movie title")]
-    public string preferredname => Get();
+    [LuaField("Default movie title")]
+    public required string? defaultname { init => Set(value); }
 
-    [LuaType(LuaTypeNames.number, "Movie rating")]
-    public string rating => Get();
+    [LuaField("Preferred movie title")]
+    public required string? preferredname { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Whether the movie is age-restricted")]
-    public string restricted => Get();
+    [LuaField("Movie rating")]
+    public required double rating { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
-    public string studios => Get();
+    [LuaField("Whether the movie is age-restricted")]
+    public required bool restricted { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the movie")]
-    public string airdate => Get();
+    [LuaField("List of production studios")]
+    public required LuaArray<string> studios { init => Set(value.Table); }
+
+    [LuaField("Air date of the movie")]
+    public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }
 
     [LuaType(LuaTypeNames.function, "Get the movie title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
+
+    public static implicit operator LuaRef<TmdbMovieTable>(TmdbMovieTable t) => new(t._t);
 }

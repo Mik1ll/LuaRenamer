@@ -1,42 +1,49 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
+using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.TmdbEpisode)]
-public class TmdbEpisodeTable : Table
+public partial class TmdbEpisodeTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "TMDB episode ID")]
-    public string id => Get();
+    internal TmdbEpisodeTable(LuaTable t, LuaFunction getname) : base(t)
+        => _t["getname"] = getname;
 
-    [LuaType(LuaTypeNames.integer, "TMDB show ID")]
-    public string showid => Get();
+    [LuaField("TMDB episode ID")]
+    public required long id { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the episode")]
-    public ArrayTable<TitleTable> titles => new() { Fn = Get() };
+    [LuaField("TMDB show ID")]
+    public required long showid { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default episode title")]
-    public string defaultname => Get();
+    [LuaField("All available titles for the episode")]
+    public required LuaArray<LuaRef<TitleTable>> titles { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred episode title")]
-    public string preferredname => Get();
+    [LuaField("Default episode title")]
+    public required string? defaultname { init => Set(value); }
 
-    [LuaType(nameof(EnumsTable.EpisodeType), "Type of episode")]
-    public string type => Get();
+    [LuaField("Preferred episode title")]
+    public required string? preferredname { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Episode number within the season")]
-    public string number => Get();
+    [LuaField("Type of episode")]
+    public required EpisodeType type { init => Set(value.ToString()); }
 
-    [LuaType($"{LuaTypeNames.integer}|{LuaTypeNames.nil}", "Season number")]
-    public string seasonnumber => Get();
+    [LuaField("Episode number within the season")]
+    public required long number { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the episode")]
-    public string airdate => Get();
+    [LuaField("Season number")]
+    public required long? seasonnumber { init => Set(value); }
+
+    [LuaField("Air date of the episode")]
+    public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }
 
     [LuaType(LuaTypeNames.function, "Get the episode title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
+
+    public static implicit operator LuaRef<TmdbEpisodeTable>(TmdbEpisodeTable t) => new(t._t);
 }

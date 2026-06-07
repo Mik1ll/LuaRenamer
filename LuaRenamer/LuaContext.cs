@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.BaseTypes;
-using LuaRenamer.LuaEnv.Builders;
 using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Abstractions.Metadata;
@@ -203,13 +202,13 @@ public class LuaContext : Lua
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
             .Select(GroupToTable).ToList();
 
-        _ = new EnvTableBuilder(env)
+        _ = new EnvTable(env,
+            episode_numbers: Bind(EpNumsMethod),
+            logdebug: Bind(LogDebugMethod),
+            log: Bind(LogMethod),
+            logwarn: Bind(LogWarnMethod),
+            logerror: Bind(LogErrorMethod))
         {
-            logdebug = Bind(LogDebugMethod),
-            log = Bind(LogMethod),
-            logwarn = Bind(LogWarnMethod),
-            logerror = Bind(LogErrorMethod),
-            episode_numbers = Bind(EpNumsMethod),
             replace_illegal_chars = _args.Configuration.ReplaceIllegalCharacters,
             remove_illegal_chars = _args.Configuration.RemoveIllegalCharacters,
             use_existing_anime_location = _args.Configuration.UseExistingAnimeLocation,
@@ -227,16 +226,14 @@ public class LuaContext : Lua
             tmdb = TmdbToTable(),
         };
 
-        _ = new EnumsTableBuilder(env)
-        {
-            AnimeType = EnumToTable<AnimeType>(),
-            TitleType = EnumToTable<TitleType>(),
-            Language = EnumToTable<TitleLanguage>(),
-            EpisodeType = EnumToTable<EpisodeType>(),
-            ImportFolderType = EnumToTable<DropFolderType>(),
-            RelationType = EnumToTable<RelationType>(),
-            SeasonName = EnumToTable<YearlySeason>(),
-        };
+        _ = new EnumsTable(env,
+            importFolderType: EnumToTable<DropFolderType>(),
+            animeType: EnumToTable<AnimeType>(),
+            episodeType: EnumToTable<EpisodeType>(),
+            titleType: EnumToTable<TitleType>(),
+            language: EnumToTable<TitleLanguage>(),
+            relationType: EnumToTable<RelationType>(),
+            seasonName: EnumToTable<YearlySeason>());
 
         return env;
     }
@@ -254,7 +251,7 @@ public class LuaContext : Lua
         => MapOf(FilePathCleaner.ReplaceMapDefaults.Select(kvp => (kvp.Key, kvp.Value)));
 
     private LuaRef<GroupTable> GroupToTable(IShokoGroup group) =>
-        new GroupTableBuilder(GetNewTable())
+        new GroupTable(GetNewTable())
         {
             name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
             mainanime = AnimeToTable(group.MainSeries.AnidbAnime, false),
@@ -267,7 +264,7 @@ public class LuaContext : Lua
         return Cached<IAnidbAnime, AnimeTable>(anime.ID, tbl =>
         {
             var series = anime.ShokoSeries.FirstOrDefault();
-            return new AnimeTableBuilder(tbl)
+            return new AnimeTable(tbl, getname: _getName)
             {
                 airdate = DateTimeToTable(anime.AirDate?.ToDateTime()),
                 enddate = DateTimeToTable(anime.EndDate?.ToDateTime()),
@@ -278,7 +275,6 @@ public class LuaContext : Lua
                 defaultname = string.IsNullOrWhiteSpace(series?.DefaultTitle.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value,
                 id = anime.ID,
                 titles = ArrayOf(anime.Titles.OrderBy(t => t.Value).Select(TitleToTable)),
-                getname = _getName,
                 studios = ArrayOf(anime.Studios.Select(st => st.Name)),
                 episodecounts = MapOf(Enum.GetValues<EpisodeType>().Select(ep => (ep, (long)anime.EpisodeCounts[ep]))),
                 relations = ArrayOf(ignoreRelations
@@ -293,14 +289,14 @@ public class LuaContext : Lua
     }
 
     private LuaRef<SeasonTable> SeasonToTable((int Year, YearlySeason Season) season) =>
-        new SeasonTableBuilder(GetNewTable())
+        new SeasonTable(GetNewTable())
         {
             year = season.Year,
             season = season.Season,
         };
 
     private LuaRef<RelationTable> RelationToTable(IRelatedMetadata<ISeries, ISeries> relation) =>
-        new RelationTableBuilder(GetNewTable())
+        new RelationTable(GetNewTable())
         {
             anime = AnimeToTable((relation.Related as IAnidbAnime)!, true),
             type = relation.RelationType,
@@ -310,7 +306,7 @@ public class LuaContext : Lua
     {
         if (aniDb is not { ReleaseURI: var releaseUri } || !(releaseUri?.StartsWith("https://anidb.net/file/") ?? false))
             return null;
-        return new AniDbTableBuilder(GetNewTable())
+        return new AniDbTable(GetNewTable())
         {
             id = int.Parse(aniDb.ReleaseURI![23..]),
             censored = aniDb.IsCensored,
@@ -318,7 +314,7 @@ public class LuaContext : Lua
             version = aniDb.Version,
             releasedate = DateTimeToTable(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified)),
             releasegroup = ReleaseGroupToTable(aniDb.Group),
-            media = new AniDbMediaTableBuilder(GetNewTable())
+            media = new AniDbMediaTable(GetNewTable())
             {
                 sublanguages = ArrayOf(aniDb.MediaInfo?.SubtitleLanguages ?? []),
                 dublanguages = ArrayOf(aniDb.MediaInfo?.AudioLanguages ?? []),
@@ -331,7 +327,7 @@ public class LuaContext : Lua
     {
         if (releaseGroup?.ID is null || releaseGroup.Name == "raw/unknown")
             return null;
-        return new ReleaseGroupTableBuilder(GetNewTable())
+        return new ReleaseGroupTable(GetNewTable())
         {
             name = releaseGroup.Name,
             shortname = releaseGroup.ShortName,
@@ -339,7 +335,7 @@ public class LuaContext : Lua
     }
 
     private LuaRef<EpisodeTable> EpisodeToTable(IAnidbEpisode episode) =>
-        Cached<IAnidbEpisode, EpisodeTable>(episode.ID, tbl => new EpisodeTableBuilder(tbl)
+        Cached<IAnidbEpisode, EpisodeTable>(episode.ID, tbl => new EpisodeTable(tbl, getname: _getName)
         {
             duration = (long)episode.Runtime.TotalSeconds,
             number = episode.EpisodeNumber,
@@ -348,12 +344,11 @@ public class LuaContext : Lua
             animeid = episode.SeriesID,
             id = episode.ID,
             titles = ArrayOf(episode.Titles.OrderBy(t => t.Value).Select(TitleToTable)),
-            getname = _getName,
             prefix = Utils.EpPrefix[episode.Type],
         });
 
     private LuaRef<TitleTable> TitleToTable(ITitle title) =>
-        new TitleTableBuilder(GetNewTable())
+        new TitleTable(GetNewTable())
         {
             name = title.Value,
             language = title.Language,
@@ -362,14 +357,14 @@ public class LuaContext : Lua
         };
 
     private LuaRef<FileTable> FileToTable(IVideoFile file) =>
-        new FileTableBuilder(GetNewTable())
+        new FileTable(GetNewTable())
         {
             name = Path.GetFileNameWithoutExtension(file.FileName),
             extension = Path.GetExtension(file.FileName),
             path = file.Path,
             size = file.Size,
             earliestname = Path.GetFileNameWithoutExtension(file.Video.EarliestKnownName),
-            hashes = new HashesTableBuilder(GetNewTable())
+            hashes = new HashesTable(GetNewTable())
             {
                 crc = file.Video.Hashes.FirstOrDefault(h => h.Type is "CRC32")?.Value,
                 md5 = file.Video.Hashes.FirstOrDefault(h => h.Type is "MD5")?.Value,
@@ -382,7 +377,7 @@ public class LuaContext : Lua
         };
 
     private LuaRef<ImportFolderTable> ImportFolderToTable(IManagedFolder folder) =>
-        Cached<IManagedFolder, ImportFolderTable>(folder.ID, tbl => new ImportFolderTableBuilder(tbl)
+        Cached<IManagedFolder, ImportFolderTable>(folder.ID, tbl => new ImportFolderTable(tbl)
         {
             id = folder.ID,
             name = folder.Name,
@@ -394,7 +389,7 @@ public class LuaContext : Lua
     {
         if (mediaInfo is null)
             return null;
-        return new MediaTableBuilder(GetNewTable())
+        return new MediaTable(GetNewTable())
         {
             video = mediaInfo.VideoStream is { } video ? VideoToTable(video) : null,
             chaptered = mediaInfo.Chapters.Any(),
@@ -406,7 +401,7 @@ public class LuaContext : Lua
     }
 
     private LuaRef<VideoTable> VideoToTable(IVideoStream video) =>
-        new VideoTableBuilder(GetNewTable())
+        new VideoTable(GetNewTable())
         {
             height = video.Height,
             width = video.Width,
@@ -418,7 +413,7 @@ public class LuaContext : Lua
         };
 
     private LuaRef<AudioTable> AudioToTable(IAudioStream audio) =>
-        new AudioTableBuilder(GetNewTable())
+        new AudioTable(GetNewTable())
         {
             compressionmode = audio.CompressionMode,
             channels = !string.IsNullOrWhiteSpace(audio.ChannelLayout) && audio.ChannelLayout.Contains("LFE") ? audio.Channels - 1 + 0.1 : audio.Channels,
@@ -432,7 +427,7 @@ public class LuaContext : Lua
     {
         if (dateTime is not { } dt)
             return null;
-        return new DateTimeTableBuilder(GetNewTable())
+        return new DateTimeTable(GetNewTable())
         {
             year = dt.Year,
             month = dt.Month,
@@ -447,7 +442,7 @@ public class LuaContext : Lua
     }
 
     private LuaRef<TmdbTable> TmdbToTable() =>
-        new TmdbTableBuilder(GetNewTable())
+        new TmdbTable(GetNewTable())
         {
             movies = ArrayOf(_args.Series[0].TmdbMovies.Select(TmdbMovieToTable)),
             shows = ArrayOf(_args.Series[0].TmdbShows.Select(TmdbShowToTable)),
@@ -456,7 +451,7 @@ public class LuaContext : Lua
         };
 
     private LuaRef<TmdbMovieTable> TmdbMovieToTable(ITmdbMovie movie) =>
-        new TmdbMovieTableBuilder(GetNewTable())
+        new TmdbMovieTable(GetNewTable(), getname: _getName)
         {
             id = movie.ID,
             titles = ArrayOf(movie.Titles.Select(TitleToTable)),
@@ -466,11 +461,10 @@ public class LuaContext : Lua
             restricted = movie.Restricted,
             studios = ArrayOf(movie.Studios.Select(s => s.Name)),
             airdate = DateTimeToTable(movie.ReleaseDate),
-            getname = _getName,
         };
 
     private LuaRef<TmdbShowTable> TmdbShowToTable(ITmdbShow show) =>
-        new TmdbShowTableBuilder(GetNewTable())
+        new TmdbShowTable(GetNewTable(), getname: _getName)
         {
             id = show.ID,
             titles = ArrayOf(show.Titles.Select(TitleToTable)),
@@ -482,12 +476,11 @@ public class LuaContext : Lua
             episodecount = show.EpisodeCounts.Episodes,
             airdate = DateTimeToTable(show.AirDate?.ToDateTime()),
             enddate = DateTimeToTable(show.EndDate?.ToDateTime()),
-            getname = _getName,
             seasons = ArrayOf(show.YearlySeasons.Select(SeasonToTable)),
         };
 
     private LuaRef<TmdbEpisodeTable> TmdbEpisodeToTable(ITmdbEpisode episode) =>
-        new TmdbEpisodeTableBuilder(GetNewTable())
+        new TmdbEpisodeTable(GetNewTable(), getname: _getName)
         {
             showid = episode.SeriesID,
             id = episode.ID,
@@ -498,7 +491,6 @@ public class LuaContext : Lua
             number = episode.EpisodeNumber,
             seasonnumber = episode.SeasonNumber,
             airdate = DateTimeToTable(episode.AirDateWithTime),
-            getname = _getName,
         };
 
     private LuaArray<LuaRef<T>> ArrayOf<T>(IEnumerable<LuaRef<T>> items) where T : Table

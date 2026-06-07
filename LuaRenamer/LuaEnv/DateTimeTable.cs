@@ -1,37 +1,42 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.DateTime)]
-public class DateTimeTable : Table
+public partial class DateTimeTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "Year (four digits)")]
-    public string year => Get();
+    internal DateTimeTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.integer, "Month (1-12)")]
-    public string month => Get();
+    [LuaField("Year (four digits)")]
+    public required long year { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Day of the month (1-31)")]
-    public string day => Get();
+    [LuaField("Month (1-12)")]
+    public required long month { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Day of the year (1-366)")]
-    public string yday => Get();
+    [LuaField("Day of the month (1-31)")]
+    public required long day { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Day of the week (1-7, 1 is Sunday)")]
-    public string wday => Get();
+    [LuaField("Day of the year (1-366)")]
+    public required long yday { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Hour (0-23)")]
-    public string hour => Get();
+    [LuaField("Day of the week (1-7, 1 is Sunday)")]
+    public required long wday { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Minute (0-59)")]
-    public string min => Get();
+    [LuaField("Hour (0-23)")]
+    public required long hour { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Second (0-59)")]
-    public string sec => Get();
+    [LuaField("Minute (0-59)")]
+    public required long min { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Is Daylight Saving Time in effect")]
-    public string isdst => Get();
+    [LuaField("Second (0-59)")]
+    public required long sec { init => Set(value); }
+
+    [LuaField("Is Daylight Saving Time in effect")]
+    public required bool isdst { init => Set(value); }
+
+    public static implicit operator LuaRef<DateTimeTable>(DateTimeTable t) => new(t._t);
 }
