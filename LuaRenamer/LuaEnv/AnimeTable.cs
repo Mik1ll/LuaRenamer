@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -10,8 +11,10 @@ namespace LuaRenamer.LuaEnv;
 [LuaType(LuaTypeNames.Anime)]
 public partial class AnimeTable : LuaTableWriter
 {
-    internal AnimeTable(LuaTable t, LuaFunction getname) : base(t, _classidVal)
-        => _t["getname"] = getname;
+    internal AnimeTable(LuaTable t) : base(t, _classidVal) { }
+
+    [LuaField("Get the anime title in the specified language")]
+    public required LuaFunctionRef<Func<TitleLanguage, bool?, string?>> getname { init => Set(value.Value); }
 
     [LuaField("First air date of the anime")]
     public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }
@@ -39,12 +42,6 @@ public partial class AnimeTable : LuaTableWriter
 
     [LuaField("All available titles for the anime")]
     public required LuaArray<LuaRef<TitleTable>> titles { init => Set(value.Table); }
-
-    [LuaType(LuaTypeNames.function, "Get the anime title in the specified language")]
-    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaParameter(nameof(include_unofficial), $"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether to include unofficial titles")]
-    [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
-    public string getname(string lang, string? include_unofficial = null) => GetFunc([lang, include_unofficial], ':');
 
     [LuaField("Count of episodes by type")]
     public required LuaMap<EpisodeType, long> episodecounts { init => Set(value.Table); }

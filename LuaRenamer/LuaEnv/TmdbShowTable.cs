@@ -1,16 +1,20 @@
 // ReSharper disable InconsistentNaming
 
+using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
+using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.TmdbShow)]
 public partial class TmdbShowTable : LuaTableWriter
 {
-    internal TmdbShowTable(LuaTable t, LuaFunction getname) : base(t)
-        => _t["getname"] = getname;
+    internal TmdbShowTable(LuaTable t) : base(t) { }
+
+    [LuaField("Get the title in the specified language")]
+    public required LuaFunctionRef<Func<TitleLanguage, string?>> getname { init => Set(value.Value); }
 
     [LuaField("TMDB show ID")]
     public required long id { init => Set(value); }
@@ -41,11 +45,6 @@ public partial class TmdbShowTable : LuaTableWriter
 
     [LuaField("End date of the show")]
     public required LuaRef<DateTimeTable>? enddate { init => Set(value?.Table); }
-
-    [LuaType(LuaTypeNames.function, "Get the show title in the specified language")]
-    [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
-    [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
-    public string getname(string lang) => GetFunc([lang], ':');
 
     [LuaField("List of seasons show aired during")]
     public required LuaArray<LuaRef<SeasonTable>> seasons { init => Set(value.Table); }
