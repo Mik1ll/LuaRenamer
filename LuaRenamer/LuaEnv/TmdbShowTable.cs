@@ -1,6 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -14,7 +13,7 @@ public partial class TmdbShowTable : LuaTableWriter
     internal TmdbShowTable(LuaTable t) : base(t) { }
 
     [LuaField("Get the title in the specified language")]
-    public required LuaFunctionRef<Func<TitleLanguage, string?>> getname { init => Set(value.Value); }
+    public required LuaFunctionRef<TitleDelegate> getname { init => Set(value.Value); }
 
     [LuaField("TMDB show ID")]
     public required long id { init => Set(value); }

@@ -197,11 +197,11 @@ public class LuaContext : Lua
 
         _ = new EnvTable(env)
         {
-            episode_numbers = (Func<long, string>)EpNums,
-            logdebug = (Action<string>)LogDebug,
-            log = (Action<string>)Log,
-            logwarn = (Action<string>)LogWarn,
-            logerror = (Action<string>)LogError,
+            episode_numbers = (EpisodeNumbersDelegate)EpNums,
+            logdebug = (LogDelegate)LogDebug,
+            log = (LogDelegate)Log,
+            logwarn = (LogDelegate)LogWarn,
+            logerror = (LogDelegate)LogError,
             replace_illegal_chars = _args.Configuration.ReplaceIllegalCharacters,
             remove_illegal_chars = _args.Configuration.RemoveIllegalCharacters,
             use_existing_anime_location = _args.Configuration.UseExistingAnimeLocation,

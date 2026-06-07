@@ -77,18 +77,18 @@ public class NamesGenerator : IIncrementalGenerator
                 // Must be matched before the generic [LuaField] data case since these props also carry [LuaField].
                 case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null
                     && prop.Type is INamedTypeSymbol { Name: "LuaFunctionRef", TypeArguments.Length: 1 } funcRef
-                    && funcRef.TypeArguments[0] is INamedTypeSymbol del:
+                    && funcRef.TypeArguments[0] is INamedTypeSymbol del
+                    && del.DelegateInvokeMethod is { } invoke:
                 {
-                    var ta = del.TypeArguments;
-                    var n = del.Name == "Func" ? ta.Length - 1 : ta.Length;
                     var pars = new List<string>();
                     var args = new List<string>();
-                    for (var i = 0; i < n; i++)
+                    foreach (var param in invoke.Parameters)
                     {
-                        var isNull = ta[i] is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T }
-                            || ta[i].NullableAnnotation == NullableAnnotation.Annotated;
-                        pars.Add(isNull ? $"string? p{i} = null" : $"string p{i}");
-                        args.Add($"p{i}");
+                        var isNull = param.Type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T }
+                            || param.NullableAnnotation == NullableAnnotation.Annotated;
+                        var name = param.Name;
+                        pars.Add(isNull ? $"string? {name} = null" : $"string {name}");
+                        args.Add(name);
                     }
                     var body = isRoot
                         ? $"GetFunc([{string.Join(", ", args)}])"

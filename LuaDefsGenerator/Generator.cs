@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using LuaRenamer.LuaEnv;
@@ -283,36 +284,30 @@ public class Generator
             sb.Append($"---{description}\n");
 
         var delegateType = prop.PropertyType.GetGenericArguments()[0]; // TDelegate from LuaFunctionRef<TDelegate>
-        var delegateArgs = delegateType.GetGenericArguments();
-        var isFunc = delegateType.GetGenericTypeDefinition().Name.StartsWith("Func");
-        var paramCount = isFunc ? delegateArgs.Length - 1 : delegateArgs.Length;
+        var invoke = delegateType.GetMethod("Invoke")!;
+        var parameters = invoke.GetParameters();
 
-        // NullabilityInfo for the generic type args: prop -> LuaFunctionRef<T> -> T (the delegate) -> its args.
-        var nullInfo = ctx.Create(prop);
-        var funcNullArgs = nullInfo.GenericTypeArguments.Length > 0
-            ? nullInfo.GenericTypeArguments[0].GenericTypeArguments
-            : Array.Empty<NullabilityInfo>();
-
-        for (var i = 0; i < paramCount; i++)
+        foreach (var param in parameters)
         {
-            var argNullInfo = i < funcNullArgs.Length ? funcNullArgs[i] : null;
-            var luaType = InferLuaTypeForArg(delegateArgs[i], argNullInfo);
-            sb.Append($"---@param p{i} {luaType}\n");
+            var nullInfo = ctx.Create(param);
+            var luaType = InferLuaTypeForArg(param.ParameterType, nullInfo);
+            var desc = param.GetCustomAttribute<DescriptionAttribute>()?.Description;
+            var suffix = desc is not null ? $" # {desc}" : "";
+            sb.Append($"---@param {param.Name} {luaType}{suffix}\n");
         }
 
-        if (isFunc)
+        var retType = invoke.ReturnType;
+        if (retType != typeof(void))
         {
-            var retIdx = delegateArgs.Length - 1;
-            var retNullInfo = retIdx < funcNullArgs.Length ? funcNullArgs[retIdx] : null;
-            var retType = InferLuaTypeForArg(delegateArgs[retIdx], retNullInfo);
-            sb.Append($"---@return {retType}\n");
+            var retNullInfo = ctx.Create(invoke.ReturnParameter);
+            sb.Append($"---@return {InferLuaTypeForArg(retType, retNullInfo)}\n");
         }
         else
         {
             sb.Append("---@return nil\n");
         }
 
-        sb.Append($"function {functionName}({string.Join(", ", Enumerable.Range(0, paramCount).Select(i => $"p{i}"))}) end\n\n");
+        sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
     }
 
     private void GenerateEnvFile()

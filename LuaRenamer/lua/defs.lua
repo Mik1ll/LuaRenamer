@@ -35,10 +35,10 @@ local AniDbMedia = {}
 local Anime = {}
 
 ---Get the anime title in the specified language
----@param p0 Language
----@param p1 boolean|nil
+---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
-function Anime:getname(p0, p1) end
+function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Audio
 ---@field compressionmode string # Audio compression mode
@@ -73,9 +73,9 @@ local DateTime = {}
 local Episode = {}
 
 ---Get the title in the specified language
----@param p0 Language
+---@param lang Language # Language to get the title in
 ---@return string|nil
-function Episode:getname(p0) end
+function Episode:getname(lang) end
 
 ---@class (exact) File
 ---@field name string # The name of the file without extension
@@ -159,9 +159,9 @@ local Tmdb = {}
 local TmdbEpisode = {}
 
 ---Get the title in the specified language
----@param p0 Language
+---@param lang Language # Language to get the title in
 ---@return string|nil
-function TmdbEpisode:getname(p0) end
+function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbMovie
 ---@field id integer # TMDB movie ID
@@ -175,9 +175,9 @@ function TmdbEpisode:getname(p0) end
 local TmdbMovie = {}
 
 ---Get the title in the specified language
----@param p0 Language
+---@param lang Language # Language to get the title in
 ---@return string|nil
-function TmdbMovie:getname(p0) end
+function TmdbMovie:getname(lang) end
 
 ---@class (exact) TmdbShow
 ---@field id integer # TMDB show ID
@@ -194,9 +194,9 @@ function TmdbMovie:getname(p0) end
 local TmdbShow = {}
 
 ---Get the title in the specified language
----@param p0 Language
+---@param lang Language # Language to get the title in
 ---@return string|nil
-function TmdbShow:getname(p0) end
+function TmdbShow:getname(lang) end
 
 ---@class (exact) Video
 ---@field height integer # Video height in pixels

@@ -1,6 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -14,7 +13,7 @@ public partial class AnimeTable : LuaTableWriter
     internal AnimeTable(LuaTable t) : base(t, _classidVal) { }
 
     [LuaField("Get the anime title in the specified language")]
-    public required LuaFunctionRef<Func<TitleLanguage, bool?, string?>> getname { init => Set(value.Value); }
+    public required LuaFunctionRef<AnimeTitleDelegate> getname { init => Set(value.Value); }
 
     [LuaField("First air date of the anime")]
     public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }

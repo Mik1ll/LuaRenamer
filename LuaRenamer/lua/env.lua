@@ -1,29 +1,29 @@
 ---@meta
 
 ---Returns formatted episode numbers with padding
----@param p0 integer
+---@param pad integer # Episode number
 ---@return string
-function episode_numbers(p0) end
+function episode_numbers(pad) end
 
 ---Log with Debug log level
----@param p0 string
+---@param message string # Message to log
 ---@return nil
-function logdebug(p0) end
+function logdebug(message) end
 
 ---Log with Information log level
----@param p0 string
+---@param message string # Message to log
 ---@return nil
-function log(p0) end
+function log(message) end
 
 ---Log with Warning log level
----@param p0 string
+---@param message string # Message to log
 ---@return nil
-function logwarn(p0) end
+function logwarn(message) end
 
 ---Log with Error log level
----@param p0 string
+---@param message string # Message to log
 ---@return nil
-function logerror(p0) end
+function logerror(message) end
 
 ---The current file being processed
 ---@type File

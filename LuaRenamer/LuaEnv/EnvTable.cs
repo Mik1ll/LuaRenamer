@@ -1,6 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using NLua;
@@ -12,19 +11,19 @@ public partial class EnvTable : LuaRootTableWriter
     internal EnvTable(LuaTable t) : base(t) { }
 
     [LuaField("Returns formatted episode numbers with padding")]
-    public required LuaFunctionRef<Func<long, string>> episode_numbers { init => Set(value.Value); }
+    public required LuaFunctionRef<EpisodeNumbersDelegate> episode_numbers { init => Set(value.Value); }
 
     [LuaField("Log with Debug log level")]
-    public required LuaFunctionRef<Action<string>> logdebug { init => Set(value.Value); }
+    public required LuaFunctionRef<LogDelegate> logdebug { init => Set(value.Value); }
 
     [LuaField("Log with Information log level")]
-    public required LuaFunctionRef<Action<string>> log { init => Set(value.Value); }
+    public required LuaFunctionRef<LogDelegate> log { init => Set(value.Value); }
 
     [LuaField("Log with Warning log level")]
-    public required LuaFunctionRef<Action<string>> logwarn { init => Set(value.Value); }
+    public required LuaFunctionRef<LogDelegate> logwarn { init => Set(value.Value); }
 
     [LuaField("Log with Error log level")]
-    public required LuaFunctionRef<Action<string>> logerror { init => Set(value.Value); }
+    public required LuaFunctionRef<LogDelegate> logerror { init => Set(value.Value); }
 
     [LuaField("The current file being processed")]
     public required LuaRef<FileTable> file { init => Set(value.Table); }
