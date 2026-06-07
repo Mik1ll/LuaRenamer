@@ -1,25 +1,30 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
+using Shoko.Abstractions.Video.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.ImportFolder)]
-public class ImportFolderTable : Table
+public partial class ImportFolderTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "The Shoko import folder ID")]
-    public string id => Get();
+    internal ImportFolderTable(LuaTable t) : base(t, _classidVal) { }
 
-    [LuaType(LuaTypeNames.@string, "Name of the import folder")]
-    public string name => Get();
+    [LuaField("The Shoko import folder ID")]
+    public required long id { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "File system path to the import folder")]
-    public string location => Get();
+    [LuaField("Name of the import folder")]
+    public required string name { init => Set(value); }
 
-    [LuaType(nameof(EnumsTable.ImportFolderType), "Type of the import folder")]
-    public string type => Get();
+    [LuaField("File system path to the import folder")]
+    public required string location { init => Set(value); }
 
-    public string _classid => Get();
+    [LuaField("Type of the import folder")]
+    public required DropFolderType type { init => Set(value.ToString()); }
+
     public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
+
+    public static implicit operator LuaRef<ImportFolderTable>(ImportFolderTable t) => new(t._t);
 }

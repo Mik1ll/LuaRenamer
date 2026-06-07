@@ -1,34 +1,39 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.AniDb)]
-public class AniDbTable : Table
+public partial class AniDbTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "AniDB file ID")]
-    public string id => Get();
+    internal AniDbTable(LuaTable t) : base(t) { }
 
-    [LuaType($"{LuaTypeNames.boolean}|{LuaTypeNames.nil}", "Whether the release is censored")]
-    public string censored => Get();
+    [LuaField("AniDB file ID")]
+    public required long id { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "Source media of the release e.g. DVD, BD, Web, etc.")]
-    public string source => Get();
+    [LuaField("Whether the release is censored")]
+    public required bool? censored { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Version number of the release")]
-    public string version => Get();
+    [LuaField("Source media of the release e.g. DVD, BD, Web, etc.")]
+    public required string source { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Release date of the file")]
-    public DateTimeTable releasedate => new() { Fn = Get() };
+    [LuaField("Version number of the release")]
+    public required long version { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Description or notes about the release")]
-    public string description => Get();
+    [LuaField("Release date of the file")]
+    public required LuaRef<DateTimeTable>? releasedate { init => Set(value?.Table); }
 
-    [LuaType($"{LuaTypeNames.ReleaseGroup}|{LuaTypeNames.nil}", "Information about the release group")]
-    public ReleaseGroupTable releasegroup => new() { Fn = Get() };
+    [LuaField("Description or notes about the release")]
+    public required string? description { init => Set(value); }
 
-    [LuaType(LuaTypeNames.AniDbMedia, "Media information from AniDB")]
-    public AniDbMediaTable media => new() { Fn = Get() };
+    [LuaField("Information about the release group")]
+    public required LuaRef<ReleaseGroupTable>? releasegroup { init => Set(value?.Table); }
+
+    [LuaField("Media information from AniDB")]
+    public required LuaRef<AniDbMediaTable> media { init => Set(value.Table); }
+
+    public static implicit operator LuaRef<AniDbTable>(AniDbTable t) => new(t._t);
 }

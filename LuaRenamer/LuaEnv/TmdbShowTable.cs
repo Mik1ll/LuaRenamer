@@ -1,48 +1,54 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.TmdbShow)]
-public class TmdbShowTable : Table
+public partial class TmdbShowTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "TMDB show ID")]
-    public string id => Get();
+    internal TmdbShowTable(LuaTable t, LuaFunction getname) : base(t)
+        => _t["getname"] = getname;
 
-    [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the show")]
-    public ArrayTable<TitleTable> titles => new() { Fn = Get() };
+    [LuaField("TMDB show ID")]
+    public required long id { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Default show title")]
-    public string defaultname => Get();
+    [LuaField("All available titles for the show")]
+    public required LuaArray<LuaRef<TitleTable>> titles { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Preferred show title")]
-    public string preferredname => Get();
+    [LuaField("Default show title")]
+    public required string? defaultname { init => Set(value); }
 
-    [LuaType(LuaTypeNames.number, "Show rating")]
-    public string rating => Get();
+    [LuaField("Preferred show title")]
+    public required string? preferredname { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Whether the show is age-restricted")]
-    public string restricted => Get();
+    [LuaField("Show rating")]
+    public required double rating { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}[]", "List of production studios")]
-    public string studios => Get();
+    [LuaField("Whether the show is age-restricted")]
+    public required bool restricted { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.integer}", "Total number of episodes")]
-    public string episodecount => Get();
+    [LuaField("List of production studios")]
+    public required LuaArray<string> studios { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "Air date of the show")]
-    public string airdate => Get();
+    [LuaField("Total number of episodes")]
+    public required long episodecount { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.DateTime}|{LuaTypeNames.nil}", "End date of the show")]
-    public string enddate => Get();
+    [LuaField("Air date of the show")]
+    public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }
+
+    [LuaField("End date of the show")]
+    public required LuaRef<DateTimeTable>? enddate { init => Set(value?.Table); }
 
     [LuaType(LuaTypeNames.function, "Get the show title in the specified language")]
     [LuaParameter(nameof(lang), nameof(EnumsTable.Language), "The language to get the title in")]
     [LuaReturnType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}")]
     public string getname(string lang) => GetFunc([lang], ':');
 
-    [LuaType($"{LuaTypeNames.Season}[]", "List of seasons anime aired during")]
-    public string seasons => Get();
+    [LuaField("List of seasons show aired during")]
+    public required LuaArray<LuaRef<SeasonTable>> seasons { init => Set(value.Table); }
+
+    public static implicit operator LuaRef<TmdbShowTable>(TmdbShowTable t) => new(t._t);
 }

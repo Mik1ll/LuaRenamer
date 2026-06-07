@@ -1,16 +1,21 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.ReleaseGroup)]
-public class ReleaseGroupTable : Table
+public partial class ReleaseGroupTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.@string, "Full name of the release group")]
-    public string name => Get();
+    internal ReleaseGroupTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.@string, "Abbreviated name or acronym of the release group")]
-    public string shortname => Get();
+    [LuaField("Full name of the release group")]
+    public required string name { init => Set(value); }
+
+    [LuaField("Abbreviated name or acronym of the release group")]
+    public required string shortname { init => Set(value); }
+
+    public static implicit operator LuaRef<ReleaseGroupTable>(ReleaseGroupTable t) => new(t._t);
 }

@@ -190,7 +190,7 @@ function TmdbMovie:getname(lang) end
 ---@field episodecount integer # Total number of episodes
 ---@field airdate DateTime|nil # Air date of the show
 ---@field enddate DateTime|nil # End date of the show
----@field seasons Season[] # List of seasons anime aired during
+---@field seasons Season[] # List of seasons show aired during
 local TmdbShow = {}
 
 ---Get the show title in the specified language

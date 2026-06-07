@@ -1,12 +1,22 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
-public class EnvTable : RootTable
+public partial class EnvTable : LuaRootTableWriter
 {
+    internal EnvTable(LuaTable t, LuaFunction episode_numbers, LuaFunction logdebug, LuaFunction log, LuaFunction logwarn, LuaFunction logerror) : base(t)
+    {
+        _t["episode_numbers"] = episode_numbers;
+        _t["logdebug"] = logdebug;
+        _t["log"] = log;
+        _t["logwarn"] = logwarn;
+        _t["logerror"] = logerror;
+    }
+
     [LuaType(LuaTypeNames.function, "Returns formatted episode numbers with padding")]
     [LuaParameter(nameof(pad), LuaTypeNames.integer, "The amount of padding to use")]
     [LuaReturnType(LuaTypeNames.@string)]
@@ -32,32 +42,32 @@ public class EnvTable : RootTable
     [LuaReturnType(LuaTypeNames.nil)]
     public static string logerror(string message) => GetFunc([message]);
 
-    [LuaType(LuaTypeNames.File, "The current file being processed")]
-    public static FileTable file => new() { Fn = Get() };
+    [LuaField("The current file being processed")]
+    public required LuaRef<FileTable> file { init => Set(value.Table); }
 
-    [LuaType(LuaTypeNames.Anime, "The primary anime for the current file")]
-    public static AnimeTable anime => new() { Fn = Get() };
+    [LuaField("The primary anime for the current file")]
+    public required LuaRef<AnimeTable> anime { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.Anime}[]", "All anime related to the current file")]
-    public static ArrayTable<AnimeTable> animes => new() { Fn = Get() };
+    [LuaField("All anime related to the current file")]
+    public required LuaArray<LuaRef<AnimeTable>> animes { init => Set(value.Table); }
 
-    [LuaType(LuaTypeNames.Episode, "The primary episode for the current file")]
-    public static EpisodeTable episode => new() { Fn = Get() };
+    [LuaField("The primary episode for the current file")]
+    public required LuaRef<EpisodeTable> episode { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.Episode}[]", "All episodes related to the current file")]
-    public static ArrayTable<EpisodeTable> episodes => new() { Fn = Get() };
+    [LuaField("All episodes related to the current file")]
+    public required LuaArray<LuaRef<EpisodeTable>> episodes { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.ImportFolder}[]", "All available import folders")]
-    public static ArrayTable<ImportFolderTable> importfolders => new() { Fn = Get() };
+    [LuaField("All available import folders")]
+    public required LuaArray<LuaRef<ImportFolderTable>> importfolders { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.Group}|{LuaTypeNames.nil}", "The group containing the primary anime")]
-    public static GroupTable group => new() { Fn = Get() };
+    [LuaField("The group containing the primary anime")]
+    public required LuaRef<GroupTable>? group { init => Set(value?.Table); }
 
-    [LuaType($"{LuaTypeNames.Group}[]", "All groups containing anime related to the current file")]
-    public static ArrayTable<GroupTable> groups => new() { Fn = Get() };
+    [LuaField("All groups containing anime related to the current file")]
+    public required LuaArray<LuaRef<GroupTable>> groups { init => Set(value.Table); }
 
-    [LuaType(LuaTypeNames.Tmdb, "TMDB information for the current file")]
-    public static TmdbTable tmdb => new() { Fn = Get() };
+    [LuaField("TMDB information for the current file")]
+    public required LuaRef<TmdbTable> tmdb { init => Set(value.Table); }
 
     [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Output: The filename to rename to", Output = true)]
     public static string filename => Get();
@@ -70,23 +80,22 @@ public class EnvTable : RootTable
         "Output: The subfolder to move the file to, must be an array table if there is more than one directory component", Output = true)]
     public static string subfolder => Get();
 
-    [LuaType(LuaTypeNames.boolean,
-        "Output: Whether to use the existing location of files from the same anime to determine the output destination/subfolder.",
+    [LuaField("Output: Whether to use the existing location of files from the same anime to determine the output destination/subfolder.",
         DefaultValue = "false")]
-    public static string use_existing_anime_location => Get();
+    public required bool use_existing_anime_location { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Output: Whether to replace illegal characters with their mapped values", DefaultValue = "false")]
-    public static string replace_illegal_chars => Get();
+    [LuaField("Output: Whether to replace illegal characters with their mapped values", DefaultValue = "false")]
+    public required bool replace_illegal_chars { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Output: Whether to remove illegal characters entirely", DefaultValue = "false")]
-    public static string remove_illegal_chars => Get();
+    [LuaField("Output: Whether to remove illegal characters entirely", DefaultValue = "false")]
+    public required bool remove_illegal_chars { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Output: Whether to skip renaming the file", DefaultValue = "false")]
-    public static string skip_rename => Get();
+    [LuaField("Output: Whether to skip renaming the file", DefaultValue = "false")]
+    public required bool skip_rename { init => Set(value); }
 
-    [LuaType(LuaTypeNames.boolean, "Output: Whether to skip moving the file", DefaultValue = "false")]
-    public static string skip_move => Get();
+    [LuaField("Output: Whether to skip moving the file", DefaultValue = "false")]
+    public required bool skip_move { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.table}<{LuaTypeNames.@string}, {LuaTypeNames.@string}>", "Output: Map of illegal characters to their replacements")]
-    public static string illegal_chars_map => Get();
+    [LuaField("Output: Map of illegal characters to their replacements")]
+    public required LuaMap<string, string> illegal_chars_map { init => Set(value.Table); }
 }

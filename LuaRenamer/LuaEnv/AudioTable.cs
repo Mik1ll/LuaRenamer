@@ -1,28 +1,33 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Audio)]
-public class AudioTable : Table
+public partial class AudioTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.@string, "Audio compression mode")]
-    public string compressionmode => Get();
+    internal AudioTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.number, "Number of audio channels, may have decimal part '.1'")]
-    public string channels => Get();
+    [LuaField("Audio compression mode")]
+    public required string compressionmode { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Audio sampling rate in Hz")]
-    public string samplingrate => Get();
+    [LuaField("Number of audio channels, may have decimal part '.1'")]
+    public required double channels { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "Audio codec name")]
-    public string codec => Get();
+    [LuaField("Audio sampling rate in Hz")]
+    public required long samplingrate { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "Audio track language")]
-    public string language => Get();
+    [LuaField("Audio codec name")]
+    public required string codec { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "Audio track title or name")]
-    public string title => Get();
+    [LuaField("Audio track language")]
+    public required string language { init => Set(value); }
+
+    [LuaField("Audio track title or name")]
+    public required string? title { init => Set(value); }
+
+    public static implicit operator LuaRef<AudioTable>(AudioTable t) => new(t._t);
 }

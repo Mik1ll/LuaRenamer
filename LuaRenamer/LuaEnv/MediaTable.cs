@@ -1,28 +1,33 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Media)]
-public class MediaTable : Table
+public partial class MediaTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.boolean, "Whether the media file contains chapters")]
-    public string chaptered => Get();
+    internal MediaTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.integer, "Duration of the media in seconds")]
-    public string duration => Get();
+    [LuaField("Whether the media file contains chapters")]
+    public required bool chaptered { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Overall bitrate of the media file")]
-    public string bitrate => Get();
+    [LuaField("Duration of the media in seconds")]
+    public required long duration { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}[]", "List of subtitle languages")]
-    public string sublanguages => Get();
+    [LuaField("Overall bitrate of the media file")]
+    public required long bitrate { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.Audio}[]", "List of audio tracks")]
-    public ArrayTable<AudioTable> audio => new() { Fn = Get() };
+    [LuaField("List of subtitle languages")]
+    public required LuaArray<string> sublanguages { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.Video}|{LuaTypeNames.nil}", "Video stream information")]
-    public VideoTable video => new() { Fn = Get() };
+    [LuaField("List of audio tracks")]
+    public required LuaArray<LuaRef<AudioTable>> audio { init => Set(value.Table); }
+
+    [LuaField("Video stream information")]
+    public required LuaRef<VideoTable>? video { init => Set(value?.Table); }
+
+    public static implicit operator LuaRef<MediaTable>(MediaTable t) => new(t._t);
 }

@@ -1,31 +1,36 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Video)]
-public class VideoTable : Table
+public partial class VideoTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.integer, "Video height in pixels")]
-    public string height => Get();
+    internal VideoTable(LuaTable t) : base(t) { }
 
-    [LuaType(LuaTypeNames.integer, "Video width in pixels")]
-    public string width => Get();
+    [LuaField("Video height in pixels")]
+    public required long height { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "Video codec name")]
-    public string codec => Get();
+    [LuaField("Video width in pixels")]
+    public required long width { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "Resolution string e.g. '1080p', '720p', etc.")]
-    public string res => Get();
+    [LuaField("Video codec name")]
+    public required string codec { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Video bitrate in bits per second")]
-    public string bitrate => Get();
+    [LuaField("Resolution string e.g. '1080p', '720p', etc.")]
+    public required string res { init => Set(value); }
 
-    [LuaType(LuaTypeNames.integer, "Color depth in bits per channel")]
-    public string bitdepth => Get();
+    [LuaField("Video bitrate in bits per second")]
+    public required long bitrate { init => Set(value); }
 
-    [LuaType(LuaTypeNames.number, "Frame rate in frames per second")]
-    public string framerate => Get();
+    [LuaField("Color depth in bits per channel")]
+    public required long bitdepth { init => Set(value); }
+
+    [LuaField("Frame rate in frames per second")]
+    public required double framerate { init => Set(value); }
+
+    public static implicit operator LuaRef<VideoTable>(VideoTable t) => new(t._t);
 }

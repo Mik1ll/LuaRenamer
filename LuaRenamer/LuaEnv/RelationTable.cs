@@ -1,16 +1,22 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
+using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Relation)]
-public class RelationTable : Table
+public partial class RelationTable : LuaTableWriter
 {
-    [LuaType(LuaTypeNames.Anime, "The related anime")]
-    public AnimeTable anime => new() { Fn = Get() };
+    internal RelationTable(LuaTable t) : base(t) { }
 
-    [LuaType(nameof(EnumsTable.RelationType), "Type of relation between the anime")]
-    public string type => Get();
+    [LuaField("The related anime")]
+    public required LuaRef<AnimeTable> anime { init => Set(value.Table); }
+
+    [LuaField("Type of relation between the anime")]
+    public required RelationType type { init => Set(value.ToString()); }
+
+    public static implicit operator LuaRef<RelationTable>(RelationTable t) => new(t._t);
 }

@@ -1,19 +1,24 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Tmdb)]
-public class TmdbTable : Table
+public partial class TmdbTable : LuaTableWriter
 {
-    [LuaType($"{LuaTypeNames.TmdbMovie}[]", "List of TMDB movies related to the file")]
-    public ArrayTable<TmdbMovieTable> movies => new() { Fn = Get() };
+    internal TmdbTable(LuaTable t) : base(t) { }
 
-    [LuaType($"{LuaTypeNames.TmdbShow}[]", "List of TMDB shows related to the file")]
-    public ArrayTable<TmdbShowTable> shows => new() { Fn = Get() };
+    [LuaField("List of TMDB movies related to the file")]
+    public required LuaArray<LuaRef<TmdbMovieTable>> movies { init => Set(value.Table); }
 
-    [LuaType($"{LuaTypeNames.TmdbEpisode}[]", "List of TMDB episodes related to the file")]
-    public ArrayTable<TmdbEpisodeTable> episodes => new() { Fn = Get() };
+    [LuaField("List of TMDB shows related to the file")]
+    public required LuaArray<LuaRef<TmdbShowTable>> shows { init => Set(value.Table); }
+
+    [LuaField("List of TMDB episodes related to the file")]
+    public required LuaArray<LuaRef<TmdbEpisodeTable>> episodes { init => Set(value.Table); }
+
+    public static implicit operator LuaRef<TmdbTable>(TmdbTable t) => new(t._t);
 }

@@ -1,22 +1,27 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
+using NLua;
 
 namespace LuaRenamer.LuaEnv;
 
 [LuaType(LuaTypeNames.Hashes)]
-public class HashesTable : Table
+public partial class HashesTable : LuaTableWriter
 {
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "CRC32 hash of the file")]
-    public string crc => Get();
+    internal HashesTable(LuaTable t) : base(t) { }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "MD5 hash of the file")]
-    public string md5 => Get();
+    [LuaField("CRC32 hash of the file")]
+    public required string? crc { init => Set(value); }
 
-    [LuaType(LuaTypeNames.@string, "ED2K hash of the file")]
-    public string ed2k => Get();
+    [LuaField("MD5 hash of the file")]
+    public required string? md5 { init => Set(value); }
 
-    [LuaType($"{LuaTypeNames.@string}|{LuaTypeNames.nil}", "SHA1 hash of the file")]
-    public string sha1 => Get();
+    [LuaField("ED2K hash of the file")]
+    public required string ed2k { init => Set(value); }
+
+    [LuaField("SHA1 hash of the file")]
+    public required string? sha1 { init => Set(value); }
+
+    public static implicit operator LuaRef<HashesTable>(HashesTable t) => new(t._t);
 }
