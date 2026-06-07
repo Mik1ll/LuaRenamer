@@ -88,6 +88,20 @@ public class NamesGenerator : IIncrementalGenerator
                 case IPropertySymbol prop when GetAttr(prop, "LuaTypeAttribute") is { } typeAttr && GetBool(typeAttr, "Output"):
                     sb.Append($"    public {staticKw}string {prop.Name} => Get();\n");
                     break;
+                // Function binding property: [LuaType(function)] on a Func/Action property.
+                case IPropertySymbol prop when GetAttr(prop, "LuaTypeAttribute") is not null
+                    && prop.Type is INamedTypeSymbol { Name: "Func" or "Action" }:
+                {
+                    var paramAttrs = prop.GetAttributes()
+                        .Where(a => a.AttributeClass?.Name == "LuaParameterAttribute")
+                        .Select(a => a.ConstructorArguments.Length > 0 ? a.ConstructorArguments[0].Value as string ?? "" : "")
+                        .ToList();
+                    var paramList = string.Join(", ", paramAttrs.Select(n => $"string {n}"));
+                    var argArray = string.Join(", ", paramAttrs);
+                    var body = isRoot ? $"GetFunc([{argArray}])" : $"GetFunc([{argArray}], ':')";
+                    sb.Append($"    public {staticKw}string {prop.Name}({paramList}) => {body};\n");
+                    break;
+                }
                 // Function member: [LuaType(function)] on an ordinary method.
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method when GetAttr(method, "LuaTypeAttribute") is not null:
                 {

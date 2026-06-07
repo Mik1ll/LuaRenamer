@@ -310,7 +310,7 @@ public class LuaTests
     // @formatter:on
     public void TestEpisodeNumbers(int[] seriesIds, int[] epNums, byte[] epTypes, int pad, string expected)
     {
-        var args = MinimalArgs($"{EnvTable.filename} = {EnvTable.episode_numbers(pad.ToString())}");
+        var args = MinimalArgs($"{EnvTable.filename} = {EnvNames.episode_numbers(pad.ToString())}");
         var titles = args.Episodes[0].AnidbEpisode.Titles;
         IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes.Cast<EpisodeType>());
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
