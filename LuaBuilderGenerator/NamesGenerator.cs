@@ -94,11 +94,6 @@ public class NamesGenerator : IIncrementalGenerator
                 // Bound data field: [LuaField] on a property.
                 case IPropertySymbol prop when GetAttr(prop, "LuaFieldAttribute") is not null:
                 {
-                    if (GetBool(GetAttr(prop, "LuaFieldAttribute")!, "Output"))
-                    {
-                        sb.Append($"    public {staticKw}string {prop.Name} => Get();\n");
-                        break;
-                    }
                     EmitNavProp(sb, prop.Name, prop.Type, staticKw);
                     break;
                 }

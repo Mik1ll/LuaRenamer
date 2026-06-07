@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading;
 using LuaDefsGenerator;
 using LuaRenamer;
-using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Names;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -209,7 +208,7 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $"""
-            local fld = from({EnvNames.importfolders.Fn}):where('{nameof(ImportFolderTable.type)}', {EnvNames.ImportFolderType[DropFolderType.Both]}):first()
+            local fld = from({EnvNames.importfolders.Fn}):where('{nameof(ImportFolderNames.type)}', {EnvNames.ImportFolderType[DropFolderType.Both]}):first()
             {EnvNames.destination} = fld
             """);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
