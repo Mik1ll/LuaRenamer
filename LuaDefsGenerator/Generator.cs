@@ -44,7 +44,7 @@ public class Generator
     private void GenerateDefsFile()
     {
         var ctx = new NullabilityInfoContext();
-        var types = typeof(Table).Assembly.DefinedTypes
+        var types = typeof(LuaTableWriter).Assembly.DefinedTypes
             .Where(t => t.IsClass && !t.IsAbstract && typeof(LuaTableWriter).IsAssignableFrom(t) && t != typeof(EnvTable))
             .OrderBy(t => StripTable(t.Name), StringComparer.Ordinal)
             .ToList();

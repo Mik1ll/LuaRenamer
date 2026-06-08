@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\LuaBuilderGenerator\LuaBuilderGenerator.csproj" />
+        <ProjectReference Include="..\LuaNamesGenerator\LuaNamesGenerator.csproj" />
         <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
     </ItemGroup>
 

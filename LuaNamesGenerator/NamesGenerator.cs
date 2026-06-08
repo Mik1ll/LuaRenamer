@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace LuaBuilderGenerator;
+namespace LuaNamesGenerator;
 
 /// <summary>
 /// Emits <c>*Names</c> companion classes for each <c>*Table</c> schema class.
