@@ -12,7 +12,7 @@ public partial class EpisodeTable : LuaTableWriter
     internal EpisodeTable(LuaTable t) : base(t, _classidVal) { }
 
     [LuaField("Get the title in the specified language")]
-    public required LuaFunctionRef<TitleDelegate> getname { init => Set(value.Value); }
+    public required LuaMethodRef<TitleDelegate> getname { init => Set(value.Value); }
 
     [LuaField("Duration of the episode in seconds")]
     public required long duration { init => Set(value); }

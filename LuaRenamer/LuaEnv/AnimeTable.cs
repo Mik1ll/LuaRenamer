@@ -12,7 +12,7 @@ public partial class AnimeTable : LuaTableWriter
     internal AnimeTable(LuaTable t) : base(t, _classidVal) { }
 
     [LuaField("Get the anime title in the specified language")]
-    public required LuaFunctionRef<AnimeTitleDelegate> getname { init => Set(value.Value); }
+    public required LuaMethodRef<AnimeTitleDelegate> getname { init => Set(value.Value); }
 
     [LuaField("First air date of the anime")]
     public required LuaRef<DateTimeTable>? airdate { init => Set(value?.Table); }

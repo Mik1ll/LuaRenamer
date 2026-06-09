@@ -17,6 +17,7 @@ local AniDb = {}
 local AniDbMedia = {}
 
 ---@class (exact) Anime
+---@field getname table # Get the anime title in the specified language
 ---@field airdate DateTime|nil # First air date of the anime
 ---@field enddate DateTime|nil # Last air date of the anime
 ---@field rating number # Average rating of the anime
@@ -33,12 +34,6 @@ local AniDbMedia = {}
 ---@field customtags string[] # List of custom Shoko tags
 ---@field seasons Season[] # List of seasons anime aired during
 local Anime = {}
-
----Get the anime title in the specified language
----@param lang Language # Language to get the title in
----@param include_unofficial boolean|nil # Whether to include unofficial titles
----@return string|nil
-function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Audio
 ---@field compressionmode string # Audio compression mode
@@ -62,6 +57,7 @@ local Audio = {}
 local DateTime = {}
 
 ---@class (exact) Episode
+---@field getname table # Get the title in the specified language
 ---@field duration integer # Duration of the episode in seconds
 ---@field number integer # Episode number
 ---@field type EpisodeType # Type of the episode
@@ -71,11 +67,6 @@ local DateTime = {}
 ---@field titles Title[] # All available titles for the episode
 ---@field prefix string # Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')
 local Episode = {}
-
----Get the title in the specified language
----@param lang Language # Language to get the title in
----@return string|nil
-function Episode:getname(lang) end
 
 ---@class (exact) File
 ---@field name string # The name of the file without extension
@@ -147,6 +138,7 @@ local Title = {}
 local Tmdb = {}
 
 ---@class (exact) TmdbEpisode
+---@field getname table # Get the title in the specified language
 ---@field id integer # TMDB episode ID
 ---@field showid integer # TMDB show ID
 ---@field titles Title[] # All available titles for the episode
@@ -158,12 +150,8 @@ local Tmdb = {}
 ---@field airdate DateTime|nil # Air date of the episode
 local TmdbEpisode = {}
 
----Get the title in the specified language
----@param lang Language # Language to get the title in
----@return string|nil
-function TmdbEpisode:getname(lang) end
-
 ---@class (exact) TmdbMovie
+---@field getname table # Get the title in the specified language
 ---@field id integer # TMDB movie ID
 ---@field titles Title[] # All available titles for the movie
 ---@field defaultname string|nil # Default movie title
@@ -174,12 +162,8 @@ function TmdbEpisode:getname(lang) end
 ---@field airdate DateTime|nil # Air date of the movie
 local TmdbMovie = {}
 
----Get the title in the specified language
----@param lang Language # Language to get the title in
----@return string|nil
-function TmdbMovie:getname(lang) end
-
 ---@class (exact) TmdbShow
+---@field getname table # Get the title in the specified language
 ---@field id integer # TMDB show ID
 ---@field titles Title[] # All available titles for the show
 ---@field defaultname string|nil # Default show title
@@ -192,11 +176,6 @@ function TmdbMovie:getname(lang) end
 ---@field enddate DateTime|nil # End date of the show
 ---@field seasons Season[] # List of seasons show aired during
 local TmdbShow = {}
-
----Get the title in the specified language
----@param lang Language # Language to get the title in
----@return string|nil
-function TmdbShow:getname(lang) end
 
 ---@class (exact) Video
 ---@field height integer # Video height in pixels

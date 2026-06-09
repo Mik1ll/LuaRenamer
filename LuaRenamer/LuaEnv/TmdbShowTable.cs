@@ -12,7 +12,7 @@ public partial class TmdbShowTable : LuaTableWriter
     internal TmdbShowTable(LuaTable t) : base(t) { }
 
     [LuaField("Get the title in the specified language")]
-    public required LuaFunctionRef<TitleDelegate> getname { init => Set(value.Value); }
+    public required LuaMethodRef<TitleDelegate> getname { init => Set(value.Value); }
 
     [LuaField("TMDB show ID")]
     public required long id { init => Set(value); }
