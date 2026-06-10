@@ -19,6 +19,6 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="dotnet exec &quot;$(TargetPath)&quot; &quot;$(SolutionDir)LuaRenamer/lua/&quot;" WorkingDirectory="$(TargetDir)" />
+        <Exec Command="dotnet exec &quot;$(TargetPath)&quot; &quot;$(SolutionDir)LuaRenamer/lua/&quot;" WorkingDirectory="$(TargetDir)" Condition="Exists('$(SolutionDir)')" />
     </Target>
 </Project>
