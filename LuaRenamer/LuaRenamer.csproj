@@ -78,6 +78,10 @@
         </ItemGroup>
     </Target>
 
+    <Target Name="GenerateLuaDefs" AfterTargets="Build" Condition="Exists('$(SolutionDir)')">
+        <Exec Command="dotnet run --project &quot;$(SolutionDir)LuaDefsGenerator/LuaDefsGenerator.csproj&quot; -- &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
+    </Target>
+
     <Target Name="PackageForRelease" AfterTargets="Publish">
         <PropertyGroup>
             <ZipDir>$(PublishDir)Zip/</ZipDir>

@@ -18,7 +18,4 @@
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="dotnet exec &quot;$(TargetPath)&quot; &quot;$(SolutionDir)LuaRenamer/lua/&quot;" WorkingDirectory="$(TargetDir)" Condition="Exists('$(SolutionDir)')" />
-    </Target>
 </Project>
