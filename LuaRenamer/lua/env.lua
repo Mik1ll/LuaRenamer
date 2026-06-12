@@ -1,27 +1,27 @@
 ---@meta
 
 ---Returns formatted episode numbers with padding
----@param pad integer # Episode number
+---@param pad integer # The amount of padding to use
 ---@return string
 function episode_numbers(pad) end
 
 ---Log with Debug log level
----@param message string # Message to log
+---@param message string # The message to log
 ---@return nil
 function logdebug(message) end
 
 ---Log with Information log level
----@param message string # Message to log
+---@param message string # The message to log
 ---@return nil
 function log(message) end
 
 ---Log with Warning log level
----@param message string # Message to log
+---@param message string # The message to log
 ---@return nil
 function logwarn(message) end
 
 ---Log with Error log level
----@param message string # Message to log
+---@param message string # The message to log
 ---@return nil
 function logerror(message) end
 

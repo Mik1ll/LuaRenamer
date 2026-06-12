@@ -11,7 +11,7 @@ public delegate string? TitleDelegate(
     [Description("Language to get the title in")] TitleLanguage lang);
 
 public delegate string EpisodeNumbersDelegate(
-    [Description("Episode number")] long pad);
+    [Description("The amount of padding to use")] long pad);
 
 public delegate void LogDelegate(
-    [Description("Message to log")] string message);
+    [Description("The message to log")] string message);
