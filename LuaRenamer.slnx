@@ -2,7 +2,6 @@
   <Project Path="LuaDefsGenerator/LuaDefsGenerator.csproj" />
   <Project Path="LuaEnv/LuaEnv.csproj" />
   <Project Path="LuaNamesGenerator/LuaNamesGenerator.csproj" />
-  <Project Path="LuaNamesGeneratorTests/LuaNamesGeneratorTests.csproj" />
   <Project Path="LuaRenamer/LuaRenamer.csproj" />
   <Project Path="LuaRenamerTests/LuaRenamerTests.csproj" />
 </Solution>
