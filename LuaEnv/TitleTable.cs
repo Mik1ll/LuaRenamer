@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class TitleTable : LuaTableWriter
 {
-    internal TitleTable(LuaTable t) : base(t) { }
+    public TitleTable(LuaTable t) : base(t) { }
 
     [LuaField("The title text")]
     public required string name { init => Set(value); }

@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class AniDbTable : LuaTableWriter
 {
-    internal AniDbTable(LuaTable t) : base(t) { }
+    public AniDbTable(LuaTable t) : base(t) { }
 
     [LuaField("AniDB file ID")]
     public required long id { init => Set(value); }

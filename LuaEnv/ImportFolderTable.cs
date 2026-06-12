@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class ImportFolderTable : LuaTableWriter
 {
-    internal ImportFolderTable(LuaTable t) : base(t, _classidVal) { }
+    public ImportFolderTable(LuaTable t) : base(t, _classidVal) { }
 
     [LuaField("The Shoko import folder ID")]
     public required long id { init => Set(value); }

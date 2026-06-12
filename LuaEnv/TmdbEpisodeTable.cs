@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class TmdbEpisodeTable : LuaTableWriter
 {
-    internal TmdbEpisodeTable(LuaTable t) : base(t) { }
+    public TmdbEpisodeTable(LuaTable t) : base(t) { }
 
     [LuaField("Get the title in the specified language")]
     public required LuaMethodRef<TitleDelegate> getname { init => Set(value.Value); }

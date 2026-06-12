@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class MediaTable : LuaTableWriter
 {
-    internal MediaTable(LuaTable t) : base(t) { }
+    public MediaTable(LuaTable t) : base(t) { }
 
     [LuaField("Whether the media file contains chapters")]
     public required bool chaptered { init => Set(value); }

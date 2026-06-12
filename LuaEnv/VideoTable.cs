@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class VideoTable : LuaTableWriter
 {
-    internal VideoTable(LuaTable t) : base(t) { }
+    public VideoTable(LuaTable t) : base(t) { }
 
     [LuaField("Video height in pixels")]
     public required long height { init => Set(value); }

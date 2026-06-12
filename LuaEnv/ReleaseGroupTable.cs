@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class ReleaseGroupTable : LuaTableWriter
 {
-    internal ReleaseGroupTable(LuaTable t) : base(t) { }
+    public ReleaseGroupTable(LuaTable t) : base(t) { }
 
     [LuaField("Full name of the release group")]
     public required string name { init => Set(value); }

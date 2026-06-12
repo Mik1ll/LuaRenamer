@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class SeasonTable : LuaTableWriter
 {
-    internal SeasonTable(LuaTable t) : base(t) { }
+    public SeasonTable(LuaTable t) : base(t) { }
 
     [LuaField("Season year")]
     public required long year { init => Set(value); }

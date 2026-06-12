@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class GroupTable : LuaTableWriter
 {
-    internal GroupTable(LuaTable t) : base(t) { }
+    public GroupTable(LuaTable t) : base(t) { }
 
     [LuaField("The name of the group")]
     public required string? name { init => Set(value); }

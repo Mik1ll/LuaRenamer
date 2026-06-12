@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class AniDbMediaTable : LuaTableWriter
 {
-    internal AniDbMediaTable(LuaTable t) : base(t) { }
+    public AniDbMediaTable(LuaTable t) : base(t) { }
 
     [LuaField("List of subtitle languages available in the release")]
     public required LuaArray<TitleLanguage> sublanguages { init => Set(value.Table); }

@@ -13,9 +13,4 @@
         <PackageReference Include="Shoko.Abstractions" ExcludeAssets="runtime" />
     </ItemGroup>
 
-    <ItemGroup>
-        <!-- LuaContext constructs the table types via their internal constructors. -->
-        <InternalsVisibleTo Include="LuaRenamer" />
-    </ItemGroup>
-
 </Project>

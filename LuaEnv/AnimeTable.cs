@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class AnimeTable : LuaTableWriter
 {
-    internal AnimeTable(LuaTable t) : base(t, _classidVal) { }
+    public AnimeTable(LuaTable t) : base(t, _classidVal) { }
 
     [LuaField("Get the anime title in the specified language")]
     public required LuaMethodRef<AnimeTitleDelegate> getname { init => Set(value.Value); }

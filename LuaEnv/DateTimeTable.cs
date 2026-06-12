@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class DateTimeTable : LuaTableWriter
 {
-    internal DateTimeTable(LuaTable t) : base(t) { }
+    public DateTimeTable(LuaTable t) : base(t) { }
 
     [LuaField("Year (four digits)")]
     public required long year { init => Set(value); }

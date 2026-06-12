@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class RelationTable : LuaTableWriter
 {
-    internal RelationTable(LuaTable t) : base(t) { }
+    public RelationTable(LuaTable t) : base(t) { }
 
     [LuaField("The related anime")]
     public required LuaRef<AnimeTable> anime { init => Set(value.Table); }

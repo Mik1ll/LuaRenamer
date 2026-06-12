@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class FileTable : LuaTableWriter
 {
-    internal FileTable(LuaTable t) : base(t) { }
+    public FileTable(LuaTable t) : base(t) { }
 
     [LuaField("The name of the file without extension")]
     public required string name { init => Set(value); }

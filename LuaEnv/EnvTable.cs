@@ -10,7 +10,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class EnvTable : LuaTableWriter
 {
-    internal EnvTable(LuaTable t) : base(t) { }
+    public EnvTable(LuaTable t) : base(t) { }
 
     [LuaField("Returns formatted episode numbers with padding")]
     public required LuaFunctionRef<EpisodeNumbersDelegate> episode_numbers { init => Set(value.Value); }

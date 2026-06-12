@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class AudioTable : LuaTableWriter
 {
-    internal AudioTable(LuaTable t) : base(t) { }
+    public AudioTable(LuaTable t) : base(t) { }
 
     [LuaField("Audio compression mode")]
     public required string compressionmode { init => Set(value); }

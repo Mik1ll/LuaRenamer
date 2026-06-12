@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class HashesTable : LuaTableWriter
 {
-    internal HashesTable(LuaTable t) : base(t) { }
+    public HashesTable(LuaTable t) : base(t) { }
 
     [LuaField("CRC32 hash of the file")]
     public required string? crc { init => Set(value); }
