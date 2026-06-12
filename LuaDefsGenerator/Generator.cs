@@ -54,17 +54,18 @@ public class Generator
         foreach (var type in types)
         {
             var className = StripTable(type.Name);
-            var functions = new List<(PropertyInfo prop, LuaFieldAttribute fieldAttr)>();
+            var functions = new List<(PropertyInfo prop, LuaFieldAttribute fieldAttr, string separator)>();
             sb.Append($"---@class (exact) {className}\n");
 
             foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
                 {
-                    if (prop.PropertyType.IsGenericType &&
-                        prop.PropertyType.GetGenericTypeDefinition() == typeof(LuaFunctionRef<>))
+                    var genDef = prop.PropertyType.IsGenericType ? prop.PropertyType.GetGenericTypeDefinition() : null;
+                    // LuaMethodRef -> ':' method-call syntax (implicit self); LuaFunctionRef -> '.' plain function.
+                    if (genDef == typeof(LuaMethodRef<>) || genDef == typeof(LuaFunctionRef<>))
                     {
-                        functions.Add((prop, fieldAttr));
+                        functions.Add((prop, fieldAttr, genDef == typeof(LuaMethodRef<>) ? ":" : "."));
                     }
                     else
                     {
@@ -77,7 +78,7 @@ public class Generator
             sb.Append($"local {className} = {{}}\n\n");
 
             foreach (var func in functions)
-                GenerateFunctionAnnotations(sb, func.prop, func.fieldAttr, $"{className}:{func.prop.Name}", ctx);
+                GenerateFunctionAnnotations(sb, func.prop, func.fieldAttr, $"{className}{func.separator}{func.prop.Name}", ctx);
         }
 
         sb.Length--;
