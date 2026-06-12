@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
+        <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
     </ItemGroup>
 
     <ItemGroup>

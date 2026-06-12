@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <RootNamespace>LuaRenamer.LuaEnv</RootNamespace>
+        <AssemblyName>LuaRenamer.LuaEnv</AssemblyName>
+        <LangVersion>12</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NLua" />
+        <PackageReference Include="Shoko.Abstractions" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- LuaContext constructs the table types via their internal constructors. -->
+        <InternalsVisibleTo Include="LuaRenamer" />
+    </ItemGroup>
+
+</Project>

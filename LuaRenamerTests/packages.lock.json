@@ -230,7 +230,7 @@
       "luadefsgenerator": {
         "type": "Project",
         "dependencies": {
-          "LuaRenamer": "[1.0.0, )",
+          "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
       },
@@ -238,7 +238,15 @@
         "type": "Project",
         "dependencies": {
           "KeraLua": "[1.4.9, )",
+          "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
+          "NLua": "[1.7.8, )",
+          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+        }
+      },
+      "LuaRenamer.LuaEnv": {
+        "type": "Project",
+        "dependencies": {
           "NLua": "[1.7.8, )",
           "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
