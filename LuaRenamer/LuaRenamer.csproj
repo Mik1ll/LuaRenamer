@@ -27,7 +27,7 @@
     <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
         <!-- Build ordering only: ensures LuaDefsGenerator is built before LuaRenamer so it can be run in the GenerateLuaDefs post-build step. -->
-        <ProjectReference Include="..\LuaDefsGenerator\LuaDefsGenerator.csproj" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\LuaDefsGenerator\LuaDefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
     </ItemGroup>
 
     <ItemGroup>
