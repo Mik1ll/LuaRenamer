@@ -6,7 +6,7 @@ using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
 using Shoko.Abstractions.Metadata.Enums;
 
-namespace LuaDefsGenerator;
+namespace LuaRenamer.DefsGenerator;
 
 public class Generator
 {

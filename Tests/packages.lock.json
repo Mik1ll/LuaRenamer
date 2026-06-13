@@ -227,13 +227,6 @@
         "resolved": "6.0.0",
         "contentHash": "lcyUiXTsETK2ALsZrX+nWuHSIQeazhqPphLfaRxzdGaG93+0kELqpgEHtwWOlQe7+jSFnKwaCAgL4kjeZCQJnw=="
       },
-      "luadefsgenerator": {
-        "type": "Project",
-        "dependencies": {
-          "LuaRenamer.LuaEnv": "[1.0.0, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
-        }
-      },
       "luarenamer": {
         "type": "Project",
         "dependencies": {
@@ -241,6 +234,13 @@
           "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
           "NLua": "[1.7.8, )",
+          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+        }
+      },
+      "LuaRenamer.DefsGenerator": {
+        "type": "Project",
+        "dependencies": {
+          "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
       },

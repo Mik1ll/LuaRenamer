@@ -2,6 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
+        <!-- Plugin assembly + root namespace stay plain "LuaRenamer" (overrides the LuaRenamer.* default in Directory.Build.props). -->
+        <RootNamespace>LuaRenamer</RootNamespace>
+        <AssemblyName>LuaRenamer</AssemblyName>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <DisableImplicitNuGetFallbackFolder Condition="'$(CI)' == 'true'">true</DisableImplicitNuGetFallbackFolder>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
@@ -26,8 +29,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
-        <!-- Build ordering only: ensures LuaDefsGenerator is built before LuaRenamer so it can be run in the GenerateLuaDefs post-build step. -->
-        <ProjectReference Include="..\LuaDefsGenerator\LuaDefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
+        <!-- Build ordering only: ensures DefsGenerator is built before LuaRenamer so it can be run in the GenerateLuaDefs post-build step. -->
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
     </ItemGroup>
 
     <ItemGroup>
@@ -85,7 +88,7 @@
     </Target>
 
     <Target Name="GenerateLuaDefs" AfterTargets="Build" Condition="Exists('$(SolutionDir)')">
-        <Exec Command="dotnet run --project &quot;$(SolutionDir)LuaDefsGenerator/LuaDefsGenerator.csproj&quot; -- &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
+        <Exec Command="dotnet run --project &quot;$(SolutionDir)DefsGenerator/DefsGenerator.csproj&quot; -- &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
     </Target>
 
     <Target Name="PackageForRelease" AfterTargets="Publish">

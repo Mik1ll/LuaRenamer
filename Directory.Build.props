@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <!-- Sub-projects keep short, prefix-free folder/csproj names; the LuaRenamer.* prefix
+             for namespaces and output assemblies is applied centrally here.
+             The main LuaRenamer plugin project overrides both back to plain "LuaRenamer". -->
+        <RootNamespace>LuaRenamer.$(MSBuildProjectName)</RootNamespace>
+        <AssemblyName>LuaRenamer.$(MSBuildProjectName)</AssemblyName>
+    </PropertyGroup>
+</Project>

@@ -20,8 +20,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\LuaDefsGenerator\LuaDefsGenerator.csproj" />
-        <ProjectReference Include="..\LuaNamesGenerator\LuaNamesGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" />
+        <ProjectReference Include="..\NamesGenerator\NamesGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
     </ItemGroup>
 

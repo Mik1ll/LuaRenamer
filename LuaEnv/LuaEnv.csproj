@@ -2,8 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <RootNamespace>LuaRenamer.LuaEnv</RootNamespace>
-        <AssemblyName>LuaRenamer.LuaEnv</AssemblyName>
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
