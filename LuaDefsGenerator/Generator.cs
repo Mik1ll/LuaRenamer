@@ -21,6 +21,16 @@ public class Generator
     private static string StripTable(string name) =>
         name.EndsWith("Table") ? name[..^5] : name;
 
+    private static bool IsGenericDef(Type t, Type def) =>
+        t.IsGenericType && t.GetGenericTypeDefinition() == def;
+
+    private static bool IsEnumRef(PropertyInfo prop) =>
+        IsGenericDef(prop.PropertyType, typeof(LuaEnumRef<>));
+
+    // EnvTable's LuaEnumRef<T> instance properties (one per exposed Lua enum).
+    private static IEnumerable<PropertyInfo> EnumRefProps() =>
+        typeof(EnvTable).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(IsEnumRef);
+
     public void GenerateDefinitionFiles()
     {
         GenerateDefsFile();
@@ -31,9 +41,7 @@ public class Generator
     private static Dictionary<Type, string> BuildEnumMap()
     {
         var result = new Dictionary<Type, string>();
-        foreach (var prop in typeof(EnvTable).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(p => p.PropertyType.IsGenericType &&
-                                 p.PropertyType.GetGenericTypeDefinition() == typeof(LuaEnumRef<>)))
+        foreach (var prop in EnumRefProps())
         {
             var enumType = prop.PropertyType.GetGenericArguments()[0];
             result[enumType] = prop.Name;
@@ -61,15 +69,14 @@ public class Generator
             {
                 if (member is PropertyInfo prop && prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
                 {
-                    var genDef = prop.PropertyType.IsGenericType ? prop.PropertyType.GetGenericTypeDefinition() : null;
                     // LuaMethodRef -> ':' method-call syntax (implicit self); LuaFunctionRef -> '.' plain function.
-                    if (genDef == typeof(LuaMethodRef<>) || genDef == typeof(LuaFunctionRef<>))
-                    {
-                        functions.Add((prop, fieldAttr, genDef == typeof(LuaMethodRef<>) ? ":" : "."));
-                    }
+                    if (IsGenericDef(prop.PropertyType, typeof(LuaMethodRef<>)))
+                        functions.Add((prop, fieldAttr, ":"));
+                    else if (IsGenericDef(prop.PropertyType, typeof(LuaFunctionRef<>)))
+                        functions.Add((prop, fieldAttr, "."));
                     else
                     {
-                        var luaType = InferLuaType(prop, ctx);
+                        var luaType = InferLuaType(prop.PropertyType, ctx.Create(prop));
                         sb.Append($"---@field {member.Name} {luaType}{(fieldAttr.Description is { } desc ? $" # {desc}" : string.Empty)}\n");
                     }
                 }
@@ -86,33 +93,18 @@ public class Generator
         File.WriteAllText(Path.Combine(_outputPath, "defs.lua"), sb.ToString());
     }
 
-    private static string InferLuaType(PropertyInfo prop, NullabilityInfoContext ctx)
+    // Infers the Lua type annotation for a member/parameter/return of CLR type t.
+    // nullInfo (from a property, parameter, or return) appends "|nil" for nullable reference types (string?).
+    private static string InferLuaType(Type t, NullabilityInfo? nullInfo)
     {
-        var t = prop.PropertyType;
-
-        // Nullable<T> struct wrapper (LuaRef<T>?, long?, bool?, enum?)
-        if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
-        {
-            var inner = t.GetGenericArguments()[0];
-            return InferLuaTypeForInner(inner) + "|nil";
-        }
+        // Nullable<T> value-type wrapper (LuaRef<T>?, long?, bool?, enum?)
+        if (IsGenericDef(t, typeof(Nullable<>)))
+            return InferLuaTypeForInner(t.GetGenericArguments()[0]) + "|nil";
 
         // Nullable reference type (string?)
-        var nullInfo = ctx.Create(prop);
-        var isNullableRef = t.IsClass && (nullInfo.ReadState == NullabilityState.Nullable || nullInfo.WriteState == NullabilityState.Nullable);
-
+        var isNullableRef = nullInfo is not null &&
+                            (nullInfo.ReadState == NullabilityState.Nullable || nullInfo.WriteState == NullabilityState.Nullable);
         return InferLuaTypeForInner(t) + (isNullableRef ? "|nil" : "");
-    }
-
-    private static string InferLuaTypeForArg(Type t, NullabilityInfo? nullInfo)
-    {
-        // Nullable<T> value types (bool?, long?, enum?)
-        if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
-            return InferLuaTypeForInner(t.GetGenericArguments()[0]) + "|nil";
-        // Nullable reference types (string?)
-        var isNullRef = nullInfo != null &&
-                        (nullInfo.ReadState == NullabilityState.Nullable || nullInfo.WriteState == NullabilityState.Nullable);
-        return InferLuaTypeForInner(t) + (isNullRef ? "|nil" : "");
     }
 
     private static string InferLuaTypeForInner(Type t)
@@ -225,12 +217,9 @@ public class Generator
 
     private void GenerateEnumsFile()
     {
-        var enumsType = typeof(EnvTable);
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
-        foreach (var prop in enumsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(p => p.PropertyType.IsGenericType &&
-                                 p.PropertyType.GetGenericTypeDefinition() == typeof(LuaEnumRef<>)))
+        foreach (var prop in EnumRefProps())
         {
             var enumType = prop.PropertyType.GenericTypeArguments[0];
             var propName = prop.Name;
@@ -290,8 +279,7 @@ public class Generator
 
         foreach (var param in parameters)
         {
-            var nullInfo = ctx.Create(param);
-            var luaType = InferLuaTypeForArg(param.ParameterType, nullInfo);
+            var luaType = InferLuaType(param.ParameterType, ctx.Create(param));
             var desc = param.GetCustomAttribute<DescriptionAttribute>()?.Description;
             var suffix = desc is not null ? $" # {desc}" : "";
             sb.Append($"---@param {param.Name} {luaType}{suffix}\n");
@@ -300,8 +288,7 @@ public class Generator
         var retType = invoke.ReturnType;
         if (retType != typeof(void))
         {
-            var retNullInfo = ctx.Create(invoke.ReturnParameter);
-            sb.Append($"---@return {InferLuaTypeForArg(retType, retNullInfo)}\n");
+            sb.Append($"---@return {InferLuaType(retType, ctx.Create(invoke.ReturnParameter))}\n");
         }
         else
         {
@@ -319,18 +306,17 @@ public class Generator
         sb.Append("---@meta\n\n");
 
         foreach (var prop in envType.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
-                                .Where(p => !p.PropertyType.IsGenericType || p.PropertyType.GetGenericTypeDefinition() != typeof(LuaEnumRef<>)))
+                                .Where(p => !IsEnumRef(p)))
         {
             if (prop.GetCustomAttribute<LuaFieldAttribute>() is { } fieldAttr)
             {
-                if (prop.PropertyType.IsGenericType &&
-                    prop.PropertyType.GetGenericTypeDefinition() == typeof(LuaFunctionRef<>))
+                if (IsGenericDef(prop.PropertyType, typeof(LuaFunctionRef<>)))
                 {
                     GenerateFunctionAnnotations(sb, prop, fieldAttr, prop.Name, ctx);
                 }
                 else
                 {
-                    var luaType = InferLuaType(prop, ctx);
+                    var luaType = InferLuaType(prop.PropertyType, ctx.Create(prop));
                     if (fieldAttr.Description is { } desc)
                         sb.Append($"---{desc}\n");
                     sb.Append($"---@type {luaType}\n");
