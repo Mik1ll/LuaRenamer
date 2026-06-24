@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class ImportFolderTable : LuaTableWriter
 {
-    public ImportFolderTable(LuaTable t) : base(t, _classidVal) { }
+    public ImportFolderTable(LuaTable t) : base(t) { }
 
     [LuaField("The Shoko import folder ID")]
     public required long id { init => Set(value); }
@@ -22,8 +22,6 @@ public partial class ImportFolderTable : LuaTableWriter
 
     [LuaField("Type of the import folder")]
     public required DropFolderType type { init => Set(value.ToString()); }
-
-    public const string _classidVal = "55138454-4A0D-45EB-8CCE-1CCF00220165";
 
     public static implicit operator LuaRef<ImportFolderTable>(ImportFolderTable t) => new(t._t);
 }

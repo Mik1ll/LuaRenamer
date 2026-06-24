@@ -7,12 +7,7 @@ public abstract class LuaTableWriter
 {
     protected readonly LuaTable _t;
 
-    protected LuaTableWriter(LuaTable t, string? classId = null)
-    {
-        _t = t;
-        if (classId is not null)
-            _t["_classid"] = classId;
-    }
+    protected LuaTableWriter(LuaTable t) => _t = t;
 
     protected void Set(object? value, [CallerMemberName] string name = "")
         => _t[name] = value;

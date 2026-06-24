@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class EpisodeTable : LuaTableWriter
 {
-    public EpisodeTable(LuaTable t) : base(t, _classidVal) { }
+    public EpisodeTable(LuaTable t) : base(t) { }
 
     [LuaField("Get the title in the specified language")]
     public required LuaMethodRef<TitleDelegate> getname { init => Set(value.Value); }
@@ -37,8 +37,6 @@ public partial class EpisodeTable : LuaTableWriter
 
     [LuaField("Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')")]
     public required string prefix { init => Set(value); }
-
-    public const string _classidVal = "02B70716-6350-473A-ADFA-F9746F80CD50";
 
     public static implicit operator LuaRef<EpisodeTable>(EpisodeTable t) => new(t._t);
 }

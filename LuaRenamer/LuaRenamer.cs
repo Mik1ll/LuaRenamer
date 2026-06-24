@@ -94,13 +94,13 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
                 if (destfolder is null)
                     throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
                 break;
-            case LuaTable destTable:
-                if ((string)destTable["_classid"] == ImportFolderTable._classidVal)
-                    destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderTable.id)])) ??
-                                 throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderTable.id)]}");
-                else
-                    throw new LuaRenamerException($"destination table was not the correct class, assign a table from importfolders variable");
+            case LuaTable destTable when destTable[nameof(ImportFolderTable.id)] is not null
+                                         && destTable[nameof(ImportFolderTable.name)] is not null:
+                destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderTable.id)])) ??
+                             throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderTable.id)]}");
                 break;
+            case LuaTable:
+                throw new LuaRenamerException("destination table was not an import folder, assign a table from importfolders variable");
             default:
                 throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from importfolders variable");
         }

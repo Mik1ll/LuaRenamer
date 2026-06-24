@@ -9,7 +9,7 @@ namespace LuaRenamer.LuaEnv;
 
 public partial class AnimeTable : LuaTableWriter
 {
-    public AnimeTable(LuaTable t) : base(t, _classidVal) { }
+    public AnimeTable(LuaTable t) : base(t) { }
 
     [LuaField("Get the anime title in the specified language")]
     public required LuaMethodRef<AnimeTitleDelegate> getname { init => Set(value.Value); }
@@ -58,8 +58,6 @@ public partial class AnimeTable : LuaTableWriter
 
     [LuaField("List of seasons anime aired during")]
     public required LuaArray<LuaRef<SeasonTable>> seasons { init => Set(value.Table); }
-
-    public const string _classidVal = "965AE3D0-CCA2-4179-B3AB-0B4421B2E01D";
 
     public static implicit operator LuaRef<AnimeTable>(AnimeTable t) => new(t._t);
 }
