@@ -1,4 +1,3 @@
-using System;
 using NLua;
 
 namespace LuaRenamer.LuaEnv.BaseTypes;
@@ -9,15 +8,6 @@ namespace LuaRenamer.LuaEnv.BaseTypes;
 /// consumed by the generated table builders to give compile-time structural type safety.
 /// </summary>
 public readonly struct LuaRef<T>(LuaTable table) where T : LuaTableWriter
-{
-    public LuaTable Table { get; } = table;
-}
-
-/// <summary>
-/// A typed handle around the runtime <see cref="LuaTable"/> holding the name-to-name mapping for the
-/// enum <typeparamref name="T"/> (produced by <c>EnumToTable</c>).
-/// </summary>
-public readonly struct LuaEnumRef<T>(LuaTable table) where T : struct, Enum
 {
     public LuaTable Table { get; } = table;
 }
