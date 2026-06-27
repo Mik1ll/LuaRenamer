@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 

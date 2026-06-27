@@ -17,5 +17,11 @@ public class LuaFieldAttribute : Attribute
     /// </summary>
     public bool Output { get; init; }
 
+    /// <summary>
+    /// When true a callable field uses Lua method-call syntax (<c>obj:fn()</c>, implicit self) rather
+    /// than plain function syntax (<c>obj.fn()</c>). Replaces the old LuaMethodRef/LuaFunctionRef split.
+    /// </summary>
+    public bool Method { get; init; }
+
     public LuaFieldAttribute(string? description = null) => Description = description;
 }
