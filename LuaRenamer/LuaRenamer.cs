@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Prototype;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
@@ -94,10 +94,10 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
                 if (destfolder is null)
                     throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
                 break;
-            case LuaTable destTable when destTable[nameof(ImportFolderTable.id)] is not null
-                                         && destTable[nameof(ImportFolderTable.name)] is not null:
-                destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderTable.id)])) ??
-                             throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderTable.id)]}");
+            case LuaTable destTable when destTable[nameof(ImportFolderModel.id)] is not null
+                                         && destTable[nameof(ImportFolderModel.name)] is not null:
+                destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderModel.id)])) ??
+                             throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderModel.id)]}");
                 break;
             case LuaTable:
                 throw new LuaRenamerException("destination table was not an import folder, assign a table from importfolders variable");
@@ -151,15 +151,15 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 
             using var lua = new LuaContext(_logger, args);
             var env = lua.RunSandboxed();
-            var replaceIllegalChars = env[nameof(EnvTable.replace_illegal_chars)] is true;
-            var removeIllegalChars = env[nameof(EnvTable.remove_illegal_chars)] is true;
-            var useExistingAnimeLocation = env[nameof(EnvTable.use_existing_anime_location)] is true;
-            var skipMove = env[nameof(EnvTable.skip_move)] is true;
-            var skipRename = env[nameof(EnvTable.skip_rename)] is true;
-            var luaFilename = env[nameof(EnvTable.filename)];
-            var luaDestination = env[nameof(EnvTable.destination)];
-            var luaSubfolder = env[nameof(EnvTable.subfolder)];
-            var illegalCharsOverride = env[nameof(EnvTable.illegal_chars_map)] is LuaTable luaIllegalCharsOverride
+            var replaceIllegalChars = env[nameof(EnvModel.replace_illegal_chars)] is true;
+            var removeIllegalChars = env[nameof(EnvModel.remove_illegal_chars)] is true;
+            var useExistingAnimeLocation = env[nameof(EnvModel.use_existing_anime_location)] is true;
+            var skipMove = env[nameof(EnvModel.skip_move)] is true;
+            var skipRename = env[nameof(EnvModel.skip_rename)] is true;
+            var luaFilename = env[nameof(EnvModel.filename)];
+            var luaDestination = env[nameof(EnvModel.destination)];
+            var luaSubfolder = env[nameof(EnvModel.subfolder)];
+            var illegalCharsOverride = env[nameof(EnvModel.illegal_chars_map)] is LuaTable luaIllegalCharsOverride
                 ? lua.GetTableDict(luaIllegalCharsOverride)
                     .Where(kvp => kvp is { Key: string, Value: string })
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()

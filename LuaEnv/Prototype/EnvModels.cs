@@ -212,7 +212,7 @@ public sealed record TmdbModel : ILuaModel
 }
 
 /// <summary>
-/// The Lua environment root — the model-architecture counterpart of <see cref="EnvTable"/>. Holds the
+/// The Lua environment root. Holds the
 /// free functions, the per-file model graph, the user-written output fields, and the enum tables.
 /// Excluded from the defs.lua class section (like EnvTable); instead it drives env.lua and enums.lua.
 /// </summary>

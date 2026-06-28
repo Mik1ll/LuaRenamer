@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.IO;
-using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Prototype;
 using Shoko.Abstractions.Config;
 using Shoko.Abstractions.Config.Attributes;
 using Shoko.Abstractions.Config.Enums;
@@ -29,7 +29,7 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
 
     [Display(Name = "Replace Illegal Characters",
         Description = $"Check if you want to replace illegal characters with alternatives. " +
-                      $"May be customized via `{nameof(EnvTable.illegal_chars_map)}`")]
+                      $"May be customized via `{nameof(EnvModel.illegal_chars_map)}`")]
     public bool ReplaceIllegalCharacters { get; set; }
 
     [Display(Name = "Use Existing Anime Location",
