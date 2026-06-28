@@ -26,8 +26,10 @@ public class LuaContext : Lua
     private readonly IShokoSeries _primarySeries;
     private readonly IShokoEpisode _primaryEpisode;
 
-    // The shared title-resolver closure for this env build; set by CreateLuaEnv before any producer runs.
-    private GetName _getName = null!;
+    // The shared title-resolver closures for this env build; set by CreateLuaEnv before any producer runs.
+    // Two wrappers over the same Lua source: Anime tables expose include_unofficial, Episode/Tmdb don't.
+    private AnimeGetName _animeGetName = null!;
+    private TitleGetName _titleGetName = null!;
 
 
     #region Sandbox
@@ -147,23 +149,24 @@ public class LuaContext : Lua
         var env = (LuaTable)DoString(BaseEnv)[0];
         runSandboxed.Call(_luaLinqText, env);
         runSandboxed.Call(_luaUtilsText, env);
-        _getName = GetName.Create(runSandboxed, env, this);
+        _animeGetName = LuaFunctionFactory.CreateAnimeGetName(runSandboxed, env, this);
+        _titleGetName = LuaFunctionFactory.CreateTitleGetName(runSandboxed, env, this);
 
         // Build a plain ILuaModel graph from Shoko data, then materialize it into the env table in one
         // pass. Replaces the old write-through *Table builders; all marshaling lives in LuaSerializer.
         var animes = _args.Series
             .OrderBy(s => s.AnidbAnimeID != _primarySeries.AnidbAnimeID)
             .ThenBy(s => s.AnidbAnimeID)
-            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime, _getName)).ToList();
+            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime, _animeGetName)).ToList();
         var episodes = _args.Episodes
             .OrderBy(e => e.AnidbEpisodeID != _primaryEpisode.AnidbEpisodeID)
             .ThenBy(e => e.AnidbEpisode.SeriesID)
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
-            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, _getName, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
+            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, _titleGetName, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         var groups = _args.Groups
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
-            .Select(g => ModelProducers.GroupToModel(g, _getName)).ToList();
+            .Select(g => ModelProducers.GroupToModel(g, _animeGetName)).ToList();
 
         var model = new EnvModel
         {
@@ -190,7 +193,7 @@ public class LuaContext : Lua
                 _args.Series[0].TmdbMovies,
                 _args.Series[0].TmdbShows,
                 _args.Episodes.Where(e => e.SeriesID == _primarySeries.ID).SelectMany(e => e.TmdbEpisodes),
-                _getName),
+                _titleGetName),
             ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
             AnimeType = ModelProducers.EnumTable<AnimeType>(),
             EpisodeType = ModelProducers.EnumTable<EpisodeType>(),

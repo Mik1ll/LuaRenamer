@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -18,44 +19,36 @@ namespace LuaRenamer.Tests;
 /// byte-for-behavior consumable from a real Lua VM — i.e. an equivalent replacement for the
 /// write-through <c>*Table</c> builders. Every marshaling rule is exercised: scalars, enum→name,
 /// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and the bound
-/// <see cref="GetName"/> callable (a Lua function handle marshaled as-is).
+/// <see cref="AnimeGetName"/> callable (a Lua function handle marshaled as-is).
 /// </summary>
 [TestClass]
 public class SerializerTests
 {
     private Lua _lua = null!;
     private LuaSerializer _serializer = null!;
+    private LuaFunction _runSandboxed = null!;
+    private LuaTable _env = null!;
 
     [TestInitialize]
     public void Init()
     {
         _lua = new Lua();
-        // Fresh anonymous table factory — the serializer is decoupled from the host; here the host
-        // is just a bare Lua instance (mirrors LuaContext.GetNewTable without the rest of the god-class).
+        // Real getname goes through the factory, which runs the lualinq-backed Lua source. Load lualinq into
+        // globals (defines `from` etc.) and use _G as the function env, with a minimal sandbox loader.
+        _lua.DoString(File.ReadAllText(Path.Combine(LuaContext.LuaPath, "lualinq.lua")));
+        _env = (LuaTable)_lua.DoString("return _G")[0];
+        _runSandboxed = (LuaFunction)_lua.DoString("return function (code, env) local f = load(code, nil, 't', env); return pcall(f) end")[0];
+        // Fresh anonymous table factory — the serializer is decoupled from the host (mirrors LuaContext.GetNewTable).
         _serializer = new LuaSerializer(() => (LuaTable)_lua.DoString("return {}")[0]);
     }
 
     [TestCleanup]
     public void Cleanup() => _lua.Dispose();
 
-    // getname, in production, is the shared Lua function _getName(self, lang, include_unofficial),
-    // bound into each table as the GetName closure. This is a minimal stand-in (no lualinq): pick the
-    // first title whose language matches the requested one.
-    private LuaFunction RawGetName() =>
-        (LuaFunction)_lua.DoString(
-            """
-            return function(self, lang, include_unofficial)
-                for _, t in ipairs(self.titles) do
-                    if t.language == lang then return t.name end
-                end
-                return nil
-            end
-            """)[0];
+    // The production getname (the shared lualinq-backed closure), built through the real factory.
+    private AnimeGetName MakeGetName() => LuaFunctionFactory.CreateAnimeGetName(_runSandboxed, _env, _lua);
 
-    // Re-home the stand-in as a GetName (production goes through GetName.Create with the real Lua source).
-    private GetName MakeGetName() => GetName.Wrap(RawGetName(), _lua);
-
-    private static AnimeModel MakeAnime(GetName getname, IReadOnlyList<RelationModel> relations) => new()
+    private static AnimeModel MakeAnime(AnimeGetName getname, IReadOnlyList<RelationModel> relations) => new()
     {
         getname = getname,
         airdate = new DateTimeModel
@@ -269,7 +262,9 @@ public class SerializerTests
         Assert.AreEqual("Related", _lua.DoString("return anime.relations[1].anime.preferredname")[0]);
         Assert.AreEqual(0L, _lua.DoString("return #anime.relations[1].anime.relations")[0]);
 
-        // getname (Script) works against the produced titles
-        Assert.AreEqual("Zebra", _lua.DoString("return anime:getname('English')")[0]);
+        // getname works against the produced titles. The only English title is a Synonym, so the real
+        // (lualinq priority) resolver returns it only when include_unofficial is passed.
+        Assert.IsNull(_lua.DoString("return anime:getname('English')")[0]);
+        Assert.AreEqual("Zebra", _lua.DoString("return anime:getname('English', true)")[0]);
     }
 }

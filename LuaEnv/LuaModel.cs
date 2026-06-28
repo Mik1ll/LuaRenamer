@@ -13,8 +13,8 @@ namespace LuaRenamer.LuaEnv;
 public interface ILuaModel;
 
 /// <summary>
-/// Base for a callable whose body is written in Lua and bound into the env (currently just
-/// <see cref="GetName"/>). It <em>is</em> a <see cref="LuaFunction"/> — the live handle the serializer
+/// Base for a callable whose body is written in Lua and bound into the env (currently <see cref="AnimeGetName"/>
+/// and <see cref="TitleGetName"/>). It <em>is</em> a <see cref="LuaFunction"/> — the live handle the serializer
 /// drops into a table slot as-is — while <typeparamref name="TDelegate"/> carries the call signature the
 /// defs/names generators read (parameter names/types, <c>[Description]</c>s, return type).
 /// </summary>

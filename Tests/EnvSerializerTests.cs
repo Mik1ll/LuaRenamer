@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,8 +12,9 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Runtime proof for the <see cref="EnvModel"/> root and the rest of the ported schema (the env-only
-/// concepts the Anime slice didn't cover): free functions (CLR delegates), the bound <see cref="GetName"/>
-/// callable, user-written Output fields (incl. <c>LuaUnion</c> ones, which must stay absent), and the enum
+/// concepts the Anime slice didn't cover): free functions (CLR delegates), the bound getname callables
+/// (<see cref="AnimeGetName"/>/<see cref="TitleGetName"/>), user-written Output fields (incl. <c>LuaUnion</c>
+/// ones, which must stay absent), and the enum
 /// tables modeled as <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>. Generator byte-equality proves the
 /// schema's *shape*; this proves the serialized env is actually Lua-consumable.
 /// </summary>
@@ -21,30 +23,27 @@ public class EnvSerializerTests
 {
     private Lua _lua = null!;
     private LuaSerializer _serializer = null!;
+    private LuaFunction _runSandboxed = null!;
+    private LuaTable _env = null!;
 
     [TestInitialize]
     public void Init()
     {
         _lua = new Lua();
+        // Real getname goes through the factory, which runs the lualinq-backed Lua source. Load lualinq into
+        // globals (defines `from` etc.) and use _G as the function env, with a minimal sandbox loader.
+        _lua.DoString(System.IO.File.ReadAllText(Path.Combine(LuaContext.LuaPath, "lualinq.lua")));
+        _env = (LuaTable)_lua.DoString("return _G")[0];
+        _runSandboxed = (LuaFunction)_lua.DoString("return function (code, env) local f = load(code, nil, 't', env); return pcall(f) end")[0];
         _serializer = new LuaSerializer(() => (LuaTable)_lua.DoString("return {}")[0]);
     }
 
     [TestCleanup]
     public void Cleanup() => _lua.Dispose();
 
-    private LuaFunction RawGetName() =>
-        (LuaFunction)_lua.DoString(
-            """
-            return function(self, lang, include_unofficial)
-                for _, t in ipairs(self.titles) do
-                    if t.language == lang then return t.name end
-                end
-                return nil
-            end
-            """)[0];
-
-    // Re-home the stand-in as a GetName (production goes through GetName.Create with the real Lua source).
-    private GetName MakeGetName() => GetName.Wrap(RawGetName(), _lua);
+    // The production getname closures, built through the real factory.
+    private AnimeGetName MakeAnimeGetName() => LuaFunctionFactory.CreateAnimeGetName(_runSandboxed, _env, _lua);
+    private TitleGetName MakeTitleGetName() => LuaFunctionFactory.CreateTitleGetName(_runSandboxed, _env, _lua);
 
     private static IReadOnlyList<TitleModel> Titles() =>
     [
@@ -59,7 +58,7 @@ public class EnvSerializerTests
 
     private AnimeModel Anime(long id) => new()
     {
-        getname = MakeGetName(),
+        getname = MakeAnimeGetName(),
         airdate = Date(2020),
         enddate = null,
         rating = 8.5,
@@ -79,7 +78,7 @@ public class EnvSerializerTests
 
     private EpisodeModel Episode(long id) => new()
     {
-        getname = MakeGetName(),
+        getname = MakeTitleGetName(),
         duration = 1440,
         number = 1,
         type = EpisodeType.Episode,
@@ -137,7 +136,7 @@ public class EnvSerializerTests
         [
             new TmdbMovieModel
             {
-                getname = MakeGetName(), id = 1, titles = Titles(), defaultname = "MovieDef",
+                getname = MakeTitleGetName(), id = 1, titles = Titles(), defaultname = "MovieDef",
                 preferredname = "MoviePref", rating = 7.0, restricted = false, studios = ["Studio X"],
                 airdate = Date(2019),
             },
@@ -146,7 +145,7 @@ public class EnvSerializerTests
         [
             new TmdbShowModel
             {
-                getname = MakeGetName(), id = 2, titles = Titles(), defaultname = "ShowDef",
+                getname = MakeTitleGetName(), id = 2, titles = Titles(), defaultname = "ShowDef",
                 preferredname = "ShowPref", rating = 9.0, restricted = false, studios = ["Studio Y"],
                 episodecount = 24, airdate = Date(2018), enddate = Date(2019),
                 seasons = [new SeasonModel { year = 2018, season = YearlySeason.Fall }],
@@ -156,7 +155,7 @@ public class EnvSerializerTests
         [
             new TmdbEpisodeModel
             {
-                getname = MakeGetName(), id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
+                getname = MakeTitleGetName(), id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
                 preferredname = "EpPref", type = EpisodeType.Episode, number = 1, seasonnumber = 1,
                 airdate = Date(2018),
             },

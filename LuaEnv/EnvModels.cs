@@ -108,7 +108,7 @@ public sealed record FileModel : ILuaModel
 public sealed record EpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required GetName getname { get; init; }                                      // shared Lua closure (see GetName)
+    public required TitleGetName getname { get; init; }                                 // shared Lua closure (see TitleGetName)
 
     [LuaField("Duration of the episode in seconds")] public required long duration { get; init; }
     [LuaField("Episode number")] public required long number { get; init; }
@@ -136,7 +136,7 @@ public sealed record GroupModel : ILuaModel
 public sealed record TmdbShowModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required GetName getname { get; init; }
+    public required TitleGetName getname { get; init; }
 
     [LuaField("TMDB show ID")] public required long id { get; init; }
 
@@ -162,7 +162,7 @@ public sealed record TmdbShowModel : ILuaModel
 public sealed record TmdbMovieModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required GetName getname { get; init; }
+    public required TitleGetName getname { get; init; }
 
     [LuaField("TMDB movie ID")] public required long id { get; init; }
 
@@ -183,7 +183,7 @@ public sealed record TmdbMovieModel : ILuaModel
 public sealed record TmdbEpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required GetName getname { get; init; }
+    public required TitleGetName getname { get; init; }
 
     [LuaField("TMDB episode ID")] public required long id { get; init; }
     [LuaField("TMDB show ID")] public required long showid { get; init; }
