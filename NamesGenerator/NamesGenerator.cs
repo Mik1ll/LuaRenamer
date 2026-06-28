@@ -24,7 +24,7 @@ namespace LuaRenamer.NamesGenerator
     public class NamesGenerator : IIncrementalGenerator
     {
         // Namespace the ILuaModel records live in (the generator input).
-        private const string Ns = "LuaRenamer.LuaEnv.Prototype";
+        private const string Ns = "LuaRenamer.LuaEnv";
 
         // Namespace/base of the emitted DSL (the generator output) — unchanged.
         private const string Bt = "global::LuaRenamer.LuaEnv.Names";

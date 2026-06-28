@@ -8,23 +8,18 @@ using System.Text;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Attributes;
 using LuaRenamer.LuaEnv.BaseTypes;
-using LuaRenamer.LuaEnv.Prototype;
 using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.DefsGenerator;
 
 /// <summary>
-/// Prototype of the three definition files (defs.lua / enums.lua / env.lua), driven by the
-/// <see cref="ILuaModel"/> records instead of the <c>*Table</c> writer classes. The type→Lua mapping
-/// reads plain CLR types (IReadOnlyList&lt;T&gt;, IReadOnlyDictionary&lt;K,V&gt;, nested models, enums,
-/// <see cref="LuaFn{T}"/>, <see cref="LuaUnion{T1,T2}"/>) — no LuaRef/LuaArray/LuaMap/LuaEnumRef handle
-/// structs to understand. Produces byte-identical output to <see cref="Generator"/>.
+/// Generates the three definition files (defs.lua / enums.lua / env.lua) from the <see cref="ILuaModel"/>
+/// records. The type→Lua mapping reads plain CLR types (IReadOnlyList&lt;T&gt;, IReadOnlyDictionary&lt;K,V&gt;,
+/// nested models, enums, <see cref="LuaFn{T}"/>, <see cref="LuaUnion{T1,T2}"/>).
 /// </summary>
 /// <remarks>
-/// The model-architecture counterpart of <see cref="Generator"/>, in a single class for the same reason
-/// the original is: defs/enums/env all share one type-inference routine and one enum-name map. The enum
-/// map and the env/enums sections are now sourced from <see cref="EnvModel"/>'s enum-table dictionaries
-/// rather than EnvTable's <c>LuaEnumRef</c> properties.
+/// A single class because defs/enums/env all share one type-inference routine and one enum-name map. The
+/// enum map and the env/enums sections are sourced from <see cref="EnvModel"/>'s enum-table dictionaries.
 /// </remarks>
 public class ModelDefsGenerator
 {

@@ -6,7 +6,7 @@ using LuaRenamer.LuaEnv.BaseTypes;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video.Enums;
 
-namespace LuaRenamer.LuaEnv.Prototype;
+namespace LuaRenamer.LuaEnv;
 
 // Remaining env-graph models (the rest of the *Table schema beyond the Anime slice in Models.cs),
 // plus the EnvModel root. Same rule as Models.cs: each property mirrors its *Table counterpart's

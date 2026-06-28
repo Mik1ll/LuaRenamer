@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using LuaRenamer.LuaEnv.Attributes;
 using Shoko.Abstractions.Metadata.Enums;
 
-namespace LuaRenamer.LuaEnv.Prototype;
+namespace LuaRenamer.LuaEnv;
 
 // Vertical-slice port of AnimeTable + the schema it reaches: TitleTable, DateTimeTable,
 // SeasonTable, RelationTable. Compare each property to its *Table counterpart: the type carries

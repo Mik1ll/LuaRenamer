@@ -6,7 +6,7 @@ using System.Reflection;
 using LuaRenamer.LuaEnv.Attributes;
 using NLua;
 
-namespace LuaRenamer.LuaEnv.Prototype;
+namespace LuaRenamer.LuaEnv;
 
 /// <summary>
 /// Walks an <see cref="ILuaModel"/> graph once and materializes it into <see cref="LuaTable"/>s.

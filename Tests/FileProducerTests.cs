@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LuaRenamer.LuaEnv.Prototype;
+using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;
@@ -16,13 +16,13 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Producer-side proof for the file slice: Shoko's <see cref="IVideoFile"/> graph →
-/// <see cref="FileModelProducer.FileToModel"/> → <see cref="LuaSerializer"/> → a Lua-consumable table,
+/// <see cref="ModelProducers.FileToModel"/> → <see cref="LuaSerializer"/> → a Lua-consumable table,
 /// mirroring <c>LuaContext.FileToTable</c>. Focuses on the bits with custom logic rather than straight
 /// copies: the AniDB release-URI id parse, the per-type hash lookup, the "raw/unknown" release-group
 /// filter, the LFE audio-channel math, and enum→name on stream languages.
 /// </summary>
 [TestClass]
-public class PrototypeFileProducerTests
+public class FileProducerTests
 {
     private Lua _lua = null!;
     private LuaSerializer _serializer = null!;
@@ -93,7 +93,7 @@ public class PrototypeFileProducerTests
     [TestMethod]
     public void File_Scalars_Hashes_And_ImportFolder()
     {
-        _lua["file"] = _serializer.Serialize(FileModelProducer.FileToModel(
+        _lua["file"] = _serializer.Serialize(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/987654", null), null)));
 
         Assert.AreEqual("My Video", _lua.DoString("return file.name")[0]);   // extension stripped
@@ -118,7 +118,7 @@ public class PrototypeFileProducerTests
     public void AniDb_Release_Uri_Parsed_And_Mapped()
     {
         var group = Mock.Of<IReleaseGroup>(g => g.ID == "42" && g.Name == "GoodGroup" && g.ShortName == "GG");
-        _lua["file"] = _serializer.Serialize(FileModelProducer.FileToModel(
+        _lua["file"] = _serializer.Serialize(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/987654", group), null)));
 
         Assert.AreEqual(987654L, _lua.DoString("return file.anidb.id")[0]); // tail after the 23-char prefix
@@ -135,7 +135,7 @@ public class PrototypeFileProducerTests
     [TestMethod]
     public void AniDb_Is_Absent_For_NonAniDb_Uri()
     {
-        _lua["file"] = _serializer.Serialize(FileModelProducer.FileToModel(
+        _lua["file"] = _serializer.Serialize(ModelProducers.FileToModel(
             MakeFile(Release("https://other.example/file/1", null), null)));
 
         Assert.AreEqual(true, _lua.DoString("return file.anidb == nil")[0]);
@@ -145,7 +145,7 @@ public class PrototypeFileProducerTests
     public void ReleaseGroup_RawUnknown_Is_Filtered()
     {
         var raw = Mock.Of<IReleaseGroup>(g => g.ID == "1" && g.Name == "raw/unknown" && g.ShortName == "raw");
-        _lua["file"] = _serializer.Serialize(FileModelProducer.FileToModel(
+        _lua["file"] = _serializer.Serialize(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/5", raw), null)));
 
         Assert.AreEqual(true, _lua.DoString("return file.anidb.releasegroup == nil")[0]);
@@ -154,7 +154,7 @@ public class PrototypeFileProducerTests
     [TestMethod]
     public void Media_Streams_Mapped_With_Lfe_Channel_Math()
     {
-        _lua["file"] = _serializer.Serialize(FileModelProducer.FileToModel(
+        _lua["file"] = _serializer.Serialize(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/5", null), Media())));
 
         Assert.AreEqual(false, _lua.DoString("return file.media.chaptered")[0]); // empty Chapters

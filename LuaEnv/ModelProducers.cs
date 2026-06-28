@@ -12,15 +12,26 @@ using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Media;
 using Shoko.Abstractions.Video.Release;
 
-namespace LuaRenamer.LuaEnv.Prototype;
+namespace LuaRenamer.LuaEnv;
 
 /// <summary>
-/// Leaf mappers shared by every producer (the model-architecture counterparts of LuaContext's
-/// <c>TitleToTable</c> / <c>SeasonToTable</c> / <c>DateTimeToTable</c>).
+/// Maps Shoko's host abstractions to the plain <see cref="ILuaModel"/> graph that <see cref="LuaSerializer"/>
+/// materializes. The model-architecture counterpart of LuaContext's old <c>*ToTable</c> methods: the same
+/// field-by-field mappings, but producing decoupled models instead of mutating a live LuaTable, and with no
+/// reference-dedup cache (intentionally dropped — the graph terminates because nested relation anime are
+/// built with <c>includeRelations: false</c>).
 /// </summary>
-internal static class ProducerCommon
+/// <remarks>
+/// <c>getname</c> is the shared <c>_getName(self, lang, include_unofficial)</c> Lua function (the production
+/// binding), passed in rather than synthesized so the producers stay free of host wiring; it becomes the
+/// <see cref="LuaFn{T}.Script"/> case. <c>prefix</c> on episodes is the host's <c>Utils.EpPrefix[type]</c>,
+/// injected for the same reason.
+/// </remarks>
+public static class ModelProducers
 {
-    public static TitleModel TitleToModel(ITitle title) => new()
+    // ---- shared leaf mappers -------------------------------------------------------------------
+
+    private static TitleModel TitleToModel(ITitle title) => new()
     {
         name = title.Value,
         language = title.Language,
@@ -28,13 +39,13 @@ internal static class ProducerCommon
         type = title.Type,
     };
 
-    public static SeasonModel SeasonToModel((int Year, YearlySeason Season) season) => new()
+    private static SeasonModel SeasonToModel((int Year, YearlySeason Season) season) => new()
     {
         year = season.Year,
         season = season.Season,
     };
 
-    public static DateTimeModel? DateTimeToModel(DateTime? dateTime)
+    private static DateTimeModel? DateTimeToModel(DateTime? dateTime)
     {
         if (dateTime is not { } dt)
             return null;
@@ -51,15 +62,57 @@ internal static class ProducerCommon
             isdst = dt.IsDaylightSavingTime(),
         };
     }
-}
 
-/// <summary>
-/// Builds the <see cref="FileModel"/> graph (file → media/audio/video, anidb → release-group, hashes,
-/// import folder) from Shoko's <see cref="IVideoFile"/>. Field-by-field mirror of LuaContext's
-/// <c>FileToTable</c>/<c>MediaInfoToTable</c>/<c>AniDbFileToTable</c>/etc., producing decoupled models.
-/// </summary>
-public static class FileModelProducer
-{
+    // ---- enum tables ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds the identity name→name map for an enum (counterpart of <c>LuaContext.EnumToTable&lt;T&gt;</c>).
+    /// The serializer marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
+    /// table. <see cref="Enumerable.Distinct{TSource}(IEnumerable{TSource})"/> collapses aliased values to the
+    /// one canonical name <see cref="Enum.GetName(Type, object)"/> returns.
+    /// </summary>
+    public static IReadOnlyDictionary<T, T> EnumTable<T>() where T : struct, Enum =>
+        Enum.GetValues<T>().Distinct().ToDictionary(v => v, v => v);
+
+    // ---- anime ---------------------------------------------------------------------------------
+
+    public static AnimeModel AnimeToModel(IAnidbAnime anime, LuaFunction getname, bool includeRelations = true)
+    {
+        ArgumentNullException.ThrowIfNull(anime);
+        var series = anime.ShokoSeries.FirstOrDefault();
+        return new AnimeModel
+        {
+            getname = getname,
+            airdate = DateTimeToModel(anime.AirDate?.ToDateTime()),
+            enddate = DateTimeToModel(anime.EndDate?.ToDateTime()),
+            rating = anime.Rating,
+            restricted = anime.Restricted,
+            type = anime.Type,
+            preferredname = string.IsNullOrWhiteSpace(series?.Title) ? anime.Title : series.Title,
+            defaultname = string.IsNullOrWhiteSpace(series?.DefaultTitle.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value,
+            id = anime.ID,
+            titles = anime.Titles.OrderBy(t => t.Value).Select(TitleToModel).ToList(),
+            studios = anime.Studios.Select(st => st.Name).ToList(),
+            episodecounts = Enum.GetValues<EpisodeType>().Distinct().ToDictionary(ep => ep, ep => (long)anime.EpisodeCounts[ep]),
+            relations = includeRelations
+                ? anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID).Select(r => RelationToModel(r, getname)).ToList()
+                : [],
+            tags = anime.Tags.Select(t => t.Name).ToList(),
+            customtags = (series?.Tags.Select(t => t.Name) ?? []).ToList(),
+            seasons = anime.YearlySeasons.Select(SeasonToModel).ToList(),
+        };
+    }
+
+    private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation, LuaFunction getname) => new()
+    {
+        // nested anime gets includeRelations: false (mirrors AnimeToTable's ignoreRelations) so the
+        // graph terminates without the cache the old code relied on.
+        anime = AnimeToModel((relation.Related as IAnidbAnime)!, getname, includeRelations: false),
+        type = relation.RelationType,
+    };
+
+    // ---- file / media --------------------------------------------------------------------------
+
     public static FileModel FileToModel(IVideoFile file)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -102,7 +155,7 @@ public static class FileModelProducer
             censored = aniDb.IsCensored,
             source = Enum.GetName(aniDb.Source)!,
             version = aniDb.Version,
-            releasedate = ProducerCommon.DateTimeToModel(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified)),
+            releasedate = DateTimeToModel(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified)),
             description = aniDb.Comment,
             releasegroup = ReleaseGroupToModel(aniDb.Group),
             media = new AniDbMediaModel
@@ -160,98 +213,82 @@ public static class FileModelProducer
         language = audio.Language.ToString(),
         title = audio.Title,
     };
-}
 
-/// <summary>
-/// Builds <see cref="EpisodeModel"/> from Shoko's <see cref="IAnidbEpisode"/>. Mirror of LuaContext's
-/// <c>EpisodeToTable</c>. <paramref name="getname"/> (the shared <c>_getName</c> Lua function) and
-/// <paramref name="prefix"/> (host's <c>Utils.EpPrefix[type]</c>) are injected, keeping the producer
-/// free of host wiring.
-/// </summary>
-public static class EpisodeModelProducer
-{
+    // ---- episode -------------------------------------------------------------------------------
+
     public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, LuaFunction getname, string prefix) => new()
     {
         getname = getname,
         duration = (long)episode.Runtime.TotalSeconds,
         number = episode.EpisodeNumber,
         type = episode.Type,
-        airdate = ProducerCommon.DateTimeToModel(episode.AirDateWithTime),
+        airdate = DateTimeToModel(episode.AirDateWithTime),
         animeid = episode.SeriesID,
         id = episode.ID,
-        titles = episode.Titles.OrderBy(t => t.Value).Select(ProducerCommon.TitleToModel).ToList(),
+        titles = episode.Titles.OrderBy(t => t.Value).Select(TitleToModel).ToList(),
         prefix = prefix,
     };
-}
 
-/// <summary>
-/// Builds <see cref="GroupModel"/> from Shoko's <see cref="IShokoGroup"/>. Mirror of LuaContext's
-/// <c>GroupToTable</c>; member anime keep their relations (LuaContext passes <c>ignoreRelations: false</c>).
-/// </summary>
-public static class GroupModelProducer
-{
+    // ---- group ---------------------------------------------------------------------------------
+
     public static GroupModel GroupToModel(IShokoGroup group, LuaFunction getname) => new()
     {
         name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
-        mainanime = AnimeModelProducer.AnimeToModel(group.MainSeries.AnidbAnime, getname),
-        animes = group.AllSeries.Select(a => AnimeModelProducer.AnimeToModel(a.AnidbAnime, getname)).ToList(),
+        // member anime keep their relations (LuaContext passed ignoreRelations: false).
+        mainanime = AnimeToModel(group.MainSeries.AnidbAnime, getname),
+        animes = group.AllSeries.Select(a => AnimeToModel(a.AnidbAnime, getname)).ToList(),
     };
-}
 
-/// <summary>
-/// Builds <see cref="TmdbModel"/> from already-gathered TMDB collections (the host pulls these off the
-/// relocation context). Mirror of LuaContext's <c>TmdbToTable</c> and its per-entity helpers.
-/// </summary>
-public static class TmdbModelProducer
-{
+    // ---- tmdb ----------------------------------------------------------------------------------
+
     public static TmdbModel TmdbToModel(
         IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes, LuaFunction getname) => new()
     {
         movies = movies.Select(m => MovieToModel(m, getname)).ToList(),
         shows = shows.Select(s => ShowToModel(s, getname)).ToList(),
-        episodes = episodes.Select(e => EpisodeToModel(e, getname)).ToList(),
+        episodes = episodes.Select(e => TmdbEpisodeToModel(e, getname)).ToList(),
     };
 
     private static TmdbMovieModel MovieToModel(ITmdbMovie movie, LuaFunction getname) => new()
     {
         getname = getname,
         id = movie.ID,
-        titles = movie.Titles.Select(ProducerCommon.TitleToModel).ToList(),
+        titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(movie.PreferredTitle?.Value) ? null : movie.PreferredTitle?.Value,
         rating = movie.Rating,
         restricted = movie.Restricted,
         studios = movie.Studios.Select(s => s.Name).ToList(),
-        airdate = ProducerCommon.DateTimeToModel(movie.ReleaseDate),
+        airdate = DateTimeToModel(movie.ReleaseDate),
     };
 
     private static TmdbShowModel ShowToModel(ITmdbShow show, LuaFunction getname) => new()
     {
         getname = getname,
         id = show.ID,
-        titles = show.Titles.Select(ProducerCommon.TitleToModel).ToList(),
+        titles = show.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(show.PreferredTitle?.Value) ? null : show.PreferredTitle?.Value,
         rating = show.Rating,
         restricted = show.Restricted,
         studios = show.Studios.Select(st => st.Name).ToList(),
         episodecount = show.EpisodeCounts.Episodes,
-        airdate = ProducerCommon.DateTimeToModel(show.AirDate?.ToDateTime()),
-        enddate = ProducerCommon.DateTimeToModel(show.EndDate?.ToDateTime()),
-        seasons = show.YearlySeasons.Select(ProducerCommon.SeasonToModel).ToList(),
+        airdate = DateTimeToModel(show.AirDate?.ToDateTime()),
+        enddate = DateTimeToModel(show.EndDate?.ToDateTime()),
+        seasons = show.YearlySeasons.Select(SeasonToModel).ToList(),
     };
 
-    private static TmdbEpisodeModel EpisodeToModel(ITmdbEpisode episode, LuaFunction getname) => new()
+    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, LuaFunction getname) => new()
     {
         getname = getname,
         showid = episode.SeriesID,
         id = episode.ID,
-        titles = episode.Titles.Select(ProducerCommon.TitleToModel).ToList(),
+        titles = episode.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(episode.DefaultTitle?.Value) ? null : episode.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(episode.PreferredTitle?.Value) ? null : episode.PreferredTitle?.Value,
         type = episode.Type,
         number = episode.EpisodeNumber,
         seasonnumber = episode.SeasonNumber,
-        airdate = ProducerCommon.DateTimeToModel(episode.AirDateWithTime),
+        airdate = DateTimeToModel(episode.AirDateWithTime),
     };
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using LuaRenamer.LuaEnv;
-using LuaRenamer.LuaEnv.Prototype;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;
@@ -14,7 +13,7 @@ using Shoko.Abstractions.Metadata.Stub;
 namespace LuaRenamer.Tests;
 
 /// <summary>
-/// Runtime proof for the prototype env architecture (Alternative A): a plain <see cref="ILuaModel"/>
+/// Runtime proof for the model env architecture: a plain <see cref="ILuaModel"/>
 /// graph materialized by <see cref="LuaSerializer"/> must produce a <see cref="LuaTable"/> that is
 /// byte-for-behavior consumable from a real Lua VM — i.e. an equivalent replacement for the
 /// write-through <c>*Table</c> builders. Every marshaling rule is exercised: scalars, enum→name,
@@ -22,7 +21,7 @@ namespace LuaRenamer.Tests;
 /// <see cref="LuaFn{T}"/> cases (Script LuaFunction / Clr delegate).
 /// </summary>
 [TestClass]
-public class PrototypeSerializerTests
+public class SerializerTests
 {
     private Lua _lua = null!;
     private LuaSerializer _serializer = null!;
@@ -237,7 +236,7 @@ public class PrototypeSerializerTests
                     s.Tags == new List<IShokoTagForSeries> { Mock.Of<IShokoTagForSeries>(t => t.Name == "custom1") }),
             ]);
 
-        var model = AnimeModelProducer.AnimeToModel(anime.Object, RawGetName());
+        var model = ModelProducers.AnimeToModel(anime.Object, RawGetName());
         _lua["anime"] = _serializer.Serialize(model);
 
         // scalars / enum / Shoko-vs-AniDB name precedence

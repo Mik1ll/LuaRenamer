@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using LuaRenamer.LuaEnv.Prototype;
+using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;

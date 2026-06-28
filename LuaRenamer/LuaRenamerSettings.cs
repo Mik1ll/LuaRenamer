@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.IO;
-using LuaRenamer.LuaEnv.Prototype;
+using LuaRenamer.LuaEnv;
 using Shoko.Abstractions.Config;
 using Shoko.Abstractions.Config.Attributes;
 using Shoko.Abstractions.Config.Enums;

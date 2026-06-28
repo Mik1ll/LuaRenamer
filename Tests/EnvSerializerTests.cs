@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LuaRenamer.LuaEnv;
-using LuaRenamer.LuaEnv.Prototype;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLua;
 using Shoko.Abstractions.Metadata.Enums;
@@ -18,7 +17,7 @@ namespace LuaRenamer.Tests;
 /// schema's *shape*; this proves the serialized env is actually Lua-consumable.
 /// </summary>
 [TestClass]
-public class PrototypeEnvSerializerTests
+public class EnvSerializerTests
 {
     private Lua _lua = null!;
     private LuaSerializer _serializer = null!;
@@ -186,13 +185,13 @@ public class PrototypeEnvSerializerTests
         skip_rename = false,
         skip_move = false,
         illegal_chars_map = new Dictionary<string, string> { ["<"] = "(" },
-        ImportFolderType = EnumTableProducer.EnumTable<DropFolderType>(),
-        AnimeType = EnumTableProducer.EnumTable<AnimeType>(),
-        EpisodeType = EnumTableProducer.EnumTable<EpisodeType>(),
-        TitleType = EnumTableProducer.EnumTable<TitleType>(),
-        Language = EnumTableProducer.EnumTable<TitleLanguage>(),
-        RelationType = EnumTableProducer.EnumTable<RelationType>(),
-        SeasonName = EnumTableProducer.EnumTable<YearlySeason>(),
+        ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
+        AnimeType = ModelProducers.EnumTable<AnimeType>(),
+        EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
+        TitleType = ModelProducers.EnumTable<TitleType>(),
+        Language = ModelProducers.EnumTable<TitleLanguage>(),
+        RelationType = ModelProducers.EnumTable<RelationType>(),
+        SeasonName = ModelProducers.EnumTable<YearlySeason>(),
     };
 
     private void Load() => _lua["env"] = _serializer.Serialize(BuildEnv());

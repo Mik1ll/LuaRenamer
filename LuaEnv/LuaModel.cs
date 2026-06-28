@@ -1,7 +1,7 @@
 using System;
 using NLua;
 
-namespace LuaRenamer.LuaEnv.Prototype;
+namespace LuaRenamer.LuaEnv;
 
 /// <summary>
 /// Marker for a plain-C# node in the env description graph. Implementing types are records whose

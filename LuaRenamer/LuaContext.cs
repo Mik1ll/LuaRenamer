@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using LuaRenamer.LuaEnv;
-using LuaRenamer.LuaEnv.Prototype;
 using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Abstractions.Metadata.Enums;
@@ -178,16 +177,16 @@ public class LuaContext : Lua
         var animes = _args.Series
             .OrderBy(s => s.AnidbAnimeID != _primarySeries.AnidbAnimeID)
             .ThenBy(s => s.AnidbAnimeID)
-            .Select(series => AnimeModelProducer.AnimeToModel(series.AnidbAnime, _getName)).ToList();
+            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime, _getName)).ToList();
         var episodes = _args.Episodes
             .OrderBy(e => e.AnidbEpisodeID != _primaryEpisode.AnidbEpisodeID)
             .ThenBy(e => e.AnidbEpisode.SeriesID)
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
-            .Select(e => EpisodeModelProducer.EpisodeToModel(e.AnidbEpisode, _getName, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
+            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, _getName, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         var groups = _args.Groups
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
-            .Select(g => GroupModelProducer.GroupToModel(g, _getName)).ToList();
+            .Select(g => ModelProducers.GroupToModel(g, _getName)).ToList();
 
         var model = new EnvModel
         {
@@ -204,24 +203,24 @@ public class LuaContext : Lua
             illegal_chars_map = FilePathCleaner.ReplaceMapDefaults,
             animes = animes,
             anime = animes[0],
-            file = FileModelProducer.FileToModel(_args.File),
+            file = ModelProducers.FileToModel(_args.File),
             episodes = episodes,
             episode = episodes[0],
-            importfolders = _args.AvailableFolders.Select(FileModelProducer.ImportFolderToModel).ToList(),
+            importfolders = _args.AvailableFolders.Select(ModelProducers.ImportFolderToModel).ToList(),
             groups = groups,
             group = groups.Count > 0 ? groups[0] : null,
-            tmdb = TmdbModelProducer.TmdbToModel(
+            tmdb = ModelProducers.TmdbToModel(
                 _args.Series[0].TmdbMovies,
                 _args.Series[0].TmdbShows,
                 _args.Episodes.Where(e => e.SeriesID == _primarySeries.ID).SelectMany(e => e.TmdbEpisodes),
                 _getName),
-            ImportFolderType = EnumTableProducer.EnumTable<DropFolderType>(),
-            AnimeType = EnumTableProducer.EnumTable<AnimeType>(),
-            EpisodeType = EnumTableProducer.EnumTable<EpisodeType>(),
-            TitleType = EnumTableProducer.EnumTable<TitleType>(),
-            Language = EnumTableProducer.EnumTable<TitleLanguage>(),
-            RelationType = EnumTableProducer.EnumTable<RelationType>(),
-            SeasonName = EnumTableProducer.EnumTable<YearlySeason>(),
+            ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
+            AnimeType = ModelProducers.EnumTable<AnimeType>(),
+            EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
+            TitleType = ModelProducers.EnumTable<TitleType>(),
+            Language = ModelProducers.EnumTable<TitleLanguage>(),
+            RelationType = ModelProducers.EnumTable<RelationType>(),
+            SeasonName = ModelProducers.EnumTable<YearlySeason>(),
         };
 
         new LuaSerializer(GetNewTable).Serialize(model, env);
