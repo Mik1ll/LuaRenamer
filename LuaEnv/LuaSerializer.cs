@@ -39,7 +39,7 @@ public sealed class LuaSerializer(Func<LuaTable> newTable)
         null => null,
         string s => s,                               // before IEnumerable (string is IEnumerable<char>)
         Enum e => Enum.GetName(e.GetType(), e),       // the ONE place enums become their name
-        ILuaCallable c => c.Callable,                 // delegate or LuaFunction, marshaled as-is
+        Delegate or LuaFunction => value,             // free-function delegate / bound Lua callable (incl. GetName), marshaled as-is
         ILuaModel m => WriteModel(m),
         IDictionary dict => WriteMap(dict),           // before IEnumerable (IDictionary : IEnumerable)
         IEnumerable seq => WriteSeq(seq),

@@ -46,9 +46,9 @@ public sealed record RelationModel : ILuaModel
 
 public sealed record AnimeModel : ILuaModel
 {
-    // was LuaMethodRef<AnimeTitleDelegate>; the ':' method-call syntax is now a [LuaField] flag.
+    // Bound Lua closure (see GetName); the ':' method-call syntax is a [LuaField] flag.
     [LuaField("Get the anime title in the specified language", Method = true)]
-    public required LuaFn<AnimeTitleDelegate> getname { get; init; }
+    public required GetName getname { get; init; }
 
     [LuaField("First air date of the anime")] public DateTimeModel? airdate { get; init; }     // was LuaRef<DateTimeTable>?
     [LuaField("Last air date of the anime")] public DateTimeModel? enddate { get; init; }

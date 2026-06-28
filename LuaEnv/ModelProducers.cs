@@ -22,10 +22,9 @@ namespace LuaRenamer.LuaEnv;
 /// built with <c>includeRelations: false</c>).
 /// </summary>
 /// <remarks>
-/// <c>getname</c> is the shared <c>_getName(self, lang, include_unofficial)</c> Lua function (the production
-/// binding), passed in rather than synthesized so the producers stay free of host wiring; it becomes the
-/// <see cref="LuaFn{T}.Script"/> case. <c>prefix</c> on episodes is the host's <c>Utils.EpPrefix[type]</c>,
-/// injected for the same reason.
+/// <c>getname</c> is the shared <see cref="GetName"/> closure (<c>_getName(self, lang, include_unofficial)</c>),
+/// passed in rather than synthesized so the producers stay free of host wiring. <c>prefix</c> on episodes is
+/// the host's <c>Utils.EpPrefix[type]</c>, injected for the same reason.
 /// </remarks>
 public static class ModelProducers
 {
@@ -76,7 +75,7 @@ public static class ModelProducers
 
     // ---- anime ---------------------------------------------------------------------------------
 
-    public static AnimeModel AnimeToModel(IAnidbAnime anime, LuaFunction getname, bool includeRelations = true)
+    public static AnimeModel AnimeToModel(IAnidbAnime anime, GetName getname, bool includeRelations = true)
     {
         ArgumentNullException.ThrowIfNull(anime);
         var series = anime.ShokoSeries.FirstOrDefault();
@@ -103,7 +102,7 @@ public static class ModelProducers
         };
     }
 
-    private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation, LuaFunction getname) => new()
+    private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation, GetName getname) => new()
     {
         // nested anime gets includeRelations: false (mirrors AnimeToTable's ignoreRelations) so the
         // graph terminates without the cache the old code relied on.
@@ -216,7 +215,7 @@ public static class ModelProducers
 
     // ---- episode -------------------------------------------------------------------------------
 
-    public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, LuaFunction getname, string prefix) => new()
+    public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, GetName getname, string prefix) => new()
     {
         getname = getname,
         duration = (long)episode.Runtime.TotalSeconds,
@@ -231,7 +230,7 @@ public static class ModelProducers
 
     // ---- group ---------------------------------------------------------------------------------
 
-    public static GroupModel GroupToModel(IShokoGroup group, LuaFunction getname) => new()
+    public static GroupModel GroupToModel(IShokoGroup group, GetName getname) => new()
     {
         name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
         // member anime keep their relations (LuaContext passed ignoreRelations: false).
@@ -242,14 +241,14 @@ public static class ModelProducers
     // ---- tmdb ----------------------------------------------------------------------------------
 
     public static TmdbModel TmdbToModel(
-        IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes, LuaFunction getname) => new()
+        IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes, GetName getname) => new()
     {
         movies = movies.Select(m => MovieToModel(m, getname)).ToList(),
         shows = shows.Select(s => ShowToModel(s, getname)).ToList(),
         episodes = episodes.Select(e => TmdbEpisodeToModel(e, getname)).ToList(),
     };
 
-    private static TmdbMovieModel MovieToModel(ITmdbMovie movie, LuaFunction getname) => new()
+    private static TmdbMovieModel MovieToModel(ITmdbMovie movie, GetName getname) => new()
     {
         getname = getname,
         id = movie.ID,
@@ -262,7 +261,7 @@ public static class ModelProducers
         airdate = DateTimeToModel(movie.ReleaseDate),
     };
 
-    private static TmdbShowModel ShowToModel(ITmdbShow show, LuaFunction getname) => new()
+    private static TmdbShowModel ShowToModel(ITmdbShow show, GetName getname) => new()
     {
         getname = getname,
         id = show.ID,
@@ -278,7 +277,7 @@ public static class ModelProducers
         seasons = show.YearlySeasons.Select(SeasonToModel).ToList(),
     };
 
-    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, LuaFunction getname) => new()
+    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, GetName getname) => new()
     {
         getname = getname,
         showid = episode.SeriesID,

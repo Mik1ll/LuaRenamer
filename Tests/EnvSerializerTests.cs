@@ -11,8 +11,8 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Runtime proof for the <see cref="EnvModel"/> root and the rest of the ported schema (the env-only
-/// concepts the Anime slice didn't cover): free functions (CLR-delegate <see cref="LuaFn{T}"/>),
-/// user-written Output fields (incl. <c>LuaUnion</c> ones, which must stay absent), and the enum
+/// concepts the Anime slice didn't cover): free functions (CLR delegates), the bound <see cref="GetName"/>
+/// callable, user-written Output fields (incl. <c>LuaUnion</c> ones, which must stay absent), and the enum
 /// tables modeled as <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>. Generator byte-equality proves the
 /// schema's *shape*; this proves the serialized env is actually Lua-consumable.
 /// </summary>
@@ -43,6 +43,9 @@ public class EnvSerializerTests
             end
             """)[0];
 
+    // Re-home the stand-in as a GetName (production goes through GetName.Create with the real Lua source).
+    private GetName MakeGetName() => GetName.Wrap(RawGetName(), _lua);
+
     private static IReadOnlyList<TitleModel> Titles() =>
     [
         new TitleModel { name = "Eng", language = TitleLanguage.English, languagecode = "en", type = TitleType.Main },
@@ -56,7 +59,7 @@ public class EnvSerializerTests
 
     private AnimeModel Anime(long id) => new()
     {
-        getname = RawGetName(),
+        getname = MakeGetName(),
         airdate = Date(2020),
         enddate = null,
         rating = 8.5,
@@ -76,7 +79,7 @@ public class EnvSerializerTests
 
     private EpisodeModel Episode(long id) => new()
     {
-        getname = RawGetName(),
+        getname = MakeGetName(),
         duration = 1440,
         number = 1,
         type = EpisodeType.Episode,
@@ -134,7 +137,7 @@ public class EnvSerializerTests
         [
             new TmdbMovieModel
             {
-                getname = RawGetName(), id = 1, titles = Titles(), defaultname = "MovieDef",
+                getname = MakeGetName(), id = 1, titles = Titles(), defaultname = "MovieDef",
                 preferredname = "MoviePref", rating = 7.0, restricted = false, studios = ["Studio X"],
                 airdate = Date(2019),
             },
@@ -143,7 +146,7 @@ public class EnvSerializerTests
         [
             new TmdbShowModel
             {
-                getname = RawGetName(), id = 2, titles = Titles(), defaultname = "ShowDef",
+                getname = MakeGetName(), id = 2, titles = Titles(), defaultname = "ShowDef",
                 preferredname = "ShowPref", rating = 9.0, restricted = false, studios = ["Studio Y"],
                 episodecount = 24, airdate = Date(2018), enddate = Date(2019),
                 seasons = [new SeasonModel { year = 2018, season = YearlySeason.Fall }],
@@ -153,7 +156,7 @@ public class EnvSerializerTests
         [
             new TmdbEpisodeModel
             {
-                getname = RawGetName(), id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
+                getname = MakeGetName(), id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
                 preferredname = "EpPref", type = EpisodeType.Episode, number = 1, seasonnumber = 1,
                 airdate = Date(2018),
             },

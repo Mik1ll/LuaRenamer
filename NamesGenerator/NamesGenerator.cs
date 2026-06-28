@@ -14,7 +14,7 @@ namespace LuaRenamer.NamesGenerator
     /// <c>"anime.relations[1].type"</c>).
     ///
     /// Driven by the plain-CLR <c>ILuaModel</c> records (IReadOnlyList&lt;T&gt;, IReadOnlyDictionary&lt;K,V&gt;,
-    /// nested models, enums, LuaFn&lt;TDelegate&gt;) rather than the old <c>*Table</c> writer classes and
+    /// nested models, enums, CLR delegates, LuaFunctionDef&lt;TDelegate&gt;) rather than the old <c>*Table</c> writer classes and
     /// their LuaRef/LuaArray/LuaMap/LuaEnumRef carriers.
     ///
     /// NOTE: targets C# 7.3 (the supported language version for netstandard2.0 analyzers), so this
@@ -91,6 +91,28 @@ public class EnumTable<T> : Table where T : System.Enum
             return sb.ToString();
         }
 
+        // Returns the delegate symbol describing a callable field's signature: the property type itself
+        // when it is a delegate (host free function), or TDelegate from a LuaFunctionDef<TDelegate> base
+        // (bound Lua callable). Null for non-callable fields.
+        private static INamedTypeSymbol GetCallableDelegate(ITypeSymbol type)
+        {
+            var named = type as INamedTypeSymbol;
+            if (named == null)
+                return null;
+            if (named.TypeKind == TypeKind.Delegate)
+                return named;
+            for (var b = named.BaseType; b != null; b = b.BaseType)
+            {
+                if (b.IsGenericType && b.Name == "LuaFunctionDef" && b.TypeArguments.Length == 1)
+                {
+                    var del = b.TypeArguments[0] as INamedTypeSymbol;
+                    if (del != null && del.DelegateInvokeMethod != null)
+                        return del;
+                }
+            }
+            return null;
+        }
+
         private static void EmitNames(StringBuilder sb, INamedTypeSymbol type)
         {
             var namesClass = ModelToNames(type.Name);
@@ -106,14 +128,11 @@ public class EnumTable<T> : Table where T : System.Enum
                 if (fieldAttr == null)
                     continue;
 
-                // Callable field: LuaFn<TDelegate> with [LuaField]. ':' method-call syntax when
-                // [LuaField(Method = true)], '.' plain-function syntax otherwise.
-                var funcRef = prop.Type as INamedTypeSymbol;
-                if (funcRef != null
-                    && funcRef.Name == "LuaFn"
-                    && funcRef.TypeArguments.Length == 1
-                    && funcRef.TypeArguments[0] is INamedTypeSymbol del
-                    && del.DelegateInvokeMethod != null)
+                // Callable field: a CLR delegate (host free function) or a LuaFunctionDef<TDelegate>
+                // subclass (bound Lua callable). ':' method-call syntax when [LuaField(Method = true)],
+                // '.' plain-function syntax otherwise.
+                var del = GetCallableDelegate(prop.Type);
+                if (del != null)
                 {
                     var invoke = del.DelegateInvokeMethod;
                     var pars = new List<string>();

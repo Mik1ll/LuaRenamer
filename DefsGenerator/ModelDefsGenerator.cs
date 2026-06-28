@@ -15,7 +15,7 @@ namespace LuaRenamer.DefsGenerator;
 /// <summary>
 /// Generates the three definition files (defs.lua / enums.lua / env.lua) from the <see cref="ILuaModel"/>
 /// records. The type→Lua mapping reads plain CLR types (IReadOnlyList&lt;T&gt;, IReadOnlyDictionary&lt;K,V&gt;,
-/// nested models, enums, <see cref="LuaFn{T}"/>, <see cref="LuaUnion{T1,T2}"/>).
+/// nested models, enums, CLR delegates, <see cref="LuaFunctionDef{TDelegate}"/>, <see cref="LuaUnion{T1,T2}"/>).
 /// </summary>
 /// <remarks>
 /// A single class because defs/enums/env all share one type-inference routine and one enum-name map. The
@@ -29,6 +29,26 @@ public class ModelDefsGenerator
         EnumTableProps().ToDictionary(p => p.PropertyType.GetGenericArguments()[0], p => p.Name);
 
     private static bool IsGenericDef(Type t, Type def) => t.IsGenericType && t.GetGenericTypeDefinition() == def;
+
+    // A callable field is either a CLR delegate (a host free function) or a LuaFunctionDef<TDelegate>
+    // subclass (a bound Lua callable carrying its signature). Both expose a delegate type whose Invoke
+    // method drives the @param/@return annotations.
+    private static bool TryGetDelegateType(Type t, out Type delegateType)
+    {
+        if (typeof(Delegate).IsAssignableFrom(t))
+        {
+            delegateType = t;
+            return true;
+        }
+        for (var b = t.BaseType; b != null; b = b.BaseType)
+            if (IsGenericDef(b, typeof(LuaFunctionDef<>)))
+            {
+                delegateType = b.GetGenericArguments()[0];
+                return true;
+            }
+        delegateType = null!;
+        return false;
+    }
 
     private static string StripModel(string name) => name.EndsWith("Model") ? name[..^5] : name;
 
@@ -91,8 +111,8 @@ public class ModelDefsGenerator
                 if (prop.GetCustomAttribute<LuaFieldAttribute>() is not { } fieldAttr)
                     continue;
 
-                // LuaFn<TDelegate> -> deferred to the function section; ':' if Method else '.'.
-                if (IsGenericDef(prop.PropertyType, typeof(LuaFn<>)))
+                // Callable (delegate or LuaFunctionDef subclass) -> deferred to the function section; ':' if Method else '.'.
+                if (TryGetDelegateType(prop.PropertyType, out _))
                     functions.Add((prop, fieldAttr, fieldAttr.Method ? ":" : "."));
                 else
                 {
@@ -176,7 +196,7 @@ public class ModelDefsGenerator
             if (prop.GetCustomAttribute<LuaFieldAttribute>() is not { } fieldAttr)
                 continue;
 
-            if (IsGenericDef(prop.PropertyType, typeof(LuaFn<>)))
+            if (TryGetDelegateType(prop.PropertyType, out _))
             {
                 GenerateFunctionAnnotations(sb, prop, fieldAttr, prop.Name, ctx);
             }
@@ -242,7 +262,7 @@ public class ModelDefsGenerator
         if (fieldAttr.Description is { } description)
             sb.Append($"---{description}\n");
 
-        var delegateType = prop.PropertyType.GetGenericArguments()[0]; // TDelegate from LuaFn<TDelegate>
+        TryGetDelegateType(prop.PropertyType, out var delegateType); // the delegate itself, or TDelegate from LuaFunctionDef<TDelegate>
         var invoke = delegateType.GetMethod("Invoke")!;
         var parameters = invoke.GetParameters();
 

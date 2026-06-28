@@ -17,8 +17,8 @@ namespace LuaRenamer.Tests;
 /// graph materialized by <see cref="LuaSerializer"/> must produce a <see cref="LuaTable"/> that is
 /// byte-for-behavior consumable from a real Lua VM — i.e. an equivalent replacement for the
 /// write-through <c>*Table</c> builders. Every marshaling rule is exercised: scalars, enum→name,
-/// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and both
-/// <see cref="LuaFn{T}"/> cases (Script LuaFunction / Clr delegate).
+/// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and the bound
+/// <see cref="GetName"/> callable (a Lua function handle marshaled as-is).
 /// </summary>
 [TestClass]
 public class SerializerTests
@@ -39,8 +39,8 @@ public class SerializerTests
     public void Cleanup() => _lua.Dispose();
 
     // getname, in production, is the shared Lua function _getName(self, lang, include_unofficial),
-    // bound into each table as LuaMethodRef. The model equivalent is the LuaFn.Script case. This is a
-    // minimal stand-in (no lualinq): pick the first title whose language matches the requested one.
+    // bound into each table as the GetName closure. This is a minimal stand-in (no lualinq): pick the
+    // first title whose language matches the requested one.
     private LuaFunction RawGetName() =>
         (LuaFunction)_lua.DoString(
             """
@@ -52,9 +52,10 @@ public class SerializerTests
             end
             """)[0];
 
-    private LuaFn<AnimeTitleDelegate> ScriptGetName() => RawGetName();
+    // Re-home the stand-in as a GetName (production goes through GetName.Create with the real Lua source).
+    private GetName MakeGetName() => GetName.Wrap(RawGetName(), _lua);
 
-    private static AnimeModel MakeAnime(LuaFn<AnimeTitleDelegate> getname, IReadOnlyList<RelationModel> relations) => new()
+    private static AnimeModel MakeAnime(GetName getname, IReadOnlyList<RelationModel> relations) => new()
     {
         getname = getname,
         airdate = new DateTimeModel
@@ -83,8 +84,8 @@ public class SerializerTests
 
     private AnimeModel FullAnime()
     {
-        var related = MakeAnime(ScriptGetName(), []); // leaf: no further relations
-        return MakeAnime(ScriptGetName(), [new RelationModel { anime = related, type = RelationType.Sequel }]);
+        var related = MakeAnime(MakeGetName(), []); // leaf: no further relations
+        return MakeAnime(MakeGetName(), [new RelationModel { anime = related, type = RelationType.Sequel }]);
     }
 
     [TestMethod]
@@ -154,11 +155,11 @@ public class SerializerTests
     }
 
     [TestMethod]
-    public void LuaFn_Script_Callable_With_Method_Syntax()
+    public void GetName_Callable_With_Method_Syntax()
     {
-        // The production-faithful case: getname is a Lua function, called as anime:getname(lang)
-        // with implicit self. Enum arg arrives as the Lua string "English" and matches the
-        // title.language slot (also stored as the name "English").
+        // The production-faithful case: getname is a Lua function handle (GetName), called as
+        // anime:getname(lang) with implicit self. Enum arg arrives as the Lua string "English" and
+        // matches the title.language slot (also stored as the name "English").
         _lua["anime"] = _serializer.Serialize(FullAnime());
 
         Assert.AreEqual("Eng Title", _lua.DoString("return anime:getname('English')")[0]);
@@ -167,22 +168,16 @@ public class SerializerTests
     }
 
     [TestMethod]
-    public void LuaFn_Clr_Case_Is_Stored_As_The_Delegate()
+    public void GetName_Is_Stored_As_The_Lua_Handle()
     {
-        // The Clr DU case (host-supplied delegate). Verify the union selects Clr via the implicit
-        // operator and the serializer stores that exact delegate in the slot, marshaled as-is.
-        AnimeTitleDelegate del = (lang, include_unofficial) => $"clr:{lang}";
-        LuaFn<AnimeTitleDelegate> fn = del;
+        // GetName IS a LuaFunction; the serializer drops it into the slot marshaled as-is (not turned
+        // into a table/string). Read back it is a LuaFunction referencing the same Lua closure.
+        var getname = MakeGetName();
+        var table = _serializer.Serialize(FullAnime() with { getname = getname });
 
-        Assert.IsInstanceOfType(fn, typeof(LuaFn<AnimeTitleDelegate>.Clr));
-        Assert.AreSame(del, fn.Callable);
-
-        var anime = FullAnime() with { getname = fn };
-        var table = _serializer.Serialize(anime);
-
-        // NLua reads a stored CLR delegate back as the delegate itself; invoking it returns the host value.
-        var stored = (AnimeTitleDelegate)table["getname"];
-        Assert.AreEqual("clr:English", stored(TitleLanguage.English, null));
+        var stored = table["getname"];
+        Assert.IsInstanceOfType(stored, typeof(LuaFunction));
+        Assert.IsTrue(getname.Equals(stored)); // NLua Equals compares the underlying lua references
     }
 
     // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable (mirrors LuaContext.AnimeToTable) ----
@@ -236,7 +231,7 @@ public class SerializerTests
                     s.Tags == new List<IShokoTagForSeries> { Mock.Of<IShokoTagForSeries>(t => t.Name == "custom1") }),
             ]);
 
-        var model = ModelProducers.AnimeToModel(anime.Object, RawGetName());
+        var model = ModelProducers.AnimeToModel(anime.Object, MakeGetName());
         _lua["anime"] = _serializer.Serialize(model);
 
         // scalars / enum / Shoko-vs-AniDB name precedence

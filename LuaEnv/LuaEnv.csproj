@@ -10,4 +10,9 @@
         <PackageReference Include="Shoko.Abstractions" ExcludeAssets="runtime" />
     </ItemGroup>
 
+    <ItemGroup>
+        <!-- Tests build GetName instances from a minimal stand-in via GetName.Wrap. -->
+        <InternalsVisibleTo Include="LuaRenamer.Tests" />
+    </ItemGroup>
+
 </Project>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -27,7 +27,7 @@ public class LuaContext : Lua
     private readonly IShokoEpisode _primaryEpisode;
 
     // The shared title-resolver closure for this env build; set by CreateLuaEnv before any producer runs.
-    private LuaFunction _getName = null!;
+    private GetName _getName = null!;
 
 
     #region Sandbox
@@ -99,29 +99,6 @@ public class LuaContext : Lua
 
     #endregion
 
-    private static readonly string GetNameFunction =
-        $$"""
-          ---@param self Anime|Episode
-          ---@param lang Language
-          ---@param include_unofficial? boolean
-          ---@return string?
-          return function (self, lang, include_unofficial)
-              local title_priority = {
-                  {{nameof(TitleType.Main)}} = 0,
-                  {{nameof(TitleType.Official)}} = 1,
-                  {{nameof(TitleType.None)}} = 2,
-                  {{nameof(TitleType.Synonym)}} = include_unofficial and 3 or nil,
-              }
-              ---@type string?
-              local name = from(self.{{nameof(AnimeModel.titles)}}):where(function(t1) ---@param t1 Title
-                  return t1.{{nameof(TitleModel.language)}} == lang and title_priority[t1.{{nameof(TitleModel.type)}}] ~= nil
-              end):orderby(function(t2) ---@param t2 Title
-                  return title_priority[t2.{{nameof(TitleModel.type)}}]
-              end):select("{{nameof(TitleModel.name)}}"):first()
-              return name
-          end
-          """;
-
     private string EpNums(long pad) => string.Join(' ', _args.Episodes.Select(se => se.AnidbEpisode)
         .Where(e => e.SeriesID == _primarySeries.AnidbAnimeID)
         .OrderBy(e => e.Type).ThenBy(e => e.EpisodeNumber)
@@ -170,7 +147,7 @@ public class LuaContext : Lua
         var env = (LuaTable)DoString(BaseEnv)[0];
         runSandboxed.Call(_luaLinqText, env);
         runSandboxed.Call(_luaUtilsText, env);
-        _getName = (LuaFunction)runSandboxed.Call(GetNameFunction, env)[1];
+        _getName = GetName.Create(runSandboxed, env, this);
 
         // Build a plain ILuaModel graph from Shoko data, then materialize it into the env table in one
         // pass. Replaces the old write-through *Table builders; all marshaling lives in LuaSerializer.

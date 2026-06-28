@@ -74,8 +74,9 @@ local Episode = {}
 
 ---Get the title in the specified language
 ---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
-function Episode:getname(lang) end
+function Episode:getname(lang, include_unofficial) end
 
 ---@class (exact) File
 ---@field name string # The name of the file without extension
@@ -160,8 +161,9 @@ local TmdbEpisode = {}
 
 ---Get the title in the specified language
 ---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
-function TmdbEpisode:getname(lang) end
+function TmdbEpisode:getname(lang, include_unofficial) end
 
 ---@class (exact) TmdbMovie
 ---@field id integer # TMDB movie ID
@@ -176,8 +178,9 @@ local TmdbMovie = {}
 
 ---Get the title in the specified language
 ---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
-function TmdbMovie:getname(lang) end
+function TmdbMovie:getname(lang, include_unofficial) end
 
 ---@class (exact) TmdbShow
 ---@field id integer # TMDB show ID
@@ -195,8 +198,9 @@ local TmdbShow = {}
 
 ---Get the title in the specified language
 ---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
-function TmdbShow:getname(lang) end
+function TmdbShow:getname(lang, include_unofficial) end
 
 ---@class (exact) Video
 ---@field height integer # Video height in pixels

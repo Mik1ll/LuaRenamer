@@ -108,7 +108,7 @@ public sealed record FileModel : ILuaModel
 public sealed record EpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required LuaFn<TitleDelegate> getname { get; init; }                         // was LuaMethodRef<TitleDelegate>
+    public required GetName getname { get; init; }                                      // shared Lua closure (see GetName)
 
     [LuaField("Duration of the episode in seconds")] public required long duration { get; init; }
     [LuaField("Episode number")] public required long number { get; init; }
@@ -136,7 +136,7 @@ public sealed record GroupModel : ILuaModel
 public sealed record TmdbShowModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required LuaFn<TitleDelegate> getname { get; init; }
+    public required GetName getname { get; init; }
 
     [LuaField("TMDB show ID")] public required long id { get; init; }
 
@@ -162,7 +162,7 @@ public sealed record TmdbShowModel : ILuaModel
 public sealed record TmdbMovieModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required LuaFn<TitleDelegate> getname { get; init; }
+    public required GetName getname { get; init; }
 
     [LuaField("TMDB movie ID")] public required long id { get; init; }
 
@@ -183,7 +183,7 @@ public sealed record TmdbMovieModel : ILuaModel
 public sealed record TmdbEpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required LuaFn<TitleDelegate> getname { get; init; }
+    public required GetName getname { get; init; }
 
     [LuaField("TMDB episode ID")] public required long id { get; init; }
     [LuaField("TMDB show ID")] public required long showid { get; init; }
@@ -225,12 +225,12 @@ public sealed record TmdbModel : ILuaModel
 public sealed record EnvModel : ILuaModel
 {
     [LuaField("Returns formatted episode numbers with padding")]
-    public required LuaFn<EpisodeNumbersDelegate> episode_numbers { get; init; }
+    public required EpisodeNumbersDelegate episode_numbers { get; init; }
 
-    [LuaField("Log with Debug log level")] public required LuaFn<LogDelegate> logdebug { get; init; }
-    [LuaField("Log with Information log level")] public required LuaFn<LogDelegate> log { get; init; }
-    [LuaField("Log with Warning log level")] public required LuaFn<LogDelegate> logwarn { get; init; }
-    [LuaField("Log with Error log level")] public required LuaFn<LogDelegate> logerror { get; init; }
+    [LuaField("Log with Debug log level")] public required LogDelegate logdebug { get; init; }
+    [LuaField("Log with Information log level")] public required LogDelegate log { get; init; }
+    [LuaField("Log with Warning log level")] public required LogDelegate logwarn { get; init; }
+    [LuaField("Log with Error log level")] public required LogDelegate logerror { get; init; }
 
     [LuaField("The current file being processed")] public required FileModel file { get; init; }
     [LuaField("The primary anime for the current file")] public required AnimeModel anime { get; init; }

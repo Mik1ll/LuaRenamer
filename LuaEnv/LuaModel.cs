@@ -6,44 +6,26 @@ namespace LuaRenamer.LuaEnv;
 /// <summary>
 /// Marker for a plain-C# node in the env description graph. Implementing types are records whose
 /// <c>[LuaField]</c> properties use ordinary CLR types (scalars, enums, <see cref="ILuaModel"/>,
-/// <c>IReadOnlyList&lt;T&gt;</c>, <c>IReadOnlyDictionary&lt;K,V&gt;</c>, <see cref="LuaFn{T}"/>).
-/// The graph carries no <see cref="LuaTable"/>; materialization is deferred to <see cref="LuaSerializer"/>.
+/// <c>IReadOnlyList&lt;T&gt;</c>, <c>IReadOnlyDictionary&lt;K,V&gt;</c>, a CLR delegate, or a
+/// <see cref="LuaFunctionDef{TDelegate}"/>). The graph carries no <see cref="LuaTable"/>;
+/// materialization is deferred to <see cref="LuaSerializer"/>.
 /// </summary>
 public interface ILuaModel;
 
 /// <summary>
-/// A bound Lua callable. The value is either a CLR delegate (bound by the host) or an existing
-/// <see cref="LuaFunction"/> handle; both marshal as-is into a table slot. Unifies the old
-/// LuaFunctionRef/LuaMethodRef carriers — the '.' vs ':' call-syntax distinction is a generator
-/// concern (a [LuaField] flag), not a runtime one, so it is intentionally absent here.
+/// Base for a callable whose body is written in Lua and bound into the env (currently just
+/// <see cref="GetName"/>). It <em>is</em> a <see cref="LuaFunction"/> — the live handle the serializer
+/// drops into a table slot as-is — while <typeparamref name="TDelegate"/> carries the call signature the
+/// defs/names generators read (parameter names/types, <c>[Description]</c>s, return type).
 /// </summary>
-public interface ILuaCallable
-{
-    object Callable { get; }
-}
-
-/// <inheritdoc cref="ILuaCallable"/>
 /// <remarks>
-/// Closed hierarchy (pseudo discriminated union): a callable is exactly one of a host-supplied CLR
-/// delegate (<see cref="Clr"/>) or an existing Lua handle (<see cref="Script"/>). The private base
-/// constructor prevents outside inheritance, so the two cases are exhaustive.
+/// Free functions supplied by the host are plain CLR delegates and need no carrier — their field is typed
+/// as the delegate directly. This base exists only for callables whose body lives in Lua, where the runtime
+/// value must be a real <see cref="LuaFunction"/> handle yet must still expose a typed signature. The '.'
+/// vs ':' call-syntax distinction stays a generator concern (a <c>[LuaField(Method = …)]</c> flag), not a
+/// runtime one.
 /// </remarks>
-public abstract record LuaFn<TDelegate> : ILuaCallable where TDelegate : Delegate
+public abstract class LuaFunctionDef<TDelegate> : LuaFunction where TDelegate : Delegate
 {
-    private LuaFn() { } // only the nested cases below may derive
-
-    public abstract object Callable { get; }
-
-    public sealed record Clr(TDelegate Value) : LuaFn<TDelegate>
-    {
-        public override object Callable => Value;
-    }
-
-    public sealed record Script(LuaFunction Value) : LuaFn<TDelegate>
-    {
-        public override object Callable => Value;
-    }
-
-    public static implicit operator LuaFn<TDelegate>(TDelegate callable) => new Clr(callable);
-    public static implicit operator LuaFn<TDelegate>(LuaFunction luaFunction) => new Script(luaFunction);
+    protected LuaFunctionDef(int reference, Lua interpreter) : base(reference, interpreter) { }
 }
