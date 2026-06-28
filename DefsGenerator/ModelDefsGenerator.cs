@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -49,6 +50,19 @@ public class ModelDefsGenerator
     // EnvModel's enum-table properties, in declaration order (one per exposed Lua enum).
     private static IEnumerable<PropertyInfo> EnumTableProps() =>
         typeof(EnvModel).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(IsEnumTable);
+
+    /// <summary>
+    /// Writes defs.lua / enums.lua / env.lua to <paramref name="outputPath"/>. The model-architecture
+    /// replacement for <c>Generator.GenerateDefinitionFiles</c> — same output, sourced from the
+    /// <see cref="ILuaModel"/> records.
+    /// </summary>
+    public void GenerateDefinitionFiles(string outputPath)
+    {
+        var dir = Path.GetFullPath(outputPath);
+        File.WriteAllText(Path.Combine(dir, "defs.lua"), GenerateDefs());
+        File.WriteAllText(Path.Combine(dir, "enums.lua"), GenerateEnums());
+        File.WriteAllText(Path.Combine(dir, "env.lua"), GenerateEnv());
+    }
 
     // ---- defs.lua ------------------------------------------------------------------------------
 

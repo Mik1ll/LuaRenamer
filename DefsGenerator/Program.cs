@@ -1,4 +1,4 @@
 using LuaRenamer.DefsGenerator;
 
-var generator = new Generator(args[0]);
-generator.GenerateDefinitionFiles();
+var generator = new ModelDefsGenerator();
+generator.GenerateDefinitionFiles(args[0]);

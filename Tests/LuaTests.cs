@@ -610,8 +610,8 @@ public class LuaTests
     public void TestLuaDocsGenerator()
     {
         var outputPath = Path.GetTempPath();
-        var generator = new Generator(outputPath);
-        generator.GenerateDefinitionFiles();
+        var generator = new ModelDefsGenerator();
+        generator.GenerateDefinitionFiles(outputPath);
         Console.WriteLine($"Generated docs: \"{outputPath}\"");
     }
 
