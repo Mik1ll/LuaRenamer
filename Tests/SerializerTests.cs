@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -24,33 +23,24 @@ namespace LuaRenamer.Tests;
 [TestClass]
 public class SerializerTests
 {
-    private Lua _lua = null!;
+    private LuaContext _lua = null!;
     private LuaSerializer _serializer = null!;
-    private LuaFunction _runSandboxed = null!;
-    private LuaTable _env = null!;
 
     [TestInitialize]
     public void Init()
     {
-        _lua = new Lua();
-        // Real getname goes through the factory, which runs the lualinq-backed Lua source. Load lualinq into
-        // globals (defines `from` etc.) and use _G as the function env, with a minimal sandbox loader.
-        _lua.DoString(File.ReadAllText(Path.Combine(LuaContext.LuaPath, "lualinq.lua")));
-        _env = (LuaTable)_lua.DoString("return _G")[0];
-        _runSandboxed = (LuaFunction)_lua.DoString("return function (code, env) local f = load(code, nil, 't', env); return pcall(f) end")[0];
-        // Fresh anonymous table factory — the serializer is decoupled from the host (mirrors LuaContext.GetNewTable).
-        _serializer = new LuaSerializer(() => (LuaTable)_lua.DoString("return {}")[0]);
+        // The serializer compiles getname against a real sandbox env; the test-only LuaContext ctor stands one
+        // up (lualinq's `from` etc. loaded) without the full Shoko relocation context.
+        _lua = new LuaContext();
+        _serializer = new LuaSerializer(_lua);
     }
 
     [TestCleanup]
     public void Cleanup() => _lua.Dispose();
 
-    // The production getname (the shared lualinq-backed closure), built through the real factory.
-    private AnimeGetName MakeGetName() => LuaFunctionFactory.CreateAnimeGetName(_runSandboxed, _env, _lua);
-
-    private static AnimeModel MakeAnime(AnimeGetName getname, IReadOnlyList<RelationModel> relations) => new()
+    private static AnimeModel MakeAnime(IReadOnlyList<RelationModel> relations) => new()
     {
-        getname = getname,
+        getname = new AnimeGetName(),
         airdate = new DateTimeModel
         {
             year = 2020, month = 1, day = 2, yday = 2, wday = 5, hour = 0, min = 0, sec = 0, isdst = false,
@@ -75,10 +65,10 @@ public class SerializerTests
         seasons = [new SeasonModel { year = 2020, season = YearlySeason.Winter }],
     };
 
-    private AnimeModel FullAnime()
+    private static AnimeModel FullAnime()
     {
-        var related = MakeAnime(MakeGetName(), []); // leaf: no further relations
-        return MakeAnime(MakeGetName(), [new RelationModel { anime = related, type = RelationType.Sequel }]);
+        var related = MakeAnime([]); // leaf: no further relations
+        return MakeAnime([new RelationModel { anime = related, type = RelationType.Sequel }]);
     }
 
     [TestMethod]
@@ -161,16 +151,16 @@ public class SerializerTests
     }
 
     [TestMethod]
-    public void GetName_Is_Stored_As_The_Lua_Handle()
+    public void GetName_Is_Materialized_As_A_Single_Shared_Handle()
     {
-        // GetName IS a LuaFunction; the serializer drops it into the slot marshaled as-is (not turned
-        // into a table/string). Read back it is a LuaFunction referencing the same Lua closure.
-        var getname = MakeGetName();
-        var table = _serializer.Serialize(FullAnime() with { getname = getname });
+        // getname is a pure descriptor; the serializer compiles it into a real LuaFunction on demand and
+        // caches by source, so every table that shares the source gets the one handle (no per-table closures).
+        var a1 = _serializer.Serialize(FullAnime());
+        var a2 = _serializer.Serialize(FullAnime());
 
-        var stored = table["getname"];
+        var stored = a1["getname"];
         Assert.IsInstanceOfType(stored, typeof(LuaFunction));
-        Assert.IsTrue(getname.Equals(stored)); // NLua Equals compares the underlying lua references
+        Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across serializations
     }
 
     // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable (mirrors LuaContext.AnimeToTable) ----
@@ -224,7 +214,7 @@ public class SerializerTests
                     s.Tags == new List<IShokoTagForSeries> { Mock.Of<IShokoTagForSeries>(t => t.Name == "custom1") }),
             ]);
 
-        var model = ModelProducers.AnimeToModel(anime.Object, MakeGetName());
+        var model = ModelProducers.AnimeToModel(anime.Object);
         _lua["anime"] = _serializer.Serialize(model);
 
         // scalars / enum / Shoko-vs-AniDB name precedence

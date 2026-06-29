@@ -26,10 +26,10 @@ public class LuaContext : Lua
     private readonly IShokoSeries _primarySeries;
     private readonly IShokoEpisode _primaryEpisode;
 
-    // The shared title-resolver closures for this env build; set by CreateLuaEnv before any producer runs.
-    // Two wrappers over the same Lua source: Anime tables expose include_unofficial, Episode/Tmdb don't.
-    private AnimeGetName _animeGetName = null!;
-    private TitleGetName _titleGetName = null!;
+    // The sandbox runner and env table for this build; set by InitSandbox. LuaSerializer reaches back through
+    // CompileFunction/NewTable to mint Lua handles and tables on demand.
+    private LuaFunction _runSandboxed = null!;
+    private LuaTable _env = null!;
 
 
     #region Sandbox
@@ -134,39 +134,68 @@ public class LuaContext : Lua
         FileCacheStopwatch.Restart();
     }
 
-    public LuaTable RunSandboxed()
+    /// <summary>
+    /// Test-only ctor: stands up just the sandbox env (lualinq/utils loaded) so a <see cref="LuaSerializer"/>
+    /// can be exercised against a real interpreter without the full Shoko relocation context.
+    /// </summary>
+    internal LuaContext()
     {
-        var runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
-        var luaEnv = CreateLuaEnv(runSandboxed);
-        var retVal = runSandboxed.Call(_args.Configuration.Script, luaEnv);
-        if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
-            throw new LuaRenamerException(errStr);
-        return luaEnv;
+        _logger = null!;
+        _args = null!;
+        _primarySeries = null!;
+        _primaryEpisode = null!;
+        State.Encoding = Encoding.UTF8;
+        _luaUtilsText = File.ReadAllText(Path.Combine(LuaPath, "utils.lua"));
+        _luaLinqText = File.ReadAllText(Path.Combine(LuaPath, "lualinq.lua"));
+        InitSandbox();
     }
 
-    private LuaTable CreateLuaEnv(LuaFunction runSandboxed)
+    public LuaTable RunSandboxed()
     {
-        var env = (LuaTable)DoString(BaseEnv)[0];
-        runSandboxed.Call(_luaLinqText, env);
-        runSandboxed.Call(_luaUtilsText, env);
-        _animeGetName = LuaFunctionFactory.CreateAnimeGetName(runSandboxed, env, this);
-        _titleGetName = LuaFunctionFactory.CreateTitleGetName(runSandboxed, env, this);
+        InitSandbox();
+        PopulateEnv();
+        var retVal = _runSandboxed.Call(_args.Configuration.Script, _env);
+        if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
+            throw new LuaRenamerException(errStr);
+        return _env;
+    }
 
+    // Creates the sandbox runner and the env table, then layers lualinq + utils into the env.
+    private void InitSandbox()
+    {
+        _runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
+        _env = (LuaTable)DoString(BaseEnv)[0];
+        _runSandboxed.Call(_luaLinqText, _env);
+        _runSandboxed.Call(_luaUtilsText, _env);
+    }
+
+    /// <summary>Creates a fresh, empty Lua table (used by <see cref="LuaSerializer"/>).</summary>
+    public LuaTable NewTable()
+    {
+        NewTable("_");
+        return GetTable("_");
+    }
+
+    /// <summary>Compiles a <c>return function ... end</c> chunk against the sandbox env (used by <see cref="LuaSerializer"/>).</summary>
+    public LuaFunction CompileFunction(string source) => (LuaFunction)_runSandboxed.Call(source, _env)[1];
+
+    private void PopulateEnv()
+    {
         // Build a plain ILuaModel graph from Shoko data, then materialize it into the env table in one
         // pass. Replaces the old write-through *Table builders; all marshaling lives in LuaSerializer.
         var animes = _args.Series
             .OrderBy(s => s.AnidbAnimeID != _primarySeries.AnidbAnimeID)
             .ThenBy(s => s.AnidbAnimeID)
-            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime, _animeGetName)).ToList();
+            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime)).ToList();
         var episodes = _args.Episodes
             .OrderBy(e => e.AnidbEpisodeID != _primaryEpisode.AnidbEpisodeID)
             .ThenBy(e => e.AnidbEpisode.SeriesID)
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
-            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, _titleGetName, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
+            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         var groups = _args.Groups
             .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
-            .Select(g => ModelProducers.GroupToModel(g, _animeGetName)).ToList();
+            .Select(ModelProducers.GroupToModel).ToList();
 
         var model = new EnvModel
         {
@@ -192,8 +221,7 @@ public class LuaContext : Lua
             tmdb = ModelProducers.TmdbToModel(
                 _args.Series[0].TmdbMovies,
                 _args.Series[0].TmdbShows,
-                _args.Episodes.Where(e => e.SeriesID == _primarySeries.ID).SelectMany(e => e.TmdbEpisodes),
-                _titleGetName),
+                _args.Episodes.Where(e => e.SeriesID == _primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
             ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
             AnimeType = ModelProducers.EnumTable<AnimeType>(),
             EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
@@ -203,14 +231,6 @@ public class LuaContext : Lua
             SeasonName = ModelProducers.EnumTable<YearlySeason>(),
         };
 
-        new LuaSerializer(GetNewTable).Serialize(model, env);
-
-        return env;
-    }
-
-    private LuaTable GetNewTable()
-    {
-        NewTable("_");
-        return GetTable("_");
+        new LuaSerializer(this).Serialize(model, _env);
     }
 }

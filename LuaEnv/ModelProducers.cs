@@ -22,9 +22,9 @@ namespace LuaRenamer.LuaEnv;
 /// built with <c>includeRelations: false</c>).
 /// </summary>
 /// <remarks>
-/// <c>getname</c> is the shared <see cref="AnimeGetName"/>/<see cref="TitleGetName"/> closure
-/// (<c>_getName(self, lang, include_unofficial)</c>), passed in rather than synthesized so the producers stay
-/// free of host wiring. <c>prefix</c> on episodes is the host's <c>Utils.EpPrefix[type]</c>, injected for the same reason.
+/// <c>getname</c> is a pure <see cref="AnimeGetName"/>/<see cref="TitleGetName"/> descriptor of the shared
+/// title-resolver closure; <see cref="LuaSerializer"/> mints the live Lua handle from it, so the producers
+/// carry no host wiring. <c>prefix</c> on episodes is the host's <c>Utils.EpPrefix[type]</c>, injected for the same reason.
 /// </remarks>
 public static class ModelProducers
 {
@@ -75,13 +75,13 @@ public static class ModelProducers
 
     // ---- anime ---------------------------------------------------------------------------------
 
-    public static AnimeModel AnimeToModel(IAnidbAnime anime, AnimeGetName getname, bool includeRelations = true)
+    public static AnimeModel AnimeToModel(IAnidbAnime anime, bool includeRelations = true)
     {
         ArgumentNullException.ThrowIfNull(anime);
         var series = anime.ShokoSeries.FirstOrDefault();
         return new AnimeModel
         {
-            getname = getname,
+            getname = new AnimeGetName(),
             airdate = DateTimeToModel(anime.AirDate?.ToDateTime()),
             enddate = DateTimeToModel(anime.EndDate?.ToDateTime()),
             rating = anime.Rating,
@@ -94,7 +94,7 @@ public static class ModelProducers
             studios = anime.Studios.Select(st => st.Name).ToList(),
             episodecounts = Enum.GetValues<EpisodeType>().Distinct().ToDictionary(ep => ep, ep => (long)anime.EpisodeCounts[ep]),
             relations = includeRelations
-                ? anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID).Select(r => RelationToModel(r, getname)).ToList()
+                ? anime.RelatedSeries.Where(r => r.Related is not null && r.Related.ID != anime.ID).Select(RelationToModel).ToList()
                 : [],
             tags = anime.Tags.Select(t => t.Name).ToList(),
             customtags = (series?.Tags.Select(t => t.Name) ?? []).ToList(),
@@ -102,11 +102,11 @@ public static class ModelProducers
         };
     }
 
-    private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation, AnimeGetName getname) => new()
+    private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation) => new()
     {
         // nested anime gets includeRelations: false (mirrors AnimeToTable's ignoreRelations) so the
         // graph terminates without the cache the old code relied on.
-        anime = AnimeToModel((relation.Related as IAnidbAnime)!, getname, includeRelations: false),
+        anime = AnimeToModel((relation.Related as IAnidbAnime)!, includeRelations: false),
         type = relation.RelationType,
     };
 
@@ -215,9 +215,9 @@ public static class ModelProducers
 
     // ---- episode -------------------------------------------------------------------------------
 
-    public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, TitleGetName getname, string prefix) => new()
+    public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, string prefix) => new()
     {
-        getname = getname,
+        getname = new TitleGetName(),
         duration = (long)episode.Runtime.TotalSeconds,
         number = episode.EpisodeNumber,
         type = episode.Type,
@@ -230,27 +230,27 @@ public static class ModelProducers
 
     // ---- group ---------------------------------------------------------------------------------
 
-    public static GroupModel GroupToModel(IShokoGroup group, AnimeGetName getname) => new()
+    public static GroupModel GroupToModel(IShokoGroup group) => new()
     {
         name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
         // member anime keep their relations (LuaContext passed ignoreRelations: false).
-        mainanime = AnimeToModel(group.MainSeries.AnidbAnime, getname),
-        animes = group.AllSeries.Select(a => AnimeToModel(a.AnidbAnime, getname)).ToList(),
+        mainanime = AnimeToModel(group.MainSeries.AnidbAnime),
+        animes = group.AllSeries.Select(a => AnimeToModel(a.AnidbAnime)).ToList(),
     };
 
     // ---- tmdb ----------------------------------------------------------------------------------
 
     public static TmdbModel TmdbToModel(
-        IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes, TitleGetName getname) => new()
+        IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes) => new()
     {
-        movies = movies.Select(m => MovieToModel(m, getname)).ToList(),
-        shows = shows.Select(s => ShowToModel(s, getname)).ToList(),
-        episodes = episodes.Select(e => TmdbEpisodeToModel(e, getname)).ToList(),
+        movies = movies.Select(MovieToModel).ToList(),
+        shows = shows.Select(ShowToModel).ToList(),
+        episodes = episodes.Select(TmdbEpisodeToModel).ToList(),
     };
 
-    private static TmdbMovieModel MovieToModel(ITmdbMovie movie, TitleGetName getname) => new()
+    private static TmdbMovieModel MovieToModel(ITmdbMovie movie) => new()
     {
-        getname = getname,
+        getname = new TitleGetName(),
         id = movie.ID,
         titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
@@ -261,9 +261,9 @@ public static class ModelProducers
         airdate = DateTimeToModel(movie.ReleaseDate),
     };
 
-    private static TmdbShowModel ShowToModel(ITmdbShow show, TitleGetName getname) => new()
+    private static TmdbShowModel ShowToModel(ITmdbShow show) => new()
     {
-        getname = getname,
+        getname = new TitleGetName(),
         id = show.ID,
         titles = show.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
@@ -277,9 +277,9 @@ public static class ModelProducers
         seasons = show.YearlySeasons.Select(SeasonToModel).ToList(),
     };
 
-    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, TitleGetName getname) => new()
+    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode) => new()
     {
-        getname = getname,
+        getname = new TitleGetName(),
         showid = episode.SeriesID,
         id = episode.ID,
         titles = episode.Titles.Select(TitleToModel).ToList(),

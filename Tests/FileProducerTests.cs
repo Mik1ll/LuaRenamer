@@ -4,7 +4,6 @@ using System.Linq;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
@@ -24,14 +23,14 @@ namespace LuaRenamer.Tests;
 [TestClass]
 public class FileProducerTests
 {
-    private Lua _lua = null!;
+    private LuaContext _lua = null!;
     private LuaSerializer _serializer = null!;
 
     [TestInitialize]
     public void Init()
     {
-        _lua = new Lua();
-        _serializer = new LuaSerializer(() => (LuaTable)_lua.DoString("return {}")[0]);
+        _lua = new LuaContext();
+        _serializer = new LuaSerializer(_lua);
     }
 
     [TestCleanup]

@@ -1,4 +1,3 @@
-using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 
 namespace LuaRenamer.LuaEnv;
@@ -8,7 +7,7 @@ namespace LuaRenamer.LuaEnv;
 /// method (<c>self:getname(lang, include_unofficial)</c>). One closure body, two typed wrappers
 /// (<see cref="AnimeGetName"/>, <see cref="TitleGetName"/>), so the generators can document each table's
 /// signature without duplicating the Lua. The closure is shared per receiver kind, hence the <c>self</c>
-/// parameter and ':' method-call syntax. Wrappers are built by <see cref="LuaFunctionFactory"/>.
+/// parameter and ':' method-call syntax.
 /// </summary>
 internal static class GetNameSource
 {
@@ -37,21 +36,20 @@ internal static class GetNameSource
 }
 
 /// <summary>
-/// <c>getname</c> for Anime tables — <c>self:getname(lang, include_unofficial)</c>. Runtime value is the
-/// shared <see cref="GetNameSource"/> closure; <see cref="AnimeTitleDelegate"/> supplies the documented
-/// signature. Construct via <see cref="LuaFunctionFactory.CreateAnimeGetName"/>.
+/// <c>getname</c> for Anime tables — <c>self:getname(lang, include_unofficial)</c>. A pure descriptor over
+/// the shared <see cref="GetNameSource"/> closure; <see cref="AnimeTitleDelegate"/> supplies the documented
+/// signature. <see cref="LuaSerializer"/> mints the live Lua handle from <see cref="Source"/>.
 /// </summary>
 public sealed class AnimeGetName : LuaFunctionDef<AnimeTitleDelegate>
 {
-    internal AnimeGetName(int reference, Lua interpreter) : base(reference, interpreter) { }
+    public override string Source => GetNameSource.Lua;
 }
 
 /// <summary>
 /// <c>getname</c> for Episode/Tmdb tables — <c>self:getname(lang)</c>. Same shared closure as
 /// <see cref="AnimeGetName"/>, but typed with <see cref="TitleDelegate"/> so the docs omit include_unofficial.
-/// Construct via <see cref="LuaFunctionFactory.CreateTitleGetName"/>.
 /// </summary>
 public sealed class TitleGetName : LuaFunctionDef<TitleDelegate>
 {
-    internal TitleGetName(int reference, Lua interpreter) : base(reference, interpreter) { }
+    public override string Source => GetNameSource.Lua;
 }
