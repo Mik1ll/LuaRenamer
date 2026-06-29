@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
-using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Relocation;
 using File = System.IO.File;
 
@@ -181,55 +180,23 @@ public class LuaContext : Lua
 
     private void PopulateEnv()
     {
-        // Build a plain ILuaModel graph from Shoko data, then materialize it into the env table in one
-        // pass. Replaces the old write-through *Table builders; all marshaling lives in LuaSerializer.
-        var animes = _args.Series
-            .OrderBy(s => s.AnidbAnimeID != _primarySeries.AnidbAnimeID)
-            .ThenBy(s => s.AnidbAnimeID)
-            .Select(series => ModelProducers.AnimeToModel(series.AnidbAnime)).ToList();
-        var episodes = _args.Episodes
-            .OrderBy(e => e.AnidbEpisodeID != _primaryEpisode.AnidbEpisodeID)
-            .ThenBy(e => e.AnidbEpisode.SeriesID)
-            .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
-            .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
-            .Select(e => ModelProducers.EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
-        var groups = _args.Groups
-            .OrderBy(g => g.MainSeriesID != _primarySeries.AnidbAnimeID)
-            .Select(ModelProducers.GroupToModel).ToList();
-
-        var model = new EnvModel
-        {
-            episode_numbers = (EpisodeNumbersDelegate)EpNums,
-            logdebug = (LogDelegate)LogDebug,
-            log = (LogDelegate)Log,
-            logwarn = (LogDelegate)LogWarn,
-            logerror = (LogDelegate)LogError,
-            replace_illegal_chars = _args.Configuration.ReplaceIllegalCharacters,
-            remove_illegal_chars = _args.Configuration.RemoveIllegalCharacters,
-            use_existing_anime_location = _args.Configuration.UseExistingAnimeLocation,
-            skip_rename = false,
-            skip_move = false,
-            illegal_chars_map = FilePathCleaner.ReplaceMapDefaults,
-            animes = animes,
-            anime = animes[0],
-            file = ModelProducers.FileToModel(_args.File),
-            episodes = episodes,
-            episode = episodes[0],
-            importfolders = _args.AvailableFolders.Select(ModelProducers.ImportFolderToModel).ToList(),
-            groups = groups,
-            group = groups.Count > 0 ? groups[0] : null,
-            tmdb = ModelProducers.TmdbToModel(
-                _args.Series[0].TmdbMovies,
-                _args.Series[0].TmdbShows,
-                _args.Episodes.Where(e => e.SeriesID == _primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
-            ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
-            AnimeType = ModelProducers.EnumTable<AnimeType>(),
-            EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
-            TitleType = ModelProducers.EnumTable<TitleType>(),
-            Language = ModelProducers.EnumTable<TitleLanguage>(),
-            RelationType = ModelProducers.EnumTable<RelationType>(),
-            SeasonName = ModelProducers.EnumTable<YearlySeason>(),
-        };
+        // ModelProducers builds the whole ILuaModel graph from the relocation args; we supply the host policy
+        // it can't derive (illegal-char config, default replacement map, host-bound delegates). LuaSerializer
+        // then materializes it into the env table in one pass — all marshaling lives there.
+        var model = ModelProducers.EnvToModel(
+            _args,
+            _primarySeries,
+            _primaryEpisode,
+            Utils.EpPrefix,
+            _args.Configuration.ReplaceIllegalCharacters,
+            _args.Configuration.RemoveIllegalCharacters,
+            _args.Configuration.UseExistingAnimeLocation,
+            FilePathCleaner.ReplaceMapDefaults,
+            EpNums,
+            LogDebug,
+            Log,
+            LogWarn,
+            LogError);
 
         new LuaSerializer(this).Serialize(model, _env);
     }

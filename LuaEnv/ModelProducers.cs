@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NLua;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Tmdb;
 using Shoko.Abstractions.Video;
+using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Media;
+using Shoko.Abstractions.Video.Relocation;
 using Shoko.Abstractions.Video.Release;
 
 namespace LuaRenamer.LuaEnv;
@@ -28,6 +29,78 @@ namespace LuaRenamer.LuaEnv;
 /// </remarks>
 public static class ModelProducers
 {
+    // ---- env root ------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds the whole <see cref="EnvModel"/> graph from the relocation <paramref name="args"/>. The data
+    /// comes off the non-generic <see cref="RelocationContext"/> base (so LuaEnv stays ignorant of the host's
+    /// settings type); the host policy it can't derive — the illegal-char config, the default replacement map,
+    /// and the host-bound <c>episode_numbers</c>/<c>log*</c> delegates — is passed in.
+    /// </summary>
+    public static EnvModel EnvToModel(
+        RelocationContext args,
+        IShokoSeries primarySeries,
+        IShokoEpisode primaryEpisode,
+        IReadOnlyDictionary<EpisodeType, string> epPrefix,
+        bool replaceIllegalChars,
+        bool removeIllegalChars,
+        bool useExistingAnimeLocation,
+        IReadOnlyDictionary<string, string> illegalCharsMap,
+        EpisodeNumbersDelegate episodeNumbers,
+        LogDelegate logdebug,
+        LogDelegate log,
+        LogDelegate logwarn,
+        LogDelegate logerror)
+    {
+        var animes = args.Series
+            .OrderBy(s => s.AnidbAnimeID != primarySeries.AnidbAnimeID)
+            .ThenBy(s => s.AnidbAnimeID)
+            .Select(series => AnimeToModel(series.AnidbAnime)).ToList();
+        var episodes = args.Episodes
+            .OrderBy(e => e.AnidbEpisodeID != primaryEpisode.AnidbEpisodeID)
+            .ThenBy(e => e.AnidbEpisode.SeriesID)
+            .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
+            .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
+            .Select(e => EpisodeToModel(e.AnidbEpisode, epPrefix[e.AnidbEpisode.Type])).ToList();
+        var groups = args.Groups
+            .OrderBy(g => g.MainSeriesID != primarySeries.AnidbAnimeID)
+            .Select(GroupToModel).ToList();
+
+        return new EnvModel
+        {
+            episode_numbers = episodeNumbers,
+            logdebug = logdebug,
+            log = log,
+            logwarn = logwarn,
+            logerror = logerror,
+            replace_illegal_chars = replaceIllegalChars,
+            remove_illegal_chars = removeIllegalChars,
+            use_existing_anime_location = useExistingAnimeLocation,
+            skip_rename = false,
+            skip_move = false,
+            illegal_chars_map = illegalCharsMap,
+            animes = animes,
+            anime = animes[0],
+            file = FileToModel(args.File),
+            episodes = episodes,
+            episode = episodes[0],
+            importfolders = args.AvailableFolders.Select(ImportFolderToModel).ToList(),
+            groups = groups,
+            group = groups.Count > 0 ? groups[0] : null,
+            tmdb = TmdbToModel(
+                args.Series[0].TmdbMovies,
+                args.Series[0].TmdbShows,
+                args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
+            ImportFolderType = EnumTable<DropFolderType>(),
+            AnimeType = EnumTable<AnimeType>(),
+            EpisodeType = EnumTable<EpisodeType>(),
+            TitleType = EnumTable<TitleType>(),
+            Language = EnumTable<TitleLanguage>(),
+            RelationType = EnumTable<RelationType>(),
+            SeasonName = EnumTable<YearlySeason>(),
+        };
+    }
+
     // ---- shared leaf mappers -------------------------------------------------------------------
 
     private static TitleModel TitleToModel(ITitle title) => new()
