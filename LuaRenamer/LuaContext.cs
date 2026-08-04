@@ -421,17 +421,24 @@ public class LuaContext : Lua
 
     private LuaRef<TmdbTable> TmdbToTable(LuaFunction getName) =>
         new TmdbTableBuilder(GetNewTable())
-            .movies(ArrayOf(_args.Series[0].TmdbMovies.Select(m => new TmdbMovieTableBuilder(GetNewTable())
-                .id(m.ID)
-                .titles(ArrayOf(m.Titles.Select(TitleToTable)))
-                .defaultname(string.IsNullOrWhiteSpace(m.DefaultTitle?.Value) ? null : m.DefaultTitle?.Value)
-                .preferredname(string.IsNullOrWhiteSpace(m.PreferredTitle?.Value) ? null : m.PreferredTitle?.Value)
-                .rating(m.Rating)
-                .restricted(m.Restricted)
-                .studios(ArrayOf(m.Studios.Select(s => s.Name)))
-                .airdate(DateTimeToTable(m.ReleaseDate))
-                .getname(getName)
-                .Build())))
+            .movies(ArrayOf(_args.Series[0].TmdbMovieCrossReferences
+                .Where(x => x.TmdbMovie is not null)
+                .Select(x =>
+                {
+                    var m = x.TmdbMovie!;
+                    return new TmdbMovieTableBuilder(GetNewTable())
+                        .id(m.ID)
+                        .titles(ArrayOf(m.Titles.Select(TitleToTable)))
+                        .defaultname(string.IsNullOrWhiteSpace(m.DefaultTitle?.Value) ? null : m.DefaultTitle?.Value)
+                        .preferredname(string.IsNullOrWhiteSpace(m.PreferredTitle?.Value) ? null : m.PreferredTitle?.Value)
+                        .rating(m.Rating)
+                        .restricted(m.Restricted)
+                        .studios(ArrayOf(m.Studios.Select(s => s.Name)))
+                        .airdate(DateTimeToTable(m.ReleaseDate))
+                        .anidbepisodeid(x.AnidbEpisodeID)
+                        .getname(getName)
+                        .Build();
+                })))
             .shows(ArrayOf(_args.Series[0].TmdbShows.Select(s => new TmdbShowTableBuilder(GetNewTable())
                 .id(s.ID)
                 .titles(ArrayOf(s.Titles.Select(TitleToTable)))
