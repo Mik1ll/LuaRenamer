@@ -22,7 +22,7 @@ namespace LuaRenamer.LuaEnv;
 /// </remarks>
 public sealed class LuaSerializer(LuaContext context)
 {
-    private readonly Dictionary<string, LuaFunction> _compiled = new();
+    private readonly Dictionary<string, LuaFunction> _compiled = [];
 
     public LuaTable Serialize(ILuaModel model) => WriteModel(model);
 
@@ -47,7 +47,7 @@ public sealed class LuaSerializer(LuaContext context)
         LuaFunctionDef def => Compile(def.Source),    // Lua-bodied callable (getname), compiled on demand
         ILuaModel m => WriteModel(m),
         IDictionary dict => WriteMap(dict),           // before IEnumerable (IDictionary : IEnumerable)
-        IEnumerable seq => WriteSeq(seq),
+        IEnumerable seq => WriteSequence(seq),
         _ => value,                                   // long, double, bool, int, ...
     };
 
@@ -72,7 +72,7 @@ public sealed class LuaSerializer(LuaContext context)
         return table;
     }
 
-    private LuaTable WriteSeq(IEnumerable seq)
+    private LuaTable WriteSequence(IEnumerable seq)
     {
         var table = context.NewTable();
         var i = 1;
