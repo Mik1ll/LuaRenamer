@@ -700,4 +700,139 @@ public class LuaTests
         var res = renamer.GetPath(args);
         Assert.AreEqual("2023Spring.mp4", res.FileName);
     }
+
+    #region Multi-series primary resolution
+
+    // Shoko series ids and AniDB anime ids are disjoint here on purpose: comparing one space against
+    // the other can then never match by coincidence, which is what makes the ordering bugs observable.
+    // (MinimalArgs leaves IShokoSeries.ID at its default 0, so those mix-ups go unnoticed there.)
+    private const int PrimaryAnidbId = 10;
+    private const int PrimaryShokoId = 100;
+    private const int OtherAnidbId = 20;
+    private const int OtherShokoId = 200;
+
+    private static IShokoSeries SeriesMock(int anidbId, int shokoId, string shokoTitle, string anidbTitle,
+        IReadOnlyList<ITmdbShow> tmdbShows)
+    {
+        var animeMock = new Mock<IAnidbAnime>();
+        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        animeMock.SetupGet(a => a.ID).Returns(anidbId);
+        animeMock.SetupGet(a => a.Title).Returns(anidbTitle);
+        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbTitle));
+        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        animeMock.SetupGet(a => a.Studios).Returns([]);
+        animeMock.SetupGet(a => a.Tags).Returns([]);
+        animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        var series = Mock.Of<IShokoSeries>(s =>
+            s.ID == shokoId &&
+            s.AnidbAnimeID == anidbId &&
+            s.AnidbAnime == animeMock.Object &&
+            s.Title == shokoTitle &&
+            s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbShows == tmdbShows &&
+            s.Tags == new List<IShokoTagForSeries>() &&
+            s.DefaultTitle == Mock.Of<ITitle>(t => t.Value == anidbTitle));
+        animeMock.SetupGet(a => a.ShokoSeries).Returns([series]);
+        return series;
+    }
+
+    private static IShokoGroup GroupMock(string name, IShokoSeries mainSeries) =>
+        Mock.Of<IShokoGroup>(g =>
+            g.PreferredTitle == Mock.Of<ITitle>(t => t.Value == name) &&
+            g.MainSeriesID == mainSeries.ID &&
+            g.MainSeries == mainSeries &&
+            g.AllSeries == new List<IShokoSeries> { mainSeries });
+
+    /// <summary>
+    /// A file linked to two series, where <c>Series[0]</c> is deliberately NOT the primary one (the
+    /// primary is the lowest AniDB anime id). Everything downstream — the env model, the default
+    /// subfolder — must re-derive the primary series rather than trust this order.
+    /// </summary>
+    private static RelocationContext<LuaRenamerSettings> MultiSeriesArgs(string script, string primaryShokoTitle = "primaryShoko",
+        IReadOnlyList<ITmdbShow>? primaryTmdbShows = null)
+    {
+        var importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
+            i.DropFolderType == DropFolderType.Destination &&
+            i.Name == "testimport");
+        var primary = SeriesMock(PrimaryAnidbId, PrimaryShokoId, primaryShokoTitle, "primaryAnidb", primaryTmdbShows ?? []);
+        var other = SeriesMock(OtherAnidbId, OtherShokoId, "otherShoko", "otherAnidb", []);
+        return new RelocationContext<LuaRenamerSettings>(new RelocationContext
+        {
+            CancellationToken = CancellationToken.None,
+            AvailableFolders = new List<IManagedFolder> { importFolder },
+            File = Mock.Of<IVideoFile>(file =>
+                file.Path == Path.Combine("C:", "testimportfolder", "testsubfolder", "testfilename.mp4") &&
+                file.RelativePath == Path.Combine("testsubfolder", "testfilename.mp4") &&
+                file.FileName == "testfilename.mp4" &&
+                file.ManagedFolderID == importFolder.ID &&
+                file.ManagedFolder == importFolder &&
+                file.VideoID == 25 &&
+                file.Video == Mock.Of<IVideo>(vi => vi.ED2K == "abc123" && vi.Hashes == new List<IHashDigest>())),
+            Episodes = new List<IShokoEpisode>
+            {
+                Mock.Of<IShokoEpisode>(se =>
+                    se.SeriesID == PrimaryShokoId &&
+                    se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == PrimaryAnidbId &&
+                        e.Titles == new List<ITitle>() &&
+                        e.Type == EpisodeType.Episode) &&
+                    se.TmdbEpisodes == new List<ITmdbEpisode>()),
+            },
+            Series = new List<IShokoSeries> { other, primary },
+            // Likewise not primary-first, and the two groups' main series differ, so both the
+            // "contains the primary series" rule and its id space are exercised.
+            Groups = new List<IShokoGroup> { GroupMock("otherGroup", other), GroupMock("primaryGroup", primary) },
+            RenameEnabled = true,
+            MoveEnabled = true,
+        }, new LuaRenamerSettings { Script = script });
+    }
+
+    [TestMethod]
+    public void TestGroupOrderFollowsPrimarySeries()
+    {
+        var args = MultiSeriesArgs($"{Env.filename} = {Env.group.name}");
+        var renamer = new LuaRenamer(Logmock);
+        var res = renamer.GetPath(args);
+        Assert.AreEqual("primaryGroup.mp4", res.FileName);
+    }
+
+    [TestMethod]
+    public void TestTmdbComesFromPrimarySeries()
+    {
+        var tmdbShow = new Mock<ITmdbShow>();
+        tmdbShow.SetupGet(s => s.ID).Returns(555);
+        tmdbShow.SetupGet(s => s.Titles).Returns(new List<ITitle>());
+        tmdbShow.SetupGet(s => s.Studios).Returns([]);
+        tmdbShow.SetupGet(s => s.EpisodeCounts).Returns(new EpisodeCounts());
+        tmdbShow.SetupGet(s => s.YearlySeasons).Returns([]);
+        // Only the primary series is linked to the show; sourcing tmdb off Series[0] yields an empty list.
+        var args = MultiSeriesArgs($"{Env.filename} = tostring({Env.tmdb.shows[1].id})", primaryTmdbShows: [tmdbShow.Object]);
+        var renamer = new LuaRenamer(Logmock);
+        var res = renamer.GetPath(args);
+        Assert.AreEqual("555.mp4", res.FileName);
+    }
+
+    [TestMethod]
+    public void TestDefaultSubfolderUsesPrimarySeries()
+    {
+        var args = MultiSeriesArgs($"{Env.filename} = 'blah'");
+        var renamer = new LuaRenamer(Logmock);
+        var res = renamer.GetPath(args);
+        Assert.IsNull(res.Error);
+        Assert.AreEqual("primaryShoko", res.Path);
+    }
+
+    [TestMethod]
+    public void TestDefaultSubfolderFallsBackToAnidbTitle()
+    {
+        // A blank Shoko title used to reach FilePathCleaner verbatim and fail the whole relocation;
+        // it must fall back the same way anime.preferredname does.
+        var args = MultiSeriesArgs($"{Env.filename} = 'blah'", primaryShokoTitle: "   ");
+        var renamer = new LuaRenamer(Logmock);
+        var res = renamer.GetPath(args);
+        Assert.IsNull(res.Error);
+        Assert.AreEqual("primaryAnidb", res.Path);
+    }
+
+    #endregion
 }

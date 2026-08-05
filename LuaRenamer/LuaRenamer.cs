@@ -7,6 +7,7 @@ using LuaRenamer.LuaEnv;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
+using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Plugin;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
@@ -46,13 +47,14 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
         return filePathCleaner.CleanPathSegment(fileNameWithExt);
     }
 
-    private static string GetNewSubfolder(object? subfolder, RelocationContext<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
+    private static string GetNewSubfolder(object? subfolder, IShokoSeries primarySeries, FilePathCleaner filePathCleaner)
     {
         List<string> newSubFolderSplit;
         switch (subfolder)
         {
             case null:
-                newSubFolderSplit = [args.Series[0].Title];
+                // Same fallback anime.preferredname uses, so the default subfolder matches what scripts see.
+                newSubFolderSplit = [ModelProducers.PreferredName(primarySeries.AnidbAnime, primarySeries)];
                 break;
             case string str:
                 newSubFolderSplit = [str];
@@ -110,9 +112,10 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
         return destfolder;
     }
 
-    private static (IManagedFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationContext<LuaRenamerSettings> args)
+    private static (IManagedFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationContext<LuaRenamerSettings> args,
+        IShokoSeries primarySeries)
     {
-        var availableLocations = args.Series[0].Videos
+        var availableLocations = primarySeries.Videos
             .Where(vl => !string.Equals(vl.ED2K, args.File.Video.ED2K, StringComparison.OrdinalIgnoreCase))
             .SelectMany(vl => vl.Files.Select(l => new
             {
@@ -149,6 +152,10 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             if (args.Episodes.Count == 0)
                 throw new LuaRenamerException("No episode info");
 
+            // Resolved once here (safe past the emptiness guard above) so the env model and the
+            // move/rename fallbacks below all agree on which series is primary.
+            var primarySeries = ModelProducers.PrimarySeries(args);
+
             using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
             new LuaSerializer(sandbox).Serialize(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
             var retVal = sandbox.Run(args.Configuration.Script);
@@ -177,8 +184,8 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 
             if (args.MoveEnabled && !skipMove)
                 (result.ManagedFolder, result.Path) =
-                    (useExistingAnimeLocation ? GetExistingAnimeLocation(args) : null) ??
-                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, args, filePathCleaner));
+                    (useExistingAnimeLocation ? GetExistingAnimeLocation(args, primarySeries) : null) ??
+                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, primarySeries, filePathCleaner));
 
             if (args.RenameEnabled && !skipRename)
                 result.FileName = GetNewFilename(luaFilename, args, filePathCleaner);

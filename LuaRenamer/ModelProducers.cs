@@ -43,7 +43,7 @@ public static class ModelProducers
     /// </summary>
     public static EnvModel EnvToModel(RelocationContext<LuaRenamerSettings> args, ILogger logger)
     {
-        var primarySeries = args.Series.OrderBy(s => s.AnidbAnimeID).First();
+        var primarySeries = PrimarySeries(args);
         var primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
             .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
             .ThenBy(e => e.EpisodeNumber)
@@ -59,8 +59,12 @@ public static class ModelProducers
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
             .Select(e => EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
+        // Groups the primary series actually belongs to come first (what EnvModel.group documents),
+        // then the group whose *main* series is the primary one. Both comparisons are in Shoko id
+        // space — MainSeriesID is a Shoko series id, not an AniDB anime id.
         var groups = args.Groups
-            .OrderBy(g => g.MainSeriesID != primarySeries.AnidbAnimeID)
+            .OrderBy(g => !g.AllSeries.Any(s => s.ID == primarySeries.ID))
+            .ThenBy(g => g.MainSeriesID != primarySeries.ID)
             .Select(GroupToModel).ToList();
 
         return new EnvModel
@@ -87,8 +91,8 @@ public static class ModelProducers
             groups = groups,
             group = groups.Count > 0 ? groups[0] : null,
             tmdb = TmdbToModel(
-                args.Series[0].TmdbMovies,
-                args.Series[0].TmdbShows,
+                primarySeries.TmdbMovies,
+                primarySeries.TmdbShows,
                 args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
             ImportFolderType = EnumTable<DropFolderType>(),
             AnimeType = EnumTable<AnimeType>(),
@@ -99,6 +103,23 @@ public static class ModelProducers
             SeasonName = EnumTable<YearlySeason>(),
         };
     }
+
+    /// <summary>
+    /// The primary series for a relocation: the lowest AniDB anime id. The single definition of "primary" —
+    /// <see cref="EnvToModel"/> and <see cref="LuaRenamer"/>'s move/rename fallbacks all resolve it through
+    /// here rather than trusting the order <see cref="RelocationContext{T}.Series"/> arrives in.
+    /// </summary>
+    /// <remarks>Throws when the context has no series; callers rely on the emptiness guard in
+    /// <see cref="LuaRenamer.GetPath"/>.</remarks>
+    public static IShokoSeries PrimarySeries(RelocationContext<LuaRenamerSettings> args) =>
+        args.Series.OrderBy(s => s.AnidbAnimeID).First();
+
+    /// <summary>
+    /// The Shoko series title, falling back to the AniDB one when blank. Backs both
+    /// <c>anime.preferredname</c> and the default subfolder, so the two never disagree.
+    /// </summary>
+    public static string PreferredName(IAnidbAnime anime, IShokoSeries? series) =>
+        string.IsNullOrWhiteSpace(series?.Title) ? anime.Title : series.Title;
 
     /// <summary>
     /// Backs the env's <c>episode_numbers</c> free function: the primary series' episode numbers, zero-padded
@@ -173,7 +194,7 @@ public static class ModelProducers
             rating = anime.Rating,
             restricted = anime.Restricted,
             type = anime.Type,
-            preferredname = string.IsNullOrWhiteSpace(series?.Title) ? anime.Title : series.Title,
+            preferredname = PreferredName(anime, series),
             defaultname = string.IsNullOrWhiteSpace(series?.DefaultTitle.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value,
             id = anime.ID,
             titles = anime.Titles.OrderBy(t => t.Value).Select(TitleToModel).ToList(),
