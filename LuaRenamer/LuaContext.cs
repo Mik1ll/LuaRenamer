@@ -457,6 +457,7 @@ public class LuaContext : Lua
                 .SelectMany(e => e.TmdbEpisodes.Select(e2 => new TmdbEpisodeTableBuilder(GetNewTable())
                     .showid(e2.SeriesID)
                     .id(e2.ID)
+                    .anidbepisodeid(e.AnidbEpisodeID)
                     .titles(ArrayOf(e2.Titles.Select(TitleToTable)))
                     .defaultname(string.IsNullOrWhiteSpace(e2.DefaultTitle?.Value) ? null : e2.DefaultTitle?.Value)
                     .preferredname(string.IsNullOrWhiteSpace(e2.PreferredTitle?.Value) ? null : e2.PreferredTitle?.Value)

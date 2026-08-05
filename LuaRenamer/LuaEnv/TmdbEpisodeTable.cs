@@ -14,6 +14,9 @@ public class TmdbEpisodeTable : Table
     [LuaType(LuaTypeNames.integer, "TMDB show ID")]
     public string showid => Get();
 
+    [LuaType(LuaTypeNames.integer, "AniDB episode ID this TMDB episode is linked to; 0 when linked to the whole anime")]
+    public string anidbepisodeid => Get();
+
     [LuaType($"{LuaTypeNames.Title}[]", "All available titles for the episode")]
     public ArrayTable<TitleTable> titles => new() { Fn = Get() };
 

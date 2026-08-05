@@ -149,6 +149,7 @@ local Tmdb = {}
 ---@class (exact) TmdbEpisode
 ---@field id integer # TMDB episode ID
 ---@field showid integer # TMDB show ID
+---@field anidbepisodeid integer # AniDB episode ID this TMDB episode is linked to; 0 when linked to the whole anime
 ---@field titles Title[] # All available titles for the episode
 ---@field defaultname string|nil # Default episode title
 ---@field preferredname string|nil # Preferred episode title
@@ -165,6 +166,7 @@ function TmdbEpisode:getname(lang) end
 
 ---@class (exact) TmdbMovie
 ---@field id integer # TMDB movie ID
+---@field anidbepisodeid integer # AniDB episode ID this movie is linked to; 0 when linked to the whole anime
 ---@field titles Title[] # All available titles for the movie
 ---@field defaultname string|nil # Default movie title
 ---@field preferredname string|nil # Preferred movie title
