@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using LuaRenamer.DefsGenerator;
+using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Names;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -466,8 +467,10 @@ public class LuaTests
         }
 
         var defsEnv = new Lua();
-        defsEnv.DoFile(Path.Combine(LuaContext.LuaPath, "enums.lua"));
-        var sandboxEnv = new LuaContext(Logmock, MinimalArgs("")).RunSandboxed();
+        defsEnv.DoFile(Path.Combine(LuaScripts.LuaPath, "enums.lua"));
+        using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
+        new LuaSerializer(sandbox).Serialize(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
+        var sandboxEnv = sandbox.Env;
         CompareEnums((LuaTable)defsEnv[Env.Language.Fn], (LuaTable)sandboxEnv[Env.Language.Fn]);
         CompareEnums((LuaTable)defsEnv[Env.AnimeType.Fn], (LuaTable)sandboxEnv[Env.AnimeType.Fn]);
         CompareEnums((LuaTable)defsEnv[Env.TitleType.Fn], (LuaTable)sandboxEnv[Env.TitleType.Fn]);

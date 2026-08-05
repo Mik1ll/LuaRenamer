@@ -27,10 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="LuaRenamer.Tests" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
         <!-- Build ordering only: ensures DefsGenerator is built before LuaRenamer so it can be run in the GenerateLuaDefs post-build step. -->
         <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LuaRenamer.LuaEnv;
+using Microsoft.Extensions.Logging;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
 using Shoko.Abstractions.Metadata.Enums;
@@ -13,45 +15,40 @@ using Shoko.Abstractions.Video.Media;
 using Shoko.Abstractions.Video.Relocation;
 using Shoko.Abstractions.Video.Release;
 
-namespace LuaRenamer.LuaEnv;
+namespace LuaRenamer;
 
 /// <summary>
 /// Maps Shoko's host abstractions to the plain <see cref="ILuaModel"/> graph that <see cref="LuaSerializer"/>
-/// materializes. The model-architecture counterpart of LuaContext's old <c>*ToTable</c> methods: the same
-/// field-by-field mappings, but producing decoupled models instead of mutating a live LuaTable, and with no
-/// reference-dedup cache (intentionally dropped — the graph terminates because nested relation anime are
+/// materializes. Produces decoupled models rather than mutating a live LuaTable, and carries no
+/// reference-dedup cache (intentionally — the graph terminates because nested relation anime are
 /// built with <c>includeRelations: false</c>).
 /// </summary>
 /// <remarks>
+/// Lives in the plugin project, not LuaEnv: this is the Shoko-facing mapping layer, so keeping it here leaves
+/// LuaEnv depending on Shoko's enum types alone rather than its whole metadata interface graph.
 /// <c>getname</c> is a pure <see cref="AnimeGetName"/>/<see cref="TitleGetName"/> descriptor of the shared
 /// title-resolver closure; <see cref="LuaSerializer"/> mints the live Lua handle from it, so the producers
-/// carry no host wiring. <c>prefix</c> on episodes is the host's <c>Utils.EpPrefix[type]</c>, injected for the same reason.
+/// carry no live Lua wiring.
 /// </remarks>
 public static class ModelProducers
 {
     // ---- env root ------------------------------------------------------------------------------
 
     /// <summary>
-    /// Builds the whole <see cref="EnvModel"/> graph from the relocation <paramref name="args"/>. The data
-    /// comes off the non-generic <see cref="RelocationContext"/> base (so LuaEnv stays ignorant of the host's
-    /// settings type); the host policy it can't derive — the illegal-char config, the default replacement map,
-    /// and the host-bound <c>episode_numbers</c>/<c>log*</c> delegates — is passed in.
+    /// Builds the whole <see cref="EnvModel"/> graph from the relocation <paramref name="args"/>. Everything
+    /// host-derived is worked out here: the primary series/episode, settings off
+    /// <see cref="RelocationContext{T}.Configuration"/>, illegal-char defaults and episode prefixes off
+    /// <see cref="FilePathCleaner"/>/<see cref="Utils"/>, and the free functions the env exposes to user
+    /// scripts (<c>episode_numbers</c> and the <c>log*</c> family, the latter bound to <paramref name="logger"/>).
     /// </summary>
-    public static EnvModel EnvToModel(
-        RelocationContext args,
-        IShokoSeries primarySeries,
-        IShokoEpisode primaryEpisode,
-        IReadOnlyDictionary<EpisodeType, string> epPrefix,
-        bool replaceIllegalChars,
-        bool removeIllegalChars,
-        bool useExistingAnimeLocation,
-        IReadOnlyDictionary<string, string> illegalCharsMap,
-        EpisodeNumbersDelegate episodeNumbers,
-        LogDelegate logdebug,
-        LogDelegate log,
-        LogDelegate logwarn,
-        LogDelegate logerror)
+    public static EnvModel EnvToModel(RelocationContext<LuaRenamerSettings> args, ILogger logger)
     {
+        var primarySeries = args.Series.OrderBy(s => s.AnidbAnimeID).First();
+        var primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
+            .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
+            .ThenBy(e => e.EpisodeNumber)
+            .First();
+
         var animes = args.Series
             .OrderBy(s => s.AnidbAnimeID != primarySeries.AnidbAnimeID)
             .ThenBy(s => s.AnidbAnimeID)
@@ -61,24 +58,26 @@ public static class ModelProducers
             .ThenBy(e => e.AnidbEpisode.SeriesID)
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
-            .Select(e => EpisodeToModel(e.AnidbEpisode, epPrefix[e.AnidbEpisode.Type])).ToList();
+            .Select(e => EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         var groups = args.Groups
             .OrderBy(g => g.MainSeriesID != primarySeries.AnidbAnimeID)
             .Select(GroupToModel).ToList();
 
         return new EnvModel
         {
-            episode_numbers = episodeNumbers,
-            logdebug = logdebug,
-            log = log,
-            logwarn = logwarn,
-            logerror = logerror,
-            replace_illegal_chars = replaceIllegalChars,
-            remove_illegal_chars = removeIllegalChars,
-            use_existing_anime_location = useExistingAnimeLocation,
+            episode_numbers = pad => EpisodeNumbers(args, primarySeries, pad),
+            // ReSharper disable TemplateIsNotCompileTimeConstantProblem
+            logdebug = message => logger.LogDebug(message),
+            log = message => logger.LogInformation(message),
+            logwarn = message => logger.LogWarning(message),
+            logerror = message => logger.LogError(message),
+            // ReSharper restore TemplateIsNotCompileTimeConstantProblem
+            replace_illegal_chars = args.Configuration.ReplaceIllegalCharacters,
+            remove_illegal_chars = args.Configuration.RemoveIllegalCharacters,
+            use_existing_anime_location = args.Configuration.UseExistingAnimeLocation,
             skip_rename = false,
             skip_move = false,
-            illegal_chars_map = illegalCharsMap,
+            illegal_chars_map = FilePathCleaner.ReplaceMapDefaults,
             animes = animes,
             anime = animes[0],
             file = FileToModel(args.File),
@@ -100,6 +99,20 @@ public static class ModelProducers
             SeasonName = EnumTable<YearlySeason>(),
         };
     }
+
+    /// <summary>
+    /// Backs the env's <c>episode_numbers</c> free function: the primary series' episode numbers, zero-padded
+    /// to <paramref name="pad"/> digits, prefixed by type and collapsed into ranges.
+    /// </summary>
+    private static string EpisodeNumbers(RelocationContext<LuaRenamerSettings> args, IShokoSeries primarySeries, long pad) =>
+        string.Join(' ', args.Episodes.Select(se => se.AnidbEpisode)
+            .Where(e => e.SeriesID == primarySeries.AnidbAnimeID)
+            .OrderBy(e => e.Type).ThenBy(e => e.EpisodeNumber)
+            .Select((e, i) => (e.Type, RangeId: e.EpisodeNumber - i, Num: e.EpisodeNumber)) // RangeId effectively groups sequences of numbers
+            .GroupBy(x => (x.Type, x.RangeId))
+            .Select(g => g.First().Num is var fn && g.Last().Num is var ln && Utils.EpPrefix[g.Key.Type] is var pre && "D" + pad is var fmt && fn == ln
+                ? $"{pre}{fn.ToString(fmt)}"
+                : $"{pre}{fn.ToString(fmt)}-{ln.ToString(fmt)}"));
 
     // ---- shared leaf mappers -------------------------------------------------------------------
 
@@ -138,7 +151,7 @@ public static class ModelProducers
     // ---- enum tables ---------------------------------------------------------------------------
 
     /// <summary>
-    /// Builds the identity name→name map for an enum (counterpart of <c>LuaContext.EnumToTable&lt;T&gt;</c>).
+    /// Builds the identity name→name map for an enum.
     /// The serializer marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
     /// table. <see cref="Enumerable.Distinct{TSource}(IEnumerable{TSource})"/> collapses aliased values to the
     /// one canonical name <see cref="Enum.GetName(Type, object)"/> returns.
@@ -177,8 +190,7 @@ public static class ModelProducers
 
     private static RelationModel RelationToModel(IRelatedMetadata<ISeries, ISeries> relation) => new()
     {
-        // nested anime gets includeRelations: false (mirrors AnimeToTable's ignoreRelations) so the
-        // graph terminates without the cache the old code relied on.
+        // nested anime gets includeRelations: false so the graph terminates without a dedup cache.
         anime = AnimeToModel((relation.Related as IAnidbAnime)!, includeRelations: false),
         type = relation.RelationType,
     };
@@ -306,7 +318,7 @@ public static class ModelProducers
     public static GroupModel GroupToModel(IShokoGroup group) => new()
     {
         name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
-        // member anime keep their relations (LuaContext passed ignoreRelations: false).
+        // member anime keep their relations.
         mainanime = AnimeToModel(group.MainSeries.AnidbAnime),
         animes = group.AllSeries.Select(a => AnimeToModel(a.AnidbAnime)).ToList(),
     };

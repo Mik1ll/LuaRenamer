@@ -149,8 +149,13 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             if (args.Episodes.Count == 0)
                 throw new LuaRenamerException("No episode info");
 
-            using var lua = new LuaContext(_logger, args);
-            var env = lua.RunSandboxed();
+            using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
+            new LuaSerializer(sandbox).Serialize(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
+            var retVal = sandbox.Run(args.Configuration.Script);
+            if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
+                throw new LuaRenamerException(errStr);
+
+            var env = sandbox.Env;
             var replaceIllegalChars = env[nameof(EnvModel.replace_illegal_chars)] is true;
             var removeIllegalChars = env[nameof(EnvModel.remove_illegal_chars)] is true;
             var useExistingAnimeLocation = env[nameof(EnvModel.use_existing_anime_location)] is true;
@@ -160,7 +165,7 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             var luaDestination = env[nameof(EnvModel.destination)];
             var luaSubfolder = env[nameof(EnvModel.subfolder)];
             var illegalCharsOverride = env[nameof(EnvModel.illegal_chars_map)] is LuaTable luaIllegalCharsOverride
-                ? lua.GetTableDict(luaIllegalCharsOverride)
+                ? sandbox.GetTableDict(luaIllegalCharsOverride)
                     .Where(kvp => kvp is { Key: string, Value: string })
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()
                 : new Dictionary<string, string>();

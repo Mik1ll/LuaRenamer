@@ -23,15 +23,14 @@ namespace LuaRenamer.Tests;
 [TestClass]
 public class SerializerTests
 {
-    private LuaContext _lua = null!;
+    private LuaSandbox _lua = null!;
     private LuaSerializer _serializer = null!;
 
     [TestInitialize]
     public void Init()
     {
-        // The serializer compiles getname against a real sandbox env; the test-only LuaContext ctor stands one
-        // up (lualinq's `from` etc. loaded) without the full Shoko relocation context.
-        _lua = new LuaContext();
+        // The serializer compiles getname against a real sandbox env, so it needs the trusted chunks loaded.
+        _lua = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
         _serializer = new LuaSerializer(_lua);
     }
 
@@ -163,7 +162,7 @@ public class SerializerTests
         Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across serializations
     }
 
-    // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable (mirrors LuaContext.AnimeToTable) ----
+    // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable ----
 
     private static Mock<IAnidbAnime> MinAnime(int id, string anidbTitle, string anidbDefault)
     {

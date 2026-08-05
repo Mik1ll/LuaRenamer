@@ -4,6 +4,7 @@ using System.Linq;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
@@ -15,21 +16,21 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Producer-side proof for the file slice: Shoko's <see cref="IVideoFile"/> graph →
-/// <see cref="ModelProducers.FileToModel"/> → <see cref="LuaSerializer"/> → a Lua-consumable table,
-/// mirroring <c>LuaContext.FileToTable</c>. Focuses on the bits with custom logic rather than straight
-/// copies: the AniDB release-URI id parse, the per-type hash lookup, the "raw/unknown" release-group
-/// filter, the LFE audio-channel math, and enum→name on stream languages.
+/// <see cref="ModelProducers.FileToModel"/> → <see cref="LuaSerializer"/> → a Lua-consumable table.
+/// Focuses on the bits with custom logic rather than straight copies: the AniDB release-URI id parse,
+/// the per-type hash lookup, the "raw/unknown" release-group filter, the LFE audio-channel math, and
+/// enum→name on stream languages.
 /// </summary>
 [TestClass]
 public class FileProducerTests
 {
-    private LuaContext _lua = null!;
+    private LuaSandbox _lua = null!;
     private LuaSerializer _serializer = null!;
 
     [TestInitialize]
     public void Init()
     {
-        _lua = new LuaContext();
+        _lua = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
         _serializer = new LuaSerializer(_lua);
     }
 
