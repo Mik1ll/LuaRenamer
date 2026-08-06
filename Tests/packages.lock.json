@@ -4,13 +4,13 @@
     "net10.0": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
+        "requested": "[1.4.9, 2.0.0)",
         "resolved": "1.4.9",
         "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
-        "requested": "[10.0.3, )",
+        "requested": "[10.0.3, 11.0.0)",
         "resolved": "10.0.3",
         "contentHash": "lxl0WLk7ROgBFAsjcOYjQ8/DVK+VMszxGBzUhgtQmAsTNldLL5pk9NG/cWTsXHq0lUhUEAtZkEE7jOGOA8bGKQ==",
         "dependencies": {
@@ -19,7 +19,7 @@
       },
       "Moq": {
         "type": "Direct",
-        "requested": "[4.20.72, )",
+        "requested": "[4.20.72, 5.0.0)",
         "resolved": "4.20.72",
         "contentHash": "EA55cjyNn8eTNWrgrdZJH5QLFp2L43oxl1tlkoYUKIE9pRwL784OWiTXeCV5ApS+AMYEAlt7Fo03A2XfouvHmQ==",
         "dependencies": {
@@ -28,7 +28,7 @@
       },
       "MSTest": {
         "type": "Direct",
-        "requested": "[4.1.0, )",
+        "requested": "[4.1.0, 5.0.0)",
         "resolved": "4.1.0",
         "contentHash": "2bk47yg7HcHRyf6Zf0XgCZicTVTQj4D5lonYTO7lWMxCQB+x66VrQNc2dADBfzthKXfHaA37m8i+VV5h6SbWiA==",
         "dependencies": {
@@ -41,7 +41,7 @@
       },
       "NLua": {
         "type": "Direct",
-        "requested": "[1.7.8, )",
+        "requested": "[1.7.8, 2.0.0)",
         "resolved": "1.7.8",
         "contentHash": "VNL3oBn1Z/FVudTbd2SRUwNdyTLC9x1ztVIaCrCBALY6U/PPx+6y0PcGzhqJTRXvBltD01tgkUGs9uRVaW0eQg==",
         "dependencies": {
@@ -50,7 +50,7 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.43, )",
+        "requested": "[6.0.0-alpha.43, 7.0.0)",
         "resolved": "6.0.0-alpha.43",
         "contentHash": "ctxyo4mK+LTLKhK8m5oj7GXeusEdt3UFrj05rL2cocuSPyLsLNyMxbT9szVGtvaJfyfMpCrXsNs93tb9/l670A==",
         "dependencies": {
@@ -230,32 +230,32 @@
       "luarenamer": {
         "type": "Project",
         "dependencies": {
-          "KeraLua": "[1.4.9, )",
+          "KeraLua": "[1.4.9, 2.0.0)",
           "LuaRenamer.LuaEnv": "[1.0.0, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, )",
-          "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+          "Microsoft.Extensions.Logging.Abstractions": "[10.0.3, 11.0.0)",
+          "NLua": "[1.7.8, 2.0.0)",
+          "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
         }
       },
       "LuaRenamer.DefsGenerator": {
         "type": "Project",
         "dependencies": {
           "LuaRenamer.LuaEnv": "[1.0.0, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
         }
       },
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
-          "NLua": "[1.7.8, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+          "NLua": "[1.7.8, 2.0.0)",
+          "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
         }
       }
     },
     "net10.0/linux-arm64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
+        "requested": "[1.4.9, 2.0.0)",
         "resolved": "1.4.9",
         "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },
@@ -278,7 +278,7 @@
     "net10.0/linux-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
+        "requested": "[1.4.9, 2.0.0)",
         "resolved": "1.4.9",
         "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },
@@ -301,7 +301,7 @@
     "net10.0/win-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
+        "requested": "[1.4.9, 2.0.0)",
         "resolved": "1.4.9",
         "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },

@@ -5,7 +5,6 @@
         <!-- Plugin assembly + root namespace stay plain "LuaRenamer" (overrides the LuaRenamer.* default in Directory.Build.props). -->
         <RootNamespace>LuaRenamer</RootNamespace>
         <AssemblyName>LuaRenamer</AssemblyName>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <DisableImplicitNuGetFallbackFolder Condition="'$(CI)' == 'true'">true</DisableImplicitNuGetFallbackFolder>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
