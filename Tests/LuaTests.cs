@@ -609,13 +609,42 @@ public class LuaTests
         Assert.IsNotNull(res.Error);
     }
 
+    /// <remarks>
+    /// This asserts the generator is deterministic and produces plausible output — it cannot check the
+    /// generated files against the tracked ones in <c>LuaRenamer/lua/</c>, because the build's
+    /// <c>GenerateLuaDefs</c> target has already overwritten those from these same models. Git is the only
+    /// non-circular oracle for that, which is what the "Verify generated Lua defs are current" CI step does.
+    /// </remarks>
     [TestMethod]
     public void TestLuaDocsGenerator()
     {
-        var outputPath = Path.GetTempPath();
         var generator = new ModelDefsGenerator();
-        generator.GenerateDefinitionFiles(outputPath);
-        Console.WriteLine($"Generated docs: \"{outputPath}\"");
+        var first = new[] { generator.GenerateDefs(), generator.GenerateEnums(), generator.GenerateEnv() };
+        var second = new[] { generator.GenerateDefs(), generator.GenerateEnums(), generator.GenerateEnv() };
+
+        for (var i = 0; i < first.Length; i++)
+        {
+            Assert.AreEqual(first[i], second[i], "generator output is not deterministic");
+            StringAssert.StartsWith(first[i], "---@meta");
+        }
+
+        // The env is described by more than its header, and every class/enum in it is annotated.
+        StringAssert.Contains(first[0], $"---@class (exact) {nameof(AnimeModel).Replace("Model", "")}");
+        StringAssert.Contains(first[1], $"---@enum {nameof(EnvModel.Language)}");
+        StringAssert.Contains(first[2], nameof(EnvModel.filename));
+    }
+
+    [TestMethod]
+    public void TestLuaNamesGenerator()
+    {
+        var generator = new ModelNamesGenerator();
+        Assert.AreEqual(generator.GenerateNames(), generator.GenerateNames(), "generator output is not deterministic");
+
+        // The DSL compiled into this assembly came from this same generator, so a round-trip through the
+        // emitted source is the check that the two agree on the schema.
+        StringAssert.Contains(generator.GenerateNames(), $"public sealed class {nameof(EnvNames)} :");
+        Assert.AreEqual($"{nameof(EnvModel.anime)}.{nameof(AnimeModel.relations)}[1].{nameof(RelationModel.type)}",
+            Env.anime.relations[1].type);
     }
 
     [TestMethod]

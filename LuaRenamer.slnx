@@ -1,6 +1,5 @@
 <Solution>
   <Project Path="DefsGenerator/DefsGenerator.csproj" />
-  <Project Path="NamesGenerator/NamesGenerator.csproj" />
   <Project Path="LuaEnv/LuaEnv.csproj" />
   <Project Path="LuaRenamer/LuaRenamer.csproj" />
   <Project Path="Tests/Tests.csproj" />

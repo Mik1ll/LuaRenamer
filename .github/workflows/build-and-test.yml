@@ -18,5 +18,9 @@ jobs:
       run: dotnet restore --locked-mode
     - name: Build
       run: dotnet build --no-restore
+    # The build's GenerateLuaDefs target rewrites the tracked lua defs from the LuaEnv models, so a dirty
+    # tree here means the committed defs.lua/enums.lua/env.lua are stale.
+    - name: Verify generated Lua defs are current
+      run: git diff --exit-code -- LuaRenamer/lua/
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal
