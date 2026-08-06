@@ -1,5 +1,5 @@
 ﻿<component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="LuaDefsGenerator" type="DotNetProject" factoryName=".NET Project">
+    <configuration default="false" name="DefsGenerator" type="DotNetProject" factoryName=".NET Project">
         <option name="EXE_PATH" value="$PROJECT_DIR$/DefsGenerator/bin/Debug/net10.0/LuaRenamer.DefsGenerator.exe" />
         <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/LuaRenamer/lua" />
         <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/DefsGenerator/bin/Debug/net10.0" />
