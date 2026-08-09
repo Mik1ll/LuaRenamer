@@ -8,7 +8,7 @@
     <ItemGroup>
         <PackageVersion Include="Shoko.Abstractions" Version="[6.0.0-alpha.43,7)" />
         <PackageVersion Include="KeraLua" Version="[1.4.9,2)" />
-        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.3,11)" />
+        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.10, 11.0.0)" />
         <PackageVersion Include="NLua" Version="[1.7.8,2)" />
         <PackageVersion Include="Moq" Version="[4.20.72,5)" />
         <PackageVersion Include="MSTest" Version="[4.1.0,5)" />
