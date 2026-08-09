@@ -14,10 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        # The PR branch itself rather than the merge commit, so the refresh step below has somewhere
-        # to push. Means CI tests the branch tip; rebase a stale PR to test it against current master.
-        ref: ${{ github.event.pull_request.head.ref }}
-        repository: ${{ github.event.pull_request.head.repo.full_name }}
+        # Dependabot PRs: the branch tip rather than the merge commit, so the refresh step below has
+        # somewhere to push. Every other PR keeps the default merge-commit checkout.
+        ref: ${{ github.actor == 'dependabot[bot]' && github.head_ref || '' }}
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
@@ -25,13 +24,17 @@ jobs:
         cache-dependency-path: '**/packages.lock.json'
     # A version bump in Directory.Packages.props invalidates every project's packages.lock.json, but
     # Dependabot regenerates only the lock file of the first project declaring the bumped package
-    # (dependabot/dependabot-core#13950), so its PRs arrive failing the locked restore below. Gated on
-    # the drift itself rather than on the Dependabot actor: a hand-written bump breaks the same way,
-    # and a condition only that bot can satisfy is a condition nobody can test. Runs here rather than
-    # in its own workflow because a GITHUB_TOKEN push does not retrigger workflows, so the locked
-    # restore below has to be the one that sees the fix.
+    # (dependabot/dependabot-core#13950), so its PRs arrive failing the locked restore below.
+    #
+    # Deliberately restricted to Dependabot. Relocking any PR that drifts would silently rewrite the
+    # lock files a human got wrong, which is the drift lock files exist to catch - everywhere else the
+    # locked restore below should keep failing. Verified end to end in #152 by widening this gate,
+    # landing a bump with all four lock files stale, and watching CI relock and push them.
+    #
+    # Runs in this job rather than its own workflow because a GITHUB_TOKEN push does not retrigger
+    # workflows, so the locked restore below has to be the one that sees the fix.
     - name: Refresh NuGet lock files
-      if: github.event.pull_request.head.repo.full_name == github.repository
+      if: github.actor == 'dependabot[bot]'
       run: |
         dotnet restore --force-evaluate
         if ! git diff --quiet -- '*packages.lock.json'; then
