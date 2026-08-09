@@ -6,29 +6,32 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      # Lets the lock file refresh below push back to a Dependabot branch. Fork PRs get a read-only
-      # token regardless of what is asked for here.
+      # Lets the lock file refresh below push back to the PR branch. Fork PRs get a read-only token
+      # regardless of what is asked for here, which is why the refresh skips them.
       contents: write
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
     - uses: actions/checkout@v4
       with:
-        # Dependabot PRs: check out the branch tip rather than the merge commit, so the refresh step
-        # below has somewhere to push. Every other PR keeps the default merge-commit checkout.
-        ref: ${{ github.actor == 'dependabot[bot]' && github.head_ref || '' }}
+        # The PR branch itself rather than the merge commit, so the refresh step below has somewhere
+        # to push. Means CI tests the branch tip; rebase a stale PR to test it against current master.
+        ref: ${{ github.event.pull_request.head.ref }}
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
         cache: true
         cache-dependency-path: '**/packages.lock.json'
-    # Dependabot regenerates the lock file of only the first project that declares the bumped package
-    # (dependabot/dependabot-core#13950), but under central package management the bump lands in the
-    # shared Directory.Packages.props and invalidates every project's lock file. Relock them all here,
-    # in this job rather than a separate workflow: a GITHUB_TOKEN push does not retrigger workflows, so
-    # the locked restore below has to be the one that sees the fix.
+    # A version bump in Directory.Packages.props invalidates every project's packages.lock.json, but
+    # Dependabot regenerates only the lock file of the first project declaring the bumped package
+    # (dependabot/dependabot-core#13950), so its PRs arrive failing the locked restore below. Gated on
+    # the drift itself rather than on the Dependabot actor: a hand-written bump breaks the same way,
+    # and a condition only that bot can satisfy is a condition nobody can test. Runs here rather than
+    # in its own workflow because a GITHUB_TOKEN push does not retrigger workflows, so the locked
+    # restore below has to be the one that sees the fix.
     - name: Refresh NuGet lock files
-      if: github.actor == 'dependabot[bot]'
+      if: github.event.pull_request.head.repo.full_name == github.repository
       run: |
         dotnet restore --force-evaluate
         if ! git diff --quiet -- '*packages.lock.json'; then
