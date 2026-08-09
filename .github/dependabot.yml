@@ -1,8 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: nuget
+    # "/" alone is enough: discovery expands LuaRenamer.slnx and reaches every project. Adding "/*"
+    # re-ran the identical analysis once per subdirectory and deduplicated the resulting PRs anyway.
     directories:
       - "/"
-      - "/*"
     schedule:
       interval: "weekly"
