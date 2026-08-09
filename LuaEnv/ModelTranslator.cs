@@ -19,16 +19,16 @@ namespace LuaRenamer.LuaEnv;
 /// cache, by design — the graph terminates because nested relation anime are built with
 /// <c>includeRelations: false</c>.
 /// </remarks>
-public sealed class LuaSerializer(LuaSandbox sandbox)
+public sealed class ModelTranslator(LuaSandbox sandbox)
 {
-    public LuaTable Serialize(ILuaModel model) => WriteModel(model);
+    public LuaTable Translate(ILuaModel model) => WriteModel(model);
 
     /// <summary>
     /// Writes <paramref name="model"/>'s fields into the existing <paramref name="target"/> table rather
     /// than a fresh one. Used for the env root, whose table is pre-seeded with the sandbox globals and the
     /// lualinq/utils functions before the model fields are layered on top.
     /// </summary>
-    public void Serialize(ILuaModel model, LuaTable target)
+    public void Translate(ILuaModel model, LuaTable target)
     {
         foreach (var prop in LuaFields(model.GetType()))
             if (WriteValue(prop.GetValue(model)) is { } v)

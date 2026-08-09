@@ -157,7 +157,7 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             var primarySeries = ModelProducers.PrimarySeries(args);
 
             using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
-            new LuaSerializer(sandbox).Serialize(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
+            new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
             var retVal = sandbox.Run(args.Configuration.Script);
             if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
                 throw new LuaRenamerException(errStr);

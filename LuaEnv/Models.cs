@@ -11,7 +11,7 @@ namespace LuaRenamer.LuaEnv;
 // The complete env-description graph: every ILuaModel record plus the EnvModel root. Each property
 // mirrors its old *Table counterpart's schema and declaration order, but as a plain CLR type — no
 // LuaRef/LuaArray/LuaMap/LuaEnumRef carrier and no `init => Set(...)` body. All marshaling happens
-// in LuaSerializer.
+// in ModelTranslator.
 
 public sealed record DateTimeModel : ILuaModel
 {
@@ -288,7 +288,7 @@ public sealed record TmdbModel : ILuaModel
 /// </summary>
 /// <remarks>
 /// Enum tables are <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>: the generic argument carries the
-/// CLR enum type the generators need, and the serializer marshals every key/value to its name, giving
+/// CLR enum type the generators need, and the translator marshals every key/value to its name, giving
 /// the Lua <c>{ Name = "Name", ... }</c> identity map. They are detected as "enum tables" (key type ==
 /// value type and is an enum) to keep them out of env.lua and route them into enums.lua.
 /// </remarks>

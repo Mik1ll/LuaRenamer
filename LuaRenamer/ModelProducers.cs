@@ -18,7 +18,7 @@ using Shoko.Abstractions.Video.Release;
 namespace LuaRenamer;
 
 /// <summary>
-/// Maps Shoko's host abstractions to the plain <see cref="ILuaModel"/> graph that <see cref="LuaSerializer"/>
+/// Maps Shoko's host abstractions to the plain <see cref="ILuaModel"/> graph that <see cref="ModelTranslator"/>
 /// materializes. Produces decoupled models rather than mutating a live LuaTable, and carries no
 /// reference-dedup cache (intentionally — the graph terminates because nested relation anime are
 /// built with <c>includeRelations: false</c>).
@@ -27,7 +27,7 @@ namespace LuaRenamer;
 /// Lives in the plugin project, not LuaEnv: this is the Shoko-facing mapping layer, so keeping it here leaves
 /// LuaEnv depending on Shoko's enum types alone rather than its whole metadata interface graph.
 /// <c>getname</c> is a pure <see cref="AnimeGetName"/>/<see cref="TitleGetName"/> descriptor of the shared
-/// title-resolver closure; <see cref="LuaSerializer"/> mints the live Lua handle from it, so the producers
+/// title-resolver closure; <see cref="ModelTranslator"/> mints the live Lua handle from it, so the producers
 /// carry no live Lua wiring.
 /// </remarks>
 public static class ModelProducers
@@ -173,7 +173,7 @@ public static class ModelProducers
 
     /// <summary>
     /// Builds the identity name→name map for an enum.
-    /// The serializer marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
+    /// The translator marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
     /// table. <see cref="Enumerable.Distinct{TSource}(IEnumerable{TSource})"/> collapses aliased values to the
     /// one canonical name <see cref="Enum.GetName(Type, object)"/> returns.
     /// </summary>

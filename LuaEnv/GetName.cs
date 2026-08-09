@@ -38,7 +38,7 @@ internal static class GetNameSource
 /// <summary>
 /// <c>getname</c> for Anime tables — <c>self:getname(lang, include_unofficial)</c>. A pure descriptor over
 /// the shared <see cref="GetNameSource"/> closure; <see cref="AnimeTitleDelegate"/> supplies the documented
-/// signature. <see cref="LuaSerializer"/> mints the live Lua handle from <see cref="Source"/>.
+/// signature. <see cref="ModelTranslator"/> mints the live Lua handle from <see cref="Source"/>.
 /// </summary>
 public sealed class AnimeGetName : LuaFunctionDef<AnimeTitleDelegate>
 {

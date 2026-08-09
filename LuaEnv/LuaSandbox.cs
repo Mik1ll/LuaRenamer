@@ -7,7 +7,7 @@ namespace LuaRenamer.LuaEnv;
 /// <summary>
 /// A Lua interpreter with a restricted environment layered on: <see cref="Env"/> holds a hand-picked subset
 /// of the standard library, and every chunk — trusted or not — is loaded against it rather than the real
-/// globals. Also exposes the two interpreter primitives <see cref="LuaSerializer"/> needs to materialize a
+/// globals. Also exposes the two interpreter primitives <see cref="ModelTranslator"/> needs to materialize a
 /// model graph: <see cref="NewTable"/> and <see cref="CompileFunction"/>.
 /// </summary>
 /// <remarks>
@@ -84,7 +84,7 @@ public sealed class LuaSandbox : Lua
             LoadChunk(chunk);
     }
 
-    /// <summary>The restricted environment table every chunk and serialized model is loaded against.</summary>
+    /// <summary>The restricted environment table every chunk and translated model is loaded against.</summary>
     public LuaTable Env { get; }
 
     /// <summary>

@@ -469,7 +469,7 @@ public class LuaTests
         var defsEnv = new Lua();
         defsEnv.DoFile(Path.Combine(LuaScripts.LuaPath, "enums.lua"));
         using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
-        new LuaSerializer(sandbox).Serialize(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
+        new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
         var sandboxEnv = sandbox.Env;
         CompareEnums((LuaTable)defsEnv[Env.Language.Fn], (LuaTable)sandboxEnv[Env.Language.Fn]);
         CompareEnums((LuaTable)defsEnv[Env.AnimeType.Fn], (LuaTable)sandboxEnv[Env.AnimeType.Fn]);

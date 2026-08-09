@@ -15,20 +15,20 @@ namespace LuaRenamer.Tests;
 /// (<see cref="AnimeGetName"/>/<see cref="TitleGetName"/>), user-written Output fields (incl. <c>LuaUnion</c>
 /// ones, which must stay absent), and the enum
 /// tables modeled as <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>. Generator byte-equality proves the
-/// schema's *shape*; this proves the serialized env is actually Lua-consumable.
+/// schema's *shape*; this proves the translated env is actually Lua-consumable.
 /// </summary>
 [TestClass]
-public class EnvSerializerTests
+public class EnvModelTranslatorTests
 {
     private LuaSandbox _lua = null!;
-    private LuaSerializer _serializer = null!;
+    private ModelTranslator _translator = null!;
 
     [TestInitialize]
     public void Init()
     {
-        // The serializer compiles getname against a real sandbox env, so it needs the trusted chunks loaded.
+        // The translator compiles getname against a real sandbox env, so it needs the trusted chunks loaded.
         _lua = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
-        _serializer = new LuaSerializer(_lua);
+        _translator = new ModelTranslator(_lua);
     }
 
     [TestCleanup]
@@ -169,7 +169,7 @@ public class EnvSerializerTests
         group = new GroupModel { name = "Grp", mainanime = Anime(42), animes = [Anime(42)] },
         groups = [new GroupModel { name = "Grp", mainanime = Anime(42), animes = [Anime(42)] }],
         tmdb = Tmdb(),
-        // Output fields left unset: the user script writes these. They must serialize as absent.
+        // Output fields left unset: the user script writes these. They must translate as absent.
         use_existing_anime_location = true,
         replace_illegal_chars = true,
         remove_illegal_chars = false,
@@ -185,7 +185,7 @@ public class EnvSerializerTests
         SeasonName = ModelProducers.EnumTable<YearlySeason>(),
     };
 
-    private void Load() => _lua["env"] = _serializer.Serialize(BuildEnv());
+    private void Load() => _lua["env"] = _translator.Translate(BuildEnv());
 
     [TestMethod]
     public void NestedGraph_Is_Navigable()

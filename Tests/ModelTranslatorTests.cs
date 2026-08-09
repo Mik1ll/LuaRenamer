@@ -14,24 +14,24 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Runtime proof for the model env architecture: a plain <see cref="ILuaModel"/>
-/// graph materialized by <see cref="LuaSerializer"/> must produce a <see cref="LuaTable"/> that is
+/// graph materialized by <see cref="ModelTranslator"/> must produce a <see cref="LuaTable"/> that is
 /// byte-for-behavior consumable from a real Lua VM — i.e. an equivalent replacement for the
 /// write-through <c>*Table</c> builders. Every marshaling rule is exercised: scalars, enum→name,
 /// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and the bound
 /// <see cref="AnimeGetName"/> callable (a Lua function handle marshaled as-is).
 /// </summary>
 [TestClass]
-public class SerializerTests
+public class ModelTranslatorTests
 {
     private LuaSandbox _lua = null!;
-    private LuaSerializer _serializer = null!;
+    private ModelTranslator _translator = null!;
 
     [TestInitialize]
     public void Init()
     {
-        // The serializer compiles getname against a real sandbox env, so it needs the trusted chunks loaded.
+        // The translator compiles getname against a real sandbox env, so it needs the trusted chunks loaded.
         _lua = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
-        _serializer = new LuaSerializer(_lua);
+        _translator = new ModelTranslator(_lua);
     }
 
     [TestCleanup]
@@ -73,7 +73,7 @@ public class SerializerTests
     [TestMethod]
     public void Scalars_And_Enums_Marshal()
     {
-        var table = _serializer.Serialize(FullAnime());
+        var table = _translator.Translate(FullAnime());
 
         Assert.AreEqual(42L, table["id"]);          // long stays long
         Assert.AreEqual(8.5, table["rating"]);      // double stays double
@@ -85,7 +85,7 @@ public class SerializerTests
     [TestMethod]
     public void Null_Becomes_Absent()
     {
-        var table = _serializer.Serialize(FullAnime());
+        var table = _translator.Translate(FullAnime());
 
         Assert.IsNull(table["enddate"]); // C# side: key never set
         _lua["anime"] = table;
@@ -96,7 +96,7 @@ public class SerializerTests
     [TestMethod]
     public void NestedModel_Becomes_Subtable()
     {
-        var table = _serializer.Serialize(FullAnime());
+        var table = _translator.Translate(FullAnime());
 
         var airdate = (LuaTable)table["airdate"];
         Assert.AreEqual(2020L, airdate["year"]);
@@ -107,7 +107,7 @@ public class SerializerTests
     [TestMethod]
     public void Lists_Are_OneBased_Sequences()
     {
-        _lua["anime"] = _serializer.Serialize(FullAnime());
+        _lua["anime"] = _translator.Translate(FullAnime());
 
         Assert.AreEqual(2L, _lua.DoString("return #anime.titles")[0]);
         Assert.AreEqual("Eng Title", _lua.DoString("return anime.titles[1].name")[0]); // 1-based, nested model navigable
@@ -119,7 +119,7 @@ public class SerializerTests
     [TestMethod]
     public void EnumKeyedDictionary_Becomes_Map()
     {
-        _lua["anime"] = _serializer.Serialize(FullAnime());
+        _lua["anime"] = _translator.Translate(FullAnime());
 
         // enum key -> its name; value preserved
         Assert.AreEqual(12L, _lua.DoString("return anime.episodecounts.Episode")[0]);
@@ -129,7 +129,7 @@ public class SerializerTests
     [TestMethod]
     public void Relations_Recurse()
     {
-        _lua["anime"] = _serializer.Serialize(FullAnime());
+        _lua["anime"] = _translator.Translate(FullAnime());
 
         Assert.AreEqual("Sequel", _lua.DoString("return anime.relations[1].type")[0]);
         Assert.AreEqual(42L, _lua.DoString("return anime.relations[1].anime.id")[0]);
@@ -142,7 +142,7 @@ public class SerializerTests
         // The production-faithful case: getname is a Lua function handle (GetName), called as
         // anime:getname(lang) with implicit self. Enum arg arrives as the Lua string "English" and
         // matches the title.language slot (also stored as the name "English").
-        _lua["anime"] = _serializer.Serialize(FullAnime());
+        _lua["anime"] = _translator.Translate(FullAnime());
 
         Assert.AreEqual("Eng Title", _lua.DoString("return anime:getname('English')")[0]);
         Assert.AreEqual("Jap Title", _lua.DoString("return anime:getname('Japanese')")[0]);
@@ -152,14 +152,14 @@ public class SerializerTests
     [TestMethod]
     public void GetName_Is_Materialized_As_A_Single_Shared_Handle()
     {
-        // getname is a pure descriptor; the serializer compiles it into a real LuaFunction on demand and
+        // getname is a pure descriptor; the translator compiles it into a real LuaFunction on demand and
         // caches by source, so every table that shares the source gets the one handle (no per-table closures).
-        var a1 = _serializer.Serialize(FullAnime());
-        var a2 = _serializer.Serialize(FullAnime());
+        var a1 = _translator.Translate(FullAnime());
+        var a2 = _translator.Translate(FullAnime());
 
         var stored = a1["getname"];
         Assert.IsInstanceOfType(stored, typeof(LuaFunction));
-        Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across serializations
+        Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across translations
     }
 
     // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable ----
@@ -214,7 +214,7 @@ public class SerializerTests
             ]);
 
         var model = ModelProducers.AnimeToModel(anime.Object);
-        _lua["anime"] = _serializer.Serialize(model);
+        _lua["anime"] = _translator.Translate(model);
 
         // scalars / enum / Shoko-vs-AniDB name precedence
         Assert.AreEqual(42L, _lua.DoString("return anime.id")[0]);

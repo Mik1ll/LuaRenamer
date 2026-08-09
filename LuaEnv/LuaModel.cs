@@ -7,7 +7,7 @@ namespace LuaRenamer.LuaEnv;
 /// <c>[LuaField]</c> properties use ordinary CLR types (scalars, enums, <see cref="ILuaModel"/>,
 /// <c>IReadOnlyList&lt;T&gt;</c>, <c>IReadOnlyDictionary&lt;K,V&gt;</c>, a CLR delegate, or a
 /// <see cref="LuaFunctionDef{TDelegate}"/>). The graph carries no <c>LuaTable</c>;
-/// materialization is deferred to <see cref="LuaSerializer"/>.
+/// materialization is deferred to <see cref="ModelTranslator"/>.
 /// </summary>
 public interface ILuaModel;
 
@@ -15,7 +15,7 @@ public interface ILuaModel;
 /// Describes a callable whose body is written in Lua and bound into the env (currently
 /// <see cref="AnimeGetName"/> and <see cref="TitleGetName"/>). It is a pure description — just the
 /// <see cref="Source"/> code — carrying <em>no</em> live Lua handle and no interpreter. The actual
-/// <c>LuaFunction</c> is minted on demand by <see cref="LuaSerializer"/> when it reaches the field, so the
+/// <c>LuaFunction</c> is minted on demand by <see cref="ModelTranslator"/> when it reaches the field, so the
 /// model graph stays decoupled from any <c>Lua</c> instance.
 /// </summary>
 /// <remarks>
