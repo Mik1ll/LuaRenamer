@@ -4,9 +4,9 @@
     "net10.0": {
       "NLua": {
         "type": "Direct",
-        "requested": "[1.7.8, 2.0.0)",
-        "resolved": "1.7.8",
-        "contentHash": "VNL3oBn1Z/FVudTbd2SRUwNdyTLC9x1ztVIaCrCBALY6U/PPx+6y0PcGzhqJTRXvBltD01tgkUGs9uRVaW0eQg==",
+        "requested": "[1.7.9, 2.0.0)",
+        "resolved": "1.7.9",
+        "contentHash": "fRTEILixMFY6dfidmYacS4qEgUDKJyi8dyYHfiLZAoBxItA9PvBLyIqMwPzqtJY4kHNRbmeoDJNGzeD90US4lg==",
         "dependencies": {
           "KeraLua": "1.4.9"
         }

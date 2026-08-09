@@ -10,18 +10,18 @@
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
-        "requested": "[10.0.3, 11.0.0)",
-        "resolved": "10.0.3",
-        "contentHash": "lxl0WLk7ROgBFAsjcOYjQ8/DVK+VMszxGBzUhgtQmAsTNldLL5pk9NG/cWTsXHq0lUhUEAtZkEE7jOGOA8bGKQ==",
+        "requested": "[10.0.10, 11.0.0)",
+        "resolved": "10.0.10",
+        "contentHash": "zkFxGYUvdxAvIKTyXHrmW+Sux53D4SezD9dMyZ6hrwwzPQJNuwCRy1f5W7AvYTqacEGhWF2XderRQG1OvbV8og==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10"
         }
       },
       "NLua": {
         "type": "Direct",
-        "requested": "[1.7.8, 2.0.0)",
-        "resolved": "1.7.8",
-        "contentHash": "VNL3oBn1Z/FVudTbd2SRUwNdyTLC9x1ztVIaCrCBALY6U/PPx+6y0PcGzhqJTRXvBltD01tgkUGs9uRVaW0eQg==",
+        "requested": "[1.7.9, 2.0.0)",
+        "resolved": "1.7.9",
+        "contentHash": "fRTEILixMFY6dfidmYacS4qEgUDKJyi8dyYHfiLZAoBxItA9PvBLyIqMwPzqtJY4kHNRbmeoDJNGzeD90US4lg==",
         "dependencies": {
           "KeraLua": "1.4.9"
         }
@@ -38,8 +38,8 @@
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.3",
-        "contentHash": "bwGMrRcAMWx2s/RDgja97p27rxSz2pEQW0+rX5cWAUWVETVJ/eyxGfjAl8vuG5a+lckWmPIE+vcuaZNVB5YDdw=="
+        "resolved": "10.0.10",
+        "contentHash": "z/2xXlFw2aLGjHyEm6E0tQ+In6VfzQzTrtArbQ2c0TQE16ZbyDCMGPvaUT9I0s8rgy9sRWlU2P9waW37qV04qA=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -69,7 +69,7 @@
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
-          "NLua": "[1.7.8, 2.0.0)",
+          "NLua": "[1.7.9, 2.0.0)",
           "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
         }
       }
