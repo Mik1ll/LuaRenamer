@@ -10,7 +10,7 @@
         <PackageVersion Include="KeraLua" Version="[1.4.9, 2.0.0)" />
         <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.10, 11.0.0)" />
         <PackageVersion Include="NLua" Version="[1.7.9, 2.0.0)" />
-        <PackageVersion Include="Moq" Version="[4.20.70, 5.0.0)" />
+        <PackageVersion Include="Moq" Version="[4.20.72, 5.0.0)" />
         <PackageVersion Include="MSTest" Version="[4.3.3, 5.0.0)" />
     </ItemGroup>
 </Project>
