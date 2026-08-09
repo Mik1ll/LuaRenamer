@@ -22,27 +22,7 @@
         <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
     </ItemGroup>
 
-    <!-- The *Names navigation DSL the tests are written in. Emitted into obj/ from the just-built
-         DefsGenerator (a ProjectReference, so it is built and on ReferencePath by now) and compiled straight
-         away: never checked in, regenerated every build, so it cannot go stale against LuaEnv's models.
-         Runs before CoreCompile because [DataRow] arguments use nameof() over these types. -->
-    <Target Name="GenerateLuaNames" BeforeTargets="CoreCompile" DependsOnTargets="ResolveProjectReferences"
-            Inputs="@(ReferencePath)" Outputs="$(IntermediateOutputPath)LuaNames.g.cs">
-        <PropertyGroup>
-            <_DefsGeneratorDll>@(ReferencePath->WithMetadataValue('Filename', 'LuaRenamer.DefsGenerator'))</_DefsGeneratorDll>
-        </PropertyGroup>
-        <Error Condition="'$(_DefsGeneratorDll)' == ''" Text="Could not locate LuaRenamer.DefsGenerator.dll among the resolved references." />
-        <Exec Command="dotnet &quot;$(_DefsGeneratorDll)&quot; --names &quot;$(IntermediateOutputPath)LuaNames.g.cs&quot;"
-              WorkingDirectory="$(MSBuildProjectDirectory)" />
-    </Target>
-
-    <!-- Separate from the generating target so the Compile item is added even on an incremental build that
-         skips regeneration. -->
-    <Target Name="IncludeLuaNames" BeforeTargets="CoreCompile" AfterTargets="GenerateLuaNames">
-        <ItemGroup>
-            <Compile Include="$(IntermediateOutputPath)LuaNames.g.cs" />
-            <FileWrites Include="$(IntermediateOutputPath)LuaNames.g.cs" />
-        </ItemGroup>
-    </Target>
+    <!-- The *Names DSL the tests are written in comes from LuaRenamer (see its GenerateLuaNames target) via
+         the ProjectReference above. Generating a second copy here would be a duplicate type definition. -->
 
 </Project>

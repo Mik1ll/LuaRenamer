@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using NLua;
@@ -100,6 +101,76 @@ public sealed class LuaSandbox : Lua
     /// </summary>
     public LuaFunction CompileFunction(string source) =>
         _compiled.TryGetValue(source, out var fn) ? fn : _compiled[source] = (LuaFunction)_runSandboxed.Call(source, Env)[1];
+
+    /// <summary>
+    /// Resolves a value inside <see cref="Env"/> from a path of the form the generated <c>*Names</c> DSL
+    /// produces: dot-separated names, each optionally followed by one or more 1-based <c>[n]</c> array
+    /// indices — <c>"anime.relations[1].anime.preferredname"</c>.
+    /// </summary>
+    /// <remarks>
+    /// NLua's <see cref="Lua.GetObjectFromPath"/> cannot serve these: it roots at the real globals, which
+    /// never hold <see cref="Env"/>, and its splitter only knows <c>'.'</c>.
+    /// </remarks>
+    /// <returns>The value, or null if any segment is absent or an intermediate is not a table.</returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="path"/> is not a value path — an empty segment, malformed brackets, or a callable such
+    /// as <c>"anime:getname(Language.English)"</c>.
+    /// </exception>
+    public object? GetValue(string path)
+    {
+        object? current = Env;
+        foreach (var key in ParseKeys(path))
+        {
+            if (current is not LuaTable table) return null;
+            // The object overload pushes the key verbatim; the string one would re-split it on '.'.
+            var next = table[key];
+            if (!ReferenceEquals(table, Env)) table.Dispose();
+            current = next;
+        }
+
+        return current;
+    }
+
+    /// <summary>Overload for interior <c>*Names</c> nodes, whose path lives in <c>Fn</c>.</summary>
+    public object? GetValue(Names.Table node) => GetValue(node.Fn);
+
+    /// <summary>
+    /// Splits a path into the Lua keys to walk: a string per name, an int per <c>[n]</c> index. Validates the
+    /// whole path up front, so <see cref="GetValue"/> either walks cleanly or throws before touching Lua.
+    /// </summary>
+    private static List<object> ParseKeys(string path)
+    {
+        var keys = new List<object>();
+        var i = 0;
+        while (true)
+        {
+            var start = i;
+            while (i < path.Length && path[i] is not ('.' or '[')) i++;
+            var name = path[start..i];
+            if (name.Length == 0)
+                throw new ArgumentException($"empty name segment at index {start} in path \"{path}\"", nameof(path));
+            // Catches callables: `anime:getname(Language.English)` scans as a name here.
+            if (name.AsSpan().IndexOfAny(":()]") >= 0)
+                throw new ArgumentException($"\"{name}\" is not a plain name segment in path \"{path}\"", nameof(path));
+            keys.Add(name);
+
+            while (i < path.Length && path[i] == '[')
+            {
+                var close = path.IndexOf(']', i);
+                if (close < 0)
+                    throw new ArgumentException($"unclosed '[' at index {i} in path \"{path}\"", nameof(path));
+                if (!int.TryParse(path.AsSpan(i + 1, close - i - 1), out var index))
+                    throw new ArgumentException($"non-numeric index \"{path[(i + 1)..close]}\" in path \"{path}\"", nameof(path));
+                keys.Add(index);
+                i = close + 1;
+            }
+
+            if (i == path.Length) return keys;
+            if (path[i] != '.')
+                throw new ArgumentException($"expected '.' after an index at index {i} in path \"{path}\"", nameof(path));
+            i++;
+        }
+    }
 
     /// <summary>
     /// Creates a fresh, empty Lua table. Round-trips through the real globals (which <see cref="Env"/> never

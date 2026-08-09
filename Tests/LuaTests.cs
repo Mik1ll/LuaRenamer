@@ -470,14 +470,15 @@ public class LuaTests
         defsEnv.DoFile(Path.Combine(LuaScripts.LuaPath, "enums.lua"));
         using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
         new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
-        var sandboxEnv = sandbox.Env;
-        CompareEnums((LuaTable)defsEnv[Env.Language.Fn], (LuaTable)sandboxEnv[Env.Language.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.AnimeType.Fn], (LuaTable)sandboxEnv[Env.AnimeType.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.TitleType.Fn], (LuaTable)sandboxEnv[Env.TitleType.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.EpisodeType.Fn], (LuaTable)sandboxEnv[Env.EpisodeType.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.ImportFolderType.Fn], (LuaTable)sandboxEnv[Env.ImportFolderType.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.RelationType.Fn], (LuaTable)sandboxEnv[Env.RelationType.Fn]);
-        CompareEnums((LuaTable)defsEnv[Env.SeasonName.Fn], (LuaTable)sandboxEnv[Env.SeasonName.Fn]);
+        // enums.lua really does define globals in defsEnv, so the NLua indexer works there; the sandbox side
+        // has to go through GetValue, which resolves against Env.
+        CompareEnums((LuaTable)defsEnv[Env.Language.Fn], (LuaTable)sandbox.GetValue(Env.Language)!);
+        CompareEnums((LuaTable)defsEnv[Env.AnimeType.Fn], (LuaTable)sandbox.GetValue(Env.AnimeType)!);
+        CompareEnums((LuaTable)defsEnv[Env.TitleType.Fn], (LuaTable)sandbox.GetValue(Env.TitleType)!);
+        CompareEnums((LuaTable)defsEnv[Env.EpisodeType.Fn], (LuaTable)sandbox.GetValue(Env.EpisodeType)!);
+        CompareEnums((LuaTable)defsEnv[Env.ImportFolderType.Fn], (LuaTable)sandbox.GetValue(Env.ImportFolderType)!);
+        CompareEnums((LuaTable)defsEnv[Env.RelationType.Fn], (LuaTable)sandbox.GetValue(Env.RelationType)!);
+        CompareEnums((LuaTable)defsEnv[Env.SeasonName.Fn], (LuaTable)sandbox.GetValue(Env.SeasonName)!);
     }
 
     [TestMethod]
@@ -640,11 +641,102 @@ public class LuaTests
         var generator = new ModelNamesGenerator();
         Assert.AreEqual(generator.GenerateNames(), generator.GenerateNames(), "generator output is not deterministic");
 
-        // The DSL compiled into this assembly came from this same generator, so a round-trip through the
-        // emitted source is the check that the two agree on the schema.
+        // The DSL we reference here was emitted into LuaRenamer by this same generator, so a round-trip
+        // through the emitted source is the check that the two agree on the schema.
         StringAssert.Contains(generator.GenerateNames(), $"public sealed class {nameof(EnvNames)} :");
         Assert.AreEqual($"{nameof(EnvModel.anime)}.{nameof(AnimeModel.relations)}[1].{nameof(RelationModel.type)}",
             Env.anime.relations[1].type);
+    }
+
+    private static LuaSandbox TranslatedSandbox(RelocationContext<LuaRenamerSettings> args)
+    {
+        var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
+        new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(args, Logmock), sandbox.Env);
+        return sandbox;
+    }
+
+    /// <summary>Gives the primary anime a title and a relation, so array paths have something to hit.</summary>
+    private static void PopulateTitlesAndRelations(RelocationContext<LuaRenamerSettings> args)
+    {
+        var anime = args.Series[0].AnidbAnime;
+        ((List<ITitle>)anime.Titles).Add(Mock.Of<ITitle>(t => t.Value == "maintitle" &&
+                                                              t.Language == TitleLanguage.English &&
+                                                              t.LanguageCode == "en" &&
+                                                              t.Type == TitleType.Main));
+
+        var relatedMock = new Mock<IAnidbAnime>();
+        relatedMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        relatedMock.SetupGet(a => a.ID).Returns(4);
+        relatedMock.SetupGet(a => a.Title).Returns("relatedname");
+        relatedMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "relatedname"));
+        relatedMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        relatedMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        relatedMock.SetupGet(a => a.ShokoSeries).Returns([]);
+        relatedMock.SetupGet(a => a.Studios).Returns([]);
+        relatedMock.SetupGet(a => a.Tags).Returns([]);
+        relatedMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        ((List<IRelatedMetadata<ISeries, ISeries>>)anime.RelatedSeries).Add(
+            Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r => r.RelationType == RelationType.Prequel &&
+                                                             r.Related == relatedMock.Object));
+    }
+
+    [TestMethod]
+    public void TestGetValueWalksNestedTablesAndArrays()
+    {
+        var args = MinimalArgs($"{Env.filename} = 'resolved'");
+        PopulateTitlesAndRelations(args);
+        using var sandbox = TranslatedSandbox(args);
+
+        Assert.IsNull(sandbox.GetValue(Env.filename), "output fields are absent until the script assigns them");
+        sandbox.Run(args.Configuration.Script!);
+        Assert.AreEqual("resolved", sandbox.GetValue(Env.filename));
+
+        Assert.AreEqual("shokoseriesprefname", sandbox.GetValue(Env.anime.preferredname));
+        Assert.AreEqual(nameof(EpisodeType.Episode), sandbox.GetValue(Env.episode.type));
+
+        Assert.AreEqual("maintitle", sandbox.GetValue(Env.anime.titles[1].name));
+        Assert.AreEqual(nameof(TitleType.Main), sandbox.GetValue(Env.anime.titles[1].type));
+        Assert.AreEqual("testimport", sandbox.GetValue(Env.importfolders[1].name));
+        Assert.AreEqual(nameof(RelationType.Prequel), sandbox.GetValue(Env.anime.relations[1].type));
+        Assert.AreEqual("relatedname", sandbox.GetValue(Env.anime.relations[1].anime.preferredname));
+
+        Assert.AreEqual(nameof(TitleLanguage.English), sandbox.GetValue(Env.Language[TitleLanguage.English]));
+        Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Env.importfolders));
+        Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Env.anime.relations[1].anime));
+
+        // No long->double coercion; that lives only in NLua's Lua.this[string].
+        Assert.AreEqual(3L, sandbox.GetValue(Env.anime.id));
+    }
+
+    [TestMethod]
+    public void TestGetValueIsNilTolerant()
+    {
+        var args = MinimalArgs("");
+        using var sandbox = TranslatedSandbox(args);
+
+        Assert.IsNull(sandbox.GetValue(Env.group.name), "group is nil with no groups, so the whole path is nil");
+        Assert.IsNull(sandbox.GetValue(Env.anime.titles[999].name), "index past the end of the array");
+        Assert.IsNull(sandbox.GetValue(Env.importfolders[2].name), "only one import folder");
+        Assert.IsNull(sandbox.GetValue("nosuchfield"), "absent top-level key");
+        Assert.IsNull(sandbox.GetValue($"{Env.anime.preferredname}.nope"), "indexing through a string leaf");
+        Assert.IsNull(sandbox.GetValue($"{Env.anime.preferredname}[1]"), "indexing a string leaf as an array");
+    }
+
+    [DataRow("", DisplayName = "empty path")]
+    [DataRow("anime..type", DisplayName = "empty segment")]
+    [DataRow(".anime", DisplayName = "leading dot")]
+    [DataRow("anime.", DisplayName = "trailing dot")]
+    [DataRow("anime[1", DisplayName = "unclosed bracket")]
+    [DataRow("anime[x]", DisplayName = "non-numeric index")]
+    [DataRow("anime[]", DisplayName = "empty index")]
+    [DataRow("anime[1]x", DisplayName = "trailing junk after an index")]
+    [DataRow("anime:getname(Language.English)", DisplayName = "method call")]
+    [DataRow("episode_numbers(2)", DisplayName = "function call")]
+    [TestMethod]
+    public void TestGetValueRejectsNonValuePaths(string path)
+    {
+        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        Assert.ThrowsExactly<ArgumentException>(() => sandbox.GetValue(path));
     }
 
     [TestMethod]

@@ -28,8 +28,12 @@ switch (args)
 
 return 0;
 
+// Leaves an unchanged file untouched, so nothing keyed off its timestamp churns: MSBuild's up-to-date
+// checks, PreserveNewest copies, and the file watchers of whoever has the lua defs open.
 static void Write(string path, string contents)
 {
+    if (File.Exists(path) && File.ReadAllText(path) == contents)
+        return;
     if (Path.GetDirectoryName(path) is { Length: > 0 } dir)
         Directory.CreateDirectory(dir);
     File.WriteAllText(path, contents);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Names;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
@@ -29,6 +30,8 @@ public class Plugin : IPlugin
 
 public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 {
+    private static readonly EnvNames Names = new();
+
     private readonly ILogger<LuaRenamer> _logger;
 
     public LuaRenamer(ILogger<LuaRenamer> logger) => _logger = logger;
@@ -162,16 +165,15 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
                 throw new LuaRenamerException(errStr);
 
-            var env = sandbox.Env;
-            var replaceIllegalChars = env[nameof(EnvModel.replace_illegal_chars)] is true;
-            var removeIllegalChars = env[nameof(EnvModel.remove_illegal_chars)] is true;
-            var useExistingAnimeLocation = env[nameof(EnvModel.use_existing_anime_location)] is true;
-            var skipMove = env[nameof(EnvModel.skip_move)] is true;
-            var skipRename = env[nameof(EnvModel.skip_rename)] is true;
-            var luaFilename = env[nameof(EnvModel.filename)];
-            var luaDestination = env[nameof(EnvModel.destination)];
-            var luaSubfolder = env[nameof(EnvModel.subfolder)];
-            var illegalCharsOverride = env[nameof(EnvModel.illegal_chars_map)] is LuaTable luaIllegalCharsOverride
+            var replaceIllegalChars = sandbox.GetValue(Names.replace_illegal_chars) is true;
+            var removeIllegalChars = sandbox.GetValue(Names.remove_illegal_chars) is true;
+            var useExistingAnimeLocation = sandbox.GetValue(Names.use_existing_anime_location) is true;
+            var skipMove = sandbox.GetValue(Names.skip_move) is true;
+            var skipRename = sandbox.GetValue(Names.skip_rename) is true;
+            var luaFilename = sandbox.GetValue(Names.filename);
+            var luaDestination = sandbox.GetValue(Names.destination);
+            var luaSubfolder = sandbox.GetValue(Names.subfolder);
+            var illegalCharsOverride = sandbox.GetValue(Names.illegal_chars_map) is LuaTable luaIllegalCharsOverride
                 ? sandbox.GetTableDict(luaIllegalCharsOverride)
                     .Where(kvp => kvp is { Key: string, Value: string })
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()

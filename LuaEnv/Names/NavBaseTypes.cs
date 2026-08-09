@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 namespace LuaRenamer.LuaEnv.Names;
 
 // Hand-written base types for the generated *Names navigation DSL (see DefsGenerator/ModelNamesGenerator.cs,
-// which emits one companion class per ILuaModel record into obj/ at build time). A Names instance carries the
-// Lua path built so far in Fn and renders it via ToString, so `EnvNames.anime.relations[1].type` interpolates
-// to "anime.relations[1].type" and stops compiling when the schema moves.
+// which emits one companion class per ILuaModel record into LuaRenamer/obj/ at build time). A Names instance
+// carries the Lua path built so far in Fn and renders it via ToString, so `EnvNames.anime.relations[1].type`
+// interpolates to "anime.relations[1].type" and stops compiling when the schema moves.
 
 public class Table
 {

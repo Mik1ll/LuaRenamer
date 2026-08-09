@@ -27,7 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
-        <!-- Build ordering only: ensures DefsGenerator is built before LuaRenamer so it can be run in the GenerateLuaDefs post-build step. -->
+        <!-- Build ordering only: ensures DefsGenerator is built before the generation targets below run it. -->
         <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
     </ItemGroup>
 
@@ -35,7 +35,22 @@
         <None Include="lua/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <!-- The *Names navigation DSL, written by GenerateLuaNames below before csc runs. Never checked in,
+             so it cannot go stale against LuaEnv's models. -->
+        <Compile Include="$(IntermediateOutputPath)LuaNames.g.cs" />
+        <FileWrites Include="$(IntermediateOutputPath)LuaNames.g.cs" />
     </ItemGroup>
+
+    <!-- GetTargetPath only computes the path; ResolveProjectReferences has already built the generator. -->
+    <Target Name="ResolveDefsGenerator" DependsOnTargets="ResolveProjectReferences">
+        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath">
+            <Output TaskParameter="TargetOutputs" PropertyName="DefsGenerator" />
+        </MSBuild>
+    </Target>
+
+    <Target Name="GenerateLuaNames" BeforeTargets="CoreCompile" DependsOnTargets="ResolveDefsGenerator">
+        <Exec Command="dotnet &quot;$(DefsGenerator)&quot; --names &quot;$(IntermediateOutputPath)LuaNames.g.cs&quot;" />
+    </Target>
 
     <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
         <Exec Command="git describe --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; --tags --abbrev=7 --long --dirty --always" ConsoleToMsBuild="true">
@@ -85,8 +100,8 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GenerateLuaDefs" AfterTargets="Build" Condition="Exists('$(SolutionDir)')">
-        <Exec Command="dotnet run --project &quot;$(SolutionDir)DefsGenerator/DefsGenerator.csproj&quot; -- &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
+    <Target Name="GenerateLuaDefs" AfterTargets="Build" DependsOnTargets="ResolveDefsGenerator">
+        <Exec Command="dotnet &quot;$(DefsGenerator)&quot; &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
     </Target>
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
