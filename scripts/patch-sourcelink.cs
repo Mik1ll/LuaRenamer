@@ -3,6 +3,9 @@
 // The repo uses Central Package Management (Directory.Packages.props), which forbids a
 // Version on PackageReference; opt this standalone tool out so #:package can pin one.
 #:property ManagePackageVersionsCentrally=false
+// Directory.Packages.props also switches lock files on, which would leave a stray
+// scripts/packages.lock.json behind on every run of this tool.
+#:property RestorePackagesWithLockFile=false
 // Copy NuGet assemblies next to the built app. Without this the file-based app's
 // runtimeconfig omits additionalProbingPaths, so Mono.Cecil isn't found at runtime.
 #:property CopyLocalLockFileAssemblies=true
