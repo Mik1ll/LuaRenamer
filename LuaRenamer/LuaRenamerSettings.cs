@@ -16,7 +16,7 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
 {
     public static LuaRenamerSettings New(IConfigurationService configurationService, IPluginManager pluginManager)
     {
-                var defaultFile = new FileInfo(Path.Combine(LuaContext.LuaPath, "default.lua"));
+                var defaultFile = new FileInfo(Path.Combine(LuaScripts.LuaPath, "default.lua"));
                 if (!defaultFile.Exists) return new();
                 using var text = defaultFile.OpenText();
                 return new() { Script = text.ReadToEnd() };
@@ -29,7 +29,7 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
 
     [Display(Name = "Replace Illegal Characters",
         Description = $"Check if you want to replace illegal characters with alternatives. " +
-                      $"May be customized via `{nameof(EnvTable.illegal_chars_map)}`")]
+                      $"May be customized via `{nameof(EnvModel.illegal_chars_map)}`")]
     public bool ReplaceIllegalCharacters { get; set; }
 
     [Display(Name = "Use Existing Anime Location",

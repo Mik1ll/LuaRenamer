@@ -340,3 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 !.gitkeep
+.claude/worktrees/
+
+# Patched library assemblies/PDBs for debugging (scripts/patch-sourcelink.cs)
+.lib-src/

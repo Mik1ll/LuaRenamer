@@ -1,0 +1,9 @@
+{
+	"csharp.debug.justMyCode": false,
+	"csharp.debug.suppressJITOptimizations": true,
+	"csharp.debug.enableStepFiltering": false,
+	"csharp.debug.requireExactSource": false,
+	"csharp.debug.sourceFileMap": {
+		"/_/": "${workspaceFolder}"
+	}
+}

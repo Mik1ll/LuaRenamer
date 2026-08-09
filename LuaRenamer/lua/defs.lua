@@ -35,8 +35,8 @@ local AniDbMedia = {}
 local Anime = {}
 
 ---Get the anime title in the specified language
----@param lang Language The language to get the title in
----@param include_unofficial boolean|nil Whether to include unofficial titles
+---@param lang Language # Language to get the title in
+---@param include_unofficial boolean|nil # Whether to include unofficial titles
 ---@return string|nil
 function Anime:getname(lang, include_unofficial) end
 
@@ -72,8 +72,8 @@ local DateTime = {}
 ---@field prefix string # Episode number type prefix (e.g., '', 'C', 'S', 'T', 'P', 'O')
 local Episode = {}
 
----Get the episode title in the specified language
----@param lang Language The language to get the title in
+---Get the title in the specified language
+---@param lang Language # Language to get the title in
 ---@return string|nil
 function Episode:getname(lang) end
 
@@ -158,8 +158,8 @@ local Tmdb = {}
 ---@field airdate DateTime|nil # Air date of the episode
 local TmdbEpisode = {}
 
----Get the episode title in the specified language
----@param lang Language The language to get the title in
+---Get the title in the specified language
+---@param lang Language # Language to get the title in
 ---@return string|nil
 function TmdbEpisode:getname(lang) end
 
@@ -174,8 +174,8 @@ function TmdbEpisode:getname(lang) end
 ---@field airdate DateTime|nil # Air date of the movie
 local TmdbMovie = {}
 
----Get the movie title in the specified language
----@param lang Language The language to get the title in
+---Get the title in the specified language
+---@param lang Language # Language to get the title in
 ---@return string|nil
 function TmdbMovie:getname(lang) end
 
@@ -190,11 +190,11 @@ function TmdbMovie:getname(lang) end
 ---@field episodecount integer # Total number of episodes
 ---@field airdate DateTime|nil # Air date of the show
 ---@field enddate DateTime|nil # End date of the show
----@field seasons Season[] # List of seasons anime aired during
+---@field seasons Season[] # List of seasons show aired during
 local TmdbShow = {}
 
----Get the show title in the specified language
----@param lang Language The language to get the title in
+---Get the title in the specified language
+---@param lang Language # Language to get the title in
 ---@return string|nil
 function TmdbShow:getname(lang) end
 

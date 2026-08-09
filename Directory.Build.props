@@ -1,0 +1,31 @@
+<Project>
+    <PropertyGroup>
+        <!-- Sub-projects keep short, prefix-free folder/csproj names; the LuaRenamer.* prefix
+             for namespaces and output assemblies is applied centrally here.
+             The main LuaRenamer plugin project overrides both back to plain "LuaRenamer". -->
+        <RootNamespace>LuaRenamer.$(MSBuildProjectName)</RootNamespace>
+        <AssemblyName>LuaRenamer.$(MSBuildProjectName)</AssemblyName>
+
+        <!-- Copy PDBs shipped inside referenced NuGet packages (e.g. NLua, KeraLua)
+             into the build output so the debugger loads real symbols instead of
+             falling back to decompilation. Required to bind breakpoints in NLua. -->
+        <CopyDebugSymbolFilesFromPackages>true</CopyDebugSymbolFilesFromPackages>
+    </PropertyGroup>
+
+    <!-- NLua's shipped PDB has no SourceLink, and its build path ("D:\a\1\s") collides
+         with KeraLua's, so a local sourceFileMap can't serve both. We patch SourceLink
+         into NLua via scripts/patch-sourcelink.cs (output in .lib-src/patched/), then
+         override the restored NLua.dll+pdb with the patched pair in Debug output. KeraLua
+         resolves via its own SourceLink. Debug-only so Release/packaging ships the
+         original assembly. No-op if the patched pair hasn't been generated. -->
+    <Target Name="OverrideNLuaWithSourceLinkPatched"
+            AfterTargets="Build"
+            Condition="'$(Configuration)' == 'Debug'
+                       And Exists('$(MSBuildThisFileDirectory).lib-src\patched\NLua.dll')
+                       And Exists('$(OutDir)NLua.dll')">
+        <Copy SourceFiles="$(MSBuildThisFileDirectory).lib-src\patched\NLua.dll;$(MSBuildThisFileDirectory).lib-src\patched\NLua.pdb"
+              DestinationFolder="$(OutDir)"
+              OverwriteReadOnlyFiles="true"
+              SkipUnchangedFiles="false" />
+    </Target>
+</Project>

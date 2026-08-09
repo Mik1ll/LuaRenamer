@@ -2,21 +2,6 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "KeraLua": {
-        "type": "Direct",
-        "requested": "[1.4.9, 2.0.0)",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
-      },
-      "Microsoft.Extensions.Logging.Abstractions": {
-        "type": "Direct",
-        "requested": "[10.0.3, 11.0.0)",
-        "resolved": "10.0.3",
-        "contentHash": "lxl0WLk7ROgBFAsjcOYjQ8/DVK+VMszxGBzUhgtQmAsTNldLL5pk9NG/cWTsXHq0lUhUEAtZkEE7jOGOA8bGKQ==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3"
-        }
-      },
       "NLua": {
         "type": "Direct",
         "requested": "[1.7.8, 2.0.0)",
@@ -35,11 +20,6 @@
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
         }
-      },
-      "Microsoft.Extensions.DependencyInjection.Abstractions": {
-        "type": "Transitive",
-        "resolved": "10.0.3",
-        "contentHash": "bwGMrRcAMWx2s/RDgja97p27rxSz2pEQW0+rX5cWAUWVETVJ/eyxGfjAl8vuG5a+lckWmPIE+vcuaZNVB5YDdw=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -66,33 +46,8 @@
         "resolved": "11.6.1",
         "contentHash": "WA4z8iK+0SOh2/qoo7rtEanj/LjJZ8oWWoXI8u1xcYMk6VzHONqpabJBYGrzqDO41ld+VQHOFL+B8MXncIVSSA=="
       },
-      "LuaRenamer.LuaEnv": {
-        "type": "Project",
-        "dependencies": {
-          "NLua": "[1.7.8, 2.0.0)",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
-        }
-      }
-    },
-    "net10.0/linux-arm64": {
       "KeraLua": {
-        "type": "Direct",
-        "requested": "[1.4.9, 2.0.0)",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
-      }
-    },
-    "net10.0/linux-x64": {
-      "KeraLua": {
-        "type": "Direct",
-        "requested": "[1.4.9, 2.0.0)",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
-      }
-    },
-    "net10.0/win-x64": {
-      "KeraLua": {
-        "type": "Direct",
+        "type": "CentralTransitive",
         "requested": "[1.4.9, 2.0.0)",
         "resolved": "1.4.9",
         "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+        <IsPackable>false</IsPackable>
+        <Nullable>enable</Nullable>
+        <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="KeraLua" />
+        <PackageReference Include="Moq" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="MSTest" />
+        <PackageReference Include="NLua" />
+        <PackageReference Include="Shoko.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" />
+        <ProjectReference Include="..\LuaRenamer\LuaRenamer.csproj" />
+    </ItemGroup>
+
+    <!-- The *Names DSL the tests are written in comes from LuaRenamer (see its GenerateLuaNames target) via
+         the ProjectReference above. Generating a second copy here would be a duplicate type definition. -->
+
+</Project>

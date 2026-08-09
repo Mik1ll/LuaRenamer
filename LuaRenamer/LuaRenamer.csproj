@@ -2,11 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <!-- Plugin assembly + root namespace stay plain "LuaRenamer" (overrides the LuaRenamer.* default in Directory.Build.props). -->
+        <RootNamespace>LuaRenamer</RootNamespace>
+        <AssemblyName>LuaRenamer</AssemblyName>
         <DisableImplicitNuGetFallbackFolder Condition="'$(CI)' == 'true'">true</DisableImplicitNuGetFallbackFolder>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>12</LangVersion>
         <Authors>Mik1ll</Authors>
         <RepositoryUrl>https://github.com/Mik1ll/LuaRenamer</RepositoryUrl>
         <PackageTags>relocation-provider, lua, scripting</PackageTags>
@@ -18,21 +19,38 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KeraLua" Version="1.4.9" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" ExcludeAssets="runtime" />
-        <PackageReference Include="NLua" Version="1.7.8" />
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" ExcludeAssets="runtime" />
+        <PackageReference Include="KeraLua" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" ExcludeAssets="runtime" />
+        <PackageReference Include="NLua" />
+        <PackageReference Include="Shoko.Abstractions" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
+        <!-- Build ordering only: ensures DefsGenerator is built before the generation targets below run it. -->
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
     </ItemGroup>
 
     <ItemGroup>
         <None Include="lua/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <!-- The *Names navigation DSL, written by GenerateLuaNames below before csc runs. Never checked in,
+             so it cannot go stale against LuaEnv's models. -->
+        <Compile Include="$(IntermediateOutputPath)LuaNames.g.cs" />
+        <FileWrites Include="$(IntermediateOutputPath)LuaNames.g.cs" />
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\LuaBuilderGenerator\LuaBuilderGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    </ItemGroup>
+    <!-- GetTargetPath only computes the path; ResolveProjectReferences has already built the generator. -->
+    <Target Name="ResolveDefsGenerator" DependsOnTargets="ResolveProjectReferences">
+        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath">
+            <Output TaskParameter="TargetOutputs" PropertyName="DefsGenerator" />
+        </MSBuild>
+    </Target>
+
+    <Target Name="GenerateLuaNames" BeforeTargets="CoreCompile" DependsOnTargets="ResolveDefsGenerator">
+        <Exec Command="dotnet &quot;$(DefsGenerator)&quot; --names &quot;$(IntermediateOutputPath)LuaNames.g.cs&quot;" />
+    </Target>
 
     <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
         <Exec Command="git describe --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; --tags --abbrev=7 --long --dirty --always" ConsoleToMsBuild="true">
@@ -80,6 +98,10 @@
             <AssemblyMetadata Include="ReleaseTag" Value="$(ReleaseTag)" Condition="'$(ReleaseTag)' != ''" />
             <AssemblyMetadata Include="SourceRevision" Value="$(SourceRevision)" Condition="'$(SourceRevision)' != ''" />
         </ItemGroup>
+    </Target>
+
+    <Target Name="GenerateLuaDefs" AfterTargets="Build" DependsOnTargets="ResolveDefsGenerator">
+        <Exec Command="dotnet &quot;$(DefsGenerator)&quot; &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
     </Target>
 
     <Target Name="PackageForRelease" AfterTargets="Publish">
