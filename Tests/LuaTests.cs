@@ -209,7 +209,7 @@ public class LuaTests
     {
         var args = MinimalArgs(
             $"""
-            local fld = from({Names.importfolders.Fn}):where('{nameof(ImportFolderNames.type)}', {Names.ImportFolderType[DropFolderType.Both]}):first()
+            local fld = from({Names.importfolders.Path}):where('{nameof(ImportFolderNames.type)}', {Names.ImportFolderType[DropFolderType.Both]}):first()
             {Names.destination} = fld
             """);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
@@ -472,13 +472,13 @@ public class LuaTests
         new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
         // enums.lua really does define globals in defsEnv, so the NLua indexer works there; the sandbox side
         // has to go through GetValue, which resolves against Env.
-        CompareEnums((LuaTable)defsEnv[Names.Language.Fn], (LuaTable)sandbox.GetValue(Names.Language)!);
-        CompareEnums((LuaTable)defsEnv[Names.AnimeType.Fn], (LuaTable)sandbox.GetValue(Names.AnimeType)!);
-        CompareEnums((LuaTable)defsEnv[Names.TitleType.Fn], (LuaTable)sandbox.GetValue(Names.TitleType)!);
-        CompareEnums((LuaTable)defsEnv[Names.EpisodeType.Fn], (LuaTable)sandbox.GetValue(Names.EpisodeType)!);
-        CompareEnums((LuaTable)defsEnv[Names.ImportFolderType.Fn], (LuaTable)sandbox.GetValue(Names.ImportFolderType)!);
-        CompareEnums((LuaTable)defsEnv[Names.RelationType.Fn], (LuaTable)sandbox.GetValue(Names.RelationType)!);
-        CompareEnums((LuaTable)defsEnv[Names.SeasonName.Fn], (LuaTable)sandbox.GetValue(Names.SeasonName)!);
+        CompareEnums((LuaTable)defsEnv[Names.Language.Path], (LuaTable)sandbox.GetValue(Names.Language)!);
+        CompareEnums((LuaTable)defsEnv[Names.AnimeType.Path], (LuaTable)sandbox.GetValue(Names.AnimeType)!);
+        CompareEnums((LuaTable)defsEnv[Names.TitleType.Path], (LuaTable)sandbox.GetValue(Names.TitleType)!);
+        CompareEnums((LuaTable)defsEnv[Names.EpisodeType.Path], (LuaTable)sandbox.GetValue(Names.EpisodeType)!);
+        CompareEnums((LuaTable)defsEnv[Names.ImportFolderType.Path], (LuaTable)sandbox.GetValue(Names.ImportFolderType)!);
+        CompareEnums((LuaTable)defsEnv[Names.RelationType.Path], (LuaTable)sandbox.GetValue(Names.RelationType)!);
+        CompareEnums((LuaTable)defsEnv[Names.SeasonName.Path], (LuaTable)sandbox.GetValue(Names.SeasonName)!);
     }
 
     [TestMethod]
@@ -737,6 +737,38 @@ public class LuaTests
     {
         using var sandbox = TranslatedSandbox(MinimalArgs(""));
         Assert.ThrowsExactly<ArgumentException>(() => sandbox.GetValue(path));
+    }
+
+    [DataRow("filename = 'ok'", DisplayName = "runs to completion")]
+    [DataRow("", DisplayName = "empty script")]
+    [TestMethod]
+    public void TestRunReportsSuccessAsNull(string script)
+    {
+        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        Assert.IsNull(sandbox.Run(script));
+    }
+
+    [DataRow("return (", DisplayName = "fails to load")]
+    [DataRow("error('boom')", DisplayName = "throws a string")]
+    [DataRow("error({})", DisplayName = "throws a non-string error object")]
+    [DataRow("local x = nil; return x.y", DisplayName = "runtime error")]
+    [TestMethod]
+    public void TestRunReportsFailureAsMessage(string script)
+    {
+        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        // A non-string error object is stringified rather than swallowed — otherwise a failing script
+        // would look like a successful one and the renamer would act on whatever the env still held.
+        Assert.IsFalse(string.IsNullOrWhiteSpace(sandbox.Run(script)));
+    }
+
+    [TestMethod]
+    public void TestStringMethodsResolveUtilsHelpers()
+    {
+        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        // utils.lua defines `function string:cleanspaces` into env.string; method-call syntax on a string
+        // value resolves through the real string table, which the sandbox bridges to env.string in its ctor.
+        Assert.IsNull(sandbox.Run($"{Names.filename} = ('  a   b  '):cleanspaces()"));
+        Assert.AreEqual("a b", sandbox.GetValue(Names.filename));
     }
 
     [TestMethod]

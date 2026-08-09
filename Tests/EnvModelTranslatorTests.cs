@@ -176,13 +176,6 @@ public class EnvModelTranslatorTests
         skip_rename = false,
         skip_move = false,
         illegal_chars_map = new Dictionary<string, string> { ["<"] = "(" },
-        ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
-        AnimeType = ModelProducers.EnumTable<AnimeType>(),
-        EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
-        TitleType = ModelProducers.EnumTable<TitleType>(),
-        Language = ModelProducers.EnumTable<TitleLanguage>(),
-        RelationType = ModelProducers.EnumTable<RelationType>(),
-        SeasonName = ModelProducers.EnumTable<YearlySeason>(),
     };
 
     private void Load() => _lua["env"] = _translator.Translate(BuildEnv());

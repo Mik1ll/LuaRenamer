@@ -94,13 +94,7 @@ public static class ModelProducers
                 primarySeries.TmdbMovies,
                 primarySeries.TmdbShows,
                 args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
-            ImportFolderType = EnumTable<DropFolderType>(),
-            AnimeType = EnumTable<AnimeType>(),
-            EpisodeType = EnumTable<EpisodeType>(),
-            TitleType = EnumTable<TitleType>(),
-            Language = EnumTable<TitleLanguage>(),
-            RelationType = EnumTable<RelationType>(),
-            SeasonName = EnumTable<YearlySeason>(),
+            // The enum tables need no assignment — LuaEnumTable<TEnum> carries no data.
         };
     }
 
@@ -168,17 +162,6 @@ public static class ModelProducers
             isdst = dt.IsDaylightSavingTime(),
         };
     }
-
-    // ---- enum tables ---------------------------------------------------------------------------
-
-    /// <summary>
-    /// Builds the identity name→name map for an enum.
-    /// The translator marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
-    /// table. <see cref="Enumerable.Distinct{TSource}(IEnumerable{TSource})"/> collapses aliased values to the
-    /// one canonical name <see cref="Enum.GetName(Type, object)"/> returns.
-    /// </summary>
-    public static IReadOnlyDictionary<T, T> EnumTable<T>() where T : struct, Enum =>
-        Enum.GetValues<T>().Distinct().ToDictionary(v => v, v => v);
 
     // ---- anime ---------------------------------------------------------------------------------
 

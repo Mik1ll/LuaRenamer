@@ -5,14 +5,18 @@ namespace LuaRenamer.LuaEnv.Names;
 
 // Hand-written base types for the generated *Names navigation DSL (see DefsGenerator/ModelNamesGenerator.cs,
 // which emits one companion class per ILuaModel record into LuaRenamer/obj/ at build time). A Names instance
-// carries the Lua path built so far in Fn and renders it via ToString, so `EnvNames.anime.relations[1].type`
+// carries the Lua path built so far in Path and renders it via ToString, so `EnvNames.anime.relations[1].type`
 // interpolates to "anime.relations[1].type" and stops compiling when the schema moves.
 
-public class Table
+public class NamesNode
 {
-    public string Fn { get; init; } = "";
-    public override string ToString() => Fn;
-    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") => string.IsNullOrEmpty(Fn) ? memberName : Fn + sep + memberName;
+    /// <summary>The Lua path accumulated so far; empty at the root.</summary>
+    public string Path { get; init; } = "";
+
+    public override string ToString() => Path;
+
+    protected string Get(char sep = '.', [CallerMemberName] string memberName = "") =>
+        string.IsNullOrEmpty(Path) ? memberName : Path + sep + memberName;
 
     /// <summary>
     /// Renders a call. Trailing omitted optional arguments arrive as null and are dropped, so both
@@ -22,12 +26,12 @@ public class Table
         Get(sep, memberName) + "(" + string.Join(", ", args.TakeWhile(a => !string.IsNullOrWhiteSpace(a))) + ")";
 }
 
-public class ArrayTable<T> : Table where T : Table, new()
+public class NamesArray<T> : NamesNode where T : NamesNode, new()
 {
-    public T this[int index] => new() { Fn = Fn + $"[{index}]" };
+    public T this[int index] => new() { Path = Path + $"[{index}]" };
 }
 
-public class EnumTable<T> : Table where T : System.Enum
+public class NamesEnum<T> : NamesNode where T : System.Enum
 {
-    public string this[T enumValue] => $"{Fn}.{enumValue}";
+    public string this[T enumValue] => $"{Path}.{enumValue}";
 }

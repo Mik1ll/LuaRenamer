@@ -1,6 +1,6 @@
 using System;
 
-namespace LuaRenamer.LuaEnv.Attributes;
+namespace LuaRenamer.LuaEnv;
 
 /// <summary>
 /// Marks a bound data property on a schema table class. The Lua type is inferred from the C# property type.
@@ -9,17 +9,13 @@ namespace LuaRenamer.LuaEnv.Attributes;
 public class LuaFieldAttribute : Attribute
 {
     public string? Description { get; }
-    public string DefaultValue { get; init; } = LuaTypeNames.nil;
 
-    /// <summary>
-    /// When true the field is written by the user script (an output) rather than serialized into the env.
-    /// The builder source generator skips generating a setter for these fields.
-    /// </summary>
-    public bool Output { get; init; }
+    /// <summary>The value the field is initialized to in the generated <c>env.lua</c>.</summary>
+    public string DefaultValue { get; init; } = "nil";
 
     /// <summary>
     /// When true a callable field uses Lua method-call syntax (<c>obj:fn()</c>, implicit self) rather
-    /// than plain function syntax (<c>obj.fn()</c>). Replaces the old LuaMethodRef/LuaFunctionRef split.
+    /// than plain function syntax (<c>obj.fn()</c>).
     /// </summary>
     public bool Method { get; init; }
 

@@ -1,9 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using LuaRenamer.LuaEnv.Attributes;
 using NLua;
 
 namespace LuaRenamer.LuaEnv;
@@ -11,7 +7,8 @@ namespace LuaRenamer.LuaEnv;
 /// <summary>
 /// Walks an <see cref="ILuaModel"/> graph and materializes it into <see cref="LuaTable"/>s inside a
 /// <see cref="LuaSandbox"/>. This is the single place every marshaling rule lives — enum→name, null→absent,
-/// list→1-based sequence, dictionary→map, and <see cref="LuaFunctionDef"/>→compiled Lua handle.
+/// list→1-based sequence, dictionary→map, <see cref="LuaEnumTable{TEnum}"/>→identity map, and
+/// <see cref="LuaFunctionDef"/>→compiled Lua handle.
 /// </summary>
 /// <remarks>
 /// Lua handles are created here lazily rather than up front, so the model graph stays pure data; the sandbox
@@ -21,18 +18,21 @@ namespace LuaRenamer.LuaEnv;
 /// </remarks>
 public sealed class ModelTranslator(LuaSandbox sandbox)
 {
-    public LuaTable Translate(ILuaModel model) => WriteModel(model);
+    public LuaTable Translate(ILuaModel model) => WriteModel(model, sandbox.NewTable());
 
     /// <summary>
     /// Writes <paramref name="model"/>'s fields into the existing <paramref name="target"/> table rather
     /// than a fresh one. Used for the env root, whose table is pre-seeded with the sandbox globals and the
     /// lualinq/utils functions before the model fields are layered on top.
     /// </summary>
-    public void Translate(ILuaModel model, LuaTable target)
+    public void Translate(ILuaModel model, LuaTable target) => WriteModel(model, target);
+
+    private LuaTable WriteModel(ILuaModel model, LuaTable table)
     {
-        foreach (var prop in LuaFields(model.GetType()))
-            if (WriteValue(prop.GetValue(model)) is { } v)
-                target[prop.Name] = v;
+        foreach (var (prop, _) in LuaSchema.LuaFields(model.GetType()))
+            if (WriteValue(prop.GetValue(model)) is { } v) // null => leave key absent (== Lua nil)
+                table[prop.Name] = v;
+        return table;
     }
 
     private object? WriteValue(object? value) => value switch
@@ -42,18 +42,20 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
         Enum e => Enum.GetName(e.GetType(), e),       // the ONE place enums become their name
         Delegate => value,                            // host free-function delegate, marshaled as-is
         LuaFunctionDef def => sandbox.CompileFunction(def.Source), // Lua-bodied callable (getname)
-        ILuaModel m => WriteModel(m),
+        ILuaModel m => WriteModel(m, sandbox.NewTable()),
         IDictionary dict => WriteMap(dict),           // before IEnumerable (IDictionary : IEnumerable)
         IEnumerable seq => WriteSequence(seq),
+        // A closed LuaEnumTable<TEnum> is a struct with no members, so it can only be matched by its type.
+        _ when LuaEnumTable.EnumTypeOf(value.GetType()) is { } enumType => WriteEnumTable(enumType),
         _ => value,                                   // long, double, bool, int, ...
     };
 
-    private LuaTable WriteModel(ILuaModel model)
+    /// <summary>The <c>{ Name = "Name", ... }</c> identity map for an exposed enum.</summary>
+    private LuaTable WriteEnumTable(Type enumType)
     {
         var table = sandbox.NewTable();
-        foreach (var prop in LuaFields(model.GetType()))
-            if (WriteValue(prop.GetValue(model)) is { } v) // null => leave key absent (== Lua nil)
-                table[prop.Name] = v;
+        foreach (var name in LuaEnumTable.Names(enumType))
+            table[name] = name;
         return table;
     }
 
@@ -75,8 +77,4 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
                 table[i++] = v;
         return table;
     }
-
-    private static IEnumerable<PropertyInfo> LuaFields(Type t) =>
-        t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.GetCustomAttribute<LuaFieldAttribute>() is not null);
 }

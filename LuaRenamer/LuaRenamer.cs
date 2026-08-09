@@ -161,9 +161,8 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
 
             using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
             new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
-            var retVal = sandbox.Run(args.Configuration.Script);
-            if (retVal.Length == 2 && retVal[0] is not true && retVal[1] is string errStr)
-                throw new LuaRenamerException(errStr);
+            if (sandbox.Run(args.Configuration.Script) is { } scriptError)
+                throw new LuaRenamerException(scriptError);
 
             var replaceIllegalChars = sandbox.GetValue(Names.replace_illegal_chars) is true;
             var removeIllegalChars = sandbox.GetValue(Names.remove_illegal_chars) is true;

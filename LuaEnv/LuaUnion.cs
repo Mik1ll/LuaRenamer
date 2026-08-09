@@ -1,4 +1,4 @@
-namespace LuaRenamer.LuaEnv.BaseTypes;
+namespace LuaRenamer.LuaEnv;
 
 /// Compile-time-only marker for a Lua union type (T1|T2) on output properties.
 /// Never instantiated at runtime; exists so generators can infer the Lua type from the C# property type.
