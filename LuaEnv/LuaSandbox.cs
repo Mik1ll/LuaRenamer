@@ -22,7 +22,7 @@ public sealed class LuaSandbox : Lua
 
     private const string BaseEnv =
         """
-        return {
+        local env = {
           ipairs = ipairs,
           next = next,
           pairs = pairs,
@@ -53,6 +53,11 @@ public sealed class LuaSandbox : Lua
           utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
           error = error,
         }
+
+        -- `("a b"):cleanspaces()` resolves through the real string table, not env.string where utils.lua
+        -- defines its helpers. __index bridges the two; env.string is never rebound, so later helpers land too.
+        setmetatable(string, {__index = env.string})
+        return env
         """;
 
     // Loads a chunk against `env` and pcalls it. Returns [false, error] if the chunk failed to load or threw,
@@ -67,12 +72,6 @@ public sealed class LuaSandbox : Lua
           return table.unpack(result)
         end
         """;
-
-    // Method-call syntax on a string value (`("a b"):cleanspaces()`) resolves through the *real* string table,
-    // which never sees the helpers utils.lua defines into env.string. Pointing the real table's __index at
-    // env.string bridges the two. Set once, for the lifetime of this state — each LuaSandbox owns its own
-    // interpreter, so there is nothing to restore it for.
-    private const string BridgeStringMethods = "return function (env) setmetatable(string, {__index = env.string}) end";
 
     private const string TableConstructor = "return function () return {} end";
 
@@ -94,7 +93,6 @@ public sealed class LuaSandbox : Lua
         Env = (LuaTable)DoString(BaseEnv)[0];
         foreach (var chunk in trustedChunks)
             LoadChunk(chunk);
-        ((LuaFunction)DoString(BridgeStringMethods)[0]).Call(Env);
     }
 
     /// <summary>The restricted environment table every chunk and translated model is loaded against.</summary>
