@@ -6,33 +6,22 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      # Lets the lock file refresh below push back to the PR branch. Fork PRs get a read-only token
-      # regardless of what is asked for here, which is why the refresh skips them.
-      contents: write
+      contents: write # for the lock file refresh below
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
     - uses: actions/checkout@v4
       with:
-        # Dependabot PRs: the branch tip rather than the merge commit, so the refresh step below has
-        # somewhere to push. Every other PR keeps the default merge-commit checkout.
+        # Branch tip instead of the merge commit, so the refresh below has somewhere to push.
         ref: ${{ github.actor == 'dependabot[bot]' && github.head_ref || '' }}
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
         cache: true
         cache-dependency-path: '**/packages.lock.json'
-    # A version bump in Directory.Packages.props invalidates every project's packages.lock.json, but
-    # Dependabot regenerates only the lock file of the first project declaring the bumped package
-    # (dependabot/dependabot-core#13950), so its PRs arrive failing the locked restore below.
-    #
-    # Deliberately restricted to Dependabot. Relocking any PR that drifts would silently rewrite the
-    # lock files a human got wrong, which is the drift lock files exist to catch - everywhere else the
-    # locked restore below should keep failing. Verified end to end in #152 by widening this gate,
-    # landing a bump with all four lock files stale, and watching CI relock and push them.
-    #
-    # Runs in this job rather than its own workflow because a GITHUB_TOKEN push does not retrigger
-    # workflows, so the locked restore below has to be the one that sees the fix.
+    # A bump in Directory.Packages.props invalidates every packages.lock.json, but Dependabot only
+    # regenerates the first one (dependabot/dependabot-core#13950). Dependabot-only on purpose:
+    # elsewhere drifted lock files should fail the locked restore, not get rewritten.
     - name: Refresh NuGet lock files
       if: github.actor == 'dependabot[bot]'
       run: |
