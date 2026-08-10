@@ -1,17 +1,14 @@
 // ReSharper disable InconsistentNaming
 
 using System.Collections.Generic;
-using LuaRenamer.LuaEnv.Attributes;
-using LuaRenamer.LuaEnv.BaseTypes;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video.Enums;
 
 namespace LuaRenamer.LuaEnv;
 
-// The complete env-description graph: every ILuaModel record plus the EnvModel root. Each property
-// mirrors its old *Table counterpart's schema and declaration order, but as a plain CLR type — no
-// LuaRef/LuaArray/LuaMap/LuaEnumRef carrier and no `init => Set(...)` body. All marshaling happens
-// in ModelTranslator.
+// The complete env-description graph: every ILuaModel record plus the EnvModel root. Property names and
+// declaration order are the schema — they drive both the serialized Lua tables and the generated defs, so
+// reordering a property reorders the generated documents. All marshaling happens in ModelTranslator.
 
 public sealed record DateTimeModel : ILuaModel
 {
@@ -29,9 +26,9 @@ public sealed record DateTimeModel : ILuaModel
 public sealed record TitleModel : ILuaModel
 {
     [LuaField("The title text")] public required string name { get; init; }
-    [LuaField("Language of the title")] public required TitleLanguage language { get; init; }  // was Set(value.ToString())
+    [LuaField("Language of the title")] public required TitleLanguage language { get; init; }
     [LuaField("ISO language code")] public required string languagecode { get; init; }
-    [LuaField("Type of the title")] public required TitleType type { get; init; }              // was Set(value.ToString())
+    [LuaField("Type of the title")] public required TitleType type { get; init; }
 }
 
 public sealed record SeasonModel : ILuaModel
@@ -42,17 +39,18 @@ public sealed record SeasonModel : ILuaModel
 
 public sealed record RelationModel : ILuaModel
 {
-    [LuaField("The related anime")] public required AnimeModel anime { get; init; }            // was LuaRef<AnimeTable>
+    [LuaField("The related anime")] public required AnimeModel anime { get; init; }
     [LuaField("Type of relation between the anime")] public required RelationType type { get; init; }
 }
 
 public sealed record AnimeModel : ILuaModel
 {
-    // Bound Lua closure (see AnimeGetName); the ':' method-call syntax is a [LuaField] flag.
+    // Static because the closure is the same for every node; the translator writes the one shared handle
+    // onto each table. The ':' method-call syntax is a [LuaField] flag.
     [LuaField("Get the anime title in the specified language", Method = true)]
-    public required AnimeGetName getname { get; init; }
+    public static LuaFunc<AnimeTitleDelegate> getname => LuaFunctions.AnimeGetName;
 
-    [LuaField("First air date of the anime")] public DateTimeModel? airdate { get; init; }     // was LuaRef<DateTimeTable>?
+    [LuaField("First air date of the anime")] public DateTimeModel? airdate { get; init; }
     [LuaField("Last air date of the anime")] public DateTimeModel? enddate { get; init; }
     [LuaField("Average rating of the anime")] public required double rating { get; init; }
     [LuaField("Whether the anime is age-restricted")] public required bool restricted { get; init; }
@@ -62,16 +60,16 @@ public sealed record AnimeModel : ILuaModel
     [LuaField("AniDB anime ID")] public required long id { get; init; }
 
     [LuaField("All available titles for the anime")]
-    public required IReadOnlyList<TitleModel> titles { get; init; }                            // was LuaArray<LuaRef<TitleTable>>
+    public required IReadOnlyList<TitleModel> titles { get; init; }
 
     [LuaField("Count of episodes by type")]
-    public required IReadOnlyDictionary<EpisodeType, long> episodecounts { get; init; }        // was LuaMap<EpisodeType, long>
+    public required IReadOnlyDictionary<EpisodeType, long> episodecounts { get; init; }
 
     [LuaField("Related anime entries, not populated for nested Anime entries")]
     public required IReadOnlyList<RelationModel> relations { get; init; }
 
     [LuaField("List of studios that produced the anime")]
-    public required IReadOnlyList<string> studios { get; init; }                               // was LuaArray<string>
+    public required IReadOnlyList<string> studios { get; init; }
 
     [LuaField("List of anime series tags")]
     public required IReadOnlyList<string> tags { get; init; }
@@ -119,12 +117,12 @@ public sealed record MediaModel : ILuaModel
     [LuaField("Overall bitrate of the media file")] public required long bitrate { get; init; }
 
     [LuaField("List of subtitle languages")]
-    public required IReadOnlyList<string> sublanguages { get; init; }                  // was LuaArray<string>
+    public required IReadOnlyList<string> sublanguages { get; init; }
 
     [LuaField("List of audio tracks")]
-    public required IReadOnlyList<AudioModel> audio { get; init; }                      // was LuaArray<LuaRef<AudioTable>>
+    public required IReadOnlyList<AudioModel> audio { get; init; }
 
-    [LuaField("Video stream information")] public VideoModel? video { get; init; }      // was LuaRef<VideoTable>?
+    [LuaField("Video stream information")] public VideoModel? video { get; init; }
 }
 
 public sealed record ReleaseGroupModel : ILuaModel
@@ -136,7 +134,7 @@ public sealed record ReleaseGroupModel : ILuaModel
 public sealed record AniDbMediaModel : ILuaModel
 {
     [LuaField("List of subtitle languages available in the release")]
-    public required IReadOnlyList<TitleLanguage> sublanguages { get; init; }            // was LuaArray<TitleLanguage>
+    public required IReadOnlyList<TitleLanguage> sublanguages { get; init; }
 
     [LuaField("List of audio languages available in the release")]
     public required IReadOnlyList<TitleLanguage> dublanguages { get; init; }
@@ -148,7 +146,7 @@ public sealed record AniDbModel : ILuaModel
     [LuaField("Whether the release is censored")] public required bool? censored { get; init; }
     [LuaField("Source media of the release e.g. DVD, BD, Web, etc.")] public required string source { get; init; }
     [LuaField("Version number of the release")] public required long version { get; init; }
-    [LuaField("Release date of the file")] public DateTimeModel? releasedate { get; init; }      // was LuaRef<DateTimeTable>?
+    [LuaField("Release date of the file")] public DateTimeModel? releasedate { get; init; }
     [LuaField("Description or notes about the release")] public required string? description { get; init; }
     [LuaField("Information about the release group")] public ReleaseGroupModel? releasegroup { get; init; }
     [LuaField("Media information from AniDB")] public required AniDbMediaModel media { get; init; }
@@ -178,7 +176,7 @@ public sealed record FileModel : ILuaModel
 public sealed record EpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }                                 // shared Lua closure (see TitleGetName)
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("Duration of the episode in seconds")] public required long duration { get; init; }
     [LuaField("Episode number")] public required long number { get; init; }
@@ -206,7 +204,7 @@ public sealed record GroupModel : ILuaModel
 public sealed record TmdbShowModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB show ID")] public required long id { get; init; }
 
@@ -232,7 +230,7 @@ public sealed record TmdbShowModel : ILuaModel
 public sealed record TmdbMovieModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB movie ID")] public required long id { get; init; }
 
@@ -253,7 +251,7 @@ public sealed record TmdbMovieModel : ILuaModel
 public sealed record TmdbEpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB episode ID")] public required long id { get; init; }
     [LuaField("TMDB show ID")] public required long showid { get; init; }
@@ -282,16 +280,10 @@ public sealed record TmdbModel : ILuaModel
 }
 
 /// <summary>
-/// The Lua environment root. Holds the
-/// free functions, the per-file model graph, the user-written output fields, and the enum tables.
-/// Excluded from the defs.lua class section (like EnvTable); instead it drives env.lua and enums.lua.
+/// The Lua environment root. Holds the free functions, the per-file model graph, the user-written output
+/// fields, and the enum tables. Excluded from the defs.lua class section; instead it drives env.lua (the
+/// non-<see cref="LuaEnumTable{TEnum}"/> fields) and enums.lua (the <see cref="LuaEnumTable{TEnum}"/> ones).
 /// </summary>
-/// <remarks>
-/// Enum tables are <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>: the generic argument carries the
-/// CLR enum type the generators need, and the translator marshals every key/value to its name, giving
-/// the Lua <c>{ Name = "Name", ... }</c> identity map. They are detected as "enum tables" (key type ==
-/// value type and is an enum) to keep them out of env.lua and route them into enums.lua.
-/// </remarks>
 public sealed record EnvModel : ILuaModel
 {
     [LuaField("Returns formatted episode numbers with padding")]
@@ -323,13 +315,15 @@ public sealed record EnvModel : ILuaModel
 
     [LuaField("TMDB information for the current file")] public required TmdbModel tmdb { get; init; }
 
-    [LuaField("Output: The filename to rename to", Output = true)]
+    // Outputs: written by the user script, never serialized into the env (the producers leave them null,
+    // so the translator omits the key and env.lua documents them as nil).
+    [LuaField("Output: The filename to rename to")]
     public string? filename { get; init; }
 
-    [LuaField($"Output: Import folder name / full directory path / {nameof(LuaTypeNames.ImportFolder)} that specifies the destination", Output = true)]
+    [LuaField("Output: Import folder name / full directory path / ImportFolder that specifies the destination")]
     public LuaUnion<string, ImportFolderModel>? destination { get; init; }
 
-    [LuaField("Output: The subfolder to move the file to, must be an array table if there is more than one directory component", Output = true)]
+    [LuaField("Output: The subfolder to move the file to, must be an array table if there is more than one directory component")]
     public LuaUnion<string, IReadOnlyList<string>>? subfolder { get; init; }
 
     [LuaField("Output: Whether to use the existing location of files from the same anime to determine the output destination/subfolder.",
@@ -351,11 +345,13 @@ public sealed record EnvModel : ILuaModel
     [LuaField("Output: Map of illegal characters to their replacements")]
     public required IReadOnlyDictionary<string, string> illegal_chars_map { get; init; }
 
-    [LuaField] public required IReadOnlyDictionary<DropFolderType, DropFolderType> ImportFolderType { get; init; }
-    [LuaField] public required IReadOnlyDictionary<AnimeType, AnimeType> AnimeType { get; init; }
-    [LuaField] public required IReadOnlyDictionary<EpisodeType, EpisodeType> EpisodeType { get; init; }
-    [LuaField] public required IReadOnlyDictionary<TitleType, TitleType> TitleType { get; init; }
-    [LuaField] public required IReadOnlyDictionary<TitleLanguage, TitleLanguage> Language { get; init; }
-    [LuaField] public required IReadOnlyDictionary<RelationType, RelationType> RelationType { get; init; }
-    [LuaField] public required IReadOnlyDictionary<YearlySeason, YearlySeason> SeasonName { get; init; }
+    // Enum tables. Declared, never assigned — LuaEnumTable<TEnum> carries no data, so the property name is
+    // the Lua name and TEnum is the whole payload.
+    [LuaField] public LuaEnumTable<DropFolderType> ImportFolderType { get; init; }
+    [LuaField] public LuaEnumTable<AnimeType> AnimeType { get; init; }
+    [LuaField] public LuaEnumTable<EpisodeType> EpisodeType { get; init; }
+    [LuaField] public LuaEnumTable<TitleType> TitleType { get; init; }
+    [LuaField] public LuaEnumTable<TitleLanguage> Language { get; init; }
+    [LuaField] public LuaEnumTable<RelationType> RelationType { get; init; }
+    [LuaField] public LuaEnumTable<YearlySeason> SeasonName { get; init; }
 }

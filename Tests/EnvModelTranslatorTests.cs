@@ -11,8 +11,8 @@ namespace LuaRenamer.Tests;
 
 /// <summary>
 /// Runtime proof for the <see cref="EnvModel"/> root and the rest of the ported schema (the env-only
-/// concepts the Anime slice didn't cover): free functions (CLR delegates), the bound getname callables
-/// (<see cref="AnimeGetName"/>/<see cref="TitleGetName"/>), user-written Output fields (incl. <c>LuaUnion</c>
+/// concepts the Anime slice didn't cover): free functions (contracts implemented in C#), the getname
+/// callables (contracts implemented in Lua), user-written Output fields (incl. <c>LuaUnion</c>
 /// ones, which must stay absent), and the enum
 /// tables modeled as <c>IReadOnlyDictionary&lt;TEnum, TEnum&gt;</c>. Generator byte-equality proves the
 /// schema's *shape*; this proves the translated env is actually Lua-consumable.
@@ -47,7 +47,6 @@ public class EnvModelTranslatorTests
 
     private AnimeModel Anime(long id) => new()
     {
-        getname = new AnimeGetName(),
         airdate = Date(2020),
         enddate = null,
         rating = 8.5,
@@ -67,7 +66,6 @@ public class EnvModelTranslatorTests
 
     private EpisodeModel Episode(long id) => new()
     {
-        getname = new TitleGetName(),
         duration = 1440,
         number = 1,
         type = EpisodeType.Episode,
@@ -125,7 +123,7 @@ public class EnvModelTranslatorTests
         [
             new TmdbMovieModel
             {
-                getname = new TitleGetName(), id = 1, titles = Titles(), defaultname = "MovieDef",
+                id = 1, titles = Titles(), defaultname = "MovieDef",
                 preferredname = "MoviePref", rating = 7.0, restricted = false, studios = ["Studio X"],
                 airdate = Date(2019),
             },
@@ -134,7 +132,7 @@ public class EnvModelTranslatorTests
         [
             new TmdbShowModel
             {
-                getname = new TitleGetName(), id = 2, titles = Titles(), defaultname = "ShowDef",
+                id = 2, titles = Titles(), defaultname = "ShowDef",
                 preferredname = "ShowPref", rating = 9.0, restricted = false, studios = ["Studio Y"],
                 episodecount = 24, airdate = Date(2018), enddate = Date(2019),
                 seasons = [new SeasonModel { year = 2018, season = YearlySeason.Fall }],
@@ -144,7 +142,7 @@ public class EnvModelTranslatorTests
         [
             new TmdbEpisodeModel
             {
-                getname = new TitleGetName(), id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
+                id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
                 preferredname = "EpPref", type = EpisodeType.Episode, number = 1, seasonnumber = 1,
                 airdate = Date(2018),
             },
@@ -176,13 +174,6 @@ public class EnvModelTranslatorTests
         skip_rename = false,
         skip_move = false,
         illegal_chars_map = new Dictionary<string, string> { ["<"] = "(" },
-        ImportFolderType = ModelProducers.EnumTable<DropFolderType>(),
-        AnimeType = ModelProducers.EnumTable<AnimeType>(),
-        EpisodeType = ModelProducers.EnumTable<EpisodeType>(),
-        TitleType = ModelProducers.EnumTable<TitleType>(),
-        Language = ModelProducers.EnumTable<TitleLanguage>(),
-        RelationType = ModelProducers.EnumTable<RelationType>(),
-        SeasonName = ModelProducers.EnumTable<YearlySeason>(),
     };
 
     private void Load() => _lua["env"] = _translator.Translate(BuildEnv());

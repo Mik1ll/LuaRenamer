@@ -17,8 +17,8 @@ namespace LuaRenamer.Tests;
 /// graph materialized by <see cref="ModelTranslator"/> must produce a <see cref="LuaTable"/> that is
 /// byte-for-behavior consumable from a real Lua VM — i.e. an equivalent replacement for the
 /// write-through <c>*Table</c> builders. Every marshaling rule is exercised: scalars, enum→name,
-/// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and the bound
-/// <see cref="AnimeGetName"/> callable (a Lua function handle marshaled as-is).
+/// nested model→subtable, null→absent, list→1-based sequence, enum-keyed dict→map, and the
+/// <c>getname</c> callable (a Lua function handle marshaled as-is).
 /// </summary>
 [TestClass]
 public class ModelTranslatorTests
@@ -39,7 +39,6 @@ public class ModelTranslatorTests
 
     private static AnimeModel MakeAnime(IReadOnlyList<RelationModel> relations) => new()
     {
-        getname = new AnimeGetName(),
         airdate = new DateTimeModel
         {
             year = 2020, month = 1, day = 2, yday = 2, wday = 5, hour = 0, min = 0, sec = 0, isdst = false,
@@ -152,14 +151,34 @@ public class ModelTranslatorTests
     [TestMethod]
     public void GetName_Is_Materialized_As_A_Single_Shared_Handle()
     {
-        // getname is a pure descriptor; the translator compiles it into a real LuaFunction on demand and
-        // caches by source, so every table that shares the source gets the one handle (no per-table closures).
+        // getname is a pure descriptor; the translator resolves it out of the sandbox's function library on
+        // demand, memoized, so every table that binds the same entry gets the one handle (no per-table closures).
         var a1 = _translator.Translate(FullAnime());
         var a2 = _translator.Translate(FullAnime());
 
         var stored = a1["getname"];
         Assert.IsInstanceOfType(stored, typeof(LuaFunction));
         Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across translations
+    }
+
+    [TestMethod]
+    [DataRow(TitleType.Main, true)]
+    [DataRow(TitleType.Official, true)]
+    [DataRow(TitleType.None, true)]
+    [DataRow(TitleType.Synonym, false)] // unofficial: only with the opt-in flag
+    [DataRow(TitleType.Short, false)]   // absent from the priority table entirely
+    public void GetName_Title_Priority_Policy(TitleType type, bool officialSurface)
+    {
+        // The getname source names TitleType members and Title/Anime fields as plain Lua strings, so nothing
+        // in C# fails to compile if one is renamed. This is the guard that catches it instead.
+        var anime = MakeAnime([]) with
+        {
+            titles = [new TitleModel { name = "Only", language = TitleLanguage.English, languagecode = "en", type = type }],
+        };
+        _lua["anime"] = _translator.Translate(anime);
+
+        Assert.AreEqual(officialSurface ? "Only" : null, _lua.DoString("return anime:getname('English')")[0]);
+        Assert.AreEqual(type == TitleType.Short ? null : "Only", _lua.DoString("return anime:getname('English', true)")[0]);
     }
 
     // ---- Producer side: IAnidbAnime -> AnimeModel -> LuaTable ----

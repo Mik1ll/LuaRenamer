@@ -2,8 +2,6 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using LuaRenamer.LuaEnv;
-using LuaRenamer.LuaEnv.Attributes;
-using LuaRenamer.LuaEnv.BaseTypes;
 
 namespace LuaRenamer.DefsGenerator;
 
@@ -22,7 +20,7 @@ namespace LuaRenamer.DefsGenerator;
 public sealed class LuaTypeRenderer
 {
     // enum CLR type -> exposed Lua name (e.g. TitleLanguage -> "Language"), sourced from EnvModel's
-    // enum-table properties (IReadOnlyDictionary<TEnum, TEnum>).
+    // LuaEnumTable<TEnum> properties.
     private static readonly Dictionary<Type, string> EnumToLuaName =
         SchemaReflection.EnumTableProps().ToDictionary(p => p.PropertyType.GetGenericArguments()[0], p => p.Name);
 
@@ -43,8 +41,7 @@ public sealed class LuaTypeRenderer
         if (fieldAttr.Description is { } description)
             sb.Append($"---{description}\n");
 
-        SchemaReflection.TryGetDelegateType(prop.PropertyType, out var delegateType); // the delegate itself, or TDelegate from LuaFunctionDef<TDelegate>
-        var invoke = delegateType.GetMethod("Invoke")!;
+        var invoke = SchemaReflection.ContractOf(prop.PropertyType)!.GetMethod("Invoke")!;
         var parameters = invoke.GetParameters();
 
         foreach (var param in parameters)
@@ -74,10 +71,10 @@ public sealed class LuaTypeRenderer
 
     private static string InferInner(Type t)
     {
-        if (t == typeof(long)) return LuaTypeNames.integer;
-        if (t == typeof(double)) return LuaTypeNames.number;
-        if (t == typeof(bool)) return LuaTypeNames.boolean;
-        if (t == typeof(string)) return LuaTypeNames.@string;
+        if (t == typeof(long)) return "integer";
+        if (t == typeof(double)) return "number";
+        if (t == typeof(bool)) return "boolean";
+        if (t == typeof(string)) return "string";
 
         if (t.IsEnum)
             return EnumToLuaName.TryGetValue(t, out var name) ? name : t.Name;
@@ -98,6 +95,6 @@ public sealed class LuaTypeRenderer
         if (SchemaReflection.IsLuaModel(t))
             return SchemaReflection.StripModel(t.Name);
 
-        return LuaTypeNames.table;
+        return "table";
     }
 }

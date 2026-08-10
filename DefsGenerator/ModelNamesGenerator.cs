@@ -11,11 +11,10 @@ namespace LuaRenamer.DefsGenerator;
 /// when the schema moves under them.
 /// </summary>
 /// <remarks>
-/// Replaces the standalone <c>NamesGenerator</c> Roslyn source generator: same output, but driven by the same
-/// reflection over <see cref="ILuaModel"/> that <see cref="ModelDefsGenerator"/> uses, so the two views of the
-/// schema cannot disagree about what a property is (see <see cref="SchemaReflection"/>). The hand-written base
-/// types (<c>Table</c>, <c>ArrayTable&lt;T&gt;</c>, <c>EnumTable&lt;T&gt;</c>) are ordinary source in the
-/// consuming project rather than a second emitted file.
+/// Driven by the same reflection over <see cref="ILuaModel"/> that <see cref="ModelDefsGenerator"/> uses, so
+/// the two views of the schema cannot disagree about what a property is (see <see cref="SchemaReflection"/>).
+/// The base types (<c>NamesNode</c>, <c>NamesArray&lt;T&gt;</c>, <c>NamesEnum&lt;T&gt;</c>) are hand-written
+/// source in LuaEnv rather than a second emitted file.
 /// </remarks>
 public sealed class ModelNamesGenerator
 {
@@ -42,11 +41,11 @@ public sealed class ModelNamesGenerator
 
     private void EmitNames(StringBuilder sb, Type type)
     {
-        sb.Append($"public sealed class {ModelToNames(type.Name)} : {Bt}.Table\n{{\n");
+        sb.Append($"public sealed class {ModelToNames(type.Name)} : {Bt}.NamesNode\n{{\n");
 
         foreach (var (prop, field) in SchemaReflection.LuaFields(type))
-            if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out var delegateType))
-                EmitCallable(sb, prop.Name, delegateType, field.Method ? ':' : '.');
+            if (SchemaReflection.ContractOf(prop.PropertyType) is { } contract)
+                EmitCallable(sb, prop.Name, contract, field.Method ? ':' : '.');
             else
                 EmitNavProp(sb, prop.Name, prop.PropertyType);
 
@@ -73,24 +72,24 @@ public sealed class ModelNamesGenerator
     {
         const string getCall = "Get()";
 
-        // Enum table -> EnumTable<TEnum>, so `Env.Language[TitleLanguage.English]` renders "Language.English".
+        // Enum table -> NamesEnum<TEnum>, so `Env.Language[TitleLanguage.English]` renders "Language.English".
         if (SchemaReflection.IsEnumTable(t))
         {
-            sb.Append($"    public {Bt}.EnumTable<global::{t.GetGenericArguments()[0].FullName}> {name} => new() {{ Fn = {getCall} }};\n");
+            sb.Append($"    public {Bt}.NamesEnum<global::{t.GetGenericArguments()[0].FullName}> {name} => new() {{ Path = {getCall} }};\n");
             return;
         }
 
-        // List of models -> ArrayTable<TNames>, so `Env.episodes[1]` renders "episodes[1]".
+        // List of models -> NamesArray<TNames>, so `Env.episodes[1]` renders "episodes[1]".
         if (SchemaReflection.ListElement(t) is { } elem && SchemaReflection.IsLuaModel(elem))
         {
-            sb.Append($"    public {Bt}.ArrayTable<{ModelToNames(elem.Name)}> {name} => new() {{ Fn = {getCall} }};\n");
+            sb.Append($"    public {Bt}.NamesArray<{ModelToNames(elem.Name)}> {name} => new() {{ Path = {getCall} }};\n");
             return;
         }
 
         // Nested model (incl. nullable reference like DateTimeModel?) -> navigable nav property.
         if (SchemaReflection.IsLuaModel(t))
         {
-            sb.Append($"    public {ModelToNames(t.Name)} {name} => new() {{ Fn = {getCall} }};\n");
+            sb.Append($"    public {ModelToNames(t.Name)} {name} => new() {{ Path = {getCall} }};\n");
             return;
         }
 

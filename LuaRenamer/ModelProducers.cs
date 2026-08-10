@@ -25,10 +25,9 @@ namespace LuaRenamer;
 /// </summary>
 /// <remarks>
 /// Lives in the plugin project, not LuaEnv: this is the Shoko-facing mapping layer, so keeping it here leaves
-/// LuaEnv depending on Shoko's enum types alone rather than its whole metadata interface graph.
-/// <c>getname</c> is a pure <see cref="AnimeGetName"/>/<see cref="TitleGetName"/> descriptor of the shared
-/// title-resolver closure; <see cref="ModelTranslator"/> mints the live Lua handle from it, so the producers
-/// carry no live Lua wiring.
+/// LuaEnv depending on Shoko's enum types alone rather than its whole metadata interface graph. The models'
+/// Lua-bodied callables (<c>getname</c>) are static, so <see cref="ModelTranslator"/> reads them off the type
+/// and the producers carry no Lua wiring at all.
 /// </remarks>
 public static class ModelProducers
 {
@@ -94,13 +93,7 @@ public static class ModelProducers
                 primarySeries.TmdbMovies,
                 primarySeries.TmdbShows,
                 args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
-            ImportFolderType = EnumTable<DropFolderType>(),
-            AnimeType = EnumTable<AnimeType>(),
-            EpisodeType = EnumTable<EpisodeType>(),
-            TitleType = EnumTable<TitleType>(),
-            Language = EnumTable<TitleLanguage>(),
-            RelationType = EnumTable<RelationType>(),
-            SeasonName = EnumTable<YearlySeason>(),
+            // The enum tables need no assignment — LuaEnumTable<TEnum> carries no data.
         };
     }
 
@@ -169,17 +162,6 @@ public static class ModelProducers
         };
     }
 
-    // ---- enum tables ---------------------------------------------------------------------------
-
-    /// <summary>
-    /// Builds the identity name→name map for an enum.
-    /// The translator marshals every key/value to its enum name, giving the Lua <c>{ Name = "Name", ... }</c>
-    /// table. <see cref="Enumerable.Distinct{TSource}(IEnumerable{TSource})"/> collapses aliased values to the
-    /// one canonical name <see cref="Enum.GetName(Type, object)"/> returns.
-    /// </summary>
-    public static IReadOnlyDictionary<T, T> EnumTable<T>() where T : struct, Enum =>
-        Enum.GetValues<T>().Distinct().ToDictionary(v => v, v => v);
-
     // ---- anime ---------------------------------------------------------------------------------
 
     public static AnimeModel AnimeToModel(IAnidbAnime anime, bool includeRelations = true)
@@ -188,7 +170,6 @@ public static class ModelProducers
         var series = anime.ShokoSeries.FirstOrDefault();
         return new AnimeModel
         {
-            getname = new AnimeGetName(),
             airdate = DateTimeToModel(anime.AirDate?.ToDateTime()),
             enddate = DateTimeToModel(anime.EndDate?.ToDateTime()),
             rating = anime.Rating,
@@ -323,7 +304,6 @@ public static class ModelProducers
 
     public static EpisodeModel EpisodeToModel(IAnidbEpisode episode, string prefix) => new()
     {
-        getname = new TitleGetName(),
         duration = (long)episode.Runtime.TotalSeconds,
         number = episode.EpisodeNumber,
         type = episode.Type,
@@ -356,7 +336,6 @@ public static class ModelProducers
 
     private static TmdbMovieModel MovieToModel(ITmdbMovie movie) => new()
     {
-        getname = new TitleGetName(),
         id = movie.ID,
         titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
@@ -369,7 +348,6 @@ public static class ModelProducers
 
     private static TmdbShowModel ShowToModel(ITmdbShow show) => new()
     {
-        getname = new TitleGetName(),
         id = show.ID,
         titles = show.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
@@ -385,7 +363,6 @@ public static class ModelProducers
 
     private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode) => new()
     {
-        getname = new TitleGetName(),
         showid = episode.SeriesID,
         id = episode.ID,
         titles = episode.Titles.Select(TitleToModel).ToList(),

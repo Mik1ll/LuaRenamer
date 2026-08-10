@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Text;
 using LuaRenamer.LuaEnv;
-using LuaRenamer.LuaEnv.Attributes;
 
 namespace LuaRenamer.DefsGenerator;
 
@@ -48,13 +47,10 @@ public sealed class ModelDefsGenerator
             var functions = new List<(PropertyInfo prop, LuaFieldAttribute fieldAttr, string sep)>();
             sb.Append($"---@class (exact) {className}\n");
 
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(type))
             {
-                if (prop.GetCustomAttribute<LuaFieldAttribute>() is not { } fieldAttr)
-                    continue;
-
-                // Callable (delegate or LuaFunctionDef subclass) -> deferred to the function section; ':' if Method else '.'.
-                if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out _))
+                // Callable (implemented in C# or Lua) -> deferred to the function section; ':' if Method else '.'.
+                if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
                     functions.Add((prop, fieldAttr, fieldAttr.Method ? ":" : "."));
                 else
                     sb.Append($"---@field {prop.Name} {_renderer.TypeOf(prop)}{(fieldAttr.Description is { } d ? $" # {d}" : "")}\n");
@@ -82,10 +78,10 @@ public sealed class ModelDefsGenerator
 
             sb.Append($"---@enum {prop.Name}\n");
             sb.Append($"{prop.Name} = {{\n");
-            // Most enums are a flat list; the one with a bespoke sectioned layout renders itself.
-            // Values over GetNames to prevent creating new enum entries for aliases of an existing value.
+            // Most enums are a flat list; the one with a bespoke sectioned layout renders itself. Names come
+            // from LuaEnumTable, the same source the translator builds the runtime table from.
             sb.Append(TitleLanguageSections.Render(enumType, RenderMappings)
-                      ?? RenderMappings(Enum.GetValues(enumType).Cast<object>().Distinct().Select(v => Enum.GetName(enumType, v)!)));
+                      ?? RenderMappings(LuaEnumTable.Names(enumType)));
             sb.Append("}\n\n");
         }
 
@@ -103,13 +99,9 @@ public sealed class ModelDefsGenerator
         var sb = new StringBuilder();
         sb.Append("---@meta\n\n");
 
-        foreach (var prop in typeof(EnvModel).GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
-                     .Where(p => !SchemaReflection.IsEnumTable(p)))
+        foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(typeof(EnvModel)).Where(x => !SchemaReflection.IsEnumTable(x.Prop)))
         {
-            if (prop.GetCustomAttribute<LuaFieldAttribute>() is not { } fieldAttr)
-                continue;
-
-            if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out _))
+            if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
             {
                 sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, prop.Name));
             }

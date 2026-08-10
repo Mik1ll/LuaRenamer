@@ -22,7 +22,7 @@ public sealed class LuaSandbox : Lua
 
     private const string BaseEnv =
         """
-        return {
+        local env = {
           ipairs = ipairs,
           next = next,
           pairs = pairs,
@@ -53,23 +53,32 @@ public sealed class LuaSandbox : Lua
           utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },
           error = error,
         }
+
+        -- `("a b"):cleanspaces()` resolves through the real string table, not env.string where utils.lua
+        -- defines its helpers. __index bridges the two; env.string is never rebound, so later helpers land too.
+        setmetatable(string, {__index = env.string})
+        return env
         """;
 
+    // Loads a chunk against `env` and pcalls it. Returns [false, error] if the chunk failed to load or threw,
+    // otherwise pcall's results. `tostring` on the error keeps a non-string error object (`error({})`) reportable.
     private const string SandboxFunction =
         """
         return function (untrusted_code, env)
-          setmetatable(string, {__index = env.string})
           local untrusted_function, message = load(untrusted_code, nil, 't', env)
           if not untrusted_function then return false, message end
-          result = {pcall(untrusted_function)}
-          setmetatable(string, nil)
+          local result = {pcall(untrusted_function)}
+          if not result[1] then return false, tostring(result[2]) end
           return table.unpack(result)
         end
         """;
 
+    private const string TableConstructor = "return function () return {} end";
+
     #endregion
 
     private readonly LuaFunction _runSandboxed;
+    private readonly LuaFunction _newTable;
     private readonly Dictionary<string, LuaFunction> _compiled = [];
 
     /// <param name="trustedChunks">
@@ -80,6 +89,7 @@ public sealed class LuaSandbox : Lua
     {
         State.Encoding = Encoding.UTF8;
         _runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
+        _newTable = (LuaFunction)DoString(TableConstructor)[0];
         Env = (LuaTable)DoString(BaseEnv)[0];
         foreach (var chunk in trustedChunks)
             LoadChunk(chunk);
@@ -89,18 +99,29 @@ public sealed class LuaSandbox : Lua
     public LuaTable Env { get; }
 
     /// <summary>
-    /// Runs an untrusted user script against <see cref="Env"/>. Returns the sandbox runner's raw results:
-    /// <c>[false, message]</c> when the chunk failed to load or threw, the pcall results otherwise.
+    /// Runs an untrusted user script against <see cref="Env"/>.
     /// </summary>
-    public object[] Run(string script) => _runSandboxed.Call(script, Env);
+    /// <returns>
+    /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
+    /// </returns>
+    public string? Run(string script) =>
+        _runSandboxed.Call(script, Env) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
 
     /// <summary>
     /// Compiles a <c>return function ... end</c> chunk against <see cref="Env"/>. Memoized by source — the
     /// same source in the same env always yields the same function, so the shared <c>getname</c> closure is
     /// minted once no matter how many model nodes carry it.
     /// </summary>
-    public LuaFunction CompileFunction(string source) =>
-        _compiled.TryGetValue(source, out var fn) ? fn : _compiled[source] = (LuaFunction)_runSandboxed.Call(source, Env)[1];
+    public LuaFunction CompileFunction(string source)
+    {
+        if (_compiled.TryGetValue(source, out var cached)) return cached;
+        return _compiled[source] = _runSandboxed.Call(source, Env) switch
+        {
+            [true, LuaFunction fn, ..] => fn,
+            [not true, var error, ..] => throw new ArgumentException($"chunk did not compile: {error}", nameof(source)),
+            _ => throw new ArgumentException("chunk did not return a function", nameof(source)),
+        };
+    }
 
     /// <summary>
     /// Resolves a value inside <see cref="Env"/> from a path of the form the generated <c>*Names</c> DSL
@@ -131,8 +152,8 @@ public sealed class LuaSandbox : Lua
         return current;
     }
 
-    /// <summary>Overload for interior <c>*Names</c> nodes, whose path lives in <c>Fn</c>.</summary>
-    public object? GetValue(Names.Table node) => GetValue(node.Fn);
+    /// <summary>Overload for interior <c>*Names</c> nodes, whose path lives in <c>Path</c>.</summary>
+    public object? GetValue(Names.NamesNode node) => GetValue(node.Path);
 
     /// <summary>
     /// Splits a path into the Lua keys to walk: a string per name, an int per <c>[n]</c> index. Validates the
@@ -173,18 +194,17 @@ public sealed class LuaSandbox : Lua
     }
 
     /// <summary>
-    /// Creates a fresh, empty Lua table. Round-trips through the real globals (which <see cref="Env"/> never
-    /// exposes to user scripts) because NLua offers no direct table constructor.
+    /// Creates a fresh, empty Lua table. Goes through a compiled constructor rather than
+    /// <see cref="Lua.NewTable(string)"/>, which would have to name the table in the real globals to hand it back.
     /// </summary>
-    public LuaTable NewTable()
-    {
-        NewTable("_");
-        return GetTable("_");
-    }
+    public LuaTable NewTable() => (LuaTable)_newTable.Call()[0];
 
     /// <summary>
     /// Loads a trusted chunk into <see cref="Env"/>, layering its definitions onto the sandbox globals.
-    /// Errors surface as the chunk's own Lua error rather than a return value.
     /// </summary>
-    private void LoadChunk(string source) => _runSandboxed.Call(source, Env);
+    private void LoadChunk(string source)
+    {
+        if (Run(source) is { } error)
+            throw new ArgumentException($"trusted chunk failed to load: {error}", nameof(source));
+    }
 }
