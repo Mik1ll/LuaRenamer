@@ -45,9 +45,10 @@ public sealed record RelationModel : ILuaModel
 
 public sealed record AnimeModel : ILuaModel
 {
-    // Bound Lua closure (see AnimeGetName); the ':' method-call syntax is a [LuaField] flag.
+    // Static because the closure is the same for every node; the translator writes the one shared handle
+    // onto each table. The ':' method-call syntax is a [LuaField] flag.
     [LuaField("Get the anime title in the specified language", Method = true)]
-    public required AnimeGetName getname { get; init; }
+    public static LuaFunc<AnimeTitleDelegate> getname => LuaFunctions.AnimeGetName;
 
     [LuaField("First air date of the anime")] public DateTimeModel? airdate { get; init; }
     [LuaField("Last air date of the anime")] public DateTimeModel? enddate { get; init; }
@@ -175,7 +176,7 @@ public sealed record FileModel : ILuaModel
 public sealed record EpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("Duration of the episode in seconds")] public required long duration { get; init; }
     [LuaField("Episode number")] public required long number { get; init; }
@@ -203,7 +204,7 @@ public sealed record GroupModel : ILuaModel
 public sealed record TmdbShowModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB show ID")] public required long id { get; init; }
 
@@ -229,7 +230,7 @@ public sealed record TmdbShowModel : ILuaModel
 public sealed record TmdbMovieModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB movie ID")] public required long id { get; init; }
 
@@ -250,7 +251,7 @@ public sealed record TmdbMovieModel : ILuaModel
 public sealed record TmdbEpisodeModel : ILuaModel
 {
     [LuaField("Get the title in the specified language", Method = true)]
-    public required TitleGetName getname { get; init; }
+    public static LuaFunc<TitleDelegate> getname => LuaFunctions.GetName;
 
     [LuaField("TMDB episode ID")] public required long id { get; init; }
     [LuaField("TMDB show ID")] public required long showid { get; init; }

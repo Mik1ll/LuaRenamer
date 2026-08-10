@@ -49,8 +49,8 @@ public sealed class ModelDefsGenerator
 
             foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(type))
             {
-                // Callable (delegate or LuaFunctionDef subclass) -> deferred to the function section; ':' if Method else '.'.
-                if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out _))
+                // Callable (implemented in C# or Lua) -> deferred to the function section; ':' if Method else '.'.
+                if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
                     functions.Add((prop, fieldAttr, fieldAttr.Method ? ":" : "."));
                 else
                     sb.Append($"---@field {prop.Name} {_renderer.TypeOf(prop)}{(fieldAttr.Description is { } d ? $" # {d}" : "")}\n");
@@ -101,7 +101,7 @@ public sealed class ModelDefsGenerator
 
         foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(typeof(EnvModel)).Where(x => !SchemaReflection.IsEnumTable(x.Prop)))
         {
-            if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out _))
+            if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
             {
                 sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, prop.Name));
             }

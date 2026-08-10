@@ -44,8 +44,8 @@ public sealed class ModelNamesGenerator
         sb.Append($"public sealed class {ModelToNames(type.Name)} : {Bt}.NamesNode\n{{\n");
 
         foreach (var (prop, field) in SchemaReflection.LuaFields(type))
-            if (SchemaReflection.TryGetDelegateType(prop.PropertyType, out var delegateType))
-                EmitCallable(sb, prop.Name, delegateType, field.Method ? ':' : '.');
+            if (SchemaReflection.ContractOf(prop.PropertyType) is { } contract)
+                EmitCallable(sb, prop.Name, contract, field.Method ? ':' : '.');
             else
                 EmitNavProp(sb, prop.Name, prop.PropertyType);
 

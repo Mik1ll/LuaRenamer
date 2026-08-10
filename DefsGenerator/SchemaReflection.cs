@@ -19,28 +19,14 @@ internal static class SchemaReflection
     internal static bool IsGenericDef(Type t, Type def) => t.IsGenericType && t.GetGenericTypeDefinition() == def;
 
     /// <summary>
-    /// A callable field is either a CLR delegate (a host free function) or a <see cref="LuaFunctionDef{TDelegate}"/>
-    /// subclass (a bound Lua callable carrying its signature). Both expose a delegate type whose Invoke method
-    /// drives the emitted signature.
+    /// The delegate contract a callable field exposes — the delegate type itself when the implementation is
+    /// C#, or <c>TDelegate</c> when it is a <see cref="LuaFunc{TDelegate}"/>. Null when the field is not
+    /// callable. Its Invoke method drives every emitted signature, so both implementations document identically.
     /// </summary>
-    internal static bool TryGetDelegateType(Type t, out Type delegateType)
-    {
-        if (typeof(Delegate).IsAssignableFrom(t))
-        {
-            delegateType = t;
-            return true;
-        }
-
-        for (var b = t.BaseType; b != null; b = b.BaseType)
-            if (IsGenericDef(b, typeof(LuaFunctionDef<>)))
-            {
-                delegateType = b.GetGenericArguments()[0];
-                return true;
-            }
-
-        delegateType = null!;
-        return false;
-    }
+    internal static Type? ContractOf(Type t) =>
+        typeof(Delegate).IsAssignableFrom(t) ? t
+        : IsGenericDef(t, typeof(LuaFunc<>)) ? t.GetGenericArguments()[0]
+        : null;
 
     /// <summary>Drops the <c>Model</c> suffix: <c>AnimeModel</c> -> <c>Anime</c>.</summary>
     internal static string StripModel(string name) => name.EndsWith("Model") ? name[..^5] : name;

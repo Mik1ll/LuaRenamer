@@ -8,7 +8,7 @@ namespace LuaRenamer.LuaEnv;
 /// Walks an <see cref="ILuaModel"/> graph and materializes it into <see cref="LuaTable"/>s inside a
 /// <see cref="LuaSandbox"/>. This is the single place every marshaling rule lives — enum→name, null→absent,
 /// list→1-based sequence, dictionary→map, <see cref="LuaEnumTable{TEnum}"/>→identity map, and
-/// <see cref="LuaFunctionDef"/>→compiled Lua handle.
+/// <see cref="LuaFunc{TDelegate}"/>→compiled Lua handle.
 /// </summary>
 /// <remarks>
 /// Lua handles are created here lazily rather than up front, so the model graph stays pure data; the sandbox
@@ -29,6 +29,8 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
 
     private LuaTable WriteModel(ILuaModel model, LuaTable table)
     {
+        // GetValue ignores the instance for a static property, which is how the Lua-bodied callables — the
+        // same for every node, so declared static — read back here alongside the per-node data.
         foreach (var (prop, _) in LuaSchema.LuaFields(model.GetType()))
             if (WriteValue(prop.GetValue(model)) is { } v) // null => leave key absent (== Lua nil)
                 table[prop.Name] = v;
@@ -40,8 +42,8 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
         null => null,
         string s => s,                               // before IEnumerable (string is IEnumerable<char>)
         Enum e => Enum.GetName(e.GetType(), e),       // the ONE place enums become their name
-        Delegate => value,                            // host free-function delegate, marshaled as-is
-        LuaFunctionDef def => sandbox.CompileFunction(def.Source), // Lua-bodied callable (getname)
+        Delegate => value,                            // contract implemented in C#, marshaled as-is
+        ILuaFunc f => sandbox.CompileFunction(f.Source), // contract implemented in Lua, compiled on demand
         ILuaModel m => WriteModel(m, sandbox.NewTable()),
         IDictionary dict => WriteMap(dict),           // before IEnumerable (IDictionary : IEnumerable)
         IEnumerable seq => WriteSequence(seq),

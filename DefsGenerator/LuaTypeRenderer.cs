@@ -41,8 +41,7 @@ public sealed class LuaTypeRenderer
         if (fieldAttr.Description is { } description)
             sb.Append($"---{description}\n");
 
-        SchemaReflection.TryGetDelegateType(prop.PropertyType, out var delegateType); // the delegate itself, or TDelegate from LuaFunctionDef<TDelegate>
-        var invoke = delegateType.GetMethod("Invoke")!;
+        var invoke = SchemaReflection.ContractOf(prop.PropertyType)!.GetMethod("Invoke")!;
         var parameters = invoke.GetParameters();
 
         foreach (var param in parameters)
