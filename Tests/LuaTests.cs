@@ -18,6 +18,7 @@ using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Stub;
 using Shoko.Abstractions.Metadata.Tmdb;
+using Shoko.Abstractions.Metadata.Tmdb.CrossReferences;
 using Shoko.Abstractions.Plugin;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
@@ -50,6 +51,8 @@ public class LuaTests
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbMovieCrossReferences == new List<ITmdbMovieCrossReference>() &&
+            s.TmdbEpisodeCrossReferences == new List<ITmdbEpisodeCrossReference>() &&
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
@@ -120,6 +123,8 @@ public class LuaTests
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbMovieCrossReferences == new List<ITmdbMovieCrossReference>() &&
+            s.TmdbEpisodeCrossReferences == new List<ITmdbEpisodeCrossReference>() &&
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
@@ -800,6 +805,8 @@ public class LuaTests
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbMovieCrossReferences == new List<ITmdbMovieCrossReference>() &&
+            s.TmdbEpisodeCrossReferences == new List<ITmdbEpisodeCrossReference>() &&
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
@@ -835,6 +842,8 @@ public class LuaTests
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbMovieCrossReferences == new List<ITmdbMovieCrossReference>() &&
+            s.TmdbEpisodeCrossReferences == new List<ITmdbEpisodeCrossReference>() &&
             s.TmdbShows == new List<ITmdbShow> { tmdbShow.Object } &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
@@ -883,6 +892,8 @@ public class LuaTests
             s.AnidbAnime == animeMock.Object &&
             s.Title == shokoTitle &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
+            s.TmdbMovieCrossReferences == new List<ITmdbMovieCrossReference>() &&
+            s.TmdbEpisodeCrossReferences == new List<ITmdbEpisodeCrossReference>() &&
             s.TmdbShows == tmdbShows &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == Mock.Of<ITitle>(t => t.Value == anidbTitle));

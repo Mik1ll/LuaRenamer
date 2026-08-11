@@ -234,6 +234,9 @@ public sealed record TmdbMovieModel : ILuaModel
 
     [LuaField("TMDB movie ID")] public required long id { get; init; }
 
+    [LuaField("AniDB episode IDs this movie is linked to")]
+    public required IReadOnlyList<long> anidbepisodeids { get; init; }
+
     [LuaField("All available titles for the movie")]
     public required IReadOnlyList<TitleModel> titles { get; init; }
 
@@ -255,6 +258,10 @@ public sealed record TmdbEpisodeModel : ILuaModel
 
     [LuaField("TMDB episode ID")] public required long id { get; init; }
     [LuaField("TMDB show ID")] public required long showid { get; init; }
+
+    [LuaField("AniDB episode IDs this TMDB episode is linked to")]
+    public required IReadOnlyList<long> anidbepisodeids { get; init; }
+
 
     [LuaField("All available titles for the episode")]
     public required IReadOnlyList<TitleModel> titles { get; init; }

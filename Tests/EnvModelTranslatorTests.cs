@@ -123,7 +123,7 @@ public class EnvModelTranslatorTests
         [
             new TmdbMovieModel
             {
-                id = 1, titles = Titles(), defaultname = "MovieDef",
+                id = 1, anidbepisodeids = [11, 12], titles = Titles(), defaultname = "MovieDef",
                 preferredname = "MoviePref", rating = 7.0, restricted = false, studios = ["Studio X"],
                 airdate = Date(2019),
             },
@@ -142,7 +142,7 @@ public class EnvModelTranslatorTests
         [
             new TmdbEpisodeModel
             {
-                id = 3, showid = 2, titles = Titles(), defaultname = "EpDef",
+                id = 3, showid = 2, anidbepisodeids = [13, 14], titles = Titles(), defaultname = "EpDef",
                 preferredname = "EpPref", type = EpisodeType.Episode, number = 1, seasonnumber = 1,
                 airdate = Date(2018),
             },
