@@ -89,9 +89,7 @@ public static class ModelProducers
             importfolders = args.AvailableFolders.Select(ImportFolderToModel).ToList(),
             groups = groups,
             group = groups.Count > 0 ? groups[0] : null,
-            tmdb = TmdbToModel(
-                primarySeries.TmdbMovies,
-                primarySeries.TmdbShows,
+            tmdb = TmdbToModel(primarySeries,
                 args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
             // The enum tables need no assignment — LuaEnumTable<TEnum> carries no data.
         };
@@ -326,17 +324,33 @@ public static class ModelProducers
 
     // ---- tmdb ----------------------------------------------------------------------------------
 
-    public static TmdbModel TmdbToModel(
-        IEnumerable<ITmdbMovie> movies, IEnumerable<ITmdbShow> shows, IEnumerable<ITmdbEpisode> episodes) => new()
+    /// <summary>
+    /// The AniDB episode links are read off <paramref name="series"/>' cross references rather than each TMDB
+    /// entry's own, so they stay scoped to this anime — a TMDB movie or episode linked from several anime
+    /// carries cross references for all of them. Both links are many-to-many: one TMDB entry can cover
+    /// several AniDB episodes, which is also why <paramref name="episodes"/> is deduplicated.
+    /// </summary>
+    public static TmdbModel TmdbToModel(IShokoSeries series, IEnumerable<ITmdbEpisode> episodes)
     {
-        movies = movies.Select(MovieToModel).ToList(),
-        shows = shows.Select(ShowToModel).ToList(),
-        episodes = episodes.Select(TmdbEpisodeToModel).ToList(),
-    };
+        var movieLinks = series.TmdbMovieCrossReferences
+            .GroupBy(x => x.TmdbMovieID)
+            .ToDictionary(g => g.Key, g => g.Select(x => (long)x.AnidbEpisodeID).Distinct().ToList());
+        var episodeLinks = series.TmdbEpisodeCrossReferences
+            .GroupBy(x => x.TmdbEpisodeID)
+            .ToDictionary(g => g.Key, g => g.Select(x => (long)x.AnidbEpisodeID).Distinct().ToList());
+        return new TmdbModel
+        {
+            movies = series.TmdbMovies.Select(m => MovieToModel(m, movieLinks.GetValueOrDefault(m.ID) ?? [])).ToList(),
+            shows = series.TmdbShows.Select(ShowToModel).ToList(),
+            episodes = episodes.DistinctBy(e => e.ID)
+                .Select(e => TmdbEpisodeToModel(e, episodeLinks.GetValueOrDefault(e.ID) ?? [])).ToList(),
+        };
+    }
 
-    private static TmdbMovieModel MovieToModel(ITmdbMovie movie) => new()
+    private static TmdbMovieModel MovieToModel(ITmdbMovie movie, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
         id = movie.ID,
+        anidbepisodeids = anidbEpisodeIds,
         titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(movie.PreferredTitle?.Value) ? null : movie.PreferredTitle?.Value,
@@ -361,10 +375,11 @@ public static class ModelProducers
         seasons = show.YearlySeasons.Select(SeasonToModel).ToList(),
     };
 
-    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode) => new()
+    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
         showid = episode.SeriesID,
         id = episode.ID,
+        anidbepisodeids = anidbEpisodeIds,
         titles = episode.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(episode.DefaultTitle?.Value) ? null : episode.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(episode.PreferredTitle?.Value) ? null : episode.PreferredTitle?.Value,
