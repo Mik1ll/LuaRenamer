@@ -53,7 +53,7 @@ public class EnvModelTranslatorTests
         isdst = false,
     };
 
-    private AnimeModel Anime(long id) => new()
+    private static AnimeModel Anime(long id) => new()
     {
         airdate = Date(2020),
         enddate = null,
@@ -72,7 +72,7 @@ public class EnvModelTranslatorTests
         seasons = [new SeasonModel { year = 2020, season = YearlySeason.Winter }],
     };
 
-    private EpisodeModel Episode(long id) => new()
+    private static EpisodeModel Episode(long id) => new()
     {
         duration = 1440,
         number = 1,
@@ -84,7 +84,7 @@ public class EnvModelTranslatorTests
         prefix = "",
     };
 
-    private ImportFolderModel Folder(long id) => new()
+    private static ImportFolderModel Folder(long id) => new()
     {
         id = id,
         name = "Import",
@@ -92,7 +92,7 @@ public class EnvModelTranslatorTests
         type = Enum.GetValues<DropFolderType>().First(),
     };
 
-    private FileModel File() => new()
+    private static FileModel File() => new()
     {
         name = "video",
         extension = ".mkv",
@@ -143,7 +143,7 @@ public class EnvModelTranslatorTests
         hashes = new HashesModel { crc = "ABCD1234", md5 = null, ed2k = "ed2khash", sha1 = null },
     };
 
-    private TmdbModel Tmdb() => new()
+    private static TmdbModel Tmdb() => new()
     {
         movies =
         [
@@ -241,7 +241,7 @@ public class EnvModelTranslatorTests
         Load();
         Assert.AreEqual("E3", _lua.DoString("return env.episode_numbers(3)")[0]); // '.' plain-call syntax
         _ = _lua.DoString("env.log('hello'); env.logerror('boom')");
-        CollectionAssert.AreEqual(new[] { "I:hello", "E:boom" }, _logged);
+        Assert.AreSequenceEqual(["I:hello", "E:boom"], _logged);
     }
 
     [TestMethod]

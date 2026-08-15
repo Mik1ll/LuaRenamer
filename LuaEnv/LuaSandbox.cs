@@ -158,7 +158,7 @@ public sealed class LuaSandbox : Lua
 
     /// <summary>
     /// Splits a path into the Lua keys to walk: a string per name, an int per <c>[n]</c> index. Validates the
-    /// whole path up front, so <see cref="GetValue"/> either walks cleanly or throws before touching Lua.
+    /// whole path up front, so <see cref="GetValue(string)"/> either walks cleanly or throws before touching Lua.
     /// </summary>
     private static List<object> ParseKeys(string path)
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using LuaRenamer.LuaEnv;
@@ -100,7 +101,7 @@ public static class ModelProducers
     /// <summary>
     /// The primary series for a relocation: the lowest AniDB anime id. The single definition of "primary" —
     /// <see cref="EnvToModel"/> and <see cref="LuaRenamer"/>'s move/rename fallbacks all resolve it through
-    /// here rather than trusting the order <see cref="RelocationContext{T}.Series"/> arrives in.
+    /// here rather than trusting the order <c>RelocationContext.Series</c> arrives in.
     /// </summary>
     /// <remarks>Throws when the context has no series; callers rely on the emptiness guard in
     /// <see cref="LuaRenamer.GetPath"/>.</remarks>
@@ -125,8 +126,8 @@ public static class ModelProducers
             .Select((e, i) => (e.Type, RangeId: e.EpisodeNumber - i, Num: e.EpisodeNumber)) // RangeId effectively groups sequences of numbers
             .GroupBy(x => (x.Type, x.RangeId))
             .Select(g => g.First().Num is var fn && g.Last().Num is var ln && Utils.EpPrefix[g.Key.Type] is var pre && "D" + pad is var fmt && fn == ln
-                ? $"{pre}{fn.ToString(fmt)}"
-                : $"{pre}{fn.ToString(fmt)}-{ln.ToString(fmt)}"));
+                ? $"{pre}{fn.ToString(fmt, CultureInfo.InvariantCulture)}"
+                : $"{pre}{fn.ToString(fmt, CultureInfo.InvariantCulture)}-{ln.ToString(fmt, CultureInfo.InvariantCulture)}"));
 
     // ---- shared leaf mappers -------------------------------------------------------------------
 
@@ -237,7 +238,7 @@ public static class ModelProducers
             ? null
             : new AniDbModel
             {
-                id = int.Parse(aniDb.ReleaseURI![23..], System.Globalization.NumberStyles.Integer),
+                id = int.Parse(aniDb.ReleaseURI![23..], NumberStyles.Integer, CultureInfo.InvariantCulture),
                 censored = aniDb.IsCensored,
                 source = Enum.GetName(aniDb.Source)!,
                 version = aniDb.Version,

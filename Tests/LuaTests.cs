@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -316,7 +317,7 @@ public class LuaTests
     // @formatter:on
     public void TestEpisodeNumbers(int[] seriesIds, int[] epNums, byte[] epTypes, int pad, string expected)
     {
-        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = {Names.episode_numbers(pad.ToString())}");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = {Names.episode_numbers(pad.ToString(CultureInfo.InvariantCulture))}");
         IReadOnlyList<ITitle> titles = args.Episodes[0].AnidbEpisode.Titles;
         IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes.Cast<EpisodeType>());
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
@@ -465,8 +466,8 @@ public class LuaTests
             var e2Missing = e1Set.Except(e2Set).ToList();
             var e1Missing = e2Set.Except(e1Set).ToList();
 
-            Assert.IsFalse(e2Missing.Any());
-            Assert.IsFalse(e1Missing.Any());
+            Assert.IsEmpty(e2Missing);
+            Assert.IsEmpty(e1Missing);
         }
 
         var defsEnv = new Lua();
@@ -620,7 +621,6 @@ public class LuaTests
     /// non-circular oracle for that, which is what the "Verify generated Lua defs are current" CI step does.
     /// </remarks>
     [TestMethod]
-    [Obsolete]
     public void TestLuaDocsGenerator()
     {
         var generator = new ModelDefsGenerator();

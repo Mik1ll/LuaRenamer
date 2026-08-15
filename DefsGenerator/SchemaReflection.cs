@@ -32,7 +32,7 @@ internal static class SchemaReflection
     /// <summary>Drops the <c>Model</c> suffix: <c>AnimeModel</c> -> <c>Anime</c>.</summary>
     internal static string StripModel(string name) => name.EndsWith("Model") ? name[..^5] : name;
 
-    /// <summary>An enum table is a <see cref="LuaEnumTable{TEnum}"/>; <typeparamref name="TEnum"/> is the exposed enum.</summary>
+    /// <summary>An enum table is a <see cref="LuaEnumTable{TEnum}"/>; its <c>TEnum</c> argument is the exposed enum.</summary>
     internal static bool IsEnumTable(Type t) => IsGenericDef(t, typeof(LuaEnumTable<>));
 
     internal static bool IsEnumTable(PropertyInfo p) => IsEnumTable(p.PropertyType);

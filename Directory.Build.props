@@ -14,6 +14,10 @@
         <AnalysisLevel>latest</AnalysisLevel>
         <AnalysisMode>Recommended</AnalysisMode>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <!-- Only here to enable IDE0005 (unnecessary usings) on build, which Roslyn gates on it
+             (dotnet/roslyn#41640). Nothing consumes the XML, so undocumented publics aren't an error. -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
 
     <!-- NLua's shipped PDB has no SourceLink, and its build path ("D:\a\1\s") collides

@@ -24,7 +24,7 @@ public static class LuaEnumTable
     public static IEnumerable<string> Names(Type enumType) =>
         Enum.GetValues(enumType).Cast<object>().Distinct().Select(v => Enum.GetName(enumType, v)!);
 
-    /// <summary><typeparamref name="TEnum"/> for a closed <see cref="LuaEnumTable{TEnum}"/>, else null.</summary>
+    /// <summary>The <c>TEnum</c> argument of a closed <see cref="LuaEnumTable{TEnum}"/>, else null.</summary>
     public static Type? EnumTypeOf(Type t) =>
         t.IsGenericType && t.GetGenericTypeDefinition() == typeof(LuaEnumTable<>) ? t.GetGenericArguments()[0] : null;
 }

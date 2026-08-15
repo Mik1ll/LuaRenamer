@@ -166,7 +166,7 @@ public class ModelTranslatorTests
         LuaTable a2 = _translator.Translate(FullAnime());
 
         var stored = a1["getname"];
-        Assert.IsInstanceOfType(stored, typeof(LuaFunction));
+        _ = Assert.IsInstanceOfType<LuaFunction>(stored);
         Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across translations
     }
 
@@ -208,8 +208,8 @@ public class ModelTranslatorTests
         return m;
     }
 
-    private static ITitle Title(string value, TitleLanguage lang, string code, TitleType type) =>
-        new TitleStub { Value = value, Language = lang, LanguageCode = code, Type = type, Source = DataSource.AniDB };
+    private static TitleStub Title(string value, TitleLanguage lang, string code, TitleType type) =>
+        new() { Value = value, Language = lang, LanguageCode = code, Type = type, Source = DataSource.AniDB };
 
     [TestMethod]
     public void Producer_Maps_AnidbAnime_To_LuaConsumable_Table()
