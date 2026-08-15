@@ -17,7 +17,7 @@ switch (args)
         var generator = new ModelDefsGenerator();
         var dir = Path.GetFullPath(luaDir);
         Write(Path.Combine(dir, "defs.lua"), generator.GenerateDefs());
-        Write(Path.Combine(dir, "enums.lua"), generator.GenerateEnums());
+        Write(Path.Combine(dir, "enums.lua"), ModelDefsGenerator.GenerateEnums());
         Write(Path.Combine(dir, "env.lua"), generator.GenerateEnv());
         break;
 
@@ -35,6 +35,6 @@ static void Write(string path, string contents)
     if (File.Exists(path) && File.ReadAllText(path) == contents)
         return;
     if (Path.GetDirectoryName(path) is { Length: > 0 } dir)
-        Directory.CreateDirectory(dir);
+        _ = Directory.CreateDirectory(dir);
     File.WriteAllText(path, contents);
 }

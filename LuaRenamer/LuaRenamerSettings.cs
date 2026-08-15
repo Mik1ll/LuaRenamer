@@ -16,10 +16,10 @@ public class LuaRenamerSettings : IRelocationProviderConfiguration, IConfigurati
 {
     public static LuaRenamerSettings New(IConfigurationService configurationService, IPluginManager pluginManager)
     {
-                var defaultFile = new FileInfo(Path.Combine(LuaScripts.LuaPath, "default.lua"));
-                if (!defaultFile.Exists) return new();
-                using var text = defaultFile.OpenText();
-                return new() { Script = text.ReadToEnd() };
+        var defaultFile = new FileInfo(Path.Combine(LuaScripts.LuaPath, "default.lua"));
+        if (!defaultFile.Exists) return new();
+        using StreamReader text = defaultFile.OpenText();
+        return new() { Script = text.ReadToEnd() };
     }
 
     [Display(Name = "Remove Illegal Characters",

@@ -11,7 +11,6 @@ using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Tmdb;
 using Shoko.Abstractions.Video;
-using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Media;
 using Shoko.Abstractions.Video.Relocation;
 using Shoko.Abstractions.Video.Release;
@@ -43,8 +42,8 @@ public static class ModelProducers
     /// </summary>
     public static EnvModel EnvToModel(RelocationContext<LuaRenamerSettings> args, ILogger logger)
     {
-        var primarySeries = PrimarySeries(args);
-        var primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
+        IShokoSeries primarySeries = PrimarySeries(args);
+        IShokoEpisode primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
             .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
             .ThenBy(e => e.EpisodeNumber)
             .First();
@@ -70,11 +69,13 @@ public static class ModelProducers
         return new EnvModel
         {
             episode_numbers = pad => EpisodeNumbers(args, primarySeries, pad),
+#pragma warning disable CA2254 // Template should be a static expression
             // ReSharper disable TemplateIsNotCompileTimeConstantProblem
             logdebug = message => logger.LogDebug(message),
             log = message => logger.LogInformation(message),
             logwarn = message => logger.LogWarning(message),
             logerror = message => logger.LogError(message),
+#pragma warning restore CA2254 // Template should be a static expression
             // ReSharper restore TemplateIsNotCompileTimeConstantProblem
             replace_illegal_chars = args.Configuration.ReplaceIllegalCharacters,
             remove_illegal_chars = args.Configuration.RemoveIllegalCharacters,
@@ -145,20 +146,20 @@ public static class ModelProducers
 
     private static DateTimeModel? DateTimeToModel(DateTime? dateTime)
     {
-        if (dateTime is not { } dt)
-            return null;
-        return new DateTimeModel
-        {
-            year = dt.Year,
-            month = dt.Month,
-            day = dt.Day,
-            yday = dt.DayOfYear,
-            wday = (long)dt.DayOfWeek + 1,
-            hour = dt.Hour,
-            min = dt.Minute,
-            sec = dt.Second,
-            isdst = dt.IsDaylightSavingTime(),
-        };
+        return dateTime is not { } dt
+            ? null
+            : new DateTimeModel
+            {
+                year = dt.Year,
+                month = dt.Month,
+                day = dt.Day,
+                yday = dt.DayOfYear,
+                wday = (long)dt.DayOfWeek + 1,
+                hour = dt.Hour,
+                min = dt.Minute,
+                sec = dt.Second,
+                isdst = dt.IsDaylightSavingTime(),
+            };
     }
 
     // ---- anime ---------------------------------------------------------------------------------
@@ -166,7 +167,7 @@ public static class ModelProducers
     public static AnimeModel AnimeToModel(IAnidbAnime anime, bool includeRelations = true)
     {
         ArgumentNullException.ThrowIfNull(anime);
-        var series = anime.ShokoSeries.FirstOrDefault();
+        IShokoSeries? series = anime.ShokoSeries.FirstOrDefault();
         return new AnimeModel
         {
             airdate = DateTimeToModel(anime.AirDate?.ToDateTime()),
@@ -232,49 +233,49 @@ public static class ModelProducers
     private static AniDbModel? AniDbToModel(IReleaseInfo? aniDb)
     {
         // Only AniDB-sourced releases (release URI under anidb.net/file/) map; the id is the URI tail.
-        if (aniDb is not { ReleaseURI: var releaseUri } || !(releaseUri?.StartsWith("https://anidb.net/file/") ?? false))
-            return null;
-        return new AniDbModel
-        {
-            id = int.Parse(aniDb.ReleaseURI![23..]),
-            censored = aniDb.IsCensored,
-            source = Enum.GetName(aniDb.Source)!,
-            version = aniDb.Version,
-            releasedate = DateTimeToModel(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified)),
-            description = aniDb.Comment,
-            releasegroup = ReleaseGroupToModel(aniDb.Group),
-            media = new AniDbMediaModel
+        return aniDb is not { ReleaseURI: var releaseUri } || !(releaseUri?.StartsWith("https://anidb.net/file/", StringComparison.InvariantCultureIgnoreCase) ?? false)
+            ? null
+            : new AniDbModel
             {
-                sublanguages = (aniDb.MediaInfo?.SubtitleLanguages ?? []).ToList(),
-                dublanguages = (aniDb.MediaInfo?.AudioLanguages ?? []).ToList(),
-            },
-        };
+                id = int.Parse(aniDb.ReleaseURI![23..], System.Globalization.NumberStyles.Integer),
+                censored = aniDb.IsCensored,
+                source = Enum.GetName(aniDb.Source)!,
+                version = aniDb.Version,
+                releasedate = DateTimeToModel(aniDb.ReleasedAt?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified)),
+                description = aniDb.Comment,
+                releasegroup = ReleaseGroupToModel(aniDb.Group),
+                media = new AniDbMediaModel
+                {
+                    sublanguages = (aniDb.MediaInfo?.SubtitleLanguages ?? []).ToList(),
+                    dublanguages = (aniDb.MediaInfo?.AudioLanguages ?? []).ToList(),
+                },
+            };
     }
 
     private static ReleaseGroupModel? ReleaseGroupToModel(IReleaseGroup? releaseGroup)
     {
-        if (releaseGroup?.ID is null || releaseGroup.Name == "raw/unknown")
-            return null;
-        return new ReleaseGroupModel
-        {
-            name = releaseGroup.Name,
-            shortname = releaseGroup.ShortName,
-        };
+        return releaseGroup?.ID is null || releaseGroup.Name == "raw/unknown"
+            ? null
+            : new ReleaseGroupModel
+            {
+                name = releaseGroup.Name,
+                shortname = releaseGroup.ShortName,
+            };
     }
 
     private static MediaModel? MediaToModel(IMediaInfo? mediaInfo)
     {
-        if (mediaInfo is null)
-            return null;
-        return new MediaModel
-        {
-            chaptered = mediaInfo.Chapters.Any(),
-            duration = (long)mediaInfo.Duration.TotalSeconds,
-            bitrate = mediaInfo.BitRate,
-            sublanguages = mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList(),
-            audio = mediaInfo.AudioStreams.Select(AudioToModel).ToList(),
-            video = mediaInfo.VideoStream is { } video ? VideoToModel(video) : null,
-        };
+        return mediaInfo is null
+            ? null
+            : new MediaModel
+            {
+                chaptered = mediaInfo.Chapters.Any(),
+                duration = (long)mediaInfo.Duration.TotalSeconds,
+                bitrate = mediaInfo.BitRate,
+                sublanguages = mediaInfo.TextStreams.Select(s => s.Language.ToString()).ToList(),
+                audio = mediaInfo.AudioStreams.Select(AudioToModel).ToList(),
+                video = mediaInfo.VideoStream is { } video ? VideoToModel(video) : null,
+            };
     }
 
     private static VideoModel VideoToModel(IVideoStream video) => new()

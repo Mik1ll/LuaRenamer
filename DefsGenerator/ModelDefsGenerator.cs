@@ -25,8 +25,8 @@ public sealed class ModelDefsGenerator
     public string GenerateDefs()
     {
         var sb = new StringBuilder();
-        sb.Append("---@meta\n\n");
-        sb.Append(GenerateClassSection());
+        _ = sb.Append("---@meta\n\n");
+        _ = sb.Append(GenerateClassSection());
         sb.Length--; // mirror Generator: drop the trailing newline of the final block
         return sb.ToString();
     }
@@ -42,13 +42,13 @@ public sealed class ModelDefsGenerator
 
         var sb = new StringBuilder();
 
-        foreach (var type in types)
+        foreach (Type? type in types)
         {
             var className = SchemaReflection.StripModel(type.Name);
             var functions = new List<(PropertyInfo prop, LuaFieldAttribute fieldAttr, string sep)>();
-            sb.Append($"---@class (exact) {className}\n");
+            _ = sb.Append($"---@class (exact) {className}\n");
 
-            foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(type))
+            foreach ((PropertyInfo? prop, LuaFieldAttribute? fieldAttr) in SchemaReflection.LuaFields(type))
             {
                 // Callable (implemented in C# or Lua) -> deferred to the function section; ':' if Method else '.'.
                 if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
@@ -57,10 +57,10 @@ public sealed class ModelDefsGenerator
                     sb.Append($"---@field {prop.Name} {_renderer.TypeOf(prop)}{(fieldAttr.Description is { } d ? $" # {d}" : "")}\n");
             }
 
-            sb.Append($"local {className} = {{}}\n\n");
+            _ = sb.Append($"local {className} = {{}}\n\n");
 
-            foreach (var (prop, fieldAttr, sep) in functions)
-                sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, $"{className}{sep}{prop.Name}"));
+            foreach ((PropertyInfo? prop, LuaFieldAttribute? fieldAttr, var sep) in functions)
+                _ = sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, $"{className}{sep}{prop.Name}"));
         }
 
         return sb.ToString();
@@ -68,22 +68,23 @@ public sealed class ModelDefsGenerator
 
     // ---- enums.lua -----------------------------------------------------------------------------
 
-    public string GenerateEnums()
+
+    public static string GenerateEnums()
     {
         var sb = new StringBuilder();
-        sb.Append("---@meta\n\n");
+        _ = sb.Append("---@meta\n\n");
 
-        foreach (var prop in SchemaReflection.EnumTableProps())
+        foreach (PropertyInfo prop in SchemaReflection.EnumTableProps())
         {
-            var enumType = prop.PropertyType.GetGenericArguments()[0];
+            Type enumType = prop.PropertyType.GetGenericArguments()[0];
 
-            sb.Append($"---@enum {prop.Name}\n");
-            sb.Append($"{prop.Name} = {{\n");
+            _ = sb.Append($"---@enum {prop.Name}\n");
+            _ = sb.Append($"{prop.Name} = {{\n");
             // Most enums are a flat list; the one with a bespoke sectioned layout renders itself. Names come
             // from LuaEnumTable, the same source the translator builds the runtime table from.
-            sb.Append(TitleLanguageSections.Render(enumType, RenderMappings)
+            _ = sb.Append(TitleLanguageSections.Render(enumType, RenderMappings)
                       ?? RenderMappings(LuaEnumTable.Names(enumType)));
-            sb.Append("}\n\n");
+            _ = sb.Append("}\n\n");
         }
 
         sb.Length--;
@@ -98,20 +99,20 @@ public sealed class ModelDefsGenerator
     public string GenerateEnv()
     {
         var sb = new StringBuilder();
-        sb.Append("---@meta\n\n");
+        _ = sb.Append("---@meta\n\n");
 
-        foreach (var (prop, fieldAttr) in SchemaReflection.LuaFields(typeof(EnvModel)).Where(x => !SchemaReflection.IsEnumTable(x.Prop)))
+        foreach ((PropertyInfo? prop, LuaFieldAttribute? fieldAttr) in SchemaReflection.LuaFields(typeof(EnvModel)).Where(x => !SchemaReflection.IsEnumTable(x.Prop)))
         {
             if (SchemaReflection.ContractOf(prop.PropertyType) is not null)
             {
-                sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, prop.Name));
+                _ = sb.Append(_renderer.FunctionAnnotations(prop, fieldAttr, prop.Name));
             }
             else
             {
                 if (fieldAttr.Description is { } desc)
-                    sb.Append($"---{desc}\n");
-                sb.Append($"---@type {_renderer.TypeOf(prop)}\n");
-                sb.Append($"{prop.Name} = {fieldAttr.DefaultValue}\n\n");
+                    _ = sb.Append($"---{desc}\n");
+                _ = sb.Append($"---@type {_renderer.TypeOf(prop)}\n");
+                _ = sb.Append($"{prop.Name} = {fieldAttr.DefaultValue}\n\n");
             }
         }
 

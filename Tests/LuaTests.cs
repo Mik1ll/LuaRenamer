@@ -32,23 +32,23 @@ namespace LuaRenamer.Tests;
 [TestClass]
 public class LuaTests
 {
-    private static readonly EnvNames Names = new EnvNames();
+    private static readonly EnvNames Names = new();
     private static readonly ILogger<LuaRenamer> Logmock = Mock.Of<ILogger<LuaRenamer>>();
 
     private static RelocationContext<LuaRenamerSettings> MinimalArgs(string script)
     {
-        var importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
+        IManagedFolder importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
             i.DropFolderType == DropFolderType.Destination &&
             i.Name == "testimport");
         var animeMock = new Mock<IAnidbAnime>();
-        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        animeMock.SetupGet(a => a.Title).Returns("blah");
-        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
-        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        animeMock.SetupGet(a => a.ID).Returns(3);
-        var shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
+        _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = animeMock.SetupGet(a => a.Title).Returns("blah");
+        ITitle titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
+        _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        _ = animeMock.SetupGet(a => a.ID).Returns(3);
+        IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
             s.TmdbMovies == new List<ITmdbMovie>() &&
@@ -57,10 +57,10 @@ public class LuaTests
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
-        animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
-        animeMock.SetupGet(a => a.Studios).Returns([]);
-        animeMock.SetupGet(a => a.Tags).Returns([]);
-        animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
+        _ = animeMock.SetupGet(a => a.Studios).Returns([]);
+        _ = animeMock.SetupGet(a => a.Tags).Returns([]);
+        _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
         return new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             CancellationToken = CancellationToken.None,
@@ -97,29 +97,29 @@ public class LuaTests
     [TestMethod]
     public void TestScriptRuns()
     {
-        var args = MinimalArgs($"{Names.filename} = 'testfilename'");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = 'testfilename'");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("testfilename.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestAnime()
     {
-        var args = MinimalArgs($"{Names.filename} = tostring({Names.anime.type} == {Names.AnimeType[AnimeType.Movie]})");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = tostring({Names.anime.type} == {Names.AnimeType[AnimeType.Movie]})");
         var animeMock = new Mock<IAnidbAnime>();
-        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
-        animeMock.SetupGet(a => a.Title).Returns("blah");
-        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
-        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        animeMock.SetupGet(a => a.ID).Returns(3);
-        animeMock.SetupGet(a => a.Studios).Returns([]);
-        animeMock.SetupGet(a => a.Tags).Returns([]);
-        animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
-        var shokoSeries = Mock.Of<IShokoSeries>(s =>
+        _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = animeMock.SetupGet(a => a.Type).Returns(AnimeType.Movie);
+        _ = animeMock.SetupGet(a => a.Title).Returns("blah");
+        ITitle titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
+        _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        _ = animeMock.SetupGet(a => a.ID).Returns(3);
+        _ = animeMock.SetupGet(a => a.Studios).Returns([]);
+        _ = animeMock.SetupGet(a => a.Tags).Returns([]);
+        _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s =>
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
@@ -129,7 +129,7 @@ public class LuaTests
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
-        animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
+        _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
@@ -145,14 +145,14 @@ public class LuaTests
         }, args.Configuration);
 
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("true.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestDateTime()
     {
-        var args = MinimalArgs($"{Names.filename} = os.date('%c', os.time({Names.file.anidb.releasedate}))");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = os.date('%c', os.time({Names.file.anidb.releasedate}))");
         var path = args.File.Path;
         var name = args.File.FileName;
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
@@ -177,14 +177,14 @@ public class LuaTests
             RenameEnabled = true,
         }, args.Configuration);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("Thu Feb  3 00_00_00 2022.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestEpisodes()
     {
-        var args = MinimalArgs(
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
             $"{Names.filename} = {Names.episode.titles[1].name} .. ' ' .. {Names.episode.number} .. ' ' .. {Names.episode.type}");
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
@@ -206,14 +206,14 @@ public class LuaTests
             RenameEnabled = true,
         }, args.Configuration);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("episodeTitle1 5 Episode.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestImportFolder()
     {
-        var args = MinimalArgs(
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
             $"""
             local fld = from({Names.importfolders.Path}):where('{nameof(ImportFolderNames.type)}', {Names.ImportFolderType[DropFolderType.Both]}):first()
             {Names.destination} = fld
@@ -231,7 +231,7 @@ public class LuaTests
             RenameEnabled = true,
         }, args.Configuration);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreSame(args.AvailableFolders[1], res.ManagedFolder);
     }
 
@@ -274,50 +274,50 @@ public class LuaTests
         "BHJCDJAKIICHBKGEGGIKDKACGHBDCB")]
     public void TestLuaLinq(string lua, string expected)
     {
-        var args = MinimalArgs(lua);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(lua);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual(expected + ".mp4", res.FileName);
     }
 
     [TestMethod]
-    
+
     // @formatter:off
     [DataRow(
-        new []     { 3, 3, 3 },
-        new []     { 1, 3, 5 },
+        new[] { 3, 3, 3 },
+        new[] { 1, 3, 5 },
         new byte[] { 1, 1, 1 },
         2, "01 03 05.mp4")]
     [DataRow(
-        new []     { 3, 3, 3, 3 },
-        new []     { 1, 2, 1, 2 },
+        new[] { 3, 3, 3, 3 },
+        new[] { 1, 2, 1, 2 },
         new byte[] { 1, 1, 2, 2 },
         2, "01-02 C01-02.mp4")]
     [DataRow(
-        new []     { 3, 3, 3, 3, 3 },
-        new []     { 5, 1, 3, 2, 4 },
+        new[] { 3, 3, 3, 3, 3 },
+        new[] { 5, 1, 3, 2, 4 },
         new byte[] { 1, 1, 1, 1, 1 },
         2, "01-05.mp4")]
     [DataRow(
-        new []     { 3,   3,  3,  3 },
-        new []     { 10, 11, 12, 13 },
-        new byte[] {  1,  1,  2,  2 },
+        new[] { 3, 3, 3, 3 },
+        new[] { 10, 11, 12, 13 },
+        new byte[] { 1, 1, 2, 2 },
         2, "10-11 C12-13.mp4")]
     [DataRow(
-        new []     { 3, 3 },
-        new []     { 1, 2 },
+        new[] { 3, 3 },
+        new[] { 1, 2 },
         new byte[] { 1, 2 },
         2, "01 C02.mp4")]
     [DataRow(
-        new[]      {  3,  3, 3,  2, 3,  6, 3, 3, 3, 9, 3, 3, 3 },
-        new[]      {  6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2 },
-        new byte[] {  1,  6, 1,  1, 3,  1, 2, 1, 6, 1, 6, 1, 6 },
+        new[] { 3, 3, 3, 2, 3, 6, 3, 3, 3, 9, 3, 3, 3 },
+        new[] { 6, 12, 5, 22, 2, 20, 5, 7, 1, 4, 9, 3, 2 },
+        new byte[] { 1, 6, 1, 1, 3, 1, 2, 1, 6, 1, 6, 1, 6 },
         3, "003 005-007 C005 S002 O001-002 O009 O012.mp4")]
     // @formatter:on
     public void TestEpisodeNumbers(int[] seriesIds, int[] epNums, byte[] epTypes, int pad, string expected)
     {
-        var args = MinimalArgs($"{Names.filename} = {Names.episode_numbers(pad.ToString())}");
-        var titles = args.Episodes[0].AnidbEpisode.Titles;
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = {Names.episode_numbers(pad.ToString())}");
+        IReadOnlyList<ITitle> titles = args.Episodes[0].AnidbEpisode.Titles;
         IEnumerable<(int seriesId, int epNum, EpisodeType epType)> zipped = seriesIds.Zip(epNums, epTypes.Cast<EpisodeType>());
         var eps = zipped.Select(z => Mock.Of<IShokoEpisode>(se =>
             se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e => e.SeriesID == z.seriesId &&
@@ -337,14 +337,14 @@ public class LuaTests
             RenameEnabled = true,
         }, args.Configuration);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual(expected, res.FileName);
     }
 
     [TestMethod]
     public void TestGetTitle()
     {
-        var args = MinimalArgs(
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
             $"{Names.filename} = {Names.anime.getname(Names.Language[TitleLanguage.English])} .. {Names.episode.getname(Names.Language[TitleLanguage.English])} .. {Names.episode.getname(Names.Language[TitleLanguage.Romaji])}");
         ((List<ITitle>)args.Series[0].AnidbAnime.Titles).AddRange([
             new TitleStub
@@ -408,17 +408,17 @@ public class LuaTests
             },
         });
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("animeTitle4episodeTitle2episodeTitle3.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestLogging()
     {
-        var args = MinimalArgs("log('test')");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("log('test')");
         var logmock = new Mock<ILogger<LuaRenamer>>();
         var renamer = new LuaRenamer(logmock.Object);
-        renamer.GetPath(args);
+        _ = renamer.GetPath(args);
 
         logmock.Verify(l => l.Log(It.Is<LogLevel>(ll => ll == LogLevel.Information),
                 It.IsAny<EventId>(),
@@ -431,38 +431,35 @@ public class LuaTests
     [TestMethod]
     public void TestStringMethod()
     {
-        var args = MinimalArgs(
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
             $@"function string:clean_spaces(char) return (self:match('^%s*(.-)%s*$'):gsub('%s+', char or ' ')) end
                 {Names.filename} = (('blah  sdhow  wh '):clean_spaces())");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("blah sdhow wh.mp4", res.FileName);
     }
 
     [TestMethod]
-    public void TestLogAbstractionVersion()
-    {
-        Assert.AreEqual("10.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
-    }
+    public void TestLogAbstractionVersion() => Assert.AreEqual("10.0.0.0", Assembly.GetAssembly(typeof(ILogger))?.GetName().Version?.ToString());
 
 
     [TestMethod]
     public void TestEnumDefs()
     {
-        void CompareEnums(LuaTable enum1, LuaTable enum2)
+        static void CompareEnums(LuaTable enum1, LuaTable enum2)
         {
             var e1Set = new HashSet<string>();
             var e2Set = new HashSet<string>();
             foreach (KeyValuePair<object, object> kvp in enum1)
             {
                 Assert.AreEqual(kvp.Key, kvp.Value);
-                e1Set.Add((string)kvp.Key);
+                _ = e1Set.Add((string)kvp.Key);
             }
 
             foreach (KeyValuePair<object, object> kvp in enum2)
             {
                 Assert.AreEqual(kvp.Key, kvp.Value);
-                e2Set.Add((string)kvp.Key);
+                _ = e2Set.Add((string)kvp.Key);
             }
 
             var e2Missing = e1Set.Except(e2Set).ToList();
@@ -473,7 +470,7 @@ public class LuaTests
         }
 
         var defsEnv = new Lua();
-        defsEnv.DoFile(Path.Combine(LuaScripts.LuaPath, "enums.lua"));
+        _ = defsEnv.DoFile(Path.Combine(LuaScripts.LuaPath, "enums.lua"));
         using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
         new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(MinimalArgs(""), Logmock), sandbox.Env);
         // enums.lua really does define globals in defsEnv, so the NLua indexer works there; the sandbox side
@@ -490,30 +487,30 @@ public class LuaTests
     [TestMethod]
     public void TestRelations()
     {
-        var args = MinimalArgs(
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
             $"{Names.filename} = {Names.anime.relations[1].anime.preferredname} .. {Names.anime.relations[1].type} .. #{Names.anime.relations[1].anime.relations}");
         var animeMock = new Mock<IAnidbAnime>();
-        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        animeMock.SetupGet(a => a.ID).Returns(1);
-        animeMock.SetupGet(a => a.Title).Returns("blah2");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
-        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        animeMock.SetupGet(a => a.Studios).Returns([]);
-        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>
+        _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = animeMock.SetupGet(a => a.ID).Returns(1);
+        _ = animeMock.SetupGet(a => a.Title).Returns("blah2");
+        _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
+        _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = animeMock.SetupGet(a => a.Studios).Returns([]);
+        _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>
         {
             Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
                 r2.RelationType == RelationType.Prequel),
         });
-        animeMock.SetupGet(a => a.ID).Returns(4);
+        _ = animeMock.SetupGet(a => a.ID).Returns(4);
         ((List<IRelatedMetadata<ISeries, ISeries>>)args.Series[0].AnidbAnime.RelatedSeries).Add(Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r =>
             r.RelationType == RelationType.AlternativeSetting &&
             r.Related == animeMock.Object
         ));
-        animeMock.SetupGet(a => a.ShokoSeries).Returns([]);
-        animeMock.SetupGet(a => a.Tags).Returns([]);
-        animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([]);
+        _ = animeMock.SetupGet(a => a.Tags).Returns([]);
+        _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("blah2AlternativeSetting0.mp4", res.FileName);
     }
 
@@ -521,8 +518,8 @@ public class LuaTests
     public void TestApiMethods()
     {
         var renamer = new LuaRenamer(Logmock);
-        var args = MinimalArgs("filename = 'blah'");
-        var result = renamer.GetPath(args);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = 'blah'");
+        RelocationResult result = renamer.GetPath(args);
         Assert.AreEqual("blah.mp4", result.FileName);
         Assert.IsNotNull(result.ManagedFolder);
         Assert.AreEqual("shokoseriesprefname", result.Path);
@@ -532,8 +529,8 @@ public class LuaTests
     public void TestSkipping()
     {
         var renamer = new LuaRenamer(Logmock);
-        var args = MinimalArgs("filename = 'blah'\nsubfolder = {'blah'}\nskip_rename = true\nskip_move = true");
-        var result = renamer.GetPath(args);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = 'blah'\nsubfolder = {'blah'}\nskip_rename = true\nskip_move = true");
+        RelocationResult result = renamer.GetPath(args);
         Assert.AreEqual(null, result.FileName);
         Assert.AreEqual(null, result.Path);
     }
@@ -541,10 +538,10 @@ public class LuaTests
     [TestMethod]
     public void TestLinqLog()
     {
-        var args = MinimalArgs("linqSetLogLevel(3); from({'test1', 'test2'})");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("linqSetLogLevel(3); from({'test1', 'test2'})");
         var logmock = new Mock<ILogger<LuaRenamer>>();
         var renamer = new LuaRenamer(logmock.Object);
-        renamer.GetPath(args);
+        _ = renamer.GetPath(args);
 
         logmock.Verify(l => l.Log(It.Is<LogLevel>(ll => ll == LogLevel.Debug),
                 It.IsAny<EventId>(),
@@ -558,8 +555,8 @@ public class LuaTests
     public void TestLineEndings()
     {
         var renamer = new LuaRenamer(Logmock);
-        var args = MinimalArgs("filename = 'blah'\r\nfilename = 'argle'\nfilename = 'blargle'\rfilename = 'test'");
-        var result = renamer.GetPath(args);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = 'blah'\r\nfilename = 'argle'\nfilename = 'blargle'\rfilename = 'test'");
+        RelocationResult result = renamer.GetPath(args);
 
         Assert.AreEqual("test.mp4", result.FileName);
     }
@@ -581,9 +578,9 @@ public class LuaTests
     [DataRow($$"""{{nameof(Names.replace_illegal_chars)}} = true ; subfolder = 'testfld\\testfld2/testfld3'""", "testfld＼testfld2／testfld3")]
     public void TestSubfolder(string lua, string? expected)
     {
-        var args = MinimalArgs(lua);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(lua);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual(expected?.NormPath() ?? "", res.Path?.NormPath() ?? "");
     }
 
@@ -598,9 +595,9 @@ public class LuaTests
     [DataRow("filename = 'COM1.'", true)]
     public void TestInvalidDeviceNames(string lua, bool error)
     {
-        var args = MinimalArgs(lua);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(lua);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         if (error)
             Assert.IsNotNull(res.Error);
         else
@@ -610,9 +607,9 @@ public class LuaTests
     [TestMethod]
     public void InvalidLuaTest()
     {
-        var args = MinimalArgs("filename = ");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = ");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.IsNotNull(res.Error);
     }
 
@@ -623,11 +620,12 @@ public class LuaTests
     /// non-circular oracle for that, which is what the "Verify generated Lua defs are current" CI step does.
     /// </remarks>
     [TestMethod]
+    [Obsolete]
     public void TestLuaDocsGenerator()
     {
         var generator = new ModelDefsGenerator();
-        var first = new[] { generator.GenerateDefs(), generator.GenerateEnums(), generator.GenerateEnv() };
-        var second = new[] { generator.GenerateDefs(), generator.GenerateEnums(), generator.GenerateEnv() };
+        var first = new[] { generator.GenerateDefs(), ModelDefsGenerator.GenerateEnums(), generator.GenerateEnv() };
+        var second = new[] { generator.GenerateDefs(), ModelDefsGenerator.GenerateEnums(), generator.GenerateEnv() };
 
         for (var i = 0; i < first.Length; i++)
         {
@@ -664,23 +662,23 @@ public class LuaTests
     /// <summary>Gives the primary anime a title and a relation, so array paths have something to hit.</summary>
     private static void PopulateTitlesAndRelations(RelocationContext<LuaRenamerSettings> args)
     {
-        var anime = args.Series[0].AnidbAnime;
+        IAnidbAnime anime = args.Series[0].AnidbAnime;
         ((List<ITitle>)anime.Titles).Add(Mock.Of<ITitle>(t => t.Value == "maintitle" &&
                                                               t.Language == TitleLanguage.English &&
                                                               t.LanguageCode == "en" &&
                                                               t.Type == TitleType.Main));
 
         var relatedMock = new Mock<IAnidbAnime>();
-        relatedMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        relatedMock.SetupGet(a => a.ID).Returns(4);
-        relatedMock.SetupGet(a => a.Title).Returns("relatedname");
-        relatedMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "relatedname"));
-        relatedMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        relatedMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        relatedMock.SetupGet(a => a.ShokoSeries).Returns([]);
-        relatedMock.SetupGet(a => a.Studios).Returns([]);
-        relatedMock.SetupGet(a => a.Tags).Returns([]);
-        relatedMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        _ = relatedMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = relatedMock.SetupGet(a => a.ID).Returns(4);
+        _ = relatedMock.SetupGet(a => a.Title).Returns("relatedname");
+        _ = relatedMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "relatedname"));
+        _ = relatedMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = relatedMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        _ = relatedMock.SetupGet(a => a.ShokoSeries).Returns([]);
+        _ = relatedMock.SetupGet(a => a.Studios).Returns([]);
+        _ = relatedMock.SetupGet(a => a.Tags).Returns([]);
+        _ = relatedMock.SetupGet(a => a.YearlySeasons).Returns([]);
         ((List<IRelatedMetadata<ISeries, ISeries>>)anime.RelatedSeries).Add(
             Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r => r.RelationType == RelationType.Prequel &&
                                                              r.Related == relatedMock.Object));
@@ -689,12 +687,12 @@ public class LuaTests
     [TestMethod]
     public void TestGetValueWalksNestedTablesAndArrays()
     {
-        var args = MinimalArgs($"{Names.filename} = 'resolved'");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.filename} = 'resolved'");
         PopulateTitlesAndRelations(args);
-        using var sandbox = TranslatedSandbox(args);
+        using LuaSandbox sandbox = TranslatedSandbox(args);
 
         Assert.IsNull(sandbox.GetValue(Names.filename), "output fields are absent until the script assigns them");
-        sandbox.Run(args.Configuration.Script!);
+        _ = sandbox.Run(args.Configuration.Script);
         Assert.AreEqual("resolved", sandbox.GetValue(Names.filename));
 
         Assert.AreEqual("shokoseriesprefname", sandbox.GetValue(Names.anime.preferredname));
@@ -707,8 +705,8 @@ public class LuaTests
         Assert.AreEqual("relatedname", sandbox.GetValue(Names.anime.relations[1].anime.preferredname));
 
         Assert.AreEqual(nameof(TitleLanguage.English), sandbox.GetValue(Names.Language[TitleLanguage.English]));
-        Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Names.importfolders));
-        Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Names.anime.relations[1].anime));
+        _ = Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Names.importfolders));
+        _ = Assert.IsInstanceOfType<LuaTable>(sandbox.GetValue(Names.anime.relations[1].anime));
 
         // No long->double coercion; that lives only in NLua's Lua.this[string].
         Assert.AreEqual(3L, sandbox.GetValue(Names.anime.id));
@@ -717,8 +715,8 @@ public class LuaTests
     [TestMethod]
     public void TestGetValueIsNilTolerant()
     {
-        var args = MinimalArgs("");
-        using var sandbox = TranslatedSandbox(args);
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("");
+        using LuaSandbox sandbox = TranslatedSandbox(args);
 
         Assert.IsNull(sandbox.GetValue(Names.group.name), "group is nil with no groups, so the whole path is nil");
         Assert.IsNull(sandbox.GetValue(Names.anime.titles[999].name), "index past the end of the array");
@@ -741,8 +739,8 @@ public class LuaTests
     [TestMethod]
     public void TestGetValueRejectsNonValuePaths(string path)
     {
-        using var sandbox = TranslatedSandbox(MinimalArgs(""));
-        Assert.ThrowsExactly<ArgumentException>(() => sandbox.GetValue(path));
+        using LuaSandbox sandbox = TranslatedSandbox(MinimalArgs(""));
+        _ = Assert.ThrowsExactly<ArgumentException>(() => sandbox.GetValue(path));
     }
 
     [DataRow("filename = 'ok'", DisplayName = "runs to completion")]
@@ -750,7 +748,7 @@ public class LuaTests
     [TestMethod]
     public void TestRunReportsSuccessAsNull(string script)
     {
-        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        using LuaSandbox sandbox = TranslatedSandbox(MinimalArgs(""));
         Assert.IsNull(sandbox.Run(script));
     }
 
@@ -761,7 +759,7 @@ public class LuaTests
     [TestMethod]
     public void TestRunReportsFailureAsMessage(string script)
     {
-        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        using LuaSandbox sandbox = TranslatedSandbox(MinimalArgs(""));
         // A non-string error object is stringified rather than swallowed — otherwise a failing script
         // would look like a successful one and the renamer would act on whatever the env still held.
         Assert.IsFalse(string.IsNullOrWhiteSpace(sandbox.Run(script)));
@@ -770,7 +768,7 @@ public class LuaTests
     [TestMethod]
     public void TestStringMethodsResolveUtilsHelpers()
     {
-        using var sandbox = TranslatedSandbox(MinimalArgs(""));
+        using LuaSandbox sandbox = TranslatedSandbox(MinimalArgs(""));
         // utils.lua defines `function string:cleanspaces` into env.string; method-call syntax on a string
         // value resolves through the real string table, which the sandbox bridges to env.string in its ctor.
         Assert.IsNull(sandbox.Run($"{Names.filename} = ('  a   b  '):cleanspaces()"));
@@ -780,28 +778,28 @@ public class LuaTests
     [TestMethod]
     public void NullCharTest()
     {
-        var args = MinimalArgs("filename = 'test\\x00test'");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = 'test\\x00test'");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("test_test.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestSeasons()
     {
-        var args = MinimalArgs("filename = anime.seasons[1].year .. anime.seasons[1].season");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = anime.seasons[1].year .. anime.seasons[1].season");
         var animeMock = new Mock<IAnidbAnime>();
-        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        animeMock.SetupGet(a => a.Title).Returns("blah");
-        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
-        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        animeMock.SetupGet(a => a.ID).Returns(3);
-        animeMock.SetupGet(a => a.Studios).Returns([]);
-        animeMock.SetupGet(a => a.Tags).Returns([]);
-        animeMock.SetupGet(a => a.YearlySeasons).Returns([(2024, YearlySeason.Winter)]);
-        var shokoSeries = Mock.Of<IShokoSeries>(s =>
+        _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = animeMock.SetupGet(a => a.Title).Returns("blah");
+        ITitle titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
+        _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        _ = animeMock.SetupGet(a => a.ID).Returns(3);
+        _ = animeMock.SetupGet(a => a.Studios).Returns([]);
+        _ = animeMock.SetupGet(a => a.Tags).Returns([]);
+        _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([(2024, YearlySeason.Winter)]);
+        IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s =>
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
@@ -811,7 +809,7 @@ public class LuaTests
             s.TmdbShows == new List<ITmdbShow>() &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
-        animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
+        _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([shokoSeries]);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             AvailableFolders = args.AvailableFolders,
@@ -824,21 +822,21 @@ public class LuaTests
         }, args.Configuration);
 
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("2024Winter.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestTmdbShowSeasons()
     {
-        var args = MinimalArgs("filename = tmdb.shows[1].seasons[1].year .. tmdb.shows[1].seasons[1].season");
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = tmdb.shows[1].seasons[1].year .. tmdb.shows[1].seasons[1].season");
         var tmdbShow = new Mock<ITmdbShow>();
-        tmdbShow.SetupGet(s => s.Titles).Returns(new List<ITitle>());
-        tmdbShow.SetupGet(s => s.Studios).Returns([]);
-        tmdbShow.SetupGet(s => s.EpisodeCounts).Returns(new EpisodeCounts());
-        tmdbShow.SetupGet(s => s.YearlySeasons).Returns([(2023, YearlySeason.Spring)]);
-        var titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
-        var shokoSeries = Mock.Of<IShokoSeries>(s =>
+        _ = tmdbShow.SetupGet(s => s.Titles).Returns(new List<ITitle>());
+        _ = tmdbShow.SetupGet(s => s.Studios).Returns([]);
+        _ = tmdbShow.SetupGet(s => s.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = tmdbShow.SetupGet(s => s.YearlySeasons).Returns([(2023, YearlySeason.Spring)]);
+        ITitle titleMock = Mock.Of<ITitle>(t => t.Value == "blah");
+        IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s =>
             s.AnidbAnime == args.Series[0].AnidbAnime &&
             s.Title == "shokoseriesprefname" &&
             s.AnidbAnimeID == 3 &&
@@ -860,7 +858,7 @@ public class LuaTests
         }, args.Configuration);
 
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("2023Spring.mp4", res.FileName);
     }
 
@@ -878,16 +876,16 @@ public class LuaTests
         IReadOnlyList<ITmdbShow> tmdbShows)
     {
         var animeMock = new Mock<IAnidbAnime>();
-        animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        animeMock.SetupGet(a => a.ID).Returns(anidbId);
-        animeMock.SetupGet(a => a.Title).Returns(anidbTitle);
-        animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbTitle));
-        animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        animeMock.SetupGet(a => a.Studios).Returns([]);
-        animeMock.SetupGet(a => a.Tags).Returns([]);
-        animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
-        var series = Mock.Of<IShokoSeries>(s =>
+        _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = animeMock.SetupGet(a => a.ID).Returns(anidbId);
+        _ = animeMock.SetupGet(a => a.Title).Returns(anidbTitle);
+        _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbTitle));
+        _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
+        _ = animeMock.SetupGet(a => a.Studios).Returns([]);
+        _ = animeMock.SetupGet(a => a.Tags).Returns([]);
+        _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        IShokoSeries series = Mock.Of<IShokoSeries>(s =>
             s.ID == shokoId &&
             s.AnidbAnimeID == anidbId &&
             s.AnidbAnime == animeMock.Object &&
@@ -898,7 +896,7 @@ public class LuaTests
             s.TmdbShows == tmdbShows &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == Mock.Of<ITitle>(t => t.Value == anidbTitle));
-        animeMock.SetupGet(a => a.ShokoSeries).Returns([series]);
+        _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([series]);
         return series;
     }
 
@@ -917,11 +915,11 @@ public class LuaTests
     private static RelocationContext<LuaRenamerSettings> MultiSeriesArgs(string script, string primaryShokoTitle = "primaryShoko",
         IReadOnlyList<ITmdbShow>? primaryTmdbShows = null)
     {
-        var importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
+        IManagedFolder importFolder = Mock.Of<IManagedFolder>(i => i.Path == Path.Combine("C:", "testimportfolder") &&
             i.DropFolderType == DropFolderType.Destination &&
             i.Name == "testimport");
-        var primary = SeriesMock(PrimaryAnidbId, PrimaryShokoId, primaryShokoTitle, "primaryAnidb", primaryTmdbShows ?? []);
-        var other = SeriesMock(OtherAnidbId, OtherShokoId, "otherShoko", "otherAnidb", []);
+        IShokoSeries primary = SeriesMock(PrimaryAnidbId, PrimaryShokoId, primaryShokoTitle, "primaryAnidb", primaryTmdbShows ?? []);
+        IShokoSeries other = SeriesMock(OtherAnidbId, OtherShokoId, "otherShoko", "otherAnidb", []);
         return new RelocationContext<LuaRenamerSettings>(new RelocationContext
         {
             CancellationToken = CancellationToken.None,
@@ -955,9 +953,9 @@ public class LuaTests
     [TestMethod]
     public void TestGroupOrderFollowsPrimarySeries()
     {
-        var args = MultiSeriesArgs($"{Names.filename} = {Names.group.name}");
+        RelocationContext<LuaRenamerSettings> args = MultiSeriesArgs($"{Names.filename} = {Names.group.name}");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("primaryGroup.mp4", res.FileName);
     }
 
@@ -965,24 +963,24 @@ public class LuaTests
     public void TestTmdbComesFromPrimarySeries()
     {
         var tmdbShow = new Mock<ITmdbShow>();
-        tmdbShow.SetupGet(s => s.ID).Returns(555);
-        tmdbShow.SetupGet(s => s.Titles).Returns(new List<ITitle>());
-        tmdbShow.SetupGet(s => s.Studios).Returns([]);
-        tmdbShow.SetupGet(s => s.EpisodeCounts).Returns(new EpisodeCounts());
-        tmdbShow.SetupGet(s => s.YearlySeasons).Returns([]);
+        _ = tmdbShow.SetupGet(s => s.ID).Returns(555);
+        _ = tmdbShow.SetupGet(s => s.Titles).Returns(new List<ITitle>());
+        _ = tmdbShow.SetupGet(s => s.Studios).Returns([]);
+        _ = tmdbShow.SetupGet(s => s.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = tmdbShow.SetupGet(s => s.YearlySeasons).Returns([]);
         // Only the primary series is linked to the show; sourcing tmdb off Series[0] yields an empty list.
-        var args = MultiSeriesArgs($"{Names.filename} = tostring({Names.tmdb.shows[1].id})", primaryTmdbShows: [tmdbShow.Object]);
+        RelocationContext<LuaRenamerSettings> args = MultiSeriesArgs($"{Names.filename} = tostring({Names.tmdb.shows[1].id})", primaryTmdbShows: [tmdbShow.Object]);
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.AreEqual("555.mp4", res.FileName);
     }
 
     [TestMethod]
     public void TestDefaultSubfolderUsesPrimarySeries()
     {
-        var args = MultiSeriesArgs($"{Names.filename} = 'blah'");
+        RelocationContext<LuaRenamerSettings> args = MultiSeriesArgs($"{Names.filename} = 'blah'");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.IsNull(res.Error);
         Assert.AreEqual("primaryShoko", res.Path);
     }
@@ -992,9 +990,9 @@ public class LuaTests
     {
         // A blank Shoko title used to reach FilePathCleaner verbatim and fail the whole relocation;
         // it must fall back the same way anime.preferredname does.
-        var args = MultiSeriesArgs($"{Names.filename} = 'blah'", primaryShokoTitle: "   ");
+        RelocationContext<LuaRenamerSettings> args = MultiSeriesArgs($"{Names.filename} = 'blah'", primaryShokoTitle: "   ");
         var renamer = new LuaRenamer(Logmock);
-        var res = renamer.GetPath(args);
+        RelocationResult res = renamer.GetPath(args);
         Assert.IsNull(res.Error);
         Assert.AreEqual("primaryAnidb", res.Path);
     }

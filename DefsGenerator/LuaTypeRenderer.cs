@@ -39,24 +39,24 @@ public sealed class LuaTypeRenderer
     {
         var sb = new StringBuilder();
         if (fieldAttr.Description is { } description)
-            sb.Append($"---{description}\n");
+            _ = sb.Append($"---{description}\n");
 
-        var invoke = SchemaReflection.ContractOf(prop.PropertyType)!.GetMethod("Invoke")!;
-        var parameters = invoke.GetParameters();
+        MethodInfo invoke = SchemaReflection.ContractOf(prop.PropertyType)!.GetMethod("Invoke")!;
+        ParameterInfo[] parameters = invoke.GetParameters();
 
-        foreach (var param in parameters)
+        foreach (ParameterInfo param in parameters)
         {
             var luaType = InferLuaType(param.ParameterType, _nullability.Create(param));
             var desc = param.GetCustomAttribute<DescriptionAttribute>()?.Description;
-            sb.Append($"---@param {param.Name} {luaType}{(desc is not null ? $" # {desc}" : "")}\n");
+            _ = sb.Append($"---@param {param.Name} {luaType}{(desc is not null ? $" # {desc}" : "")}\n");
         }
 
-        var retType = invoke.ReturnType;
-        sb.Append(retType != typeof(void)
+        Type retType = invoke.ReturnType;
+        _ = sb.Append(retType != typeof(void)
             ? $"---@return {InferLuaType(retType, _nullability.Create(invoke.ReturnParameter))}\n"
             : "---@return nil\n");
 
-        sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
+        _ = sb.Append($"function {functionName}({string.Join(", ", parameters.Select(p => p.Name))}) end\n\n");
         return sb.ToString();
     }
 
@@ -84,17 +84,14 @@ public sealed class LuaTypeRenderer
 
         if (t.IsGenericType)
         {
-            var def = t.GetGenericTypeDefinition();
-            var args = t.GetGenericArguments();
+            Type def = t.GetGenericTypeDefinition();
+            Type[] args = t.GetGenericArguments();
             if (def == typeof(IReadOnlyDictionary<,>))
                 return $"table<{InferInner(args[0])}, {InferInner(args[1])}>";
             if (def == typeof(LuaUnion<,>))
                 return InferInner(args[0]) + "|" + InferInner(args[1]);
         }
 
-        if (SchemaReflection.IsLuaModel(t))
-            return SchemaReflection.StripModel(t.Name);
-
-        return "table";
+        return SchemaReflection.IsLuaModel(t) ? SchemaReflection.StripModel(t.Name) : "table";
     }
 }

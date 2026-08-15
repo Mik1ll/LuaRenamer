@@ -47,13 +47,13 @@ internal static class SchemaReflection
     /// </summary>
     internal static Type? ListElement(Type t)
     {
-        if (t.IsArray)
-            return t.GetElementType();
-        if (t.IsGenericType &&
+        return t.IsArray
+            ? t.GetElementType()
+            : t.IsGenericType &&
             t.GetGenericTypeDefinition() is var def &&
-            (def == typeof(IReadOnlyList<>) || def == typeof(IReadOnlyCollection<>) || def == typeof(IEnumerable<>)))
-            return t.GetGenericArguments()[0];
-        return null;
+            (def == typeof(IReadOnlyList<>) || def == typeof(IReadOnlyCollection<>) || def == typeof(IEnumerable<>))
+            ? t.GetGenericArguments()[0]
+            : null;
     }
 
     internal static bool IsLuaModel(Type t) => typeof(ILuaModel).IsAssignableFrom(t);

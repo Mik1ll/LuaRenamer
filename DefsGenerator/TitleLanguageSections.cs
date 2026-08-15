@@ -32,24 +32,26 @@ internal static class TitleLanguageSections
         if (enumType != typeof(TitleLanguage))
             return null;
 
-        var lkup = Enum.GetValues<TitleLanguage>().ToLookup(t => t switch
+#pragma warning disable IDE0072 // Add missing cases
+        ILookup<int, string> lkup = Enum.GetValues<TitleLanguage>().ToLookup(t => t switch
         {
             TitleLanguage.Japanese or TitleLanguage.Romaji or TitleLanguage.English or TitleLanguage.Chinese or TitleLanguage.Pinyin
                 or TitleLanguage.Korean or TitleLanguage.KoreanTranscription => Common,
             TitleLanguage.Unknown or TitleLanguage.Main or TitleLanguage.None => Sentinel,
             _ => AnidbLangs.Contains(t) ? OtherAnidb : NonAnidb,
         }, t => t.ToString());
+#pragma warning restore IDE0072 // Add missing cases
 
         var sb = new StringBuilder();
-        sb.Append("\n--#region AniDB Languages\n");
-        sb.Append(renderMappings(lkup[Common]));
-        sb.Append('\n');
-        sb.Append(renderMappings(lkup[OtherAnidb].Order(StringComparer.Ordinal)));
-        sb.Append("--#endregion\n");
-        sb.Append("\n--#region Other Languages\n");
-        sb.Append(renderMappings(lkup[NonAnidb].Order(StringComparer.Ordinal)));
-        sb.Append("--#endregion\n\n");
-        sb.Append(renderMappings(lkup[Sentinel]));
+        _ = sb.Append("\n--#region AniDB Languages\n");
+        _ = sb.Append(renderMappings(lkup[Common]));
+        _ = sb.Append('\n');
+        _ = sb.Append(renderMappings(lkup[OtherAnidb].Order(StringComparer.Ordinal)));
+        _ = sb.Append("--#endregion\n");
+        _ = sb.Append("\n--#region Other Languages\n");
+        _ = sb.Append(renderMappings(lkup[NonAnidb].Order(StringComparer.Ordinal)));
+        _ = sb.Append("--#endregion\n\n");
+        _ = sb.Append(renderMappings(lkup[Sentinel]));
         return sb.ToString();
     }
 
