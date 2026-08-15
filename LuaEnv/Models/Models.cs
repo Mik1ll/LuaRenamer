@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video.Enums;
 
-namespace LuaRenamer.LuaEnv;
+namespace LuaRenamer.LuaEnv.Models;
 
 // The complete env-description graph: every ILuaModel record plus the EnvModel root. Property names and
 // declaration order are the schema — they drive both the serialized Lua tables and the generated defs, so

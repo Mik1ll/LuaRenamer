@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLua;
 using Shoko.Abstractions.Metadata.Enums;

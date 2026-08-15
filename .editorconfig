@@ -1,5 +1,20 @@
-﻿[*.cs]
+﻿root = true
+
+[*.cs]
+indent_size = 4
+indent_style = space
+
+
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_prefer_braces = when_multiline
+csharp_style_expression_bodied_constructors = when_on_single_line
+csharp_style_expression_bodied_methods = when_on_single_line
+dotnet_style_prefer_collection_expression = when_types_exactly_match
+csharp_style_namespace_declarations = file_scoped
 
 # CS3021: Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
 dotnet_diagnostic.CS3021.severity = silent
 dotnet_code_quality.CA1826.exclude_ordefault_methods = true
+
+dotnet_analyzer_diagnostic.category-Style.severity = warning

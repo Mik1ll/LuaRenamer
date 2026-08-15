@@ -1,5 +1,6 @@
 using System.Reflection;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 
 namespace LuaRenamer.DefsGenerator;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;

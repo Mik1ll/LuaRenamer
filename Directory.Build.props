@@ -10,6 +10,10 @@
              into the build output so the debugger loads real symbols instead of
              falling back to decompilation. Required to bind breakpoints in NLua. -->
         <CopyDebugSymbolFilesFromPackages>true</CopyDebugSymbolFilesFromPackages>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <AnalysisMode>Recommended</AnalysisMode>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
     <!-- NLua's shipped PDB has no SourceLink, and its build path ("D:\a\1\s") collides

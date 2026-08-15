@@ -7,6 +7,7 @@ using System.Threading;
 using LuaRenamer.DefsGenerator;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Names;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;

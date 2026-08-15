@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Names;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
