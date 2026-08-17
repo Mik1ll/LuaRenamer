@@ -4,7 +4,7 @@
     "net10.0": {
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.43, 7.0.0)",
+        "requested": "[6.0.0-alpha.43, )",
         "resolved": "6.0.0-alpha.43",
         "contentHash": "ctxyo4mK+LTLKhK8m5oj7GXeusEdt3UFrj05rL2cocuSPyLsLNyMxbT9szVGtvaJfyfMpCrXsNs93tb9/l670A==",
         "dependencies": {
@@ -53,8 +53,8 @@
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
-          "NLua": "[1.7.9, 2.0.0)",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
+          "NLua": "[1.7.9, )",
+          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
       }
     }
