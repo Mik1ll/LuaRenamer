@@ -7,3 +7,10 @@ updates:
       - "/"
     schedule:
       interval: "weekly"
+    # Not for batching -- ungrouped PRs are refreshed one directory at a time in a shared checkout,
+    # so the second directory sees the first one's edit and closes the PR as already up to date.
+    # Grouped refreshes merge the directories first; group-by keeps it one PR per dependency.
+    groups:
+      "nuget dependencies":
+        group-by: dependency-name
+        applies-to: version-updates
