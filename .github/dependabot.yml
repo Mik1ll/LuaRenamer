@@ -1,16 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: nuget
-    # "/" alone is enough: discovery expands LuaRenamer.slnx and reaches every project. Adding "/*"
-    # re-ran the identical analysis once per subdirectory and deduplicated the resulting PRs anyway.
-    directories:
-      - "/"
+    # Singular "directory", not "directories". Discovery expands LuaRenamer.slnx from here and
+    # reaches every project either way, but the plural key opts into the multi-directory machinery:
+    # refreshes then run once per directory in a shared checkout, and the second directory sees the
+    # first one's edit, decides the bump already happened, and closes the PR it just pushed.
+    directory: "/"
     schedule:
       interval: "weekly"
-    # Not for batching -- ungrouped PRs are refreshed one directory at a time in a shared checkout,
-    # so the second directory sees the first one's edit and closes the PR as already up to date.
-    # Grouped refreshes merge the directories first; group-by keeps it one PR per dependency.
-    groups:
-      "nuget dependencies":
-        group-by: dependency-name
-        applies-to: version-updates
