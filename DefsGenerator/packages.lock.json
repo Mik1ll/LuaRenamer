@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 1,
   "dependencies": {
     "net10.0": {
       "Shoko.Abstractions": {
@@ -11,6 +11,11 @@
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
         }
+      },
+      "KeraLua": {
+        "type": "Transitive",
+        "resolved": "1.4.9",
+        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -37,26 +42,19 @@
         "resolved": "11.6.1",
         "contentHash": "WA4z8iK+0SOh2/qoo7rtEanj/LjJZ8oWWoXI8u1xcYMk6VzHONqpabJBYGrzqDO41ld+VQHOFL+B8MXncIVSSA=="
       },
+      "NLua": {
+        "type": "Transitive",
+        "resolved": "1.7.9",
+        "contentHash": "fRTEILixMFY6dfidmYacS4qEgUDKJyi8dyYHfiLZAoBxItA9PvBLyIqMwPzqtJY4kHNRbmeoDJNGzeD90US4lg==",
+        "dependencies": {
+          "KeraLua": "1.4.9"
+        }
+      },
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
           "NLua": "[1.7.9, 2.0.0)",
           "Shoko.Abstractions": "[6.0.0-alpha.43, 7.0.0)"
-        }
-      },
-      "KeraLua": {
-        "type": "CentralTransitive",
-        "requested": "[1.4.9, 2.0.0)",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
-      },
-      "NLua": {
-        "type": "CentralTransitive",
-        "requested": "[1.7.9, 2.0.0)",
-        "resolved": "1.7.9",
-        "contentHash": "fRTEILixMFY6dfidmYacS4qEgUDKJyi8dyYHfiLZAoBxItA9PvBLyIqMwPzqtJY4kHNRbmeoDJNGzeD90US4lg==",
-        "dependencies": {
-          "KeraLua": "1.4.9"
         }
       }
     }

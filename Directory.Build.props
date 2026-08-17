@@ -18,6 +18,12 @@
              (dotnet/roslyn#41640). Nothing consumes the XML, so undocumented publics aren't an error. -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+        <!-- Package versions live in each csproj (Dependabot/GitHub handle per-project
+             PackageReference far better than central Directory.Packages.props); only the
+             lock file policy is shared. -->
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
     </PropertyGroup>
 
     <!-- NLua's shipped PDB has no SourceLink, and its build path ("D:\a\1\s") collides
