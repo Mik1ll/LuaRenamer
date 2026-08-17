@@ -33,8 +33,7 @@ public static class LuaSchema
     /// declared static rather than threaded through every producer.
     /// </remarks>
     public static IReadOnlyList<(PropertyInfo Prop, LuaFieldAttribute Field)> LuaFields(Type t) =>
-        Cache.GetOrAdd(t, static type => type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
+        Cache.GetOrAdd(t, static type => [.. type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
             .Select(p => (Prop: p, Field: p.GetCustomAttribute<LuaFieldAttribute>()!))
-            .Where(x => x.Field is not null)
-            .ToArray());
+            .Where(x => x.Field is not null)]);
 }

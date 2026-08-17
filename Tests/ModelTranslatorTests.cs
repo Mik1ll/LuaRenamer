@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NLua;
@@ -41,7 +42,15 @@ public class ModelTranslatorTests
     {
         airdate = new DateTimeModel
         {
-            year = 2020, month = 1, day = 2, yday = 2, wday = 5, hour = 0, min = 0, sec = 0, isdst = false,
+            year = 2020,
+            month = 1,
+            day = 2,
+            yday = 2,
+            wday = 5,
+            hour = 0,
+            min = 0,
+            sec = 0,
+            isdst = false,
         },
         enddate = null, // null => key absent (Lua nil)
         rating = 8.5,
@@ -65,14 +74,14 @@ public class ModelTranslatorTests
 
     private static AnimeModel FullAnime()
     {
-        var related = MakeAnime([]); // leaf: no further relations
+        AnimeModel related = MakeAnime([]); // leaf: no further relations
         return MakeAnime([new RelationModel { anime = related, type = RelationType.Sequel }]);
     }
 
     [TestMethod]
     public void Scalars_And_Enums_Marshal()
     {
-        var table = _translator.Translate(FullAnime());
+        LuaTable table = _translator.Translate(FullAnime());
 
         Assert.AreEqual(42L, table["id"]);          // long stays long
         Assert.AreEqual(8.5, table["rating"]);      // double stays double
@@ -84,7 +93,7 @@ public class ModelTranslatorTests
     [TestMethod]
     public void Null_Becomes_Absent()
     {
-        var table = _translator.Translate(FullAnime());
+        LuaTable table = _translator.Translate(FullAnime());
 
         Assert.IsNull(table["enddate"]); // C# side: key never set
         _lua["anime"] = table;
@@ -95,7 +104,7 @@ public class ModelTranslatorTests
     [TestMethod]
     public void NestedModel_Becomes_Subtable()
     {
-        var table = _translator.Translate(FullAnime());
+        LuaTable table = _translator.Translate(FullAnime());
 
         var airdate = (LuaTable)table["airdate"];
         Assert.AreEqual(2020L, airdate["year"]);
@@ -153,11 +162,11 @@ public class ModelTranslatorTests
     {
         // getname is a pure descriptor; the translator resolves it out of the sandbox's function library on
         // demand, memoized, so every table that binds the same entry gets the one handle (no per-table closures).
-        var a1 = _translator.Translate(FullAnime());
-        var a2 = _translator.Translate(FullAnime());
+        LuaTable a1 = _translator.Translate(FullAnime());
+        LuaTable a2 = _translator.Translate(FullAnime());
 
         var stored = a1["getname"];
-        Assert.IsInstanceOfType(stored, typeof(LuaFunction));
+        _ = Assert.IsInstanceOfType<LuaFunction>(stored);
         Assert.IsTrue(((LuaFunction)stored).Equals(a2["getname"])); // same cached handle across translations
     }
 
@@ -171,7 +180,7 @@ public class ModelTranslatorTests
     {
         // The getname source names TitleType members and Title/Anime fields as plain Lua strings, so nothing
         // in C# fails to compile if one is renamed. This is the guard that catches it instead.
-        var anime = MakeAnime([]) with
+        AnimeModel anime = MakeAnime([]) with
         {
             titles = [new TitleModel { name = "Only", language = TitleLanguage.English, languagecode = "en", type = type }],
         };
@@ -186,53 +195,53 @@ public class ModelTranslatorTests
     private static Mock<IAnidbAnime> MinAnime(int id, string anidbTitle, string anidbDefault)
     {
         var m = new Mock<IAnidbAnime>();
-        m.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        m.SetupGet(a => a.ID).Returns(id);
-        m.SetupGet(a => a.Title).Returns(anidbTitle);
-        m.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbDefault));
-        m.SetupGet(a => a.Titles).Returns(new List<ITitle>());
-        m.SetupGet(a => a.Studios).Returns([]);
-        m.SetupGet(a => a.Tags).Returns([]);
-        m.SetupGet(a => a.YearlySeasons).Returns([]);
-        m.SetupGet(a => a.RelatedSeries).Returns([]);
-        m.SetupGet(a => a.ShokoSeries).Returns([]);
+        _ = m.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
+        _ = m.SetupGet(a => a.ID).Returns(id);
+        _ = m.SetupGet(a => a.Title).Returns(anidbTitle);
+        _ = m.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbDefault));
+        _ = m.SetupGet(a => a.Titles).Returns(new List<ITitle>());
+        _ = m.SetupGet(a => a.Studios).Returns([]);
+        _ = m.SetupGet(a => a.Tags).Returns([]);
+        _ = m.SetupGet(a => a.YearlySeasons).Returns([]);
+        _ = m.SetupGet(a => a.RelatedSeries).Returns([]);
+        _ = m.SetupGet(a => a.ShokoSeries).Returns([]);
         return m;
     }
 
-    private static ITitle Title(string value, TitleLanguage lang, string code, TitleType type) =>
-        new TitleStub { Value = value, Language = lang, LanguageCode = code, Type = type, Source = DataSource.AniDB };
+    private static TitleStub Title(string value, TitleLanguage lang, string code, TitleType type) =>
+        new() { Value = value, Language = lang, LanguageCode = code, Type = type, Source = DataSource.AniDB };
 
     [TestMethod]
     public void Producer_Maps_AnidbAnime_To_LuaConsumable_Table()
     {
         // A related anime with NO ShokoSeries — so preferredname/defaultname fall back to AniDB,
         // and (since it's reached through a relation) its own relations are pruned.
-        var related = MinAnime(99, "Related", "RelatedDef").Object;
+        IAnidbAnime related = MinAnime(99, "Related", "RelatedDef").Object;
 
-        var anime = MinAnime(42, "AnidbTitle", "AnidbDefault");
-        anime.SetupGet(a => a.Type).Returns(AnimeType.Movie);
-        anime.SetupGet(a => a.Rating).Returns(8.5);
-        anime.SetupGet(a => a.Restricted).Returns(true);
-        anime.SetupGet(a => a.AirDate).Returns(new PartialDateOnly(new DateTime(2020, 1, 2)));
-        anime.SetupGet(a => a.Titles).Returns(new List<ITitle>
+        Mock<IAnidbAnime> anime = MinAnime(42, "AnidbTitle", "AnidbDefault");
+        _ = anime.SetupGet(a => a.Type).Returns(AnimeType.Movie);
+        _ = anime.SetupGet(a => a.Rating).Returns(8.5);
+        _ = anime.SetupGet(a => a.Restricted).Returns(true);
+        _ = anime.SetupGet(a => a.AirDate).Returns(new PartialDateOnly(new DateTime(2020, 1, 2)));
+        _ = anime.SetupGet(a => a.Titles).Returns(new List<ITitle>
         {
             Title("Zebra", TitleLanguage.English, "en", TitleType.Synonym),
             Title("Apple", TitleLanguage.Japanese, "ja", TitleType.Official),
         });
-        anime.SetupGet(a => a.Studios).Returns([Mock.Of<IStudio>(s => s.Name == "Studio A"), Mock.Of<IStudio>(s => s.Name == "Studio B")]);
-        anime.SetupGet(a => a.Tags).Returns([Mock.Of<IAnidbTagForAnime>(t => t.Name == "action")]);
-        anime.SetupGet(a => a.YearlySeasons).Returns([(2020, YearlySeason.Winter)]);
-        anime.SetupGet(a => a.RelatedSeries).Returns(
+        _ = anime.SetupGet(a => a.Studios).Returns([Mock.Of<IStudio>(s => s.Name == "Studio A"), Mock.Of<IStudio>(s => s.Name == "Studio B")]);
+        _ = anime.SetupGet(a => a.Tags).Returns([Mock.Of<IAnidbTagForAnime>(t => t.Name == "action")]);
+        _ = anime.SetupGet(a => a.YearlySeasons).Returns([(2020, YearlySeason.Winter)]);
+        _ = anime.SetupGet(a => a.RelatedSeries).Returns(
             [Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r => r.Related == related && r.RelationType == RelationType.Sequel)]);
         // ShokoSeries present => preferredname/defaultname/customtags come from the Shoko series.
-        anime.SetupGet(a => a.ShokoSeries).Returns(
+        _ = anime.SetupGet(a => a.ShokoSeries).Returns(
             [
                 Mock.Of<IShokoSeries>(s => s.Title == "ShokoPref" &&
                     s.DefaultTitle == Mock.Of<ITitle>(t => t.Value == "ShokoDef") &&
                     s.Tags == new List<IShokoTagForSeries> { Mock.Of<IShokoTagForSeries>(t => t.Name == "custom1") }),
             ]);
 
-        var model = ModelProducers.AnimeToModel(anime.Object);
+        AnimeModel model = ModelProducers.AnimeToModel(anime.Object);
         _lua["anime"] = _translator.Translate(model);
 
         // scalars / enum / Shoko-vs-AniDB name precedence

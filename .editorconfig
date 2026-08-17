@@ -1,5 +1,40 @@
-﻿[*.cs]
+﻿root = true
+
+[*.cs]
+indent_size = 4
+indent_style = space
+
+
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_prefer_braces = when_multiline
+csharp_style_expression_bodied_constructors = when_on_single_line
+csharp_style_expression_bodied_methods = when_on_single_line
+dotnet_style_prefer_collection_expression = when_types_exactly_match
+csharp_style_namespace_declarations = file_scoped
+
+
+dotnet_analyzer_diagnostic.category-Style.severity = warning
 
 # CS3021: Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
 dotnet_diagnostic.CS3021.severity = silent
 dotnet_code_quality.CA1826.exclude_ordefault_methods = true
+
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = silent
+
+# The Lua schema names its own concepts: a *Delegate is the callable contract the generators document,
+# NamesEnum<T> is the enum node of the Names DSL. Both suffixes are the point, not accidental.
+dotnet_code_quality.CA1711.allowed_suffixes = Delegate|Enum
+
+# Lua-facing identifiers are snake_case, so the delegate parameters the defs generator documents are too.
+[LuaEnv/LuaCallables.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+[Tests/**.cs]
+# Test names are Subject_Does_Thing by convention.
+dotnet_diagnostic.CA1707.severity = none
+# The CA1873 hits are Moq Verify() matcher expressions inside an ILogger.Log lambda — nothing is evaluated.
+dotnet_diagnostic.CA1873.severity = none
+# The sandbox fields are disposed from [TestCleanup]; MSTest owns the test class lifetime.
+dotnet_diagnostic.CA1001.severity = none

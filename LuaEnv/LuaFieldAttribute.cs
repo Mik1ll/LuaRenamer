@@ -6,9 +6,9 @@ namespace LuaRenamer.LuaEnv;
 /// Marks a bound data property on a schema table class. The Lua type is inferred from the C# property type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
-public class LuaFieldAttribute : Attribute
+public class LuaFieldAttribute(string? description = null) : Attribute
 {
-    public string? Description { get; }
+    public string? Description { get; } = description;
 
     /// <summary>The value the field is initialized to in the generated <c>env.lua</c>.</summary>
     public string DefaultValue { get; init; } = "nil";
@@ -18,6 +18,4 @@ public class LuaFieldAttribute : Attribute
     /// than plain function syntax (<c>obj.fn()</c>).
     /// </summary>
     public bool Method { get; init; }
-
-    public LuaFieldAttribute(string? description = null) => Description = description;
 }

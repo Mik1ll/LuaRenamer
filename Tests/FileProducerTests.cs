@@ -4,7 +4,6 @@ using System.Linq;
 using LuaRenamer.LuaEnv;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
@@ -74,7 +73,7 @@ public class FileProducerTests
 
     private static IVideoFile MakeFile(IReleaseInfo? release, IMediaInfo? media)
     {
-        var video = Mock.Of<IVideo>(v =>
+        IVideo video = Mock.Of<IVideo>(v =>
             v.EarliestKnownName == "earliest.mkv" &&
             v.ED2K == "ED2KHASH" &&
             v.Hashes == new[] { Hash("CRC32", "CRCVAL"), Hash("SHA1", "SHA1VAL") } && // no MD5 entry on purpose
@@ -117,7 +116,7 @@ public class FileProducerTests
     [TestMethod]
     public void AniDb_Release_Uri_Parsed_And_Mapped()
     {
-        var group = Mock.Of<IReleaseGroup>(g => g.ID == "42" && g.Name == "GoodGroup" && g.ShortName == "GG");
+        IReleaseGroup group = Mock.Of<IReleaseGroup>(g => g.ID == "42" && g.Name == "GoodGroup" && g.ShortName == "GG");
         _lua["file"] = _translator.Translate(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/987654", group), null)));
 
@@ -144,7 +143,7 @@ public class FileProducerTests
     [TestMethod]
     public void ReleaseGroup_RawUnknown_Is_Filtered()
     {
-        var raw = Mock.Of<IReleaseGroup>(g => g.ID == "1" && g.Name == "raw/unknown" && g.ShortName == "raw");
+        IReleaseGroup raw = Mock.Of<IReleaseGroup>(g => g.ID == "1" && g.Name == "raw/unknown" && g.ShortName == "raw");
         _lua["file"] = _translator.Translate(ModelProducers.FileToModel(
             MakeFile(Release("https://anidb.net/file/5", raw), null)));
 

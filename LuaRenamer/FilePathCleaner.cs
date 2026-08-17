@@ -34,7 +34,7 @@ public partial class FilePathCleaner(
     public string[] CleanPathSegments(params string[] segments)
     {
         var windowsPathHandling = !platformDependentIllegalChars || RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        var illegalCharRegex = windowsPathHandling ? WindowsInvalidPathCharRegex() : OtherInvalidPathCharRegex();
+        Regex illegalCharRegex = windowsPathHandling ? WindowsInvalidPathCharRegex() : OtherInvalidPathCharRegex();
         if (illegalCharRegex.Match(string.Join(null, _replaceMap.Values)) is { Success: true } m)
             throw new LuaRenamerException($"Illegal path replacement character: '{m.Value}'");
 
@@ -46,11 +46,11 @@ public partial class FilePathCleaner(
                     "_")
                 .TrimStart(' ').TrimEnd(' ', '.');
             var isEmpty = string.IsNullOrWhiteSpace(newSegment);
-            if (isEmpty || (windowsPathHandling && WindowsDeviceNamesRegex().Match(newSegment).Success))
+            if (isEmpty || (windowsPathHandling && WindowsDeviceNamesRegex().IsMatch(newSegment)))
                 throw new LuaRenamerException($"Illegal path segment: {(isEmpty ? "<empty/whitespace>" : newSegment)}");
             newSegments.Add(newSegment);
         }
 
-        return newSegments.ToArray();
+        return [.. newSegments];
     }
 }

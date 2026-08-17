@@ -1,5 +1,6 @@
 using System.Reflection;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 
 namespace LuaRenamer.DefsGenerator;
 
@@ -31,7 +32,7 @@ internal static class SchemaReflection
     /// <summary>Drops the <c>Model</c> suffix: <c>AnimeModel</c> -> <c>Anime</c>.</summary>
     internal static string StripModel(string name) => name.EndsWith("Model") ? name[..^5] : name;
 
-    /// <summary>An enum table is a <see cref="LuaEnumTable{TEnum}"/>; <typeparamref name="TEnum"/> is the exposed enum.</summary>
+    /// <summary>An enum table is a <see cref="LuaEnumTable{TEnum}"/>; its <c>TEnum</c> argument is the exposed enum.</summary>
     internal static bool IsEnumTable(Type t) => IsGenericDef(t, typeof(LuaEnumTable<>));
 
     internal static bool IsEnumTable(PropertyInfo p) => IsEnumTable(p.PropertyType);
@@ -46,13 +47,13 @@ internal static class SchemaReflection
     /// </summary>
     internal static Type? ListElement(Type t)
     {
-        if (t.IsArray)
-            return t.GetElementType();
-        if (t.IsGenericType &&
+        return t.IsArray
+            ? t.GetElementType()
+            : t.IsGenericType &&
             t.GetGenericTypeDefinition() is var def &&
-            (def == typeof(IReadOnlyList<>) || def == typeof(IReadOnlyCollection<>) || def == typeof(IEnumerable<>)))
-            return t.GetGenericArguments()[0];
-        return null;
+            (def == typeof(IReadOnlyList<>) || def == typeof(IReadOnlyCollection<>) || def == typeof(IEnumerable<>))
+            ? t.GetGenericArguments()[0]
+            : null;
     }
 
     internal static bool IsLuaModel(Type t) => typeof(ILuaModel).IsAssignableFrom(t);

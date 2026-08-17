@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NLua;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Video.Enums;
 
@@ -42,10 +42,18 @@ public class EnvModelTranslatorTests
 
     private static DateTimeModel Date(long y) => new()
     {
-        year = y, month = 1, day = 2, yday = 2, wday = 5, hour = 0, min = 0, sec = 0, isdst = false,
+        year = y,
+        month = 1,
+        day = 2,
+        yday = 2,
+        wday = 5,
+        hour = 0,
+        min = 0,
+        sec = 0,
+        isdst = false,
     };
 
-    private AnimeModel Anime(long id) => new()
+    private static AnimeModel Anime(long id) => new()
     {
         airdate = Date(2020),
         enddate = null,
@@ -64,7 +72,7 @@ public class EnvModelTranslatorTests
         seasons = [new SeasonModel { year = 2020, season = YearlySeason.Winter }],
     };
 
-    private EpisodeModel Episode(long id) => new()
+    private static EpisodeModel Episode(long id) => new()
     {
         duration = 1440,
         number = 1,
@@ -76,19 +84,27 @@ public class EnvModelTranslatorTests
         prefix = "",
     };
 
-    private ImportFolderModel Folder(long id) => new()
+    private static ImportFolderModel Folder(long id) => new()
     {
-        id = id, name = "Import", location = "/data", type = Enum.GetValues<DropFolderType>().First(),
+        id = id,
+        name = "Import",
+        location = "/data",
+        type = Enum.GetValues<DropFolderType>().First(),
     };
 
-    private FileModel File() => new()
+    private static FileModel File() => new()
     {
-        name = "video", extension = ".mkv", path = "/data/video.mkv", size = 123456789,
+        name = "video",
+        extension = ".mkv",
+        path = "/data/video.mkv",
+        size = 123456789,
         importfolder = Folder(1),
         earliestname = "video.orig",
         media = new MediaModel
         {
-            chaptered = true, duration = 1440, bitrate = 5_000_000,
+            chaptered = true,
+            duration = 1440,
+            bitrate = 5_000_000,
             sublanguages = ["English"],
             audio =
             [
@@ -100,24 +116,34 @@ public class EnvModelTranslatorTests
             ],
             video = new VideoModel
             {
-                height = 1080, width = 1920, codec = "h264", res = "1080p",
-                bitrate = 4_000_000, bitdepth = 8, framerate = 23.976,
+                height = 1080,
+                width = 1920,
+                codec = "h264",
+                res = "1080p",
+                bitrate = 4_000_000,
+                bitdepth = 8,
+                framerate = 23.976,
             },
         },
         anidb = new AniDbModel
         {
-            id = 555, censored = false, source = "BD", version = 2,
-            releasedate = Date(2021), description = "notes",
+            id = 555,
+            censored = false,
+            source = "BD",
+            version = 2,
+            releasedate = Date(2021),
+            description = "notes",
             releasegroup = new ReleaseGroupModel { name = "Group", shortname = "GRP" },
             media = new AniDbMediaModel
             {
-                sublanguages = [TitleLanguage.English], dublanguages = [TitleLanguage.Japanese],
+                sublanguages = [TitleLanguage.English],
+                dublanguages = [TitleLanguage.Japanese],
             },
         },
         hashes = new HashesModel { crc = "ABCD1234", md5 = null, ed2k = "ed2khash", sha1 = null },
     };
 
-    private TmdbModel Tmdb() => new()
+    private static TmdbModel Tmdb() => new()
     {
         movies =
         [
@@ -153,11 +179,11 @@ public class EnvModelTranslatorTests
 
     private EnvModel BuildEnv() => new()
     {
-        episode_numbers = (EpisodeNumbersDelegate)(pad => $"E{pad}"),
-        logdebug = (LogDelegate)(m => _logged.Add("D:" + m)),
-        log = (LogDelegate)(m => _logged.Add("I:" + m)),
-        logwarn = (LogDelegate)(m => _logged.Add("W:" + m)),
-        logerror = (LogDelegate)(m => _logged.Add("E:" + m)),
+        episode_numbers = pad => $"E{pad}",
+        logdebug = m => _logged.Add("D:" + m),
+        log = m => _logged.Add("I:" + m),
+        logwarn = m => _logged.Add("W:" + m),
+        logerror = m => _logged.Add("E:" + m),
         file = File(),
         anime = Anime(42),
         animes = [Anime(42), Anime(99)],
@@ -214,8 +240,8 @@ public class EnvModelTranslatorTests
     {
         Load();
         Assert.AreEqual("E3", _lua.DoString("return env.episode_numbers(3)")[0]); // '.' plain-call syntax
-        _lua.DoString("env.log('hello'); env.logerror('boom')");
-        CollectionAssert.AreEqual(new[] { "I:hello", "E:boom" }, _logged);
+        _ = _lua.DoString("env.log('hello'); env.logerror('boom')");
+        Assert.AreSequenceEqual(["I:hello", "E:boom"], _logged);
     }
 
     [TestMethod]
@@ -247,7 +273,7 @@ public class EnvModelTranslatorTests
 
     private void AssertEnumTable<T>(string luaName) where T : struct, Enum
     {
-        foreach (var name in Enum.GetValues<T>().Distinct().Select(v => Enum.GetName(v)!))
+        foreach (var name in Enum.GetValues<T>().Distinct().Select(v => Enum.GetName(v)))
             Assert.AreEqual(name, _lua.DoString($"return env.{luaName}['{name}']")[0], $"{luaName}.{name}");
     }
 }

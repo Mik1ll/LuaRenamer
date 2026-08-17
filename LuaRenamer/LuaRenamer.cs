@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using LuaRenamer.LuaEnv;
 using LuaRenamer.LuaEnv.Names;
+using LuaRenamer.LuaEnv.Models;
 using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
@@ -28,13 +30,11 @@ public class Plugin : IPlugin
     """;
 }
 
-public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
+public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRenamerSettings>
 {
     private static readonly EnvNames Names = new();
 
-    private readonly ILogger<LuaRenamer> _logger;
-
-    public LuaRenamer(ILogger<LuaRenamer> logger) => _logger = logger;
+    private readonly ILogger<LuaRenamer> _logger = logger;
 
     public string Name => nameof(LuaRenamer);
 
@@ -63,56 +63,45 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
                 newSubFolderSplit = [str];
                 break;
             case LuaTable subfolderTable:
-            {
-                newSubFolderSplit = [];
-                for (var i = 1; subfolderTable[i] is { } val; i++)
-                    newSubFolderSplit.Add(val as string ?? throw new LuaRenamerException("subfolder array must only contain strings"));
-                break;
-            }
+                {
+                    newSubFolderSplit = [];
+                    for (var i = 1; subfolderTable[i] is { } val; i++)
+                        newSubFolderSplit.Add(val as string ?? throw new LuaRenamerException("subfolder array must only contain strings"));
+                    break;
+                }
             default:
                 throw new LuaException("subfolder returned a value of an unexpected type");
         }
 
-        var newSubfolder = Path.Combine(filePathCleaner.CleanPathSegments(newSubFolderSplit.ToArray())).NormPath();
+        var newSubfolder = Path.Combine(filePathCleaner.CleanPathSegments([.. newSubFolderSplit])).NormPath();
         return newSubfolder;
     }
 
     private static IManagedFolder GetNewDestination(object? destination, RelocationContext<LuaRenamerSettings> args)
     {
-        IManagedFolder? destfolder;
-        switch (destination)
+        IManagedFolder? destfolder = destination switch
         {
-            case null:
-                destfolder = args.AvailableFolders
-                    // Order by common prefix (stronger version of same drive)
-                    .OrderByDescending(f => string.Concat(args.File.Path.NormPath()
-                        .TakeWhile((ch, i) => i < f.Path.NormPath().Length
-                                              && char.ToUpperInvariant(f.Path.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
-                    .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination));
-                if (destfolder is null)
-                    throw new LuaRenamerException("could not find an available destination import folder");
-                break;
-            case string str:
-                destfolder = args.AvailableFolders.FirstOrDefault(f =>
+            // Order by common prefix (stronger version of same drive)
+            null => args.AvailableFolders
+                .OrderByDescending(f => string.Concat(args.File.Path.NormPath()
+                    .TakeWhile((ch, i) => i < f.Path.NormPath().Length
+                                          && char.ToUpperInvariant(f.Path.NormPath()[i]) == char.ToUpperInvariant(ch))).Length)
+                .FirstOrDefault(f => f.DropFolderType.HasFlag(DropFolderType.Destination))
+                    ?? throw new LuaRenamerException("could not find an available destination import folder"),
+            string str => args.AvailableFolders.FirstOrDefault(f =>
                     string.Equals(f.Name, str, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(f.Path.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase));
-                if (destfolder is null)
-                    throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\"");
-                break;
-            case LuaTable destTable when destTable[nameof(ImportFolderModel.id)] is not null
-                                         && destTable[nameof(ImportFolderModel.name)] is not null:
-                destfolder = args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderModel.id)])) ??
-                             throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderModel.id)]}");
-                break;
-            case LuaTable:
-                throw new LuaRenamerException("destination table was not an import folder, assign a table from importfolders variable");
-            default:
-                throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from importfolders variable");
-        }
-
-        if (!destfolder.DropFolderType.HasFlag(DropFolderType.Destination))
-            throw new LuaRenamerException($"selected import folder \"{destfolder.Path}\" is not a destination folder, check import folder type");
-        return destfolder;
+                    string.Equals(f.Path.NormPath(), str.NormPath(), StringComparison.OrdinalIgnoreCase))
+                ?? throw new LuaRenamerException($"could not find an available import folder by name or path: \"{str}\""),
+            LuaTable destTable when destTable[nameof(ImportFolderModel.id)] is not null
+                                    && destTable[nameof(ImportFolderModel.name)] is not null =>
+                args.AvailableFolders.FirstOrDefault(i => i.ID == Convert.ToInt32(destTable[nameof(ImportFolderModel.id)], CultureInfo.InvariantCulture))
+                ?? throw new LuaRenamerException($"could not find an available import folder by ID: {destTable[nameof(ImportFolderModel.id)]}"),
+            LuaTable => throw new LuaRenamerException("destination table was not an import folder, assign a table from importfolders variable"),
+            _ => throw new LuaRenamerException($"destination must be nil, an string (name/path), or a table from importfolders variable"),
+        };
+        return !destfolder.DropFolderType.HasFlag(DropFolderType.Destination)
+            ? throw new LuaRenamerException($"selected import folder \"{destfolder.Path}\" is not a destination folder, check import folder type")
+            : destfolder;
     }
 
     private static (IManagedFolder destination, string subfolder)? GetExistingAnimeLocation(RelocationContext<LuaRenamerSettings> args,
@@ -131,8 +120,7 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
         var bestLocation = availableLocations.GroupBy(l => l.SubFolder)
             .OrderByDescending(g => g.ToList().Count).Select(g => g.First())
             .FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(bestLocation?.SubFolder)) return null;
-        return (bestLocation.ManagedFolder, bestLocation.SubFolder);
+        return string.IsNullOrWhiteSpace(bestLocation?.SubFolder) ? null : (bestLocation.ManagedFolder, bestLocation.SubFolder);
     }
 
     private static string? SubfolderFromRelativePath(IVideoFile videoFile)
@@ -142,26 +130,26 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             : videoFile.RelativePath);
     }
 
-    public RelocationResult GetPath(RelocationContext<LuaRenamerSettings> args)
+    public RelocationResult GetPath(RelocationContext<LuaRenamerSettings> context)
     {
         try
         {
-            if (args.File.Video is null)
+            if (context.File.Video is null)
                 throw new LuaRenamerException("File did not have video info");
-            if (args.Configuration.Script is null)
+            if (context.Configuration.Script is null)
                 throw new LuaRenamerException("Script is null");
-            if (args.Series.Count == 0)
+            if (context.Series.Count == 0)
                 throw new LuaRenamerException("No anime info");
-            if (args.Episodes.Count == 0)
+            if (context.Episodes.Count == 0)
                 throw new LuaRenamerException("No episode info");
 
             // Resolved once here (safe past the emptiness guard above) so the env model and the
             // move/rename fallbacks below all agree on which series is primary.
-            var primarySeries = ModelProducers.PrimarySeries(args);
+            IShokoSeries primarySeries = ModelProducers.PrimarySeries(context);
 
             using var sandbox = new LuaSandbox(LuaScripts.LuaLinq, LuaScripts.Utils);
-            new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(args, _logger), sandbox.Env);
-            if (sandbox.Run(args.Configuration.Script) is { } scriptError)
+            new ModelTranslator(sandbox).Translate(ModelProducers.EnvToModel(context, _logger), sandbox.Env);
+            if (sandbox.Run(context.Configuration.Script) is { } scriptError)
                 throw new LuaRenamerException(scriptError);
 
             var replaceIllegalChars = sandbox.GetValue(Names.replace_illegal_chars) is true;
@@ -172,24 +160,26 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
             var luaFilename = sandbox.GetValue(Names.filename);
             var luaDestination = sandbox.GetValue(Names.destination);
             var luaSubfolder = sandbox.GetValue(Names.subfolder);
-            var illegalCharsOverride = sandbox.GetValue(Names.illegal_chars_map) is LuaTable luaIllegalCharsOverride
+            Dictionary<string, string> illegalCharsOverride = sandbox.GetValue(Names.illegal_chars_map) is LuaTable luaIllegalCharsOverride
                 ? sandbox.GetTableDict(luaIllegalCharsOverride)
                     .Where(kvp => kvp is { Key: string, Value: string })
                     .Select(kvp => new KeyValuePair<string, string>((string)kvp.Key, (string)kvp.Value)).ToDictionary()
-                : new Dictionary<string, string>();
+                : [];
 
-            var filePathCleaner = new FilePathCleaner(removeIllegalChars, replaceIllegalChars, args.Configuration.PlatformDependentIllegalCharacters,
+            var filePathCleaner = new FilePathCleaner(removeIllegalChars, replaceIllegalChars, context.Configuration.PlatformDependentIllegalCharacters,
                 illegalCharsOverride);
 
             var result = new RelocationResult { SkipMove = skipMove, SkipRename = skipRename };
 
-            if (args.MoveEnabled && !skipMove)
+            if (context.MoveEnabled && !skipMove)
+            {
                 (result.ManagedFolder, result.Path) =
-                    (useExistingAnimeLocation ? GetExistingAnimeLocation(args, primarySeries) : null) ??
-                    (GetNewDestination(luaDestination, args), GetNewSubfolder(luaSubfolder, primarySeries, filePathCleaner));
+                    (useExistingAnimeLocation ? GetExistingAnimeLocation(context, primarySeries) : null) ??
+                    (GetNewDestination(luaDestination, context), GetNewSubfolder(luaSubfolder, primarySeries, filePathCleaner));
+            }
 
-            if (args.RenameEnabled && !skipRename)
-                result.FileName = GetNewFilename(luaFilename, args, filePathCleaner);
+            if (context.RenameEnabled && !skipRename)
+                result.FileName = GetNewFilename(luaFilename, context, filePathCleaner);
 
             return result;
         }
@@ -197,7 +187,7 @@ public class LuaRenamer : IRelocationProvider<LuaRenamerSettings>
         {
             _logger.LogWarning("{Exception}", e.ToString());
             var st = new StackTrace(e, true);
-            var frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
+            StackFrame? frame = st.GetFrames().FirstOrDefault(f => f.GetFileName() is not null);
             return new()
             {
                 Error = new(

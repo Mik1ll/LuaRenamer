@@ -114,13 +114,14 @@ public sealed class LuaSandbox : Lua
     /// </summary>
     public LuaFunction CompileFunction(string source)
     {
-        if (_compiled.TryGetValue(source, out var cached)) return cached;
-        return _compiled[source] = _runSandboxed.Call(source, Env) switch
-        {
-            [true, LuaFunction fn, ..] => fn,
-            [not true, var error, ..] => throw new ArgumentException($"chunk did not compile: {error}", nameof(source)),
-            _ => throw new ArgumentException("chunk did not return a function", nameof(source)),
-        };
+        return _compiled.TryGetValue(source, out LuaFunction? cached)
+            ? cached
+            : (_compiled[source] = _runSandboxed.Call(source, Env) switch
+            {
+                [true, LuaFunction fn, ..] => fn,
+                [not true, var error, ..] => throw new ArgumentException($"chunk did not compile: {error}", nameof(source)),
+                _ => throw new ArgumentException("chunk did not return a function", nameof(source)),
+            });
     }
 
     /// <summary>
@@ -157,7 +158,7 @@ public sealed class LuaSandbox : Lua
 
     /// <summary>
     /// Splits a path into the Lua keys to walk: a string per name, an int per <c>[n]</c> index. Validates the
-    /// whole path up front, so <see cref="GetValue"/> either walks cleanly or throws before touching Lua.
+    /// whole path up front, so <see cref="GetValue(string)"/> either walks cleanly or throws before touching Lua.
     /// </summary>
     private static List<object> ParseKeys(string path)
     {

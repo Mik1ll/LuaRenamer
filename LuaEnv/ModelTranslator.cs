@@ -31,9 +31,12 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
     {
         // GetValue ignores the instance for a static property, which is how the Lua-bodied callables — the
         // same for every node, so declared static — read back here alongside the per-node data.
-        foreach (var (prop, _) in LuaSchema.LuaFields(model.GetType()))
+        foreach ((System.Reflection.PropertyInfo? prop, LuaFieldAttribute _) in LuaSchema.LuaFields(model.GetType()))
+        {
             if (WriteValue(prop.GetValue(model)) is { } v) // null => leave key absent (== Lua nil)
                 table[prop.Name] = v;
+        }
+
         return table;
     }
 
@@ -55,7 +58,7 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
     /// <summary>The <c>{ Name = "Name", ... }</c> identity map for an exposed enum.</summary>
     private LuaTable WriteEnumTable(Type enumType)
     {
-        var table = sandbox.NewTable();
+        LuaTable table = sandbox.NewTable();
         foreach (var name in LuaEnumTable.Names(enumType))
             table[name] = name;
         return table;
@@ -63,20 +66,26 @@ public sealed class ModelTranslator(LuaSandbox sandbox)
 
     private LuaTable WriteMap(IDictionary dict)
     {
-        var table = sandbox.NewTable();
+        LuaTable table = sandbox.NewTable();
         foreach (DictionaryEntry entry in dict)
+        {
             if (WriteValue(entry.Value) is { } v)
-                table[entry.Key is Enum e ? Enum.GetName(e.GetType(), e)! : entry.Key] = v;
+                table[entry.Key is Enum e ? Enum.GetName(e.GetType(), e) : entry.Key] = v;
+        }
+
         return table;
     }
 
     private LuaTable WriteSequence(IEnumerable seq)
     {
-        var table = sandbox.NewTable();
+        LuaTable table = sandbox.NewTable();
         var i = 1;
         foreach (var item in seq)
+        {
             if (WriteValue(item) is { } v)
                 table[i++] = v;
+        }
+
         return table;
     }
 }
