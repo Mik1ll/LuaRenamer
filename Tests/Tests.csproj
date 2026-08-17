@@ -8,12 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KeraLua" Version="[1.4.9, 2.0.0)" />
-        <PackageReference Include="Moq" Version="[4.20.72, 5.0.0)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.10, 11.0.0)" />
-        <PackageReference Include="MSTest" Version="[4.3.3, 5.0.0)" />
-        <PackageReference Include="NLua" Version="[1.7.9, 2.0.0)" />
-        <PackageReference Include="Shoko.Abstractions" Version="[6.0.0-alpha.43, 7.0.0)" />
+        <PackageReference Include="KeraLua" Version="1.4.9" />
+        <PackageReference Include="Moq" Version="4.20.72" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+        <PackageReference Include="MSTest" Version="4.3.3" />
+        <PackageReference Include="NLua" Version="1.7.9" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" />
     </ItemGroup>
 
     <ItemGroup>
