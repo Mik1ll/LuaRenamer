@@ -13,7 +13,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
         <PackageReference Include="MSTest" Version="4.3.3" />
         <PackageReference Include="NLua" Version="1.7.9" />
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.81" />
     </ItemGroup>
 
     <ItemGroup>

@@ -7,7 +7,7 @@
 
     <ItemGroup>
         <PackageReference Include="NLua" Version="1.7.9" />
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" ExcludeAssets="runtime" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.81" ExcludeAssets="runtime" />
     </ItemGroup>
 
 </Project>
