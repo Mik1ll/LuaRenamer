@@ -136,13 +136,16 @@ public static class HostFakes
         IAnidbEpisode? anidbEpisode = null)
     {
         anidbEpisode ??= AnidbEpisode();
+        // Read across before configuring, not inside the Returns() argument: arguments are evaluated after
+        // the receiver, so a substitute read there becomes the call NSubstitute attaches the value to.
+        (var anidbEpisodeId, EpisodeType type, var number) = (anidbEpisode.ID, anidbEpisode.Type, anidbEpisode.EpisodeNumber);
         IShokoEpisode episode = Substitute.For<IShokoEpisode>();
         episode.ID.Returns(shokoId);
         episode.SeriesID.Returns(shokoSeriesId);
         episode.AnidbEpisode.Returns(anidbEpisode);
-        episode.AnidbEpisodeID.Returns(anidbEpisode.ID);
-        episode.Type.Returns(anidbEpisode.Type);
-        episode.EpisodeNumber.Returns(anidbEpisode.EpisodeNumber);
+        episode.AnidbEpisodeID.Returns(anidbEpisodeId);
+        episode.Type.Returns(type);
+        episode.EpisodeNumber.Returns(number);
         episode.TmdbEpisodes.Returns([]);
         return episode;
     }
@@ -150,10 +153,11 @@ public static class HostFakes
     public static IShokoGroup Group(int id, string name, IShokoSeries mainSeries, IReadOnlyList<IShokoSeries>? allSeries = null)
     {
         ITitle preferredTitle = Title(name);
+        var mainSeriesId = mainSeries.ID;
         IShokoGroup group = Substitute.For<IShokoGroup>();
         group.ID.Returns(id);
         group.PreferredTitle.Returns(preferredTitle);
-        group.MainSeriesID.Returns(mainSeries.ID);
+        group.MainSeriesID.Returns(mainSeriesId);
         group.MainSeries.Returns(mainSeries);
         group.AllSeries.Returns(allSeries ?? [mainSeries]);
         return group;
@@ -184,15 +188,17 @@ public static class HostFakes
         string? relativePath = null)
     {
         relativePath ??= Path.Combine("testsubfolder", fileName);
+        var fullPath = Path.Combine(folder.Path, relativePath);
+        (var folderId, var videoId) = (folder.ID, video.ID);
         IVideoFile file = Substitute.For<IVideoFile>();
         file.FileName.Returns(fileName);
         file.RelativePath.Returns(relativePath);
-        file.Path.Returns(Path.Combine(folder.Path, relativePath));
+        file.Path.Returns(fullPath);
         file.Size.Returns(123_456_789L);
         file.ManagedFolder.Returns(folder);
-        file.ManagedFolderID.Returns(folder.ID);
+        file.ManagedFolderID.Returns(folderId);
         file.Video.Returns(video);
-        file.VideoID.Returns(video.ID);
+        file.VideoID.Returns(videoId);
         return file;
     }
 

@@ -13,9 +13,9 @@ public class NormPathTests
     /// Excludes paths ending in more than one separator. <c>NormPath</c> is built on
     /// <c>Path.TrimEndingDirectorySeparator</c>, which by contract trims exactly one, so <c>"a\\\\"</c>
     /// normalizes to <c>"a\\"</c> — still separator-terminated, and normalizing again changes it. That is a
-    /// real gap (see the finding recorded with this change), not something these properties should paper
-    /// over by relaxing what they assert; the input is excluded so the properties state the rest of the
-    /// contract exactly rather than approximately.
+    /// real gap (Mik1ll/LuaRenamer#170), not something these properties should paper over by relaxing what
+    /// they assert; the input is excluded so the properties state the rest of the contract exactly rather
+    /// than approximately. Removing this exclusion is the regression test for that issue.
     /// </summary>
     private static bool EndsInRepeatedSeparators(string path) =>
         path.Reverse().TakeWhile(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar).Take(2).Count() > 1;
