@@ -2,18 +2,28 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
+        <!-- xUnit v3 test projects are self-hosting Microsoft.Testing.Platform executables. -->
+        <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
         <Nullable>enable</Nullable>
         <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
+        <!-- Every fluent assertion is an unused expression value, and every inline expectation array is a
+             constant array argument. Both rules fire on the assertion style itself, not on anything a
+             reader would want changed. -->
+        <NoWarn>$(NoWarn);IDE0058;CA1861</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+        <PackageReference Include="FsCheck" Version="3.4.0" />
+        <PackageReference Include="FsCheck.Xunit.v3" Version="3.4.0" />
         <PackageReference Include="KeraLua" Version="1.4.9" />
-        <PackageReference Include="Moq" Version="4.20.72" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
-        <PackageReference Include="MSTest" Version="4.3.3" />
+        <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.9.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.11,11.0.0)" />
         <PackageReference Include="NLua" Version="1.7.9" />
+        <PackageReference Include="NSubstitute" Version="6.2.0" />
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" />
+        <PackageReference Include="xunit.v3" Version="4.0.0" />
     </ItemGroup>
 
     <ItemGroup>

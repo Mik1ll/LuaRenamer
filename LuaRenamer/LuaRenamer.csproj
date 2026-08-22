@@ -20,7 +20,10 @@
 
     <ItemGroup>
         <PackageReference Include="KeraLua" Version="1.4.9" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" ExcludeAssets="runtime" />
+        <!-- A version range, not a pin: the host supplies ILogger by DI and the plugin API does not itself
+             constrain the version, so a major bump must fail at restore (naming the package and the range)
+             rather than at runtime. Dependabot still moves the floor within 10.x. -->
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.11,11.0.0)" ExcludeAssets="runtime" />
         <PackageReference Include="NLua" Version="1.7.9" />
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.43" ExcludeAssets="runtime" />
     </ItemGroup>
