@@ -45,7 +45,7 @@ public static class ModelProducers
     {
         IShokoSeries primarySeries = PrimarySeries(args);
         IShokoEpisode primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
-            .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
+            .OrderBy(e => PrimaryEpisodePriority(e.AnidbEpisode.Type))
             .ThenBy(e => e.EpisodeNumber)
             .First();
 
@@ -56,7 +56,7 @@ public static class ModelProducers
         var episodes = args.Episodes
             .OrderBy(e => e.AnidbEpisodeID != primaryEpisode.AnidbEpisodeID)
             .ThenBy(e => e.AnidbEpisode.SeriesID)
-            .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
+            .ThenBy(e => PrimaryEpisodePriority(e.AnidbEpisode.Type))
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
             .Select(e => EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         // Groups the primary series actually belongs to come first (what EnvModel.group documents),
@@ -107,6 +107,17 @@ public static class ModelProducers
     /// <see cref="LuaRenamer.GetPath"/>.</remarks>
     public static IShokoSeries PrimarySeries(RelocationContext<LuaRenamerSettings> args) =>
         args.Series.OrderBy(s => s.AnidbAnimeID).First();
+
+    private static int PrimaryEpisodePriority(EpisodeType type) => type switch
+    {
+        EpisodeType.Episode => 0,
+        EpisodeType.Special => 1,
+        EpisodeType.Other => 2,
+        EpisodeType.Credits => 3,
+        EpisodeType.Trailer => 4,
+        EpisodeType.Parody => 5,
+        _ => int.MaxValue,
+    };
 
     /// <summary>
     /// The Shoko series title, falling back to the AniDB one when blank. Backs both
