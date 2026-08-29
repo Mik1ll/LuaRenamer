@@ -327,6 +327,9 @@ public sealed record EnvModel : ILuaModel
     [LuaField("Output: The filename to rename to")]
     public string? filename { get; init; }
 
+    [LuaField("Output: Alternative filename used only when the primary target filename is already occupied")]
+    public string? collision_filename { get; init; }
+
     [LuaField("Output: Import folder name / full directory path / ImportFolder that specifies the destination")]
     public LuaUnion<string, ImportFolderModel>? destination { get; init; }
 
