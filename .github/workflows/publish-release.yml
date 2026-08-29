@@ -27,11 +27,18 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal
-    - name: Publish
-      run: |
-        for rid in "win-x64" "linux-x64" "linux-arm64"; do
-          dotnet publish ./LuaRenamer/LuaRenamer.csproj --no-restore -c Release -r "$rid" -o "./publish/$rid"
-        done
+    - name: Install Shoko BuildTools
+      run: dotnet tool install Shoko.BuildTools --tool-path ./.tools --version 0.4.0
+    - name: Package
+      # The portable locked restore above validates dependencies. The plugin archives
+      # need a fresh assets file and isolated temporary lockfile for each runtime identifier.
+      run: >-
+        ./.tools/shoko-build ./LuaRenamer/LuaRenamer.csproj
+        -c Release
+        -p:RestoreLockedMode=false
+        -p:NuGetLockFilePath=obj/Shoko.BuildTools/packages.lock.json
+        --output './publish/LuaRenamer_{tag}_{runtime}.zip'
+        --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
     - name: Release
       env:
         GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
