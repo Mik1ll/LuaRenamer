@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "KeraLua": {
+        "type": "Direct",
+        "requested": "[1.4.10, )",
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
+      },
       "NLua": {
         "type": "Direct",
         "requested": "[1.7.9, )",
@@ -20,11 +26,6 @@
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
         }
-      },
-      "KeraLua": {
-        "type": "Transitive",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",

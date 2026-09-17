@@ -14,8 +14,8 @@
       },
       "KeraLua": {
         "type": "Transitive",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -53,6 +53,7 @@
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
+          "KeraLua": "[1.4.10, )",
           "NLua": "[1.7.9, )",
           "Shoko.Abstractions": "[6.0.0-alpha.43, )"
         }
