@@ -13,6 +13,34 @@
   "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "releases": [
     {
+      "version": "6.3.0",
+      "tag": "v6.3.0-abstr-6.0.0-alpha.93",
+      "source_revision": "8a91063e8f98dbfe834d793563451c7e29b2b90e",
+      "released_at": "2026-09-21T03:27:20-07:00",
+      "channel": "Dev",
+      "release_notes": "Update Abstractions, a bunch of refactoring, dependencies, and CI bullshit\r\n\r\n## What's Changed\r\n* Change release event types to 'released' only by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/139\r\n* Add Claude Code GitHub Workflow by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/145\r\n* Rework the Lua env into a plain-C# model + serializer, extract LuaEnv, and unify the generators by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/143\r\n* Relock all NuGet lock files on Dependabot PRs by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/150\r\n* Gate the lock file refresh on drift instead of on Dependabot by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/152\r\n* Stop patch-sourcelink from emitting a lock file by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/153\r\n* Bump MSTest from 4.1.0 to 4.3.3 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/154\r\n* Temporarily downgrade Moq to 4.20.70 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/155\r\n* Bump Moq from 4.20.70 to 4.20.72 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/156\r\n* Clean up LuaEnv: drop dead metadata, de-hack enum tables, fix sandbox bugs by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/157\r\n* Add anidb ep ids to tmdb objects by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/158\r\n* Editorconfig by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/160\r\n* No central management again by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/161\r\n* dependabot doesn't like bracket notation by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/162\r\n* Dep fix redux final version for sure this time bro by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/163\r\n* haha by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/165\r\n* Bump Microsoft.Extensions.Logging.Abstractions from 10.0.10 to 10.0.11 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/166\r\n* Add openspec by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/169\r\n* Bump Shoko.Abstractions from 6.0.0-alpha.43 to 6.0.0-alpha.93 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/181\r\n* Update api for alpha.93 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/182\r\n* Bump Microsoft.Extensions.Logging.Abstractions from 10.0.11 to 10.0.12 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/176\r\n* Bump MSTest from 4.3.3 to 4.4.1 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/178\r\n* Bump KeraLua from 1.4.9 to 1.4.10 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/186\r\n* Fix DefsGenerator blocking publish by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/187\r\n\r\n## New Contributors\r\n* @dependabot[bot] made their first contribution in https://github.com/Mik1ll/LuaRenamer/pull/156\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.2.0-abstr-6.0.0-alpha.43...v6.3.0-abstr-6.0.0-alpha.93",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.3.0-abstr-6.0.0-alpha.93/LuaRenamer_v6.3.0-abstr-6.0.0-alpha.93-0-g8a91063_linux-arm64.zip",
+          "checksum": "3665be5c6622309989da8de9da64743af2d4c8a58437a40a4969f0bc38686d59"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.3.0-abstr-6.0.0-alpha.93/LuaRenamer_v6.3.0-abstr-6.0.0-alpha.93-0-g8a91063_linux-x64.zip",
+          "checksum": "81a92633795755c3d00148d4bb047e57dde9377bf1552de895f1c188f56cb8d5"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.3.0-abstr-6.0.0-alpha.93/LuaRenamer_v6.3.0-abstr-6.0.0-alpha.93-0-g8a91063_win-x64.zip",
+          "checksum": "f95568958730072a34446d758726d36bee642a08e1f4b7baca6c60f67e504fd7"
+        }
+      ]
+    },
+    {
       "version": "6.2.0",
       "tag": "v6.2.0-abstr-6.0.0-alpha.43",
       "source_revision": "2288a52327055b151c8623f1166740361511bc5a",
