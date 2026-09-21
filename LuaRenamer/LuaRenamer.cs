@@ -77,6 +77,17 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
         return newSubfolder;
     }
 
+    private static bool HasTargetCollision(RelocationResult result, RelocationContext<LuaRenamerSettings> context)
+    {
+        var targetDirectory = context.MoveEnabled && !result.SkipMove && result.ManagedFolder is not null
+            ? Path.Combine(result.ManagedFolder.Path, result.Path ?? string.Empty)
+            : Path.GetDirectoryName(context.File.Path) ?? string.Empty;
+        var targetPath = Path.GetFullPath(Path.Combine(targetDirectory, result.FileName!));
+        var sourcePath = Path.GetFullPath(context.File.Path);
+        StringComparison comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        return !string.Equals(targetPath, sourcePath, comparison) && File.Exists(targetPath);
+    }
+
     private static IManagedFolder GetNewDestination(object? destination, RelocationContext<LuaRenamerSettings> args)
     {
         IManagedFolder? destfolder = destination switch
@@ -158,6 +169,7 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
             var skipMove = sandbox.GetValue(Names.skip_move) is true;
             var skipRename = sandbox.GetValue(Names.skip_rename) is true;
             var luaFilename = sandbox.GetValue(Names.filename);
+            var luaCollisionFilename = sandbox.GetValue(Names.collision_filename);
             var luaDestination = sandbox.GetValue(Names.destination);
             var luaSubfolder = sandbox.GetValue(Names.subfolder);
             Dictionary<string, string> illegalCharsOverride = sandbox.GetValue(Names.illegal_chars_map) is LuaTable luaIllegalCharsOverride
@@ -179,7 +191,11 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
             }
 
             if (context.RenameEnabled && !skipRename)
+            {
                 result.FileName = GetNewFilename(luaFilename, context, filePathCleaner);
+                if (luaCollisionFilename is string && HasTargetCollision(result, context))
+                    result.FileName = GetNewFilename(luaCollisionFilename, context, filePathCleaner);
+            }
 
             return result;
         }

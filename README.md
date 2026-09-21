@@ -83,6 +83,7 @@ Executed at runtime:
 
 In addition to the `filename`, `destination` and `subfolder` output variables, these variables affect the result of your script.
 
+- `collision_filename` Optional alternative filename used only when the primary target file already exists. It is ignored when the target is the current file or when no alternative is supplied.
 - `use_existing_anime_location` If true, the renamer will attempt to keep files from the same series together, reusing the destination and subfolder of existing files. This takes precedence over the destination and subfolder set in the script. (default: false)
 - `replace_illegal_chars` If true, replaces all illegal path characters in subfolder and file name with alternatives. See [ReplaceMap in Utils.cs for defaults](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/Utils.cs). Use `illegal_chars_map` to modify defaults. (default: false)
 - `remove_illegal_chars` If true, removes all illegal path characters in subfolder and file name. If false, illegal characters are replaced with underscores or replaced if `replace_illegal_chars` is true. (default: false)

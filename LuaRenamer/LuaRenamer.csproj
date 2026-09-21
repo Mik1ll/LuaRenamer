@@ -28,7 +28,7 @@
     <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
         <!-- Build ordering only: ensures DefsGenerator is built before the generation targets below run it. -->
-        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" GlobalPropertiesToRemove="RuntimeIdentifier" />
     </ItemGroup>
 
     <ItemGroup>
@@ -43,7 +43,7 @@
 
     <!-- GetTargetPath only computes the path; ResolveProjectReferences has already built the generator. -->
     <Target Name="ResolveDefsGenerator" DependsOnTargets="ResolveProjectReferences">
-        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath">
+        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath" RemoveProperties="RuntimeIdentifier;RuntimeIdentifiers">
             <Output TaskParameter="TargetOutputs" PropertyName="DefsGenerator" />
         </MSBuild>
     </Target>
