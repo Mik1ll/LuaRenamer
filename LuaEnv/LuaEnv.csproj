@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="KeraLua" Version="1.4.10" />
         <PackageReference Include="NLua" Version="1.7.9" />
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.93" ExcludeAssets="runtime" />
     </ItemGroup>
