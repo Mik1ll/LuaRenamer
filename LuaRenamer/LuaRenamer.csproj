@@ -27,8 +27,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\LuaEnv\LuaEnv.csproj" />
-        <!-- Build ordering only: ensures DefsGenerator is built before the generation targets below run it. -->
-        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" />
+        <!-- Build ordering only: ensures DefsGenerator is built before the generation targets below run it.
+             The generator is a build-time tool, so it stays RID-agnostic under `publish -r`: it declares no
+             RuntimeIdentifiers and a RID-specific restore of it was never done. ResolveDefsGenerator below
+             must drop the same properties, or GetTargetPath reports a RID path this build never produced. -->
+        <ProjectReference Include="..\DefsGenerator\DefsGenerator.csproj" ReferenceOutputAssembly="false" Private="false" ExcludeAssets="true" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" />
     </ItemGroup>
 
     <ItemGroup>
@@ -43,7 +46,7 @@
 
     <!-- GetTargetPath only computes the path; ResolveProjectReferences has already built the generator. -->
     <Target Name="ResolveDefsGenerator" DependsOnTargets="ResolveProjectReferences">
-        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath">
+        <MSBuild Projects="..\DefsGenerator\DefsGenerator.csproj" Targets="GetTargetPath" RemoveProperties="RuntimeIdentifier;SelfContained">
             <Output TaskParameter="TargetOutputs" PropertyName="DefsGenerator" />
         </MSBuild>
     </Target>
