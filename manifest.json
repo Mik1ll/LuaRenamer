@@ -13,6 +13,34 @@
   "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "releases": [
     {
+      "version": "6.4.0",
+      "tag": "v6.4.0-abstr-6.0.0-alpha.98",
+      "source_revision": "c4869f13ba82756fe81cfac092879fb947229bab",
+      "released_at": "2026-10-06T04:41:11-07:00",
+      "channel": "Dev",
+      "release_notes": "## What's Changed\n* Update to Shoko.Abstractions 6.0.0-alpha.98 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/189\n* Set IAnidbAnime ID and AnidbID together in test mocks by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/196\n* Order primary episode by AniDB type and number by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/197\n* Package releases with Shoko.BuildTools by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/193\n* Bump Moq from 4.20.72 to 4.21.0 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/191\n* Trim every trailing separator in NormPath by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/198\n* Add optional collision filename fallback by @Baine in https://github.com/Mik1ll/LuaRenamer/pull/172\n\n## New Contributors\n* @Baine made their first contribution in https://github.com/Mik1ll/LuaRenamer/pull/172\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.3.0-abstr-6.0.0-alpha.93...v6.4.0-abstr-6.0.0-alpha.98",
+      "archives": [
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.98/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.98_linux-arm64.zip",
+          "checksum": "58a8282ac80204aaaa9652519d2bcd6af9c10806bd31a5cecbf64b041812155c"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.98/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.98_linux-x64.zip",
+          "checksum": "229ac00cf2b1bf0c08b74b22b4828b2a16a0c02dc7904699c9da0f37d79cd85b"
+        },
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.98/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.98_win-x64.zip",
+          "checksum": "34fe1eaabf5b429c2132e052f1a252000034b2dfeb2bae4eb4599778f7dee72b"
+        }
+      ]
+    },
+    {
       "version": "6.3.0",
       "tag": "v6.3.0-abstr-6.0.0-alpha.93",
       "source_revision": "8a91063e8f98dbfe834d793563451c7e29b2b90e",
