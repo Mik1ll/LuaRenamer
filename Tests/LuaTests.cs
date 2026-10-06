@@ -869,6 +869,62 @@ public class LuaTests
         Assert.AreEqual("2023Spring.mp4", res.FileName);
     }
 
+    [TestMethod]
+    public void TestTmdbAnidbEpisodeIds()
+    {
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs("filename = tmdb.movies[1].anidbepisodeids[1] .. '-' .. tmdb.episodes[1].anidbepisodeids[1]");
+        var tmdbMovie = new Mock<IMovie>();
+        _ = tmdbMovie.SetupGet(m => m.ID).Returns(new MetadataGuid(MetadataSource.TMDB, MetadataEntityType.Movie, "700"));
+        _ = tmdbMovie.SetupGet(m => m.Titles).Returns(new List<ITitle>());
+        _ = tmdbMovie.SetupGet(m => m.Studios).Returns([]);
+        var tmdbEpisode = new Mock<IEpisode>();
+        _ = tmdbEpisode.SetupGet(e => e.ID).Returns(new MetadataGuid(MetadataSource.TMDB, MetadataEntityType.Episode, "800"));
+        _ = tmdbEpisode.SetupGet(e => e.SeriesID).Returns(new MetadataGuid(MetadataSource.TMDB, MetadataEntityType.Series, "555"));
+        _ = tmdbEpisode.SetupGet(e => e.Titles).Returns(new List<ITitle>());
+        // Separate MetadataGuid instances from the entries', so the lookup must match them by value. The movie
+        // link is kept at the series level, as for a film claiming a whole anime.
+        IMetadataMovieCrossReference movieXref = Mock.Of<IMetadataMovieCrossReference>(x =>
+            x.Source == MetadataSource.TMDB &&
+            x.EntityType == MetadataEntityType.Series &&
+            x.ProviderID == new MetadataGuid(MetadataSource.TMDB, MetadataEntityType.Movie, "700") &&
+            x.AnidbEpisodeID == 42);
+        IMetadataEpisodeCrossReference episodeXref = Mock.Of<IMetadataEpisodeCrossReference>(x =>
+            x.Source == MetadataSource.TMDB &&
+            x.EntityType == MetadataEntityType.Episode &&
+            x.ProviderID == new MetadataGuid(MetadataSource.TMDB, MetadataEntityType.Episode, "800") &&
+            x.AnidbEpisodeID == 43);
+        IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s =>
+            s.AnidbAnime == args.Series[0].AnidbAnime &&
+            s.Title == "shokoseriesprefname" &&
+            s.AnidbAnimeID == 3 &&
+            s.LinkedMovies == new List<IMovie> { tmdbMovie.Object } &&
+            s.MetadataMovieCrossReferences == new List<IMetadataMovieCrossReference> { movieXref } &&
+            s.MetadataEpisodeCrossReferences == new List<IMetadataEpisodeCrossReference> { episodeXref } &&
+            s.LinkedSeries == new List<ISeries> { args.Series[0].AnidbAnime } &&
+            s.Tags == new List<IShokoTagForSeries>() &&
+            s.DefaultTitle == args.Series[0].DefaultTitle);
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
+        {
+            AvailableFolders = args.AvailableFolders,
+            File = args.File,
+            Episodes =
+            [
+                Mock.Of<IShokoEpisode>(se =>
+                    se.AnidbEpisode == args.Episodes[0].AnidbEpisode &&
+                    se.LinkedEpisodes == new List<IEpisode> { tmdbEpisode.Object }),
+            ],
+            Series = [shokoSeries],
+            Groups = args.Groups,
+            MoveEnabled = true,
+            RenameEnabled = true,
+        }, args.Configuration);
+
+        var renamer = new LuaRenamer(Logmock);
+        RelocationResult res = renamer.GetPath(args);
+        Assert.IsNull(res.Error);
+        Assert.AreEqual("42-43.mp4", res.FileName);
+    }
+
     #region Multi-series primary resolution
 
     // Shoko series ids and AniDB anime ids are disjoint here on purpose: comparing one space against
