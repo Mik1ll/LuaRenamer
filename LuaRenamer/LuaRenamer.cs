@@ -77,15 +77,34 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
         return newSubfolder;
     }
 
-    private static bool HasTargetCollision(RelocationResult result, RelocationContext<LuaRenamerSettings> context)
+    private string ResolveFilenameCollision(RelocationResult result, string collisionFilename, RelocationContext<LuaRenamerSettings> context,
+        FilePathCleaner filePathCleaner)
     {
         var targetDirectory = context.MoveEnabled && !result.SkipMove && result.ManagedFolder is not null
             ? Path.Combine(result.ManagedFolder.Path, result.Path ?? string.Empty)
             : Path.GetDirectoryName(context.File.Path) ?? string.Empty;
-        var targetPath = Path.GetFullPath(Path.Combine(targetDirectory, result.FileName!));
-        var sourcePath = Path.GetFullPath(context.File.Path);
-        StringComparison comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-        return !string.Equals(targetPath, sourcePath, comparison) && File.Exists(targetPath);
+        if (!IsTakenByOtherVideo(Path.Combine(targetDirectory, result.FileName!), context.File))
+            return result.FileName!;
+
+        var fallbackFilename = GetNewFilename(collisionFilename, context, filePathCleaner);
+        if (IsTakenByOtherVideo(Path.Combine(targetDirectory, fallbackFilename), context.File))
+            throw new LuaRenamerException($"filename \"{result.FileName}\" and collision_filename \"{fallbackFilename}\" are both taken in \"{targetDirectory}\"");
+        _logger.LogInformation("\"{FileName}\" is taken by another file in \"{Directory}\", using collision_filename \"{CollisionFileName}\"",
+            result.FileName, targetDirectory, fallbackFilename);
+        return fallbackFilename;
+    }
+
+    // Copies of this video are left to Shoko, which refuses to move a file onto a duplicate of itself.
+    private static bool IsTakenByOtherVideo(string targetPath, IVideoFile file) =>
+        File.Exists(targetPath) && !file.Video.Files.Append(file).Any(f => IsSameFile(f.Path, targetPath));
+
+    // Path strings can't establish identity: case-insensitive mounts, symlinks and aliased managed folders all give
+    // one file several spellings. Size plus mtime is shared by every spelling and practically never by two releases.
+    private static bool IsSameFile(string path, string otherPath)
+    {
+        var info = new FileInfo(path);
+        var otherInfo = new FileInfo(otherPath);
+        return info.Exists && otherInfo.Exists && info.Length == otherInfo.Length && info.LastWriteTimeUtc == otherInfo.LastWriteTimeUtc;
     }
 
     private static IManagedFolder GetNewDestination(object? destination, RelocationContext<LuaRenamerSettings> args)
@@ -193,8 +212,8 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
             if (context.RenameEnabled && !skipRename)
             {
                 result.FileName = GetNewFilename(luaFilename, context, filePathCleaner);
-                if (luaCollisionFilename is string && HasTargetCollision(result, context))
-                    result.FileName = GetNewFilename(luaCollisionFilename, context, filePathCleaner);
+                if (luaCollisionFilename is string collisionFilename)
+                    result.FileName = ResolveFilenameCollision(result, collisionFilename, context, filePathCleaner);
             }
 
             return result;

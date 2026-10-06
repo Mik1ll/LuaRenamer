@@ -37,11 +37,12 @@ public class LuaTests
     private static readonly ILogger<LuaRenamer> Logmock = Mock.Of<ILogger<LuaRenamer>>();
 
     private static RelocationContext<LuaRenamerSettings> MinimalArgs(string script, string? importFolderPath = null,
-        string? filePath = null, string fileName = "testfilename.mp4")
+        string? filePath = null, string fileName = "testfilename.mp4", IEnumerable<string>? videoFilePaths = null)
     {
         importFolderPath ??= Path.Combine("C:", "testimportfolder");
         filePath ??= Path.Combine(importFolderPath, "testsubfolder", fileName);
         var relativePath = Path.GetRelativePath(importFolderPath, filePath);
+        List<IVideoFile> videoFiles = (videoFilePaths ?? []).Select(p => Mock.Of<IVideoFile>(f => f.Path == p)).ToList();
         IManagedFolder importFolder = Mock.Of<IManagedFolder>(i => i.Path == importFolderPath &&
             i.DropFolderType == DropFolderType.Destination &&
             i.Name == "testimport");
@@ -80,7 +81,8 @@ public class LuaTests
                 file.ManagedFolderID == importFolder.ID &&
                 file.ManagedFolder == importFolder &&
                 file.VideoID == 25 &&
-                file.Video == Mock.Of<IVideo>(vi => vi.ED2K == "abc123" && vi.Hashes == new List<IHashDigest>())),
+                file.Video == Mock.Of<IVideo>(vi => vi.ED2K == "abc123" && vi.Hashes == new List<IHashDigest>() &&
+                    vi.Files == videoFiles)),
             Episodes = new List<IShokoEpisode>
             {
                 Mock.Of<IShokoEpisode>(se =>
@@ -108,41 +110,107 @@ public class LuaTests
         Assert.AreEqual("testfilename.mp4", res.FileName);
     }
 
-    [TestMethod]
-    public void TestCollisionFilenameIsUsedOnlyForAnOccupiedTarget()
+    private static readonly string CollisionScript =
+        $"{Names.filename} = 'episode'; {Names.collision_filename} = 'episode [anidbfile-123]'; {Names.subfolder} = 'target'";
+
+    private static void InTempDirectory(Action<string> test)
     {
         var root = Path.Combine(Path.GetTempPath(), $"LuaRenamer-{Guid.NewGuid():N}");
-        var sourceDirectory = Path.Combine(root, "source");
-        var targetDirectory = Path.Combine(root, "target");
-        var sourcePath = Path.Combine(sourceDirectory, "source.mp4");
-        _ = Directory.CreateDirectory(sourceDirectory);
-        _ = Directory.CreateDirectory(targetDirectory);
-        File.WriteAllText(sourcePath, "source");
+        _ = Directory.CreateDirectory(Path.Combine(root, "source"));
+        _ = Directory.CreateDirectory(Path.Combine(root, "target"));
         try
         {
-            var script = $"{Names.filename} = 'episode'; {Names.collision_filename} = 'episode [anidbfile-123]'; {Names.subfolder} = 'target'";
-            var renamer = new LuaRenamer(Logmock);
-
-            RelocationResult freeResult = renamer.GetPath(MinimalArgs(script, root, sourcePath, "source.mp4"));
-            Assert.AreEqual("episode.mp4", freeResult.FileName);
-
-            File.WriteAllText(Path.Combine(targetDirectory, "episode.mp4"), "occupied");
-            RelocationResult collisionResult = renamer.GetPath(MinimalArgs(script, root, sourcePath, "source.mp4"));
-            Assert.AreEqual("episode [anidbfile-123].mp4", collisionResult.FileName);
-
-            var currentTargetPath = Path.Combine(targetDirectory, "episode.mp4");
-            RelocationResult currentFileResult = renamer.GetPath(MinimalArgs(script, root, currentTargetPath, "episode.mp4"));
-            Assert.AreEqual("episode.mp4", currentFileResult.FileName);
-
-            var noFallbackScript = $"{Names.filename} = 'episode'; {Names.subfolder} = 'target'";
-            RelocationResult noFallbackResult = renamer.GetPath(MinimalArgs(noFallbackScript, root, sourcePath, "source.mp4"));
-            Assert.AreEqual("episode.mp4", noFallbackResult.FileName);
+            test(root);
         }
         finally
         {
             Directory.Delete(root, true);
         }
     }
+
+    [TestMethod]
+    public void TestCollisionFilenameIsUsedOnlyForAnOccupiedTarget() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "source", "source.mp4");
+        File.WriteAllText(sourcePath, "source");
+        var renamer = new LuaRenamer(Logmock);
+
+        RelocationResult freeResult = renamer.GetPath(MinimalArgs(CollisionScript, root, sourcePath, "source.mp4"));
+        Assert.AreEqual("episode.mp4", freeResult.FileName);
+
+        File.WriteAllText(Path.Combine(root, "target", "episode.mp4"), "occupied");
+        RelocationResult collisionResult = renamer.GetPath(MinimalArgs(CollisionScript, root, sourcePath, "source.mp4"));
+        Assert.AreEqual("episode [anidbfile-123].mp4", collisionResult.FileName);
+
+        var currentTargetPath = Path.Combine(root, "target", "episode.mp4");
+        RelocationResult currentFileResult = renamer.GetPath(MinimalArgs(CollisionScript, root, currentTargetPath, "episode.mp4"));
+        Assert.AreEqual("episode.mp4", currentFileResult.FileName);
+
+        var noFallbackScript = $"{Names.filename} = 'episode'; {Names.subfolder} = 'target'";
+        RelocationResult noFallbackResult = renamer.GetPath(MinimalArgs(noFallbackScript, root, sourcePath, "source.mp4"));
+        Assert.AreEqual("episode.mp4", noFallbackResult.FileName);
+    });
+
+    [TestMethod]
+    public void TestCollisionFilenameChecksCurrentDirectoryWhenNotMoving() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "source", "source.mp4");
+        File.WriteAllText(sourcePath, "source");
+        File.WriteAllText(Path.Combine(root, "source", "episode.mp4"), "occupied");
+        File.WriteAllText(Path.Combine(root, "target", "episode [anidbfile-123].mp4"), "occupied");
+
+        RelocationResult res = new LuaRenamer(Logmock).GetPath(MinimalArgs($"{CollisionScript}; {Names.skip_move} = true", root, sourcePath, "source.mp4"));
+        Assert.IsNull(res.Error);
+        Assert.IsNull(res.ManagedFolder);
+        Assert.AreEqual("episode [anidbfile-123].mp4", res.FileName);
+    });
+
+    [TestMethod]
+    public void TestCollisionFilenameAlsoTakenIsAnError() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "source", "source.mp4");
+        File.WriteAllText(sourcePath, "source");
+        File.WriteAllText(Path.Combine(root, "target", "episode.mp4"), "occupied");
+        File.WriteAllText(Path.Combine(root, "target", "episode [anidbfile-123].mp4"), "also occupied");
+
+        RelocationResult res = new LuaRenamer(Logmock).GetPath(MinimalArgs(CollisionScript, root, sourcePath, "source.mp4"));
+        Assert.IsNotNull(res.Error);
+        Assert.IsNull(res.FileName);
+    });
+
+    [TestMethod]
+    public void TestCollisionFilenameIsKeptOnceApplied() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "target", "episode [anidbfile-123].mp4");
+        File.WriteAllText(sourcePath, "source");
+        File.WriteAllText(Path.Combine(root, "target", "episode.mp4"), "occupied");
+
+        RelocationResult res = new LuaRenamer(Logmock).GetPath(MinimalArgs(CollisionScript, root, sourcePath, "episode [anidbfile-123].mp4"));
+        Assert.AreEqual("episode [anidbfile-123].mp4", res.FileName);
+    });
+
+    [TestMethod]
+    public void TestCollisionFilenameIgnoresCaseOnlyRename() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "target", "episode.mp4");
+        File.WriteAllText(sourcePath, "source");
+        var script = $"{Names.filename} = 'Episode'; {Names.collision_filename} = 'Episode [anidbfile-123]'; {Names.subfolder} = 'target'";
+
+        RelocationResult res = new LuaRenamer(Logmock).GetPath(MinimalArgs(script, root, sourcePath, "episode.mp4"));
+        Assert.AreEqual("Episode.mp4", res.FileName);
+    });
+
+    [TestMethod]
+    public void TestCollisionFilenameIgnoresCopyOfSameVideo() => InTempDirectory(root =>
+    {
+        var sourcePath = Path.Combine(root, "source", "source.mp4");
+        var copyPath = Path.Combine(root, "target", "episode.mp4");
+        File.WriteAllText(sourcePath, "source");
+        File.WriteAllText(copyPath, "source copy");
+
+        RelocationResult res = new LuaRenamer(Logmock).GetPath(MinimalArgs(CollisionScript, root, sourcePath, "source.mp4", [sourcePath, copyPath]));
+        Assert.AreEqual("episode.mp4", res.FileName);
+    });
 
     [TestMethod]
     public void TestAnime()
