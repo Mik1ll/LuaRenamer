@@ -10,7 +10,6 @@ using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
-using Shoko.Abstractions.Metadata.Tmdb;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Media;
 using Shoko.Abstractions.Video.Relocation;
@@ -44,7 +43,7 @@ public static class ModelProducers
     public static EnvModel EnvToModel(RelocationContext<LuaRenamerSettings> args, ILogger logger)
     {
         IShokoSeries primarySeries = PrimarySeries(args);
-        IShokoEpisode primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.SeriesID == primarySeries.AnidbAnimeID)
+        IShokoEpisode primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.AnidbAnimeID == primarySeries.AnidbAnimeID)
             .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
             .ThenBy(e => e.EpisodeNumber)
             .First();
@@ -55,16 +54,15 @@ public static class ModelProducers
             .Select(series => AnimeToModel(series.AnidbAnime)).ToList();
         var episodes = args.Episodes
             .OrderBy(e => e.AnidbEpisodeID != primaryEpisode.AnidbEpisodeID)
-            .ThenBy(e => e.AnidbEpisode.SeriesID)
+            .ThenBy(e => e.AnidbEpisode.AnidbAnimeID)
             .ThenBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
             .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
             .Select(e => EpisodeToModel(e.AnidbEpisode, Utils.EpPrefix[e.AnidbEpisode.Type])).ToList();
         // Groups the primary series actually belongs to come first (what EnvModel.group documents),
-        // then the group whose *main* series is the primary one. Both comparisons are in Shoko id
-        // space — MainSeriesID is a Shoko series id, not an AniDB anime id.
+        // then the group whose *main* series is the primary one.
         var groups = args.Groups
-            .OrderBy(g => !g.AllSeries.Any(s => s.ID == primarySeries.ID))
-            .ThenBy(g => g.MainSeriesID != primarySeries.ID)
+            .OrderBy(g => !g.AllSeries.Any(s => s.LocalID == primarySeries.LocalID))
+            .ThenBy(g => g.MainSeriesID != primarySeries.LocalID)
             .Select(GroupToModel).ToList();
 
         return new EnvModel
@@ -93,7 +91,7 @@ public static class ModelProducers
             groups = groups,
             group = groups.Count > 0 ? groups[0] : null,
             tmdb = TmdbToModel(primarySeries,
-                args.Episodes.Where(e => e.SeriesID == primarySeries.ID).SelectMany(e => e.TmdbEpisodes)),
+                args.Episodes.Where(e => e.ShokoSeriesID == primarySeries.LocalID).SelectMany(e => e.GetLinkedEpisodes(MetadataSource.TMDB))),
             // The enum tables need no assignment — LuaEnumTable<TEnum> carries no data.
         };
     }
@@ -121,7 +119,7 @@ public static class ModelProducers
     /// </summary>
     private static string EpisodeNumbers(RelocationContext<LuaRenamerSettings> args, IShokoSeries primarySeries, long pad) =>
         string.Join(' ', args.Episodes.Select(se => se.AnidbEpisode)
-            .Where(e => e.SeriesID == primarySeries.AnidbAnimeID)
+            .Where(e => e.AnidbAnimeID == primarySeries.AnidbAnimeID)
             .OrderBy(e => e.Type).ThenBy(e => e.EpisodeNumber)
             .Select((e, i) => (e.Type, RangeId: e.EpisodeNumber - i, Num: e.EpisodeNumber)) // RangeId effectively groups sequences of numbers
             .GroupBy(x => (x.Type, x.RangeId))
@@ -178,7 +176,7 @@ public static class ModelProducers
             type = anime.Type,
             preferredname = PreferredName(anime, series),
             defaultname = string.IsNullOrWhiteSpace(series?.DefaultTitle.Value) ? anime.DefaultTitle.Value : series.DefaultTitle.Value,
-            id = anime.ID,
+            id = anime.AnidbID,
             titles = anime.Titles.OrderBy(t => t.Value).Select(TitleToModel).ToList(),
             studios = anime.Studios.Select(st => st.Name).ToList(),
             episodecounts = Enum.GetValues<EpisodeType>().Distinct().ToDictionary(ep => ep, ep => (long)anime.EpisodeCounts[ep]),
@@ -309,8 +307,8 @@ public static class ModelProducers
         number = episode.EpisodeNumber,
         type = episode.Type,
         airdate = DateTimeToModel(episode.AirDateWithTime),
-        animeid = episode.SeriesID,
-        id = episode.ID,
+        animeid = episode.AnidbAnimeID,
+        id = episode.AnidbID,
         titles = episode.Titles.OrderBy(t => t.Value).Select(TitleToModel).ToList(),
         prefix = prefix,
     };
@@ -333,26 +331,30 @@ public static class ModelProducers
     /// carries cross references for all of them. Both links are many-to-many: one TMDB entry can cover
     /// several AniDB episodes, which is also why <paramref name="episodes"/> is deduplicated.
     /// </summary>
-    public static TmdbModel TmdbToModel(IShokoSeries series, IEnumerable<ITmdbEpisode> episodes)
+    public static TmdbModel TmdbToModel(IShokoSeries series, IEnumerable<IEpisode> episodes)
     {
-        var movieLinks = series.TmdbMovieCrossReferences
-            .GroupBy(x => x.TmdbMovieID)
-            .ToDictionary(g => g.Key, g => g.Select(x => (long)x.AnidbEpisodeID).Distinct().ToList());
-        var episodeLinks = series.TmdbEpisodeCrossReferences
-            .GroupBy(x => x.TmdbEpisodeID)
-            .ToDictionary(g => g.Key, g => g.Select(x => (long)x.AnidbEpisodeID).Distinct().ToList());
+        Dictionary<MetadataGuid, List<long>> movieLinks = GroupAnidbEpisodeIdsByProvider(series.GetMovieCrossReferences(MetadataSource.TMDB).Select(x => (x.ProviderID, x.AnidbEpisodeID)));
+        Dictionary<MetadataGuid, List<long>> episodeLinks = GroupAnidbEpisodeIdsByProvider(series.GetEpisodeCrossReferences(MetadataSource.TMDB).Select(x => (x.ProviderID, x.AnidbEpisodeID)));
         return new TmdbModel
         {
-            movies = series.TmdbMovies.Select(m => MovieToModel(m, movieLinks.GetValueOrDefault(m.ID) ?? [])).ToList(),
-            shows = series.TmdbShows.Select(ShowToModel).ToList(),
+            movies = series.GetLinkedMovies(MetadataSource.TMDB).Select(m => MovieToModel(m, movieLinks.GetValueOrDefault(m.ID) ?? [])).ToList(),
+            shows = series.GetLinkedSeries(MetadataSource.TMDB).Select(ShowToModel).ToList(),
             episodes = episodes.DistinctBy(e => e.ID)
                 .Select(e => TmdbEpisodeToModel(e, episodeLinks.GetValueOrDefault(e.ID) ?? [])).ToList(),
         };
     }
 
-    private static TmdbMovieModel MovieToModel(ITmdbMovie movie, IReadOnlyList<long> anidbEpisodeIds) => new()
+    /// <summary>
+    /// The AniDB episodes each linked provider entry covers, keyed by the entry; links to no entry are left out.
+    /// </summary>
+    private static Dictionary<MetadataGuid, List<long>> GroupAnidbEpisodeIdsByProvider(IEnumerable<(MetadataGuid? ProviderID, int AnidbEpisodeID)> links) =>
+        links.Where(x => x.ProviderID is not null)
+            .GroupBy(x => x.ProviderID!)
+            .ToDictionary(g => g.Key, g => g.Select(x => (long)x.AnidbEpisodeID).Distinct().ToList());
+
+    private static TmdbMovieModel MovieToModel(IMovie movie, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
-        id = movie.ID,
+        id = movie.ID.GetNumericID<int>(),
         anidbepisodeids = anidbEpisodeIds,
         titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
@@ -363,9 +365,9 @@ public static class ModelProducers
         airdate = DateTimeToModel(movie.ReleaseDate),
     };
 
-    private static TmdbShowModel ShowToModel(ITmdbShow show) => new()
+    private static TmdbShowModel ShowToModel(ISeries show) => new()
     {
-        id = show.ID,
+        id = show.ID.GetNumericID<int>(),
         titles = show.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(show.PreferredTitle?.Value) ? null : show.PreferredTitle?.Value,
@@ -378,10 +380,10 @@ public static class ModelProducers
         seasons = show.YearlySeasons.Select(SeasonToModel).ToList(),
     };
 
-    private static TmdbEpisodeModel TmdbEpisodeToModel(ITmdbEpisode episode, IReadOnlyList<long> anidbEpisodeIds) => new()
+    private static TmdbEpisodeModel TmdbEpisodeToModel(IEpisode episode, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
-        showid = episode.SeriesID,
-        id = episode.ID,
+        showid = episode.SeriesID.GetNumericID<int>(),
+        id = episode.ID.GetNumericID<int>(),
         anidbepisodeids = anidbEpisodeIds,
         titles = episode.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(episode.DefaultTitle?.Value) ? null : episode.DefaultTitle?.Value,

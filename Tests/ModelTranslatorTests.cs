@@ -10,6 +10,7 @@ using Shoko.Abstractions.Metadata.Anidb;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Metadata.Stub;
+using static LuaRenamer.Tests.TestGuids;
 
 namespace LuaRenamer.Tests;
 
@@ -196,7 +197,8 @@ public class ModelTranslatorTests
     {
         var m = new Mock<IAnidbAnime>();
         _ = m.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        _ = m.SetupGet(a => a.ID).Returns(id);
+        _ = m.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(id));
+        _ = m.SetupGet(a => a.AnidbID).Returns(id);
         _ = m.SetupGet(a => a.Title).Returns(anidbTitle);
         _ = m.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbDefault));
         _ = m.SetupGet(a => a.Titles).Returns(new List<ITitle>());
@@ -209,7 +211,7 @@ public class ModelTranslatorTests
     }
 
     private static TitleStub Title(string value, TitleLanguage lang, string code, TitleType type) =>
-        new() { Value = value, Language = lang, LanguageCode = code, Type = type, Source = DataSource.AniDB };
+        new() { Value = value, Language = lang, LanguageCode = code, Type = type, Source = MetadataSource.AniDB };
 
     [TestMethod]
     public void Producer_Maps_AnidbAnime_To_LuaConsumable_Table()
