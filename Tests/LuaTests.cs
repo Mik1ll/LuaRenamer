@@ -626,6 +626,32 @@ public class LuaTests
     }
 
     [TestMethod]
+    [DataRow("a", "a")]
+    [DataRow("a/", "a")]
+    [DataRow("a//", "a")]
+    [DataRow("a/b///", "a/b")]
+    [DataRow("/", "/")]
+    public void TestNormPath(string path, string expected)
+    {
+        var normalized = path.NormPath();
+        Assert.AreEqual(expected.Replace('/', Path.DirectorySeparatorChar), normalized);
+        Assert.AreEqual(normalized, normalized.NormPath());
+    }
+
+    [TestMethod]
+    [DataRow("C:/testimportfolder")]
+    [DataRow("C:/testimportfolder/")]
+    [DataRow("C:/testimportfolder//")]
+    public void TestDestinationByPath(string destination)
+    {
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs($"{Names.destination} = '{destination}'");
+        var renamer = new LuaRenamer(Logmock);
+        RelocationResult res = renamer.GetPath(args);
+        Assert.IsNull(res.Error);
+        Assert.AreSame(args.AvailableFolders[0], res.ManagedFolder);
+    }
+
+    [TestMethod]
     [DataRow("filename = 'com1'", true)]
     [DataRow("filename = 'com1.test'", true)]
     [DataRow("filename = 'com\u00b9'", true)]
