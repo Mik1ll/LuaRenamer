@@ -850,7 +850,7 @@ public class LuaTests
             s.LinkedMovies == new List<IMovie>() &&
             s.MetadataMovieCrossReferences == new List<IMetadataMovieCrossReference>() &&
             s.MetadataEpisodeCrossReferences == new List<IMetadataEpisodeCrossReference>() &&
-            s.LinkedSeries == new List<ISeries> { tmdbShow.Object } &&
+            s.LinkedSeries == new List<ISeries> { args.Series[0].AnidbAnime, tmdbShow.Object } &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == titleMock);
         args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
@@ -893,6 +893,7 @@ public class LuaTests
         _ = animeMock.SetupGet(a => a.Studios).Returns([]);
         _ = animeMock.SetupGet(a => a.Tags).Returns([]);
         _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
+        List<ISeries> linkedSeries = [animeMock.Object, .. tmdbShows];
         IShokoSeries series = Mock.Of<IShokoSeries>(s =>
             s.LocalID == shokoId &&
             s.AnidbAnimeID == anidbId &&
@@ -901,7 +902,7 @@ public class LuaTests
             s.LinkedMovies == new List<IMovie>() &&
             s.MetadataMovieCrossReferences == new List<IMetadataMovieCrossReference>() &&
             s.MetadataEpisodeCrossReferences == new List<IMetadataEpisodeCrossReference>() &&
-            s.LinkedSeries == tmdbShows &&
+            s.LinkedSeries == linkedSeries &&
             s.Tags == new List<IShokoTagForSeries>() &&
             s.DefaultTitle == Mock.Of<ITitle>(t => t.Value == anidbTitle));
         _ = animeMock.SetupGet(a => a.ShokoSeries).Returns([series]);
