@@ -22,7 +22,7 @@ For support/questions join the [Shoko Discord server](https://discord.gg/shokoan
 1. Download the [the release appropriate for your Shoko Server version](https://github.com/Mik1ll/LuaRenamer/releases).
     - The [latest release](https://github.com/Mik1ll/LuaRenamer/releases/latest) should be compatible with current Stable.
     - Pre-releases will be compatible with Shoko Daily depending on the Abstractions Version, check release notes and [Shoko Server tags](https://github.com/ShokoAnime/ShokoServer/tags) for compatibility.
-2. Extract and place the LuaRenamer directory into the Shoko plugins directory:
+2. Extract the archive into a new `LuaRenamer` directory inside the Shoko plugins directory:
     - (Windows) `C:\ProgramData\ShokoServer\plugins`
     - (Docker) Wherever the container location `/home/shoko/.shoko/Shoko.CLI/plugins` is mounted.
 3. Restart Shoko Server.

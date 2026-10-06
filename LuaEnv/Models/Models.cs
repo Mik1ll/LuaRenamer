@@ -54,7 +54,7 @@ public sealed record AnimeModel : ILuaModel
     [LuaField("Last air date of the anime")] public DateTimeModel? enddate { get; init; }
     [LuaField("Average rating of the anime")] public required double rating { get; init; }
     [LuaField("Whether the anime is age-restricted")] public required bool restricted { get; init; }
-    [LuaField("Type of the anime (Movie, TVSeries, etc.)")] public required AnimeType type { get; init; }
+    [LuaField("Type of the anime (Movie, TV, etc.)")] public required AnimeType type { get; init; }
     [LuaField("The preferred title for the anime")] public required string preferredname { get; init; }
     [LuaField("The default title for the anime")] public required string defaultname { get; init; }
     [LuaField("AniDB anime ID")] public required long id { get; init; }
@@ -91,7 +91,7 @@ public sealed record HashesModel : ILuaModel
 
 public sealed record AudioModel : ILuaModel
 {
-    [LuaField("Audio compression mode")] public required string compressionmode { get; init; }
+    [LuaField("Audio compression mode")] public required string? compressionmode { get; init; }
     [LuaField("Number of audio channels, may have decimal part '.1'")] public required double channels { get; init; }
     [LuaField("Audio sampling rate in Hz")] public required long samplingrate { get; init; }
     [LuaField("Audio codec name")] public required string codec { get; init; }
@@ -104,7 +104,7 @@ public sealed record VideoModel : ILuaModel
     [LuaField("Video height in pixels")] public required long height { get; init; }
     [LuaField("Video width in pixels")] public required long width { get; init; }
     [LuaField("Video codec name")] public required string codec { get; init; }
-    [LuaField("Resolution string e.g. '1080p', '720p', etc.")] public required string res { get; init; }
+    [LuaField("Resolution string e.g. '1080p', '720p', etc.")] public required string? res { get; init; }
     [LuaField("Video bitrate in bits per second")] public required long bitrate { get; init; }
     [LuaField("Color depth in bits per channel")] public required long bitdepth { get; init; }
     [LuaField("Frame rate in frames per second")] public required double framerate { get; init; }

@@ -4,17 +4,17 @@
     "net10.0": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
+        "requested": "[1.4.10, )",
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
-        "requested": "[10.0.11, )",
-        "resolved": "10.0.11",
-        "contentHash": "Ljd0Uxoq5XpScD2Bg0nM/r3mwx7Ao5Uq24eo2ARxbGvqJ7Zht6rt2cJtwVRH4Cv+1ZVMdXz6TB43KbpmsxRrvQ==",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "+24lC4plfbEDNfLAdTV/SWKS7dW+16X4HdydO3R++134kSNTzcbYA4KpR1Hdh6uWisB8Za3AzwyOn+K+NxWIug==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12"
         }
       },
       "NLua": {
@@ -28,9 +28,9 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.43, )",
-        "resolved": "6.0.0-alpha.43",
-        "contentHash": "ctxyo4mK+LTLKhK8m5oj7GXeusEdt3UFrj05rL2cocuSPyLsLNyMxbT9szVGtvaJfyfMpCrXsNs93tb9/l670A==",
+        "requested": "[6.0.0-alpha.98, )",
+        "resolved": "6.0.0-alpha.98",
+        "contentHash": "xSPnQB1LNt1DD3kruAOoiB0K1pvQfIjSCx+VOkEKTohyrPCnDlz2QDyLKdqElGhUdly2V3ahiluXLix/MrN3yA==",
         "dependencies": {
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
@@ -38,8 +38,8 @@
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "/a1aJz4m7ylhEDf25ugQChLQoN5XwoGjWw/BoR/ZWWKsO1v4DdJElS1uyngahz4B/eOzjFk1KNTkarRLE5wsIg=="
+        "resolved": "10.0.12",
+        "contentHash": "9/qymSh7hVDMGTGwrLz8MRp5zRyXy9adGDOs4HwRdnLil3oZGYuWeZjbmHgCQ9BL1qBroVfgUK3U/nb61617Cw=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -69,33 +69,34 @@
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
+          "KeraLua": "[1.4.10, )",
           "NLua": "[1.7.9, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.43, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.98, )"
         }
       }
     },
     "net10.0/linux-arm64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
+        "requested": "[1.4.10, )",
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
       }
     },
     "net10.0/linux-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
+        "requested": "[1.4.10, )",
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
       }
     },
     "net10.0/win-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.9, )",
-        "resolved": "1.4.9",
-        "contentHash": "oxor0U3bFxMRLY9TQ9QjDiiX1ojH2se5ei1T0hsSovqE+gAkC7ucqvApWBoClHUPOOsp/taWtzbZ+ZfP0Q4Nsw=="
+        "requested": "[1.4.10, )",
+        "resolved": "1.4.10",
+        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
       }
     }
   }
