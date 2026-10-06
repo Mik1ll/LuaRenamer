@@ -48,8 +48,7 @@ public class LuaTests
         _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
         _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(3));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(3);
+        SetupAnidbId(animeMock, 3);
         IShokoSeries shokoSeries = Mock.Of<IShokoSeries>(s => s.AnidbAnimeID == 3 &&
             s.AnidbAnime == animeMock.Object &&
             s.Title == "shokoseriesprefname" &&
@@ -117,8 +116,7 @@ public class LuaTests
         _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
         _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(3));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(3);
+        SetupAnidbId(animeMock, 3);
         _ = animeMock.SetupGet(a => a.Studios).Returns([]);
         _ = animeMock.SetupGet(a => a.Tags).Returns([]);
         _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([]);
@@ -494,8 +492,6 @@ public class LuaTests
             $"{Names.filename} = {Names.anime.relations[1].anime.preferredname} .. {Names.anime.relations[1].type} .. #{Names.anime.relations[1].anime.relations}");
         var animeMock = new Mock<IAnidbAnime>();
         _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(1));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(1);
         _ = animeMock.SetupGet(a => a.Title).Returns("blah2");
         _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "blah"));
         _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
@@ -505,8 +501,7 @@ public class LuaTests
             Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r2 => r2.Related == args.Series[0].AnidbAnime &&
                 r2.RelationType == RelationType.Prequel),
         });
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(4));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(4);
+        SetupAnidbId(animeMock, 4);
         ((List<IRelatedMetadata<ISeries, ISeries>>)args.Series[0].AnidbAnime.RelatedSeries).Add(Mock.Of<IRelatedMetadata<ISeries, ISeries>>(r =>
             r.RelationType == RelationType.AlternativeSetting &&
             r.Related == animeMock.Object
@@ -674,8 +669,7 @@ public class LuaTests
 
         var relatedMock = new Mock<IAnidbAnime>();
         _ = relatedMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        _ = relatedMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(4));
-        _ = relatedMock.SetupGet(a => a.AnidbID).Returns(4);
+        SetupAnidbId(relatedMock, 4);
         _ = relatedMock.SetupGet(a => a.Title).Returns("relatedname");
         _ = relatedMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == "relatedname"));
         _ = relatedMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
@@ -800,8 +794,7 @@ public class LuaTests
         _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(titleMock);
         _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());
         _ = animeMock.SetupGet(a => a.RelatedSeries).Returns(new List<IRelatedMetadata<ISeries, ISeries>>());
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(3));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(3);
+        SetupAnidbId(animeMock, 3);
         _ = animeMock.SetupGet(a => a.Studios).Returns([]);
         _ = animeMock.SetupGet(a => a.Tags).Returns([]);
         _ = animeMock.SetupGet(a => a.YearlySeasons).Returns([(2024, YearlySeason.Winter)]);
@@ -940,8 +933,7 @@ public class LuaTests
     {
         var animeMock = new Mock<IAnidbAnime>();
         _ = animeMock.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        _ = animeMock.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(anidbId));
-        _ = animeMock.SetupGet(a => a.AnidbID).Returns(anidbId);
+        SetupAnidbId(animeMock, anidbId);
         _ = animeMock.SetupGet(a => a.Title).Returns(anidbTitle);
         _ = animeMock.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbTitle));
         _ = animeMock.SetupGet(a => a.Titles).Returns(new List<ITitle>());

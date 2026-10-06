@@ -197,8 +197,7 @@ public class ModelTranslatorTests
     {
         var m = new Mock<IAnidbAnime>();
         _ = m.SetupGet(a => a.EpisodeCounts).Returns(new EpisodeCounts());
-        _ = m.SetupGet(a => a.ID).Returns(AnidbSeriesGuid(id));
-        _ = m.SetupGet(a => a.AnidbID).Returns(id);
+        SetupAnidbId(m, id);
         _ = m.SetupGet(a => a.Title).Returns(anidbTitle);
         _ = m.SetupGet(a => a.DefaultTitle).Returns(Mock.Of<ITitle>(t => t.Value == anidbDefault));
         _ = m.SetupGet(a => a.Titles).Returns(new List<ITitle>());
