@@ -27,13 +27,13 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal
-    - name: Install Shoko BuildTools
-      run: dotnet tool install Shoko.BuildTools --tool-path ./.tools --version 0.4.0
+    - name: Restore tools
+      run: dotnet tool restore
     - name: Package
       # The portable locked restore above validates dependencies. The plugin archives
       # need a fresh assets file and isolated temporary lockfile for each runtime identifier.
       run: >-
-        ./.tools/shoko-build ./LuaRenamer/LuaRenamer.csproj
+        dotnet shoko-build ./LuaRenamer/LuaRenamer.csproj
         -c Release
         -p:RestoreLockedMode=false
         -p:NuGetLockFilePath=obj/Shoko.BuildTools/packages.lock.json
