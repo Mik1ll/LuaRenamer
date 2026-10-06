@@ -30,13 +30,12 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
     - name: Package
-      # The portable locked restore above validates dependencies. The plugin archives
-      # need a fresh assets file and isolated temporary lockfile for each runtime identifier.
+      # Reuses the locked restore above; RuntimeIdentifiers in LuaRenamer.csproj puts every RID in it.
+      # A per-RID restore would push the RID onto LuaEnv and DefsGenerator, whose lock files have none.
       run: >-
         dotnet shoko-build ./LuaRenamer/LuaRenamer.csproj
         -c Release
-        -p:RestoreLockedMode=false
-        -p:NuGetLockFilePath=obj/Shoko.BuildTools/packages.lock.json
+        --no-restore
         --output './publish/LuaRenamer_{tag}_{runtime}.zip'
         --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
     - name: Release
