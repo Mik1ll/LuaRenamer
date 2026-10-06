@@ -354,7 +354,7 @@ public static class ModelProducers
 
     private static TmdbMovieModel MovieToModel(IMovie movie, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
-        id = ParseTmdbID(movie.ID),
+        id = movie.ID.GetNumericID<int>(),
         anidbepisodeids = anidbEpisodeIds,
         titles = movie.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(movie.DefaultTitle?.Value) ? null : movie.DefaultTitle?.Value,
@@ -367,7 +367,7 @@ public static class ModelProducers
 
     private static TmdbShowModel ShowToModel(ISeries show) => new()
     {
-        id = ParseTmdbID(show.ID),
+        id = show.ID.GetNumericID<int>(),
         titles = show.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(show.DefaultTitle?.Value) ? null : show.DefaultTitle?.Value,
         preferredname = string.IsNullOrWhiteSpace(show.PreferredTitle?.Value) ? null : show.PreferredTitle?.Value,
@@ -382,8 +382,8 @@ public static class ModelProducers
 
     private static TmdbEpisodeModel TmdbEpisodeToModel(IEpisode episode, IReadOnlyList<long> anidbEpisodeIds) => new()
     {
-        showid = ParseTmdbID(episode.SeriesID),
-        id = ParseTmdbID(episode.ID),
+        showid = episode.SeriesID.GetNumericID<int>(),
+        id = episode.ID.GetNumericID<int>(),
         anidbepisodeids = anidbEpisodeIds,
         titles = episode.Titles.Select(TitleToModel).ToList(),
         defaultname = string.IsNullOrWhiteSpace(episode.DefaultTitle?.Value) ? null : episode.DefaultTitle?.Value,
@@ -393,10 +393,4 @@ public static class ModelProducers
         seasonnumber = episode.SeasonNumber,
         airdate = DateTimeToModel(episode.AirDateWithTime),
     };
-
-    /// <summary>
-    /// Reads the number TMDB keys an entry by out of its <see cref="MetadataGuid"/>, which keeps it as text.
-    /// </summary>
-    /// <exception cref="FormatException">The ID is not a number.</exception>
-    private static int ParseTmdbID(MetadataGuid id) => int.Parse(id.ID, NumberStyles.None, CultureInfo.InvariantCulture);
 }
