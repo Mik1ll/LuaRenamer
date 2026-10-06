@@ -27,11 +27,17 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal
-    - name: Publish
-      run: |
-        for rid in "win-x64" "linux-x64" "linux-arm64"; do
-          dotnet publish ./LuaRenamer/LuaRenamer.csproj --no-restore -c Release -r "$rid" -o "./publish/$rid"
-        done
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Package
+      # Reuses the locked restore above; RuntimeIdentifiers in LuaRenamer.csproj puts every RID in it.
+      # A per-RID restore would push the RID onto LuaEnv and DefsGenerator, whose lock files have none.
+      run: >-
+        dotnet shoko-build ./LuaRenamer/LuaRenamer.csproj
+        -c Release
+        --no-restore
+        --output './publish/LuaRenamer_{tag}_{runtime}.zip'
+        --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
     - name: Release
       env:
         GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
