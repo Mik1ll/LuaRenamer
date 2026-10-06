@@ -44,8 +44,8 @@ public static class ModelProducers
     {
         IShokoSeries primarySeries = PrimarySeries(args);
         IShokoEpisode primaryEpisode = args.Episodes.Where(e => e.AnidbEpisode.AnidbAnimeID == primarySeries.AnidbAnimeID)
-            .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.Type)
-            .ThenBy(e => e.EpisodeNumber)
+            .OrderBy(e => e.AnidbEpisode.Type == EpisodeType.Other ? int.MinValue : (int)e.AnidbEpisode.Type)
+            .ThenBy(e => e.AnidbEpisode.EpisodeNumber)
             .First();
 
         var animes = args.Series

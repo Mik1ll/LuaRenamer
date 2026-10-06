@@ -212,6 +212,47 @@ public class LuaTests
     }
 
     [TestMethod]
+    public void TestPrimaryEpisodeUsesAnidbOrder()
+    {
+        RelocationContext<LuaRenamerSettings> args = MinimalArgs(
+            "filename = episode.type .. episode.number .. ' ' .. episodes[2].type .. episodes[2].number");
+        args = new RelocationContext<LuaRenamerSettings>(new RelocationContext
+        {
+            AvailableFolders = args.AvailableFolders,
+            File = args.File,
+            Episodes =
+            [
+                // Shoko type/number disagree with AniDB's, so a sort on the Shoko fields would pick this one.
+                Mock.Of<IShokoEpisode>(se => se.AnidbEpisodeID == 11 &&
+                    se.Type == EpisodeType.Episode &&
+                    se.EpisodeNumber == 1 &&
+                    se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e =>
+                        e.Titles == new List<ITitle>() &&
+                        e.EpisodeNumber == 1 &&
+                        e.Type == EpisodeType.Special &&
+                        e.AnidbAnimeID == 3) &&
+                    se.LinkedEpisodes == new List<IEpisode>()),
+                Mock.Of<IShokoEpisode>(se => se.AnidbEpisodeID == 10 &&
+                    se.Type == EpisodeType.Special &&
+                    se.EpisodeNumber == 2 &&
+                    se.AnidbEpisode == Mock.Of<IAnidbEpisode>(e =>
+                        e.Titles == new List<ITitle>() &&
+                        e.EpisodeNumber == 2 &&
+                        e.Type == EpisodeType.Episode &&
+                        e.AnidbAnimeID == 3) &&
+                    se.LinkedEpisodes == new List<IEpisode>()),
+            ],
+            Series = args.Series,
+            Groups = args.Groups,
+            MoveEnabled = true,
+            RenameEnabled = true,
+        }, args.Configuration);
+        var renamer = new LuaRenamer(Logmock);
+        RelocationResult res = renamer.GetPath(args);
+        Assert.AreEqual("Episode2 Special1.mp4", res.FileName);
+    }
+
+    [TestMethod]
     public void TestImportFolder()
     {
         RelocationContext<LuaRenamerSettings> args = MinimalArgs(
