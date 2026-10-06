@@ -84,6 +84,12 @@ Executed at runtime:
 In addition to the `filename`, `destination` and `subfolder` output variables, these variables affect the result of your script.
 
 - `collision_filename` Optional alternative filename, used only when the `filename` target is taken by a different video. It is ignored when the target is the file being renamed or another copy of the same video, which Shoko reports as a duplicate instead. If the alternative is also taken, renaming fails with an error. Targets are checked against the disk when the path is computed, so a preview does not account for other files in the same batch, though a real relocation does since files are moved one at a time.
+
+  Setting it changes how Shoko manages releases, because the file is renamed before Shoko sees a conflict:
+  - Without it, an older version from the same group at the target is deleted and replaced (v2 replaces v1). With it, the new version is kept beside the old one, so superseded files have to be cleaned up separately, e.g. with Shoko's Multiple Files utility. Leave it unset if you rely on automatic version replacement.
+  - Without it, a release from a different group at the target leaves the file where it is. With it, the file is moved in beside the existing release.
+  - Without it, a file Shoko doesn't know about at the target fails the relocation. With it, the file is moved in beside the unknown file.
+  - Another copy of the same video at the target still fails the relocation as a duplicate.
 - `use_existing_anime_location` If true, the renamer will attempt to keep files from the same series together, reusing the destination and subfolder of existing files. This takes precedence over the destination and subfolder set in the script. (default: false)
 - `replace_illegal_chars` If true, replaces all illegal path characters in subfolder and file name with alternatives. See [ReplaceMap in Utils.cs for defaults](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/Utils.cs). Use `illegal_chars_map` to modify defaults. (default: false)
 - `remove_illegal_chars` If true, removes all illegal path characters in subfolder and file name. If false, illegal characters are replaced with underscores or replaced if `replace_illegal_chars` is true. (default: false)
