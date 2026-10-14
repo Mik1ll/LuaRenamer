@@ -61,10 +61,15 @@ jobs:
         --no-restore
         --output './publish/LuaRenamer_{tag}_{runtime}.zip'
         --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
+    - uses: actions/create-github-app-token@v2
+      id: app-token
+      with:
+        app-id: ${{ vars.RELEASE_APP_ID }}
+        private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
     - name: Release
       env:
-        # The v* tag ruleset only lets admins create tags, which GITHUB_TOKEN cannot bypass.
-        GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
+        # The v* tag ruleset only lets admins and the release app create tags; GITHUB_TOKEN cannot bypass it.
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
         PRERELEASE: ${{ inputs.prerelease }}
       run: >-
         gh release create "$TAG" ./publish/*.zip
