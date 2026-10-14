@@ -1,10 +1,7 @@
 name: Publish Release
-run-name: Publish ${{ inputs.tag || github.ref_name }}
+run-name: Publish ${{ inputs.tag }}
 
 on:
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+**
   workflow_dispatch:
     inputs:
       tag:
@@ -22,7 +19,7 @@ on:
         default: true
 
 env:
-  TAG: ${{ inputs.tag || github.ref_name }}
+  TAG: ${{ inputs.tag }}
 
 jobs:
   publish-release:
@@ -68,7 +65,7 @@ jobs:
       env:
         # The v* tag ruleset only lets admins create tags, which GITHUB_TOKEN cannot bypass.
         GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
-        PRERELEASE: ${{ github.event_name != 'workflow_dispatch' || inputs.prerelease }}
+        PRERELEASE: ${{ inputs.prerelease }}
       run: >-
         gh release create "$TAG" ./publish/*.zip
         --target "$(git rev-parse HEAD)"
