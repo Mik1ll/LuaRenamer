@@ -1,9 +1,28 @@
 name: Publish Release
+run-name: Publish ${{ inputs.tag || github.ref_name }}
 
 on:
   push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+**
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (e.g. v1.2.3); created at commit-ish if it does not exist
+        required: true
+        type: string
+      commit-ish:
+        description: Commit, branch or tag to release; defaults to the existing tag
+        required: false
+        type: string
+      prerelease:
+        description: Mark the release as a prerelease
+        required: false
+        type: boolean
+        default: true
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   publish-release:
@@ -15,7 +34,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        ref: ${{ inputs.commit-ish || inputs.tag }}
         fetch-depth: 1
+    - name: Resolve tag
+      # shoko-build reads the tag from `git describe --exact-match`, so a tag that does not exist yet must be
+      # created locally on HEAD; the release step then creates it on the remote.
+      run: |
+        [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "::error::Tag '$TAG' is not of the form vX.Y.Z"; exit 1; }
+        if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+          git fetch --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG"
+          if [[ "$(git rev-parse "$TAG^{commit}")" != "$(git rev-parse HEAD)" ]]; then
+            echo "::error::Tag '$TAG' already exists and does not point at the checked out commit"
+            exit 1
+          fi
+        else
+          rc=$?
+          [[ $rc == 2 ]] || exit $rc
+          git tag "$TAG"
+        fi
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
@@ -40,5 +76,78 @@ jobs:
         --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
     - name: Release
       env:
-        GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
-      run: gh release create "$GITHUB_REF_NAME" ./publish/*.zip --generate-notes --verify-tag --prerelease
+        # GITHUB_TOKEN rather than a PAT: a tag this creates must not re-trigger this workflow's tag push.
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PRERELEASE: ${{ github.event_name != 'workflow_dispatch' || inputs.prerelease }}
+      run: >-
+        gh release create "$TAG" ./publish/*.zip
+        --target "$(git rev-parse HEAD)"
+        --generate-notes
+        --prerelease="$PRERELEASE"
+
+  update-manifest:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    concurrency:
+      group: update-manifest
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: manifest
+        fetch-depth: 0
+    - name: Update manifest entry
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+      run: |
+        git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
+        VERSION="${TAG#v}"; VERSION="${VERSION%%-*}"
+        SOURCE_REVISION=$(git rev-list -n 1 "$TAG")
+        RELEASED_AT=$(git log -1 --format=%cI "$SOURCE_REVISION")
+
+        # Strips any prerelease suffix, e.g. 6.0.0-alpha.43 -> 6.0.0.
+        ABSTRACTION_VERSION=$(git show "${TAG}:LuaRenamer/LuaRenamer.csproj" | sed -n 's/.*Shoko\.Abstractions.*Version="\([^-"]*\).*/\1/p' | head -1)
+
+        RELEASE_JSON=$(gh api "repos/$REPO/releases/tags/${TAG}")
+        PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+        CHANNEL=$([[ "$PRERELEASE" == "true" ]] && echo "Dev" || echo "Stable")
+        RELEASE_NOTES=$(echo "$RELEASE_JSON" | jq -r '.body')
+        ASSETS_JSON=$(echo "$RELEASE_JSON" | jq '.assets')
+
+        ARCHIVES_JSON=$(echo "$ASSETS_JSON" | jq --arg abstraction "$ABSTRACTION_VERSION" --arg repo "$REPO" --arg tag "$TAG" '
+          [ .[] | select(.name | endswith(".zip")) | {
+              runtime: (.name | gsub(".*_"; "") | gsub("\\.zip$"; "")),
+              abstraction: $abstraction,
+              url: .browser_download_url,
+              checksum: (.digest | ltrimstr("sha256:"))
+            }
+          ]
+        ')
+
+        RELEASE_ENTRY=$(jq -n \
+          --arg version "$VERSION" \
+          --arg tag "$TAG" \
+          --arg source_revision "$SOURCE_REVISION" \
+          --arg released_at "$RELEASED_AT" \
+          --arg channel "$CHANNEL" \
+          --arg release_notes "$RELEASE_NOTES" \
+          --argjson archives "$ARCHIVES_JSON" \
+          '{version: $version, tag: $tag, source_revision: $source_revision, released_at: $released_at, channel: $channel, release_notes: $release_notes, archives: $archives}')
+
+        jq --argjson release "$RELEASE_ENTRY" '
+          .releases |= [ $release ] + (. | map(select(.version != $release.version or .channel != $release.channel)))
+        ' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
+
+        if git diff --quiet manifest.json; then
+          echo "manifest.json unchanged, skipping commit"
+          exit 0
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add manifest.json
+        git commit -m "ci: update manifest for ${TAG} (${CHANNEL})"
+        git push origin HEAD:manifest
