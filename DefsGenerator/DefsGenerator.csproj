@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.104" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.105" />
     </ItemGroup>
 
 </Project>
