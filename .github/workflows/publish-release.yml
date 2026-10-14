@@ -66,8 +66,8 @@ jobs:
         --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
     - name: Release
       env:
-        # GITHUB_TOKEN rather than a PAT: a tag this creates must not re-trigger this workflow's tag push.
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # The v* tag ruleset only lets admins create tags, which GITHUB_TOKEN cannot bypass.
+        GH_TOKEN: ${{ secrets.MY_GITHUB_RELEASE_PAT }}
         PRERELEASE: ${{ github.event_name != 'workflow_dispatch' || inputs.prerelease }}
       run: >-
         gh release create "$TAG" ./publish/*.zip
