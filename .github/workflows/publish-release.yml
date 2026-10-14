@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag (e.g. v1.2.3); created at commit-ish if it does not exist
+        description: Release tag (e.g. v1.2.3); created at the released commit if it does not exist
         required: true
         type: string
       commit-ish:
-        description: Commit, branch or tag to release; defaults to the existing tag
+        description: Commit, branch or tag to release; defaults to the tag if it exists, else the workflow ref
         required: false
         type: string
       prerelease:
@@ -32,24 +32,43 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit-ish || inputs.tag }}
-        fetch-depth: 1
-    - name: Resolve tag
-      # shoko-build reads the tag from `git describe --exact-match`, so a tag that does not exist yet must be
-      # created locally on HEAD; the release step then creates it on the remote.
+    - name: Resolve ref
+      id: resolve
+      env:
+        GH_TOKEN: ${{ github.token }}
+        COMMITISH: ${{ inputs.commit-ish }}
       run: |
         [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "::error::Tag '$TAG' is not of the form vX.Y.Z"; exit 1; }
-        if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+        if out=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" 2>&1); then
+          tag_exists=true
+        elif [[ "$out" == *"HTTP 404"* ]]; then
+          tag_exists=false
+        else
+          echo "$out"; exit 1
+        fi
+        if [[ -n "$COMMITISH" ]]; then ref="$COMMITISH"
+        elif [[ "$tag_exists" == true ]]; then ref="refs/tags/$TAG"
+        else ref="$GITHUB_SHA"
+        fi
+        echo "tag-exists=$tag_exists" >> "$GITHUB_OUTPUT"
+        echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ steps.resolve.outputs.ref }}
+        fetch-depth: 1
+    - name: Tag checked out commit
+      # shoko-build reads the tag from `git describe --exact-match`, so a tag that does not exist yet must be
+      # created locally on HEAD; the release step then creates it on the remote.
+      env:
+        TAG_EXISTS: ${{ steps.resolve.outputs.tag-exists }}
+      run: |
+        if [[ "$TAG_EXISTS" == true ]]; then
           git fetch --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG"
           if [[ "$(git rev-parse "$TAG^{commit}")" != "$(git rev-parse HEAD)" ]]; then
             echo "::error::Tag '$TAG' already exists and does not point at the checked out commit"
             exit 1
           fi
         else
-          rc=$?
-          [[ $rc == 2 ]] || exit $rc
           git tag "$TAG"
         fi
     - uses: actions/setup-dotnet@v4
