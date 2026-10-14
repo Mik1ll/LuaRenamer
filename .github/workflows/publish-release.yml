@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       commit-ish:
-        description: Commit, branch or tag to release; defaults to the tag if it exists, else the workflow ref
+        description: Branch, tag or full SHA to release; defaults to the workflow ref
         required: false
         type: string
       prerelease:
@@ -32,45 +32,13 @@ jobs:
     permissions:
       contents: write
     steps:
-    - name: Resolve ref
-      id: resolve
-      env:
-        GH_TOKEN: ${{ github.token }}
-        COMMITISH: ${{ inputs.commit-ish }}
-      run: |
-        [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "::error::Tag '$TAG' is not of the form vX.Y.Z"; exit 1; }
-        if out=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" 2>&1); then
-          tag_exists=true
-        elif [[ "$out" == *"HTTP 404"* ]]; then
-          tag_exists=false
-        else
-          echo "$out"; exit 1
-        fi
-        if [[ -n "$COMMITISH" ]]; then ref="$COMMITISH"
-        elif [[ "$tag_exists" == true ]]; then ref="refs/tags/$TAG"
-        else ref="$GITHUB_SHA"
-        fi
-        echo "tag-exists=$tag_exists" >> "$GITHUB_OUTPUT"
-        echo "ref=$ref" >> "$GITHUB_OUTPUT"
     - uses: actions/checkout@v4
       with:
-        ref: ${{ steps.resolve.outputs.ref }}
+        ref: ${{ inputs.commit-ish }}
         fetch-depth: 1
-    - name: Tag checked out commit
-      # shoko-build reads the tag from `git describe --exact-match`, so a tag that does not exist yet must be
-      # created locally on HEAD; the release step then creates it on the remote.
-      env:
-        TAG_EXISTS: ${{ steps.resolve.outputs.tag-exists }}
-      run: |
-        if [[ "$TAG_EXISTS" == true ]]; then
-          git fetch --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG"
-          if [[ "$(git rev-parse "$TAG^{commit}")" != "$(git rev-parse HEAD)" ]]; then
-            echo "::error::Tag '$TAG' already exists and does not point at the checked out commit"
-            exit 1
-          fi
-        else
-          git tag "$TAG"
-        fi
+    - name: Tag HEAD
+      # shoko-build reads the release tag from `git describe --exact-match`, so it has to be on HEAD.
+      run: git tag -f "$TAG"
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
