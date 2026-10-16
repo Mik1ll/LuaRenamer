@@ -4,11 +4,44 @@ on: pull_request
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    name: Build and Test (${{ matrix.leg }})
+    strategy:
+      # The matrix exists to say whether a failure is specific to one platform or configuration; cancelling
+      # the other legs on the first failure would throw that answer away.
+      fail-fast: false
+      matrix:
+        include:
+          - leg: windows
+            runner: windows-latest
+          - leg: linux-x64
+            runner: ubuntu-latest
+          - leg: linux-arm64
+            runner: ubuntu-24.04-arm
+          # tr-TR breaks culture-sensitive case mapping (i -> İ) and uses a decimal comma; St. John's is a
+          # half-hour offset with DST. Each targets a claim the suite makes about not depending on the host.
+          - leg: linux-x64-host-config
+            runner: ubuntu-latest
+            locale: tr_TR.UTF-8
+            culture: tr-TR
+            timezone: America/St_Johns
+    runs-on: ${{ matrix.runner }}
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
     - uses: actions/checkout@v4
+    # Written to GITHUB_ENV rather than the job's env: an expression that is empty on the other legs would
+    # still set LANG/TZ to the empty string there instead of leaving the runner defaults alone.
+    - name: Configure host locale and timezone
+      if: matrix.locale
+      run: |
+        sudo locale-gen ${{ matrix.locale }}
+        {
+          echo "LANG=${{ matrix.locale }}"
+          echo "LC_ALL=${{ matrix.locale }}"
+          echo "TZ=${{ matrix.timezone }}"
+          echo "LUARENAMER_EXPECT_CULTURE=${{ matrix.culture }}"
+          echo "LUARENAMER_EXPECT_TZ=${{ matrix.timezone }}"
+        } >> "$GITHUB_ENV"
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
