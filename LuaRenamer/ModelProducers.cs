@@ -251,9 +251,16 @@ public static class ModelProducers
             };
     }
 
+    /// <summary>The names Shoko itself treats as no release group at all (its <c>InvalidReleaseGroupNames</c>).</summary>
+    private static readonly HashSet<string> PlaceholderReleaseGroupNames = new(StringComparer.InvariantCultureIgnoreCase)
+    {
+        "raw", "unk", "unknown", "raw/unknown", "raw/unk",
+    };
+
     private static ReleaseGroupModel? ReleaseGroupToModel(IReleaseGroup? releaseGroup)
     {
-        return releaseGroup?.ID is null || releaseGroup.Name == "raw/unknown"
+        return releaseGroup?.ID is null || PlaceholderReleaseGroupNames.Contains(releaseGroup.Name) ||
+               PlaceholderReleaseGroupNames.Contains(releaseGroup.ShortName)
             ? null
             : new ReleaseGroupModel
             {
@@ -317,7 +324,8 @@ public static class ModelProducers
 
     public static GroupModel GroupToModel(IShokoGroup group) => new()
     {
-        name = string.IsNullOrWhiteSpace(group.PreferredTitle?.Value) ? null : group.PreferredTitle?.Value,
+        // The host's preferred title is null whenever no title is in a language the user prefers.
+        name = new[] { group.PreferredTitle?.Value, group.DefaultTitle?.Value }.FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)),
         // member anime keep their relations.
         mainanime = AnimeToModel(group.MainSeries.AnidbAnime),
         animes = group.AllSeries.Select(a => AnimeToModel(a.AnidbAnime)).ToList(),
