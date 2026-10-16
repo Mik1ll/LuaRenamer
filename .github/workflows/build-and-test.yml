@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   build-and-test:
-    name:Build and Test (${{ matrix.leg }})
+    name: Build and Test (${{ matrix.leg }})
     strategy:
       # The matrix exists to say whether a failure is specific to one platform or configuration; cancelling
       # the other legs on the first failure would throw that answer away.
