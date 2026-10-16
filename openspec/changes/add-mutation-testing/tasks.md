@@ -79,6 +79,23 @@
 - [x] 4.5 Verify a scoped run over the two boundary files reports no survivors without either a killing test or a site annotation
   - `dotnet stryker --mutate "**/LuaEnv/LuaSandbox.cs" --mutate "**/LuaEnv/ModelTranslator.cs"`: 53 killed, 2 timeouts, 0 survived, 0 without coverage. The 5 annotated mutants appear as `Ignored` with their reasons.
 
+- [x] 4.6 Re-triage `LuaSandbox.cs` after stacking this change on `bound-script-resources`, which adds the instruction hook and the counting allocator to it
+  - The first scoped run after the merge: 75 killed, 10 survived, 3 timeouts, 2 without coverage (86.67%). All 12 were in the new code.
+  - **Killed by new tests in `Tests/Sandbox/ResourceLimitTests.cs`:**
+    - The count's seed arithmetic (two mutants), the `held` conditional (three), and counting a failed growth instead of a free (`newSize != 0`) are killed by `TheAllocatorsCountMatchesLuasOwn`. It requires the wrapper's count to equal `LUA_GCCOUNT`/`COUNTB` after construction and translation, after a run, and after a collection. This needed a public `LuaSandbox.AllocatedBytes`.
+    - `newSize - held` → `newSize + held` is killed by `AResizeIsChargedOnlyForWhatItAdds`.
+    - `>` → `>=` on the bound is killed by `AScriptMayUseMemoryUpToExactlyTheBound`. It finds the smallest bound `x = 1` completes under and requires the run's peak to equal it. To make the peak the run's own, `PeakAllocatedBytes` now resets when `Run` begins.
+    - Re-arming the hook at step 1 on a refusal is killed by `ARefusedAllocationStopsTheScriptAtItsNextInstruction`.
+    - Clearing the hook when a refusal escapes the run function is killed by `ARefusalAfterTheScriptHasUnwoundLeavesNoHookBehind`. A linked list of small tables leaves no room for the hook's `debug.getinfo`, so the refusal recurs after the script's pcall returns.
+    - `ABoundTooSmallForTheRunItselfIsReportedNotThrown` covers refusals in the run function's own allocations before the hook is installed.
+  - **Removed by rewriting the code:**
+    - `newSize > held && newSize - held > room` is now one signed `growth > room` comparison, so the equivalent `>` → `>=` on the guard no longer exists.
+    - The catch path returns the memory-bound message directly, so the `error = ""` placeholder no longer exists either.
+    - `Run`'s `?? error?.ToString() ?? "unknown error"` fallbacks are gone (`ErrorOf` casts), together with their annotation from 4.2.
+  - **Annotated:** `_enforcing = false` → `true`. A mutant that leaves enforcement on fails the next host-side push outside any pcall, which panics the state, so no test can assert on it.
+  - **Annotation scope:** `disable once <Mutator>` silences every mutation of that kind in the whole statement, including an `if`'s body. The first attempt annotated the allocator's `if` and so also hid `newSize < held`, the inverted bound check, and the body's `State.Hook is not { }`. 4.2's `close < 0` annotation likewise hid `close > 0`, so it became `close == -1`, whose mutants are both killed. The workflow header now states this.
+  - Scoped run after the triage: 79 killed, 2 timeouts, 0 survived, 0 without coverage (100%). The one annotated mutant is reported as `Ignored`.
+
 ## 5. Documentation
 
 - [x] 5.1 Add a short "Mutation testing" note for contributors covering a full run, a file-scoped run (`--mutate`), where the report lands, and the annotation convention for equivalent mutants. Put it in the workflow file's header comment, since the repo has no contributor doc. Verify the commands in it run as written

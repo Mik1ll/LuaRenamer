@@ -10,7 +10,10 @@
 # The report lands in StrykerOutput/<timestamp>/reports/mutation-report.html.
 #
 # A mutant no test could ever notice is marked at its site, with the reason it can't be observed:
-#   // Stryker disable once Equality : index is always >= 1 here, so < and <= agree
+#   // Stryker disable once Boolean : <why no test can observe the change>
+# It silences every mutation of that kind in the whole statement, an if's body included, so it only belongs on
+# a statement where all of them are unobservable. Otherwise rewrite the code so the unobservable mutation can't
+# be made, e.g. `close == -1` rather than `close < 0` when `<=` would agree.
 
 name: Mutation Testing
 
