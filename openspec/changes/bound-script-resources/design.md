@@ -61,6 +61,13 @@ Enforcement covers only the untrusted run, but the count is the state's total. T
 
 The wrapper delegates rather than allocating itself because the state's existing blocks came from the native library's allocator. On Windows that may be a statically linked CRT heap that `NativeMemory` doesn't share, and freeing a block on the wrong heap corrupts memory.
 
+Refinements found while implementing:
+
+- **Enforcement is switched on from inside the run function**, by a registered C function, and switched off by `Run` once the call returns. NLua pushes the call's arguments and pops its results outside any `pcall`. A refused allocation there (the script string's push, when the state is already at the bound) would be an unprotected error, and that panics the state and aborts the process. For the same reason a bounded run returns only success or the error message, never a value of the script's.
+- **A refusal ends the run, as a spent budget does.** Lua answers a failed allocation with an emergency full collection before it reports the error. So a script that retries an allocation under `pcall` pays a full collection for every attempt, and at a 32 MiB heap that keeps the thread busy far longer than the instruction budget suggests (the "growth retried under pcall" test timed out at 10 s before this change). On a refusal, the wrapper re-arms the hook at step 1. `lua_sethook` is safe to call from anywhere, the allocator included. The hook asks the sandbox, through a second C function, whether an allocation was refused, and then stops the script exactly as it does for the budget. `Run` reports the memory bound whenever an allocation was refused and the run failed.
+- Lua 5.4's `string.rep` refuses results above `INT_MAX` itself ("resulting string too large"), so the oversized-allocation test asks for 1 GiB, not 8 GiB.
+- `LuaSandbox.PeakAllocatedBytes` exposes the wrapper's high-water mark, so a test can show an oversized request was never obtained.
+
 *Alternatives considered:*
 - Checking `collectgarbage("count")` from the instruction hook. Rejected. It sees only what has already been allocated, so a single `string.rep('x', 2^33)` inside one C call commits (on Linux, overcommits) and fills 8 GiB before any hook runs.
 - Constructing the state on KeraLua's `Lua(LuaAlloc, IntPtr)` from the start and wrapping it with NLua's `Lua(KeraLua.Lua)` constructor. This would work, but it moves library opening and state ownership into `LuaSandbox`, for no benefit over wrapping the existing allocator.

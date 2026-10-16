@@ -24,10 +24,14 @@
 
 ## 3. Memory bound
 
-- [ ] 3.1 Install the counting allocator wrapper from design.md in `LuaSandbox`'s constructor (delegate held in a field, shrinks and frees always delegated, enforcement only during `Run`), and translate a refused allocation into an error naming the memory bound. Verify the existing suite passes unchanged
-- [ ] 3.2 Add tests to `ResourceLimitTests` for gradual growth (a table appended to in a loop) and a single oversized `string.rep`, each asserting an error naming the memory bound under a small bound. For the oversized case, assert the wrapper's count never exceeded the bound
-- [ ] 3.3 Verify the bound applies only to the untrusted run: construct a sandbox whose bound is below the memory already used by translation and trusted chunks, confirm construction and translation succeed, and confirm a trivial script is then refused with the memory-bound error
-- [ ] 3.4 Add a test that documents the residual gap: a CPU-heavy pattern match on a moderate subject completes (not interrupted) under a small instruction budget. Name it after the limitation so the gap is visible in the suite
+- [x] 3.1 Install the counting allocator wrapper from design.md in `LuaSandbox`'s constructor (delegate held in a field, shrinks and frees always delegated, enforcement only during `Run`), and translate a refused allocation into an error naming the memory bound. Verify the existing suite passes unchanged
+  - The wrapper seeds its count from `LUA_GCCOUNT`/`LUA_GCCOUNTB`, so the bound is on the state's whole size. Two refinements are recorded in design.md: enforcement is switched on from inside the run function, because NLua's argument pushes are unprotected, and a refusal ends the run. The suite passed unchanged (325 tests).
+- [x] 3.2 Add tests to `ResourceLimitTests` for gradual growth (a table appended to in a loop) and a single oversized `string.rep`, each asserting an error naming the memory bound under a small bound. For the oversized case, assert the wrapper's count never exceeded the bound
+  - Four growth cases: a local table, a global table (still reachable after the error), a doubling string, and growth retried under `pcall`. The oversized case uses `string.rep('x', 1 << 30)`, because Lua 5.4 rejects counts above `INT_MAX` itself. `PeakAllocatedBytes` stays ≤ the 4 MiB bound.
+- [x] 3.3 Verify the bound applies only to the untrusted run: construct a sandbox whose bound is below the memory already used by translation and trusted chunks, confirm construction and translation succeed, and confirm a trivial script is then refused with the memory-bound error
+  - `TheMemoryBoundAppliesOnlyToTheUntrustedRun`: a 64 KiB bound, with lualinq, utils and the populated env translated (peak well above 64 KiB), then `Run("x = 1")` reports the memory bound. This is also the case that would have aborted the process had enforcement been switched on before NLua pushed the arguments.
+- [x] 3.4 Add a test that documents the residual gap: a CPU-heavy pattern match on a moderate subject completes (not interrupted) under a small instruction budget. Name it after the limitation so the gap is visible in the suite
+  - `APatternMatchIsNotInterruptedByTheInstructionBudget`: `('a'):rep(150):find(('.-'):rep(3) .. 'b')` completes under a 1,000-instruction budget. The subject was cut from 400, which took 4 s, to 150, which takes about 0.2 s.
 
 ## 4. End to end
 

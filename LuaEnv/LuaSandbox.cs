@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using KeraLua;
 using NLua;
+using NLua.Exceptions;
+using Lua = NLua.Lua;
+using LuaFunction = NLua.LuaFunction;
 
 namespace LuaRenamer.LuaEnv;
 
@@ -69,10 +73,18 @@ public sealed class LuaSandbox : Lua
     // a script that pcalls the error raises again at its next instruction.
     // The hook is per coroutine, so it only bounds the script while `coroutine` stays out of env.
     // `tostring` stays under the hook because a `__tostring` metamethod is script code.
+    //
+    // The memory bound is switched on from in here, not before the call, because NLua pushes the arguments
+    // outside any pcall, where a refused allocation would panic the state. The same goes for the results,
+    // which is why a bounded run returns no value of the script's. A refusal stops the script the way a spent
+    // budget does, since retrying under pcall would cost an emergency full collection per attempt.
     private const string SandboxFunction =
         """
+        local enforce, refused = enforce_memory_bound, memory_refused
+        enforce_memory_bound, memory_refused = nil, nil
         local run
         run = function (untrusted_code, env, budget)
+          if budget then enforce() end
           local untrusted_function, message = load(untrusted_code, nil, 't', env)
           if not untrusted_function then return false, message end
           if not budget then
@@ -81,15 +93,15 @@ public sealed class LuaSandbox : Lua
             return table.unpack(result)
           end
 
-          local exceeded = string.format('instruction budget of %d exceeded', budget)
-          local remaining = budget
+          local remaining, stop = budget, nil
           local function hook()
-            if remaining > 0 then
+            if not stop then
               remaining = remaining - 1000
-              if remaining > 0 then return end
+              if remaining > 0 and not refused() then return end
+              stop = refused() and 'memory bound exceeded' or string.format('instruction budget of %d exceeded', budget)
               debug.sethook(hook, '', 1)
             end
-            if debug.getinfo(2, 'f').func ~= run then error(exceeded, 2) end
+            if debug.getinfo(2, 'f').func ~= run then error(stop, 2) end
           end
 
           debug.sethook(hook, '', 1000)
@@ -99,7 +111,8 @@ public sealed class LuaSandbox : Lua
             err = (converted or type(text) == 'string') and text or 'error object could not be converted to a string'
           end
           debug.sethook()
-          return ok, err
+          if ok then return true end
+          return false, err
         end
         return run
         """;
@@ -112,6 +125,16 @@ public sealed class LuaSandbox : Lua
     private readonly LuaFunction _newTable;
     private readonly Dictionary<string, LuaFunction> _compiled = [];
     private readonly ScriptLimits _limits;
+
+    // Native code holds only function pointers to these, which don't keep the delegates alive.
+    private readonly LuaAlloc _allocate;
+    private readonly KeraLua.LuaFunction _enforceMemoryBound;
+    private readonly KeraLua.LuaFunction _memoryRefused;
+
+    private readonly LuaAlloc _nativeAllocate;
+    private long _allocated;
+    private bool _enforcing;
+    private bool _refused;
 
     /// <inheritdoc cref="LuaSandbox(ScriptLimits, string[])"/>
     public LuaSandbox(params string[] trustedChunks) : this(ScriptLimits.Default, trustedChunks)
@@ -127,12 +150,36 @@ public sealed class LuaSandbox : Lua
     {
         _limits = limits;
         State.Encoding = Encoding.UTF8;
+
+        // Wrapped rather than replaced: the state's existing blocks came from the native library's heap, and
+        // only its own allocator may free them.
+        var userData = IntPtr.Zero;
+        _nativeAllocate = State.GetAllocFunction(ref userData);
+        _allocated = (State.GarbageCollector(LuaGC.Count, 0) * 1024L) + State.GarbageCollector(LuaGC.Countb, 0);
+        _allocate = Allocate;
+        State.SetAllocFunction(_allocate, ref userData);
+        _enforceMemoryBound = _ =>
+        {
+            _enforcing = true;
+            return 0;
+        };
+        State.Register("enforce_memory_bound", _enforceMemoryBound);
+        _memoryRefused = luaState =>
+        {
+            KeraLua.Lua.FromIntPtr(luaState).PushBoolean(_refused);
+            return 1;
+        };
+        State.Register("memory_refused", _memoryRefused);
+
         _runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
         _newTable = (LuaFunction)DoString(TableConstructor)[0];
         Env = (LuaTable)DoString(BaseEnv)[0];
         foreach (var chunk in trustedChunks)
             LoadChunk(chunk);
     }
+
+    /// <summary>The most bytes the state has held at once since it was constructed.</summary>
+    public long PeakAllocatedBytes { get; private set; }
 
     /// <summary>The restricted environment table every chunk and translated model is loaded against.</summary>
     public LuaTable Env { get; }
@@ -144,7 +191,55 @@ public sealed class LuaSandbox : Lua
     /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
     /// Exceeding a limit is an error, and its message names the limit.
     /// </returns>
-    public string? Run(string script) => ErrorOf(_runSandboxed.Call(script, Env, _limits.Instructions));
+    public string? Run(string script)
+    {
+        _refused = false;
+        string? error;
+        try
+        {
+            error = ErrorOf(_runSandboxed.Call(script, Env, _limits.Instructions));
+        }
+        catch (LuaException) when (_refused)
+        {
+            // Refused outside the script's own pcall, which can be after the hook was installed.
+            State.SetHook(null, LuaHookMask.Disabled, 0);
+            error = "";
+        }
+        finally
+        {
+            _enforcing = false;
+        }
+
+        return _refused && error is not null ? $"memory bound of {_limits.MemoryBytes} bytes exceeded" : error;
+    }
+
+    /// <summary>
+    /// Every allocation, resize and free of the state passes through here. Growth past the bound is refused
+    /// while a script runs; shrinks and frees are always passed on, because Lua requires them to succeed.
+    /// </summary>
+    private IntPtr Allocate(IntPtr userData, IntPtr block, nuint oldSize, nuint newSize)
+    {
+        // Without a block, oldSize is the type of object being created, not a size.
+        var held = block == IntPtr.Zero ? 0 : oldSize;
+        if (_enforcing && newSize > held && newSize - held > (nuint)Math.Max(0, _limits.MemoryBytes - _allocated))
+        {
+            _refused = true;
+            // Brings the hook in at the script's next instruction instead of up to a thousand later.
+            // lua_sethook is safe to call from anywhere, this allocator included.
+            if (State.Hook is { } hook)
+                State.SetHook(hook, State.HookMask, 1);
+            return IntPtr.Zero;
+        }
+
+        var result = _nativeAllocate(userData, block, oldSize, newSize);
+        if (result != IntPtr.Zero || newSize == 0)
+        {
+            _allocated += (long)newSize - (long)held;
+            PeakAllocatedBytes = Math.Max(PeakAllocatedBytes, _allocated);
+        }
+
+        return result;
+    }
 
     private static string? ErrorOf(object[] result) =>
         result is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;

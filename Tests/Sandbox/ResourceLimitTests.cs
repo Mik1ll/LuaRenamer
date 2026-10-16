@@ -1,7 +1,10 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using LuaRenamer.LuaEnv;
+using LuaRenamer.Tests.Fakes;
+using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
 namespace LuaRenamer.Tests.Sandbox;
@@ -19,14 +22,21 @@ public sealed class ResourceLimitTests
 {
     private const int Timeout = 10_000;
 
-    private static readonly ScriptLimits Small = new(Instructions: 100_000, MemoryBytes: 32 * 1024 * 1024);
+    private const long FourMiB = 4 * 1024 * 1024;
 
-    private static Task<string?> RunIsolated(string script, ScriptLimits limits, CancellationToken token) =>
+    private static readonly ScriptLimits SmallBudget = new(Instructions: 100_000, MemoryBytes: 32 * 1024 * 1024);
+
+    private static readonly ScriptLimits SmallMemory = new(Instructions: 100_000_000, MemoryBytes: FourMiB);
+
+    private static Task<T> Isolated<T>(ScriptLimits limits, Func<LuaSandbox, T> body, CancellationToken token) =>
         Task.Run(() =>
         {
             using var sandbox = new LuaSandbox(limits);
-            return sandbox.Run(script);
+            return body(sandbox);
         }, token);
+
+    private static Task<string?> RunIsolated(string script, ScriptLimits limits, CancellationToken token) =>
+        Isolated(limits, sandbox => sandbox.Run(script), token);
 
     [Theory(Timeout = Timeout)]
     [InlineData("while true do end", "a bare loop")]
@@ -41,11 +51,11 @@ public sealed class ResourceLimitTests
         "an error object whose __tostring spins")]
     [InlineData("table.sort({ 3, 2, 1 }, function() while true do end end)", "a loop in a callback from a library function")]
     public async Task ANonTerminatingScriptStopsAtTheInstructionBudget(string script, string why) =>
-        (await RunIsolated(script, Small, TestContext.Current.CancellationToken)).Should().Contain("instruction budget", why);
+        (await RunIsolated(script, SmallBudget, TestContext.Current.CancellationToken)).Should().Contain("instruction budget", why);
 
     [Fact(Timeout = Timeout)]
     public async Task UnboundedRecursionIsAnError() =>
-        (await RunIsolated("local function f() return 1 + f() end f()", Small, TestContext.Current.CancellationToken)).Should().NotBeNullOrWhiteSpace();
+        (await RunIsolated("local function f() return 1 + f() end f()", SmallBudget, TestContext.Current.CancellationToken)).Should().NotBeNullOrWhiteSpace();
 
     [Fact(Timeout = Timeout)]
     public async Task TrustedChunksAndCompilationRunWithoutABudget()
@@ -53,9 +63,57 @@ public sealed class ResourceLimitTests
         const string spin = "for i = 1, 1000000 do end";
         (await Task.Run(() =>
         {
-            using var sandbox = new LuaSandbox(Small, spin);
+            using var sandbox = new LuaSandbox(SmallBudget, spin);
             sandbox.CompileFunction($"{spin} return function () end");
             return sandbox.Run("x = 1");
         }, TestContext.Current.CancellationToken)).Should().BeNull();
+    }
+
+    [Theory(Timeout = Timeout)]
+    [InlineData("local t = {} while true do t[#t + 1] = {} end", "a local table appended to forever")]
+    [InlineData("t = {} while true do t[#t + 1] = {} end", "a global table, still reachable after the error")]
+    [InlineData("local s = 'x' while true do s = s .. s end", "a string doubled forever")]
+    [InlineData("local t = {} while true do pcall(function() t[#t + 1] = ('x'):rep(1000) .. #t end) end",
+        "growth retried under pcall")]
+    public async Task GradualGrowthStopsAtTheMemoryBound(string script, string why) =>
+        (await RunIsolated(script, SmallMemory, TestContext.Current.CancellationToken)).Should().Contain("memory bound", why);
+
+    [Fact(Timeout = Timeout)]
+    public async Task AnOversizedAllocationIsRefusedWithoutBeingObtained()
+    {
+        (var error, var peak) = await Isolated(SmallMemory,
+            sandbox => (sandbox.Run("local s = string.rep('x', 1 << 30)"), sandbox.PeakAllocatedBytes), TestContext.Current.CancellationToken);
+
+        error.Should().Contain("memory bound");
+        peak.Should().BeLessThanOrEqualTo(FourMiB);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task TheMemoryBoundAppliesOnlyToTheUntrustedRun()
+    {
+        // Below what the trusted chunks and a populated env already hold.
+        var limits = new ScriptLimits(Instructions: 100_000, MemoryBytes: 64 * 1024);
+
+        (await Task.Run(() =>
+        {
+            using var sandbox = new LuaSandbox(limits, LuaScripts.LuaLinq, LuaScripts.Utils);
+            new ModelTranslator(sandbox).Translate(
+                ModelProducers.EnvToModel(RelocationGraph.Populated().Context("x = 1"), new FakeLogger<LuaRenamer>()), sandbox.Env);
+            sandbox.PeakAllocatedBytes.Should().BeGreaterThan(limits.MemoryBytes);
+            return sandbox.Run("x = 1");
+        }, TestContext.Current.CancellationToken)).Should().Contain("memory bound");
+    }
+
+    /// <summary>
+    /// The residual gap: the pattern matcher is C, so its backtracking executes no Lua instructions and the
+    /// budget cannot interrupt it. This match backtracks through over half a million positions under a budget
+    /// of a thousand instructions.
+    /// </summary>
+    [Fact(Timeout = Timeout)]
+    public async Task APatternMatchIsNotInterruptedByTheInstructionBudget()
+    {
+        var limits = new ScriptLimits(Instructions: 1_000, MemoryBytes: 32 * 1024 * 1024);
+
+        (await RunIsolated("x = ('a'):rep(150):find(('.-'):rep(3) .. 'b')", limits, TestContext.Current.CancellationToken)).Should().BeNull();
     }
 }
