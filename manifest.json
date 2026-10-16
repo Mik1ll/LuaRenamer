@@ -14,29 +14,29 @@
   "releases": [
     {
       "version": "6.4.0",
-      "tag": "v6.4.0-abstr-6.0.0-alpha.107",
-      "source_revision": "cc006058017544e1ac5b737a8e8b6c5499a4425b",
-      "released_at": "2026-10-15T20:15:58-07:00",
+      "tag": "v6.4.0-abstr-6.0.0-alpha.108",
+      "source_revision": "4054967a686c29ae54d6db6f28dbee5af3d8cb31",
+      "released_at": "2026-10-16T00:44:53-07:00",
       "channel": "Dev",
-      "release_notes": "## What's Changed\n* Release only via workflow_dispatch by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/208\n* Create releases with a GitHub App token instead of the PAT by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/209\n* Update to Shoko.Abstractions 6.0.0-alpha.107 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/210\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.4.0-abstr-6.0.0-alpha.104...v6.4.0-abstr-6.0.0-alpha.107",
+      "release_notes": "## What's Changed\n* Rebuild the test suite: xUnit v3, NSubstitute, property-based invariants by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/175\n* Update to Shoko.Abstractions 6.0.0-alpha.108 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/218\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.4.0-abstr-6.0.0-alpha.107...v6.4.0-abstr-6.0.0-alpha.108",
       "archives": [
         {
           "runtime": "linux-arm64",
           "abstraction": "6.0.0",
-          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.107/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.107_linux-arm64.zip",
-          "checksum": "d502f068d601a1cbd6e72168b10325b8caf1ee0932f476513f607bf837fc1368"
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.108/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.108_linux-arm64.zip",
+          "checksum": "1661436eda85d726745a79f01bf4a8fbaf3e42dc4749884bc45280840f30e216"
         },
         {
           "runtime": "linux-x64",
           "abstraction": "6.0.0",
-          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.107/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.107_linux-x64.zip",
-          "checksum": "e13d00a71fd7e63f17bd4068b311714c16ba6e44196572d125133d2f0ac86034"
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.108/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.108_linux-x64.zip",
+          "checksum": "82c39b237b3797b72fc26ec4d5aadf4a653470e5c143ed81832d5ac65303e393"
         },
         {
           "runtime": "win-x64",
           "abstraction": "6.0.0",
-          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.107/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.107_win-x64.zip",
-          "checksum": "fbe80d669bc7546b25b06c8fba7584f1f2925fa53eb4fd0ac0ee17290563565a"
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.0-abstr-6.0.0-alpha.108/LuaRenamer_v6.4.0-abstr-6.0.0-alpha.108_win-x64.zip",
+          "checksum": "e85fa168c17c2e90ec85849094a3fc7d0ea9806e027e7639c9906fe0a0110361"
         }
       ]
     },
