@@ -1,0 +1,44 @@
+# Mutation testing
+#
+# Stryker.NET makes small changes to LuaEnv and LuaRenamer and reports each one no test notices. It runs weekly
+# and on demand, never on pull requests: the score is a measurement, not a merge gate.
+#
+# Locally, from the repo root (settings in stryker-config.json):
+#   dotnet tool restore
+#   dotnet stryker                                    # full run, about a minute on a desktop
+#   dotnet stryker --mutate "**/LuaEnv/LuaSandbox.cs" # one file
+# The report lands in StrykerOutput/<timestamp>/reports/mutation-report.html.
+#
+# A mutant no test could ever notice is marked at its site, with the reason it can't be observed:
+#   // Stryker disable once Equality : index is always >= 1 here, so < and <= agree
+
+name: Mutation Testing
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  mutation-testing:
+    runs-on: ubuntu-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+    - name: Restore
+      run: dotnet restore --locked-mode
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Mutate
+      run: dotnet stryker
+    - uses: actions/upload-artifact@v4
+      with:
+        name: mutation-report
+        path: StrykerOutput/**/reports/
+        if-no-files-found: error

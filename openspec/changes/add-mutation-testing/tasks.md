@@ -30,6 +30,8 @@
 ## 3. Scheduled workflow
 
 - [ ] 3.1 Add `.github/workflows/mutation.yml` on `workflow_dispatch` and a weekly `schedule`, using the same restore/cache steps as `Build and Test`, running Stryker, and uploading `StrykerOutput/**/reports/` as an artifact. Verify by a manual dispatch that produces a downloadable HTML report
+  - Added. actionlint 1.7.7 reports nothing on it. The job's commands were run locally in order with `CI=true`: `dotnet restore --locked-mode`, `dotnet tool restore`, then `dotnet stryker`. The run exited 0 and wrote `StrykerOutput/<timestamp>/reports/mutation-report.html` and `.json`, which the upload step's glob matches.
+  - Still open: the manual-dispatch check. GitHub offers `workflow_dispatch`, and fires `schedule`, only for workflows that exist on the default branch, and `mutation.yml` reaches `master` only when this change merges. Once it does, dispatch it on `master`, confirm the `mutation-report` artifact holds the HTML report, and record the run here. The workflow has no other triggers, by design.
 - [x] 3.2 Check whether Dependabot's `nuget` ecosystem updates `.config/dotnet-tools.json` and record the answer. If it doesn't, note that in the manifest's commit message
   - No. The manifest is the root `dotnet-tools.json` (see 1.1). It already pins `shoko.buildtools` 0.5.1, and 0.5.2 was published on 2026-10-13. Dependabot's `nuget` runs on 10-14 and 10-15 opened package bumps but none for the tool. The manifest's commit ("Add Stryker.NET 5.0.0 as a local tool") says `dotnet-stryker` is bumped by hand. Moving the manifest to `.config/` might change this but is untested, and it would also move `shoko.buildtools`, which the release workflow restores.
 
