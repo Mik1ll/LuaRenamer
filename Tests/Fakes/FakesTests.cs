@@ -27,19 +27,6 @@ public class FakesTests
     }
 
     [Fact]
-    public void IdentifierSpacesCannotCollide()
-    {
-        var graph = RelocationGraph.Default();
-
-        int[] shoko = [graph.Series.LocalID, graph.Episode.LocalID, graph.Folder.ID];
-        int[] anidb = [graph.Anime.AnidbID, graph.AnidbEpisode.AnidbID, graph.AnidbEpisode.AnidbAnimeID];
-
-        shoko.Should().OnlyContain(id => id != 0);
-        anidb.Should().OnlyContain(id => id != 0);
-        shoko.Intersect(anidb).Should().BeEmpty("comparing one identifier space against another must never match by coincidence");
-    }
-
-    [Fact]
     public void OneFieldIsOverriddenWithoutRestatingArrangement()
     {
         var graph = RelocationGraph.Default();

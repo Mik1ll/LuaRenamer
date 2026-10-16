@@ -64,6 +64,30 @@ public sealed class EnvSurfaceTests : IDisposable
     public void NestedStandardLibrarySubsetsAreExactly(string library) =>
         Names((LuaTable)_sandbox.GetValue(library)!).Should().BeEquivalentTo(Expected(library));
 
+    /// <summary>
+    /// <c>('x').name</c> never touches <see cref="LuaSandbox.Env"/>: it resolves through the string metatable,
+    /// so the names reachable that way are gathered by walking its <c>__index</c> chain as a script would.
+    /// A subset rather than equality, since lookups through <c>env.string</c> are the published ones.
+    /// </summary>
+    [Fact]
+    public void NamesReachableThroughAStringValueArePublished()
+    {
+        _sandbox.Run(
+            """
+            reachable = {}
+            local seen, index = {}, getmetatable('').__index
+            while index ~= nil and not seen[index] do
+              if type(index) ~= 'table' then error('a ' .. type(index) .. ' __index cannot be enumerated') end
+              seen[index] = true
+              for name in pairs(index) do reachable[#reachable + 1] = name end
+              local mt = getmetatable(index)
+              index = mt and mt.__index
+            end
+            """).Should().BeNull();
+
+        ((LuaTable)_sandbox.GetValue("reachable")!).Values.Cast<object>().Should().NotBeEmpty().And.BeSubsetOf(StringNames);
+    }
+
     [Theory]
     // Every one of these outlives the sandbox or reaches past it. setlocale is the sharpest: it sets LC_TIME
     // for the whole host process, so a script could change date rendering for everything until restart.
@@ -83,6 +107,16 @@ public sealed class EnvSurfaceTests : IDisposable
     [InlineData("package")]
     [InlineData("collectgarbage")]
     public void ProcessGlobalMutatorsAreUnreachable(string path) => _sandbox.GetValue(path).Should().BeNull();
+
+    [Fact]
+    public void StringDumpIsUnreachableThroughAStringValue()
+    {
+        // Paired with a published method through the same route, so a broken metatable can't pass as a closed one.
+        _sandbox.Run("dumped = ('x').dump; upper = ('x'):upper()").Should().BeNull();
+
+        _sandbox.GetValue("dumped").Should().BeNull();
+        _sandbox.GetValue("upper").Should().Be("X");
+    }
 
     private static string[] Expected(string library) => library switch
     {

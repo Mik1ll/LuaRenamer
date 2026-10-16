@@ -94,6 +94,8 @@ public class FlagsTests
     [InlineData("remove_illegal_chars = true", "abc.mp4")]
     [InlineData("replace_illegal_chars = true", "a？b？c.mp4")]
     [InlineData("", "a_b_c.mp4")]
+    // With both set, removal wins.
+    [InlineData("remove_illegal_chars = true; replace_illegal_chars = true", "abc.mp4")]
     public void IllegalCharacterHandlingFollowsTheScriptsFlags(string flags, string expected) =>
         Run(RelocationGraph.Default(), $"{flags}\nfilename = 'a?b?c'").FileName.Should().Be(expected);
 

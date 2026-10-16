@@ -125,5 +125,7 @@ public sealed class PathResolutionTests : IDisposable
         _sandbox.GetValue("alpha.inner.items[2].name").Should().Be("item-two");
         _sandbox.GetValue("beta.grid[1][1].name").Should().Be("deep");
         _sandbox.GetValue("alpha.inner").Should().BeOfType<LuaTable>();
+        _sandbox.GetValue("delta.ratio").Should().Be(2.5);
+        _sandbox.GetValue("delta.none[1]").Should().BeNull();
     }
 }

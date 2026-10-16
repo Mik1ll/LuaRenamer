@@ -26,8 +26,13 @@ public class NormPathTests
     }
 
     [Property]
-    public void UsesOnlyThePlatformSeparator(NonNull<string> path) =>
-        path.Get.NormPath().Should().NotContain(Path.AltDirectorySeparatorChar.ToString());
+    public void UsesOnlyThePlatformSeparator(NonNull<string> path)
+    {
+        // Not NotContain(Alt): on Unix both separators are '/', which would demand a path with no separator at
+        // all. A prefix rather than equality because the trailing trim is LeavesNoTrailingSeparator's to pin.
+        var rewritten = path.Get.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        rewritten.Should().StartWith(path.Get.NormPath());
+    }
 
     [Fact]
     public void KnownNormalizations()

@@ -92,14 +92,15 @@ public class PathCleaningTests
             CleanOrReject(cleaner, once).Should().Be(once);
     }
 
-    [Property]
-    public void ReplacementThatIsItselfIllegalIsRejected(NonNull<string> segment, bool remove, bool replace)
+    [Fact]
+    public void ReplacementThatIsItselfIllegalIsRejected()
     {
-        // Windows rules are forced on so the check is meaningful regardless of host platform.
-        FilePathCleaner cleaner = Cleaner(remove, replace, platformDependent: false,
+        // Windows rules are forced on so the check is meaningful regardless of host platform. A fact, not a
+        // property: the map is validated before any segment is examined, and neither flag takes part.
+        FilePathCleaner cleaner = Cleaner(remove: false, replace: true, platformDependent: false,
             overrides: new Dictionary<string, string> { ["<"] = ":" });
 
-        FluentActions.Invoking(() => cleaner.CleanPathSegment(segment.Get))
+        FluentActions.Invoking(() => cleaner.CleanPathSegment("segment"))
             .Should().Throw<LuaRenamerException>().WithMessage("Illegal path replacement character*");
     }
 

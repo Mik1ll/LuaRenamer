@@ -1,10 +1,11 @@
 namespace LuaRenamer.Tests.Fakes;
 
 /// <summary>
-/// One band per identifier space, disjoint and never zero. Production code compares identifiers across
-/// spaces in several places (a group's main-series id is a Shoko id, an episode's series id is an AniDB id);
-/// drawing every space from its own band means such a comparison can never match by coincidence, so the
-/// mix-up shows up as a failing test rather than as an accidental pass.
+/// One band per identifier space, disjoint and never zero — an arrangement convention, not a property of the
+/// system: real Shoko and AniDB ids are independent sequences and may coincide. Production code compares
+/// identifiers across spaces in several places (a group's main-series id is a Shoko id, an episode's series id
+/// is an AniDB id); drawing each space from its own band keeps such a mix-up from matching by coincidence in a
+/// test, so it shows up as a failure rather than as an accidental pass.
 /// </summary>
 public static class Ids
 {

@@ -21,7 +21,7 @@ public sealed class TrustedChunkTests : IDisposable
     public void StringHelpersResolveThroughMethodCallSyntax()
     {
         // utils.lua defines `function string:cleanspaces` into env.string. A method call on a string value
-        // resolves through the real string table, which the sandbox bridges to env.string in its constructor —
+        // resolves through the string metatable, which the sandbox points at env.string in its constructor —
         // so this is the check that the bridge is in place, not that the helper's body is correct.
         _sandbox.Run("cleaned = ('  a   b  '):cleanspaces()").Should().BeNull();
         _sandbox.GetValue("cleaned").Should().Be("a b");

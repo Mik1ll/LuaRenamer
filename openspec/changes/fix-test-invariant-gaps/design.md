@@ -17,7 +17,7 @@ keys=lower,unpack,char,len,pack,dump,byte,gsub,rep,find,packsize,format,gmatch,m
 
 `dump` resolves through `('x').dump` while being absent from `env.string`. The direction of the bridge is backwards: it makes the restricted table a fallback for the unrestricted one, when it needs to be the other way round.
 
-**The separator assertion.** `Utils.NormPath` is `Path.TrimEndingDirectorySeparator(path.Replace(Alt, Primary))`. On Unix both separator constants are `/`, so the `Replace` is a no-op and `UsesOnlyThePlatformSeparator`'s `NotContain(Alt)` becomes "contains no `/`". FsCheck's default string generator draws uniformly over codepoints 0–127; a probe found `/` in essentially every sample, so this fails deterministically off Windows rather than intermittently.
+**The separator assertion.** `Utils.NormPath` rewrites alternate separators to the primary one, then calls `Path.TrimEndingDirectorySeparator` until the result stops changing (#170), which trims every trailing separator but never into the root. On Unix both separator constants are `/`, so the rewrite is a no-op and `UsesOnlyThePlatformSeparator`'s `NotContain(Alt)` becomes "contains no `/`". FsCheck's default string generator draws uniformly over codepoints 0–127, so `/` turns up almost immediately and this fails deterministically off Windows rather than intermittently — confirmed by PR #175's first `ubuntu-latest` run, falsified after 16 tests.
 
 ## Goals / Non-Goals
 
@@ -52,7 +52,9 @@ Setting `__metatable` on the string metatable to block `getmetatable('')` is *no
 
 ### State the separator property in terms of what normalization guarantees
 
-Replace `NotContain(Alt)` with an assertion that the result equals the input with alternate separators rewritten — true on both platforms and still failing if `NormPath` stopped rewriting. Where the constants coincide this is trivially satisfiable, which is correct: there is nothing to rewrite.
+Replace `NotContain(Alt)` with an assertion that the result is a prefix of the input with alternate separators rewritten — true on both platforms and still failing if `NormPath` stopped rewriting. Where the constants coincide this is trivially satisfiable, which is correct: there is nothing to rewrite.
+
+*Prefix, not equality.* `NormPath` also trims trailing separators, so "equals the rewritten input" fails on every platform for any input ending in a separator. What the trim leaves behind is already pinned by `LeavesNoTrailingSeparator`; this property only has to say that nothing but the tail was changed.
 
 ### Route `ILuaFunc` to the callable check
 
@@ -60,7 +62,9 @@ Replace `NotContain(Alt)` with an assertion that the result equals the input wit
 
 ### Make identifier spaces disagree in the arrangement
 
-`RelocationGraph.MultiSeries` assigns `Ids.ShokoSeries + i` and `Ids.AnidbAnime + i`, so the two orderings agree and no assertion can tell them apart. Assign the Shoko ids in the reverse order, so the series with the lowest AniDB id has the highest Shoko id. `PrimaryResolutionTests` then genuinely discriminates, and any test that was passing for the wrong reason fails on this change — which is the point, and is expected to surface during the apply.
+`RelocationGraph.MultiSeries` assigns `Ids.ShokoSeries + i` and `Ids.AnidbAnime + i`, so the two orderings agree and no assertion can tell them apart. Production compares Shoko series by `LocalID` (Shoko.Abstractions alpha.107) and selects the primary by AniDB id, so both spaces are live. Assign the Shoko ids in the reverse order, so the series with the lowest AniDB id has the highest Shoko id. `PrimaryResolutionTests` then genuinely discriminates, and any test that was passing for the wrong reason fails on this change — which is the point, and is expected to surface during the apply.
+
+The episode side already follows this pattern: `ThePrimaryEpisodeIsRankedByItsAnidbTypeAndNumberNotShokos` gives the Shoko and AniDB episode types opposite orders, so it fails if the primary episode is ranked by the Shoko fields. This change applies the same idea to series identifiers.
 
 ### Guard termination at graph construction
 
@@ -79,6 +83,6 @@ Replace `HaveCountGreaterThan(15)` — a proxy that checks the schema is large, 
 
 ## Migration Plan
 
-No data or configuration migration. The sandbox change ships with the plugin and takes effect on the next relocation; there is no persisted state to convert, since a fresh `lua_State` is built per relocation (`LuaRenamer.cs:150`). Rollback is reverting the `BaseEnv` chunk.
+No data or configuration migration. The sandbox change ships with the plugin and takes effect on the next relocation; there is no persisted state to convert, since a fresh `lua_State` is built per relocation (`LuaRenamer.cs:180`). Rollback is reverting the `BaseEnv` chunk.
 
 Order matters within the apply: make the sandbox change before extending the surface pin, so the pin is written against the intended surface rather than the current one.

@@ -27,7 +27,7 @@ public static class ModelGraphs
 {
     /// <summary>How many levels of nested model a generated graph may have. Bounded from the start: shrinking
     /// through a Lua VM is slow, and an unbounded graph would only make failures harder to read.</summary>
-    private const int MaxDepth = 3;
+    public const int MaxDepth = 3;
 
     private const int MaxSequenceLength = 3;
 
@@ -51,6 +51,15 @@ public static class ModelGraphs
 
     private static readonly NullabilityInfoContext Nullability = new();
 
+    // Build recurses into a required model field even at the depth bound, so generation terminates only while
+    // no cycle runs through required model fields alone. Checked once, to name the field instead of overflowing.
+    static ModelGraphs()
+    {
+        var finished = new Dictionary<Type, bool>();
+        foreach (Type type in ModelTypes)
+            ThrowOnRequiredModelCycle(type, finished, new Stack<string>());
+    }
+
     public static Arbitrary<ModelGraph> Graphs() =>
         Gen.Elements<Type>(ModelTypes)
             .SelectMany(type => Gen.Choose(1, 1_000_000).Select(seed => new ModelGraph(type, Build(type, new Random(seed), MaxDepth), seed)))
@@ -72,6 +81,33 @@ public static class ModelGraphs
 
     private static bool IsNullable(PropertyInfo prop) =>
         Nullability.Create(prop).WriteState == NullabilityState.Nullable;
+
+    // finished[type] is false while the type is on the current path and true once it has been fully walked.
+    private static void ThrowOnRequiredModelCycle(Type type, Dictionary<Type, bool> finished, Stack<string> path)
+    {
+        if (finished.TryGetValue(type, out var done))
+        {
+            if (!done)
+            {
+                throw new InvalidOperationException(
+                    $"{path.Peek()} closes a cycle of required model fields ({string.Join(" -> ", path.Reverse())}) " +
+                    "that no collection breaks, so model-graph generation would never reach its depth bound");
+            }
+
+            return;
+        }
+
+        finished[type] = false;
+        foreach ((PropertyInfo prop, LuaFieldAttribute _) in LuaSchema.LuaFields(type))
+        {
+            if (prop.GetMethod!.IsStatic || IsNullable(prop) || !typeof(ILuaModel).IsAssignableFrom(prop.PropertyType)) continue;
+            path.Push($"{type.Name}.{prop.Name}");
+            ThrowOnRequiredModelCycle(prop.PropertyType, finished, path);
+            path.Pop();
+        }
+
+        finished[type] = true;
+    }
 
     private static object? Value(Type declared, bool nullable, Random rng, int depth)
     {
@@ -100,8 +136,8 @@ public static class ModelGraphs
         if (typeof(ILuaModel).IsAssignableFrom(type))
         {
             // At the depth bound a nullable model becomes absent and a required one is built without further
-            // nesting. That terminates because every model-to-model cycle in the schema runs through a
-            // sequence, and sequences are empty at the bound.
+            // nesting. That terminates because sequences are empty at the bound and the static constructor has
+            // ruled out a cycle of required model fields.
             return depth <= 0 ? nullable ? null : Build(type, rng, 0) : Build(type, rng, depth - 1);
         }
 

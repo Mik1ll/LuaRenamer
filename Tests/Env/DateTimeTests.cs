@@ -43,9 +43,9 @@ public sealed class DateTimeTests : IDisposable
     [Fact]
     public void ScriptSideFormattingUsesExplicitSpecifiers()
     {
-        // os.time reads the table as local time and os.date renders in local time, so the round trip is
-        // zone-independent — but only because every rendered component is named here rather than left to
-        // the C library's locale-defined layout.
+        // os.time reads the table as local time and os.date renders in local time, so the round trip holds
+        // wherever that local time exists exactly once — not in every zone for every instant, since a DST gap
+        // or overlap breaks it. Every component is named so the C library's locale layout plays no part.
         _sandbox.Env["releasedate"] = new ModelTranslator(_sandbox).Translate(ReleaseDate(new DateOnly(2022, 2, 3))!);
         _sandbox.Run("rendered = os.date('%Y-%m-%d %H:%M:%S', os.time(releasedate))").Should().BeNull();
 

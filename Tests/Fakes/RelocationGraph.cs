@@ -134,25 +134,27 @@ public sealed class RelocationGraph
     // ---- focused arrangements -------------------------------------------------------------------
 
     /// <summary>
-    /// <paramref name="order"/>.Count series whose Shoko and source ids both ascend, added to the context in
-    /// the given order — so index 0 is always the primary and never necessarily first in the list.
+    /// <paramref name="order"/>.Count series whose source ids ascend, added to the context in the given order —
+    /// so index 0 is always the primary and never necessarily first in the list. Their Shoko ids, and their
+    /// episodes', descend instead, so an ordering taken from the wrong identifier space picks the wrong series.
     /// </summary>
     /// <returns>The graph, plus each series' source id and Shoko title indexed by rank, not by arrival order.</returns>
     public static (RelocationGraph Graph, IReadOnlyList<int> SourceIds, IReadOnlyList<string> Titles) MultiSeries(
         IReadOnlyList<int> order, bool withGroups = false)
     {
         RelocationGraph graph = Default();
+        var last = order.Count - 1;
         List<IShokoSeries> series =
         [
             .. Enumerable.Range(0, order.Count)
-                .Select(i => HostFakes.Series(Ids.ShokoSeries + i, Ids.AnidbAnime + i, $"shoko{i}", $"anidb{i}")),
+                .Select(i => HostFakes.Series(Ids.ShokoSeries + last - i, Ids.AnidbAnime + i, $"shoko{i}", $"anidb{i}")),
         ];
 
         graph.SeriesList.Clear();
         graph.SeriesList.AddRange(order.Select(i => series[i]));
         graph.Episodes.Clear();
         graph.Episodes.AddRange(order.Select(i =>
-            HostFakes.Episode(Ids.ShokoEpisode + i, series[i].LocalID,
+            HostFakes.Episode(Ids.ShokoEpisode + last - i, series[i].LocalID,
                 HostFakes.AnidbEpisode(Ids.AnidbEpisode + i, series[i].AnidbAnimeID))));
         if (withGroups)
             graph.Groups.AddRange(order.Select(i => HostFakes.Group(Ids.ShokoGroup + i, $"group{i}", series[i])));
@@ -160,13 +162,16 @@ public sealed class RelocationGraph
         return (graph, [.. series.Select(s => s.AnidbAnimeID)], [.. series.Select(s => s.Title)]);
     }
 
-    /// <summary>Two series where only the primary one is linked to a TMDB show, listed primary-last.</summary>
+    /// <summary>
+    /// Two series where only the primary one is linked to a TMDB show, listed primary-last. The primary has the
+    /// lower source id but the higher Shoko id, so picking it by Shoko id picks the other one.
+    /// </summary>
     public static RelocationGraph TwoSeriesWithTmdbOnThePrimaryOne()
     {
-        IShokoSeries primary = HostFakes.Series(Ids.ShokoSeries, Ids.AnidbAnime);
+        IShokoSeries primary = HostFakes.Series(Ids.OtherShokoSeries, Ids.AnidbAnime);
         ISeries[] linked = [primary.AnidbAnime, HostFakes.TmdbShow()];
         primary.LinkedSeries.Returns(linked);
-        IShokoSeries other = HostFakes.Series(Ids.OtherShokoSeries, Ids.OtherAnidbAnime);
+        IShokoSeries other = HostFakes.Series(Ids.ShokoSeries, Ids.OtherAnidbAnime);
 
         RelocationGraph graph = Default();
         graph.SeriesList.Clear();

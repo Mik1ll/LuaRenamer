@@ -53,10 +53,30 @@ public sealed class MarshalingTests : IDisposable
     }
 
     [Fact]
-    public void TheGeneratorCoversEveryModelInTheSchema() =>
-        ModelGraphs.ModelTypes.Should().HaveCountGreaterThan(15)
-            .And.Contain(typeof(LuaEnv.Models.EnvModel))
-            .And.Contain(typeof(LuaEnv.Models.AnimeModel));
+    public void MapIntegrityRejectsAnUndeclaredKey()
+    {
+        var map = new Dictionary<string, string> { ["held"] = "value" };
+        LuaTable table = _sandbox.NewTable();
+        table["held"] = "value";
+        AssertMap(map, table, "map");
+
+        table["smuggled"] = "value";
+        FluentActions.Invoking(() => AssertMap(map, table, "map")).Should().Throw<Exception>();
+    }
+
+    public static TheoryData<Type> SchemaModelTypes => [.. ModelGraphs.ModelTypes];
+
+    /// <summary>
+    /// One case per model type, so coverage of the schema doesn't rest on the generated properties happening
+    /// to draw every type. Those still explore depth and nullability; this only guarantees each type is visited.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(SchemaModelTypes))]
+    public void TheGeneratorCoversEveryModelInTheSchema(Type type)
+    {
+        ILuaModel model = ModelGraphs.Build(type, new Random(1), ModelGraphs.MaxDepth);
+        AssertModel(model, Translator.Translate(model));
+    }
 
     #region Rules
 
@@ -101,6 +121,7 @@ public sealed class MarshalingTests : IDisposable
                 AssertSequence(sequence, marshaled.Should().BeOfType<LuaTable>(where).Subject, where);
                 break;
             case Delegate:
+            case ILuaFunc:
                 AssertCallable(marshaled, where);
                 break;
             default:
@@ -123,14 +144,21 @@ public sealed class MarshalingTests : IDisposable
 
     private void AssertMap(IDictionary map, LuaTable table, string where)
     {
+        var held = new List<object>();
         foreach (DictionaryEntry entry in map)
         {
             var key = entry.Key is Enum e ? Enum.GetName(e.GetType(), e) ?? "" : entry.Key;
             if (entry.Value is null)
+            {
                 table[key].Should().BeNull($"{where}[{key}]");
-            else
-                AssertValue(entry.Value, table[key].Should().NotBeNull($"{where}[{key}]").And.Subject, $"{where}[{key}]");
+                continue;
+            }
+
+            AssertValue(entry.Value, table[key].Should().NotBeNull($"{where}[{key}]").And.Subject, $"{where}[{key}]");
+            held.Add(key);
         }
+
+        table.Keys.Cast<object>().Should().BeEquivalentTo(held, $"{where} carries exactly the keys the map held a value for");
     }
 
     /// <summary>

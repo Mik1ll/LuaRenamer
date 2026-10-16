@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
-using FsCheck;
-using FsCheck.Fluent;
-using FsCheck.Xunit;
 using LuaRenamer.LuaEnv.Models;
 using LuaRenamer.Tests.Fakes;
 using Microsoft.Extensions.Logging.Testing;
@@ -15,41 +12,35 @@ namespace LuaRenamer.Tests.Env;
 
 /// <summary>
 /// Which series and episode are primary, and the ordering that follows from it. Nothing downstream may trust
-/// the order the relocation context happens to arrive in, so the properties here feed it permuted.
+/// the order the relocation context happens to arrive in, so the theories here feed it in every order.
 /// </summary>
 public class PrimaryResolutionTests
 {
-    /// <summary>A permutation of the series indices, used to shuffle the context's collections.</summary>
-    public sealed record Permutation(IReadOnlyList<int> Order)
-    {
-        public override string ToString() => string.Join(",", Order);
-    }
+    /// <summary>All 24 orders of four series indices, used to shuffle the context's collections.</summary>
+    public static TheoryData<int[]> Orders => [.. Permute([0, 1, 2, 3])];
 
-    public static class Permutations
-    {
-        private const int Size = 4;
-
-        public static Arbitrary<Permutation> Orders() =>
-            Gen.Choose(0, 1_000_000).ListOf(Size)
-                .Select(keys => new Permutation([.. Enumerable.Range(0, Size).OrderBy(i => keys[i])]))
-                .ToArbitrary();
-    }
+    private static IEnumerable<int[]> Permute(int[] items) =>
+        items.Length <= 1
+            ? [items]
+            : items.SelectMany(first => Permute([.. items.Where(i => i != first)]).Select(rest => (int[])[first, .. rest]));
 
     private static EnvModel Env(RelocationGraph graph) =>
         ModelProducers.EnvToModel(graph.Context(""), new FakeLogger<LuaRenamer>());
 
-    [Property(Arbitrary = [typeof(Permutations)], MaxTest = 30)]
-    public void ThePrimarySeriesIsTheLowestSourceIdRegardlessOfArrivalOrder(Permutation order)
+    [Theory]
+    [MemberData(nameof(Orders))]
+    public void ThePrimarySeriesIsTheLowestSourceIdRegardlessOfArrivalOrder(int[] order)
     {
-        (RelocationGraph graph, IReadOnlyList<int> sourceIds, IReadOnlyList<string> _) = RelocationGraph.MultiSeries(order.Order);
+        (RelocationGraph graph, IReadOnlyList<int> sourceIds, IReadOnlyList<string> _) = RelocationGraph.MultiSeries(order);
 
         ModelProducers.PrimarySeries(graph.Context("")).AnidbAnimeID.Should().Be(sourceIds[0]);
     }
 
-    [Property(Arbitrary = [typeof(Permutations)], MaxTest = 30)]
-    public void ThePrimaryAnimeAndEpisodeComeFirst(Permutation order)
+    [Theory]
+    [MemberData(nameof(Orders))]
+    public void ThePrimaryAnimeAndEpisodeComeFirst(int[] order)
     {
-        (RelocationGraph graph, IReadOnlyList<int> sourceIds, IReadOnlyList<string> _) = RelocationGraph.MultiSeries(order.Order);
+        (RelocationGraph graph, IReadOnlyList<int> sourceIds, IReadOnlyList<string> _) = RelocationGraph.MultiSeries(order);
 
         EnvModel env = Env(graph);
 
@@ -59,11 +50,12 @@ public class PrimaryResolutionTests
         env.episode.Should().BeSameAs(env.episodes[0]);
     }
 
-    [Property(Arbitrary = [typeof(Permutations)], MaxTest = 30)]
-    public void GroupsContainingThePrimarySeriesComeFirst(Permutation order)
+    [Theory]
+    [MemberData(nameof(Orders))]
+    public void GroupsContainingThePrimarySeriesComeFirst(int[] order)
     {
         (RelocationGraph graph, IReadOnlyList<int> _, IReadOnlyList<string> __) =
-            RelocationGraph.MultiSeries(order.Order, withGroups: true);
+            RelocationGraph.MultiSeries(order, withGroups: true);
 
         EnvModel env = Env(graph);
 

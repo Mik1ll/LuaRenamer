@@ -9,7 +9,7 @@ namespace LuaRenamer.Tests.Sandbox;
 /// <summary>
 /// A hand-described nested value graph, seeded into a sandbox as plain Lua tables. Path resolution is a
 /// property of the sandbox alone, so this stands in for a translated env: it exercises the same shapes
-/// (nested tables, sequences, sequences of tables, scalar leaves) without a host metadata graph in sight.
+/// (nested tables, sequences, sequences of tables, empty collections, scalar leaves) without a host metadata graph in sight.
 /// </summary>
 public static class EnvFixture
 {
@@ -34,7 +34,11 @@ public static class EnvFixture
                     new Map(("name", new Leaf("item-two"))))))))),
         ("beta", new Map(
             ("grid", new Seq(new Seq(new Map(("name", new Leaf("deep")))))))),
-        ("gamma", new Leaf("top-leaf")));
+        ("gamma", new Leaf("top-leaf")),
+        ("delta", new Map(
+            ("ratio", new Leaf(2.5)),
+            ("none", new Seq()),
+            ("blank", new Map()))));
 
     public static LuaSandbox Seeded()
     {

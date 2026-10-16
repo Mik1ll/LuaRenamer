@@ -54,9 +54,10 @@ public sealed class LuaSandbox : Lua
           error = error,
         }
 
-        -- `("a b"):cleanspaces()` resolves through the real string table, not env.string where utils.lua
-        -- defines its helpers. __index bridges the two; env.string is never rebound, so later helpers land too.
-        setmetatable(string, {__index = env.string})
+        -- A method call on a string value resolves through the string metatable's __index, which otherwise
+        -- reaches the whole real library (string.dump included). Pointing it at env.string makes the published
+        -- subset the only route; env.string is never rebound, so helpers utils.lua defines later land too.
+        getmetatable('').__index = env.string
         return env
         """;
 
