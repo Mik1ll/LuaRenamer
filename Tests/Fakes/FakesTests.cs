@@ -60,7 +60,7 @@ public class FakesTests
 
         graph.File.ManagedFolderID.Should().Be(graph.Folder.ID);
         graph.File.VideoID.Should().Be(graph.Video.LocalID);
-        graph.File.Path.Should().Be(Path.Combine(graph.Folder.Path, graph.File.RelativePath));
+        graph.File.Path.Should().Be(Path.Join(graph.Folder.Path, graph.File.RelativePath[1..].Replace('/', Path.DirectorySeparatorChar)));
         graph.Folder.Path.Should().NotBe(graph.File.Path, "a folder's path is not its file's path");
 
         graph.Episode.AnidbEpisodeID.Should().Be(graph.AnidbEpisode.AnidbID);
@@ -70,6 +70,28 @@ public class FakesTests
         // The anime model's id comes from AnidbID but relations are matched by ID, so the two must agree.
         graph.Anime.ID.Should().Be(HostFakes.MetadataId(MetadataSource.AniDB, MetadataEntityType.Series, graph.Anime.AnidbID));
         graph.Anime.ShokoSeries.Should().ContainSingle().Which.Should().BeSameAs(graph.Series);
+    }
+
+    [Fact]
+    public void PathsHaveTheShapeTheHostReportsThemIn()
+    {
+        // Shoko ends every managed folder path in a separator and roots relative paths at the folder with '/'
+        // on every platform; code that splits or joins paths has to cope with exactly that.
+        var graph = RelocationGraph.Default();
+
+        graph.Folder.Path.Should().EndWith(Path.DirectorySeparatorChar.ToString());
+        graph.File.RelativePath.Should().StartWith("/").And.NotContain("\\");
+        graph.File.FileName.Should().Be(Path.GetFileName(graph.File.RelativePath));
+    }
+
+    [Fact]
+    public void ShokoEntriesListTheirAnidbEntryAmongTheirLinkedOnes()
+    {
+        // The host lists the AniDB entry with the linked provider ones, so a per-source lookup has to filter.
+        var graph = RelocationGraph.Default();
+
+        graph.Series.LinkedSeries.Should().Contain(graph.Anime);
+        graph.Episode.LinkedEpisodes.Should().Contain(graph.AnidbEpisode);
     }
 
     [Fact]

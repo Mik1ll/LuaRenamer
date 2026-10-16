@@ -38,6 +38,16 @@ public class ExistingLocationTests
     }
 
     [Fact]
+    public void ANestedSubfolderIsReusedWhole()
+    {
+        var graph = RelocationGraph.Default();
+        var other = graph.AddFolder("other", Path.Combine("D:", "other"));
+        graph.GiveSeriesExistingFiles(("a", other, Path.Combine("Series", "Season 1")));
+
+        Run(graph).Path!.NormPath().Should().Be(Path.Combine("Series", "Season 1"));
+    }
+
+    [Fact]
     public void AnExcludedFolderStillCountsAsAnExistingLocation()
     {
         var graph = RelocationGraph.Default();

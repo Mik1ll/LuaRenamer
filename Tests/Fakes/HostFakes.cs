@@ -6,6 +6,7 @@ using System.Linq;
 using NSubstitute;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
+using Shoko.Abstractions.Metadata.Containers;
 using Shoko.Abstractions.Metadata.CrossReferences;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
@@ -57,13 +58,22 @@ public static class HostFakes
         entity.EntityType.Returns(type);
     }
 
+    /// <summary>A managed folder's path as the host reports it: always ending in a directory separator.</summary>
+    public static string HostFolderPath(string path) => Path.TrimEndingDirectorySeparator(path) + Path.DirectorySeparatorChar;
+
+    /// <summary>
+    /// A file's path relative to its managed folder as the host reports it: rooted at the folder with a leading
+    /// <c>/</c>, and separated by <c>/</c> on every platform.
+    /// </summary>
+    public static string HostRelativePath(string relativePath) => '/' + relativePath.Replace(Path.DirectorySeparatorChar, '/').TrimStart('/');
+
     public static IManagedFolder Folder(int id = Ids.Folder, string name = "testimport", string? path = null,
         DropFolderType type = DropFolderType.Destination)
     {
         IManagedFolder folder = Substitute.For<IManagedFolder>();
         folder.ID.Returns(id);
         folder.Name.Returns(name);
-        folder.Path.Returns(path ?? Path.Combine("C:", "testimportfolder"));
+        folder.Path.Returns(HostFolderPath(path ?? Path.Combine("C:", "testimportfolder")));
         folder.DropFolderType.Returns(type);
         return folder;
     }
@@ -96,6 +106,8 @@ public static class HostFakes
         anime.Tags.Returns([]);
         anime.YearlySeasons.Returns([]);
         anime.EpisodeCounts.Returns(new EpisodeCounts());
+        anime.AirDate.Returns((PartialDateOnly?)null);
+        anime.EndDate.Returns((PartialDateOnly?)null);
         anime.Type.Returns(AnimeType.TVSeries);
         anime.Rating.Returns(7.5);
         anime.Restricted.Returns(false);
@@ -158,6 +170,8 @@ public static class HostFakes
         // Read across before configuring, not inside the Returns() argument: arguments are evaluated after
         // the receiver, so a substitute read there becomes the call NSubstitute attaches the value to.
         (var anidbEpisodeId, EpisodeType type, var number) = (anidbEpisode.AnidbID, anidbEpisode.Type, anidbEpisode.EpisodeNumber);
+        // The AniDB episode is listed too, as the host does, so a per-source lookup has something to filter out.
+        IEpisode[] linked = [anidbEpisode];
         IShokoEpisode episode = Substitute.For<IShokoEpisode>();
         episode.LocalID.Returns(shokoId);
         episode.ShokoSeriesID.Returns(shokoSeriesId);
@@ -165,17 +179,20 @@ public static class HostFakes
         episode.AnidbEpisodeID.Returns(anidbEpisodeId);
         episode.Type.Returns(type);
         episode.EpisodeNumber.Returns(number);
-        episode.LinkedEpisodes.Returns([]);
+        episode.LinkedEpisodes.Returns(linked);
         episode.LinkedMovies.Returns([]);
         return episode;
     }
 
     public static IShokoGroup Group(int id, string name, IShokoSeries mainSeries, IReadOnlyList<IShokoSeries>? allSeries = null)
     {
+        ITitle defaultTitle = Title(name);
         ITitle preferredTitle = Title(name);
         var mainSeriesId = mainSeries.LocalID;
         IShokoGroup group = Substitute.For<IShokoGroup>();
         group.LocalID.Returns(id);
+        group.Title.Returns(name);
+        group.DefaultTitle.Returns(defaultTitle);
         group.PreferredTitle.Returns(preferredTitle);
         group.MainSeriesID.Returns(mainSeriesId);
         group.MainSeries.Returns(mainSeries);
@@ -208,11 +225,11 @@ public static class HostFakes
         string? relativePath = null)
     {
         relativePath ??= Path.Combine("testsubfolder", fileName);
-        var fullPath = Path.Combine(folder.Path, relativePath);
+        var fullPath = Path.Join(folder.Path, relativePath);
         (var folderId, var videoId) = (folder.ID, video.LocalID);
         IVideoFile file = Substitute.For<IVideoFile>();
         file.FileName.Returns(fileName);
-        file.RelativePath.Returns(relativePath);
+        file.RelativePath.Returns(HostRelativePath(relativePath));
         file.Path.Returns(fullPath);
         file.Size.Returns(123_456_789L);
         file.ManagedFolder.Returns(folder);
@@ -260,7 +277,7 @@ public static class HostFakes
         return codec;
     }
 
-    public static IAudioStream AudioStream(int channels = 6, string layout = "L R C LFE Ls Rs",
+    public static IAudioStream AudioStream(int channels = 6, string? layout = "L R C LFE Ls Rs",
         TitleLanguage language = TitleLanguage.Japanese)
     {
         IStreamCodecInfo codec = Codec("AAC");
@@ -306,39 +323,69 @@ public static class HostFakes
         return media;
     }
 
-    public static ISeries TmdbShow(int id = Ids.TmdbShow)
+    /// <summary>
+    /// Gives a provider entry the titles the host always reports: a default title that is never null, and a
+    /// preferred one that is null when none of the entry's titles is in a language the user prefers.
+    /// </summary>
+    private static void Name(IWithTitles named, MetadataSource source, string defaultTitle, string? preferredTitle)
+    {
+        ITitle @default = Title(defaultTitle, source: source);
+        ITitle? preferred = preferredTitle is null ? null : Title(preferredTitle, source: source);
+        ITitle[] titles = preferred is null ? [@default] : [@default, preferred];
+        named.Title.Returns(preferredTitle ?? defaultTitle);
+        named.DefaultTitle.Returns(@default);
+        named.PreferredTitle.Returns(preferred);
+        named.Titles.Returns(titles);
+    }
+
+    public static ISeries TmdbShow(int id = Ids.TmdbShow, string defaultTitle = "tmdbShow", string? preferredTitle = "tmdbShowPref")
     {
         ISeries show = Substitute.For<ISeries>();
         Identify(show, MetadataSource.TMDB, MetadataEntityType.Series, id);
-        show.Titles.Returns([]);
+        Name(show, MetadataSource.TMDB, defaultTitle, preferredTitle);
         show.Studios.Returns([]);
         show.EpisodeCounts.Returns(new EpisodeCounts());
         show.YearlySeasons.Returns([]);
         return show;
     }
 
-    public static IMovie TmdbMovie(int id = Ids.TmdbMovie)
+    public static IMovie TmdbMovie(int id = Ids.TmdbMovie, string defaultTitle = "tmdbMovie", string? preferredTitle = "tmdbMoviePref")
     {
         IMovie movie = Substitute.For<IMovie>();
         Identify(movie, MetadataSource.TMDB, MetadataEntityType.Movie, id);
-        movie.Titles.Returns([]);
+        Name(movie, MetadataSource.TMDB, defaultTitle, preferredTitle);
         movie.Studios.Returns([]);
+        movie.ReleaseDate.Returns((DateTime?)null);
         return movie;
     }
 
-    public static IEpisode TmdbEpisode(int id = Ids.TmdbEpisode, int showId = Ids.TmdbShow)
+    public static IEpisode TmdbEpisode(int id = Ids.TmdbEpisode, int showId = Ids.TmdbShow,
+        string defaultTitle = "tmdbEpisode", string? preferredTitle = "tmdbEpisodePref")
     {
         MetadataGuid seriesId = MetadataId(MetadataSource.TMDB, MetadataEntityType.Series, showId);
         IEpisode episode = Substitute.For<IEpisode>();
         Identify(episode, MetadataSource.TMDB, MetadataEntityType.Episode, id);
+        Name(episode, MetadataSource.TMDB, defaultTitle, preferredTitle);
         episode.SeriesID.Returns(seriesId);
-        episode.Titles.Returns([]);
+        episode.Type.Returns(EpisodeType.Episode);
+        episode.EpisodeNumber.Returns(1);
+        episode.SeasonNumber.Returns(1);
+        episode.AirDateWithTime.Returns((DateTime?)null);
         return episode;
     }
 
-    public static IMetadataEpisodeCrossReference EpisodeCrossReference(int tmdbEpisodeId, int anidbEpisodeId)
+    public static IMetadataEpisodeCrossReference EpisodeCrossReference(int tmdbEpisodeId, int anidbEpisodeId) =>
+        EpisodeCrossReference(MetadataId(MetadataSource.TMDB, MetadataEntityType.Episode, tmdbEpisodeId), anidbEpisodeId);
+
+    /// <summary>
+    /// A cross reference that records an AniDB episode as deliberately linked to nothing on TMDB. The host keeps
+    /// these alongside the real links and reports them with no provider id.
+    /// </summary>
+    public static IMetadataEpisodeCrossReference UnlinkedEpisodeCrossReference(int anidbEpisodeId) =>
+        EpisodeCrossReference(null, anidbEpisodeId);
+
+    private static IMetadataEpisodeCrossReference EpisodeCrossReference(MetadataGuid? episodeId, int anidbEpisodeId)
     {
-        MetadataGuid episodeId = MetadataId(MetadataSource.TMDB, MetadataEntityType.Episode, tmdbEpisodeId);
         IMetadataEpisodeCrossReference xref = Substitute.For<IMetadataEpisodeCrossReference>();
         xref.Source.Returns(MetadataSource.TMDB);
         xref.ProviderID.Returns(episodeId);
@@ -389,6 +436,29 @@ public static class HostFakes
         related.RelatedSeries.Returns([backwards]);
         IRelatedMetadata<ISeries, ISeries> forwards = Relation(related, type);
         anime.RelatedSeries.Returns([forwards]);
+        return anime;
+    }
+
+    /// <summary>
+    /// An anime whose only relation names an anime the host has no record of. The host still lists the relation,
+    /// from AniDB's relation table, but resolves its other end to null.
+    /// </summary>
+    public static IAnidbAnime AnimeRelatedToOneNotInTheDatabase()
+    {
+        IAnidbAnime anime = Anime();
+        IRelatedMetadata<ISeries, ISeries> dangling = Substitute.For<IRelatedMetadata<ISeries, ISeries>>();
+        dangling.Related.Returns((ISeries?)null);
+        dangling.RelationType.Returns(RelationType.Sequel);
+        anime.RelatedSeries.Returns([dangling]);
+        return anime;
+    }
+
+    /// <summary>An anime with the given air and end dates, which AniDB may know only to the year or month.</summary>
+    public static IAnidbAnime AnimeAired(PartialDateOnly? airDate, PartialDateOnly? endDate = null)
+    {
+        IAnidbAnime anime = Anime();
+        anime.AirDate.Returns(airDate);
+        anime.EndDate.Returns(endDate);
         return anime;
     }
 

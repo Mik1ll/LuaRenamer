@@ -191,7 +191,7 @@ public sealed class RelocationGraph
     {
         IMovie[] movies = [HostFakes.TmdbMovie()];
         IMetadataMovieCrossReference[] movieLinks = [HostFakes.MovieCrossReference(Ids.TmdbMovie, Ids.AnidbEpisode)];
-        IEpisode[] episodes = [HostFakes.TmdbEpisode()];
+        IEpisode[] episodes = [AnidbEpisode, HostFakes.TmdbEpisode()];
         IMetadataEpisodeCrossReference[] episodeLinks = [HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode)];
         Series.LinkedMovies.Returns(movies);
         Series.MetadataMovieCrossReferences.Returns(movieLinks);
@@ -200,16 +200,40 @@ public sealed class RelocationGraph
     }
 
     /// <summary>
+    /// Two episodes of the primary series that TMDB folds into one of its own, as when AniDB splits a double-length
+    /// episode TMDB lists once. Each Shoko episode reaches the TMDB episode through its own instance, and a third
+    /// cross reference records an AniDB episode as deliberately linked to nothing.
+    /// </summary>
+    public void LinkTwoEpisodesToOneTmdbEpisode()
+    {
+        SetEpisodes([(1, EpisodeType.Episode), (2, EpisodeType.Episode)]);
+        foreach (IShokoEpisode episode in Episodes)
+        {
+            IEpisode[] linked = [episode.AnidbEpisode, HostFakes.TmdbEpisode()];
+            episode.LinkedEpisodes.Returns(linked);
+        }
+
+        IMetadataEpisodeCrossReference[] episodeLinks =
+        [
+            HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode),
+            HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode + 1),
+            HostFakes.UnlinkedEpisodeCrossReference(Ids.AnidbEpisode + 2),
+        ];
+        Series.MetadataEpisodeCrossReferences.Returns(episodeLinks);
+    }
+
+    /// <summary>
     /// Re-roots the graph's folder at <paramref name="folderPath"/> and puts the file at
     /// <paramref name="relativePath"/> under it; <paramref name="copies"/> are further files of the same video.
     /// </summary>
     public void PlaceFile(string folderPath, string relativePath, params string[] copies)
     {
-        var fullPath = Path.Combine(folderPath, relativePath);
+        var hostFolderPath = HostFakes.HostFolderPath(folderPath);
+        var fullPath = Path.Join(hostFolderPath, relativePath);
         var fileName = Path.GetFileName(relativePath);
-        Folder.Path.Returns(folderPath);
+        Folder.Path.Returns(hostFolderPath);
         File.Path.Returns(fullPath);
-        File.RelativePath.Returns(relativePath);
+        File.RelativePath.Returns(HostFakes.HostRelativePath(relativePath));
         File.FileName.Returns(fileName);
         IVideoFile[] files = [.. copies.Select(c => HostFakes.File(Folder, Video, Path.GetFileName(c), c))];
         Video.Files.Returns(files);
