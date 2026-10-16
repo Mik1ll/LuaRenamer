@@ -24,6 +24,11 @@
              lock file policy is shared. -->
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+
+        <!-- Stryker analyzes each project with a design-time Clean;Build that compiles nothing, so a shared clean
+             list would let it delete the real build's outputs, DefsGenerator included, before LuaRenamer's
+             design-time build runs the generator. -->
+        <CleanFile Condition="'$(DesignTimeBuild)' == 'true'">$(MSBuildProjectFile).DesignTime.FileListAbsolute.txt</CleanFile>
     </PropertyGroup>
 
     <!-- NLua's shipped PDB has no SourceLink, and its build path ("D:\a\1\s") collides
