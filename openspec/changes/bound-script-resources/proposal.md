@@ -8,6 +8,7 @@ That same gap also affects the test run. A test that hangs, whether from a scrip
 
 - **BREAKING (script-visible)**: bound each user script's execution with an instruction budget. A script that exhausts it stops, and the relocation reports an error naming the limit. Catching the error with the published `pcall` does not let a script continue.
 - **BREAKING (script-visible)**: bound the Lua state's memory while a user script runs. An allocation that would exceed the bound fails, whether it comes from gradual growth or from one oversized request such as `string.rep` with a huge count. The relocation reports an error naming the limit.
+- **BREAKING (script-visible)**: scripts can't register `__gc` finalizers. The published `setmetatable` raises when given a metatable with a `__gc` field. Lua runs finalizers with debug hooks off, and at state close outside the memory bound, so a finalizer would otherwise escape both limits.
 - Limits are reset for every relocation, so a script that hit a limit doesn't affect the next one.
 - Limits are fixed constants, set to at least 100× what the shipped default script uses against a fully populated environment. They are not user-configurable in this change.
 - Add hostile-script tests for runaway loops, a runaway loop wrapped in `pcall`, unbounded recursion, unbounded growth, a single oversized allocation, and per-relocation reset. Each test is written so that a regression fails that test rather than hanging the run.
@@ -27,7 +28,7 @@ None.
 
 ## Impact
 
-- **Production**: `LuaEnv/LuaSandbox.cs` gains the instruction hook (installed from the trusted run function) and a counting allocator wrapper. `LuaRenamer.GetPath` is unchanged: a limit surfaces as a script error through the existing path.
+- **Production**: `LuaEnv/LuaSandbox.cs` gains the instruction hook (installed from the trusted run function), a counting allocator wrapper, and a published `setmetatable` that refuses `__gc`. `LuaRenamer.GetPath` is unchanged: a limit surfaces as a script error through the existing path.
 - **Tests**: new hostile-script tests in `Tests/Sandbox`, and an end-to-end limit test in `Tests/Renaming`.
 - **CI**: `build-and-test.yml` gains `timeout-minutes`, hang-dump arguments to `dotnet test`, and an upload of dumps when a run fails.
 - **Dependencies**: `Microsoft.Testing.Extensions.HangDump` in `Tests.csproj`. `packages.lock.json` is regenerated.

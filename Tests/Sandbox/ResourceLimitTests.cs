@@ -105,6 +105,36 @@ public sealed class ResourceLimitTests
     }
 
     /// <summary>
+    /// A finalizer would run with the hook off, mid-run or at <c>Dispose</c>, so this one would hang the test
+    /// rather than fail it if it were ever registered.
+    /// </summary>
+    [Fact(Timeout = Timeout)]
+    public async Task RegisteringAFinalizerIsRefused() =>
+        (await RunIsolated("setmetatable({}, { __gc = function() while true do end end }) for i = 1, 10000 do local t = {} end",
+            SmallBudget, TestContext.Current.CancellationToken)).Should().Contain("__gc finalizers are not available");
+
+    [Fact(Timeout = Timeout)]
+    public async Task AFinalizerAddedAfterTheMetatableIsSetNeverRuns() =>
+        (await RunIsolated(
+            "local mt = {} setmetatable({}, mt) mt.__gc = function() while true do end end for i = 1, 10000 do local t = {} end",
+            SmallBudget, TestContext.Current.CancellationToken)).Should().BeNull();
+
+    [Theory]
+    [InlineData("local t = {} if setmetatable(t, {}) ~= t then error('not returned') end", "the table is returned")]
+    [InlineData("if setmetatable({}, { __index = function(_, k) return k .. '!' end }).x ~= 'x!' then error('') end", "__index")]
+    [InlineData("if tostring(setmetatable({}, { __tostring = function() return 'T' end })) ~= 'T' then error('') end", "__tostring")]
+    [InlineData("if setmetatable({}, { __call = function() return 1 end })() ~= 1 then error('') end", "__call")]
+    [InlineData(
+        "local closed = false do local x <close> = setmetatable({}, { __close = function() closed = true end }) end if not closed then error('') end",
+        "__close")]
+    [InlineData("if getmetatable(setmetatable(setmetatable({}, {}), nil)) ~= nil then error('') end", "clearing with nil")]
+    public void OtherMetatablesStillWork(string script, string why)
+    {
+        using var sandbox = new LuaSandbox();
+        sandbox.Run(script).Should().BeNull(why);
+    }
+
+    /// <summary>
     /// The residual gap: the pattern matcher is C, so its backtracking executes no Lua instructions and the
     /// budget cannot interrupt it. This match backtracks through over half a million positions under a budget
     /// of a thousand instructions.

@@ -16,6 +16,12 @@ A user script SHALL run within a bounded amount of execution and a bounded amoun
 - **THEN** the script is still stopped
 - **AND** the relocation reports an error naming the execution bound
 
+#### Scenario: A script that registers a finalizer
+
+- **WHEN** a script sets a metatable that has a `__gc` field
+- **THEN** the call raises an error saying finalizers aren't available to scripts
+- **AND** no finalizer the script supplied ever runs, during the relocation or when its environment is torn down
+
 #### Scenario: Unbounded recursion
 
 - **WHEN** a script recurses without a base case

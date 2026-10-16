@@ -26,6 +26,16 @@ public sealed class LuaSandbox : Lua
 
     private const string BaseEnv =
         """
+        -- Finalizers run with debug hooks off, and at lua_close outside the memory bound, so a script's __gc
+        -- would escape both limits. Lua only registers a __gc that is in the metatable when it is set, and
+        -- debug.setmetatable is unpublished, so refusing it here closes that route.
+        local function sandboxed_setmetatable(t, mt)
+          if type(mt) == 'table' and rawget(mt, '__gc') ~= nil then
+            error('__gc finalizers are not available to scripts', 2)
+          end
+          return setmetatable(t, mt)
+        end
+
         local env = {
           ipairs = ipairs,
           next = next,
@@ -51,7 +61,7 @@ public sealed class LuaSandbox : Lua
             rad = math.rad, random = math.random, randomseed = math.randomseed, sin = math.sin,
             sqrt = math.sqrt, tan = math.tan, tointeger = math.tointeger, type = math.type, ult = math.ult },
           os = { clock = os.clock, difftime = os.difftime, time = os.time, date = os.date },
-          setmetatable = setmetatable,
+          setmetatable = sandboxed_setmetatable,
           getmetatable = getmetatable,
           rawequal = rawequal, rawget = rawget, rawlen = rawlen, rawset = rawset,
           utf8 = { char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes, len = utf8.len, offset = utf8.offset },

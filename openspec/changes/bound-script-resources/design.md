@@ -72,6 +72,17 @@ Refinements found while implementing:
 - Checking `collectgarbage("count")` from the instruction hook. Rejected. It sees only what has already been allocated, so a single `string.rep('x', 2^33)` inside one C call commits (on Linux, overcommits) and fills 8 GiB before any hook runs.
 - Constructing the state on KeraLua's `Lua(LuaAlloc, IntPtr)` from the start and wrapping it with NLua's `Lua(KeraLua.Lua)` constructor. This would work, but it moves library opening and state ownership into `LuaSandbox`, for no benefit over wrapping the existing allocator.
 
+### Finalizers are unavailable to scripts
+
+Lua 5.4 runs `__gc` metamethods with debug hooks disabled (`GCTM` in lgc.c sets `L->allowhook = 0`), so the count hook never fires inside one. A finalizer runs either during the script, when a GC step reaches its object, or at `Dispose`, when `lua_close` runs every pending finalizer. The second happens after `Run` has returned, so memory enforcement is off too. `setmetatable({}, { __gc = function() while true do end end })` would hang the relocation thread at `GetPath`'s `using`. A temporary test confirmed both cases.
+
+The published `setmetatable` is therefore a wrapper that raises "__gc finalizers are not available to scripts" when the metatable is a table with a raw `__gc` field, and otherwise delegates to the real one. Lua marks an object for finalization only if `__gc` is in its metatable when the metatable is set (`luaC_checkfinalizer` reads it raw). A `__gc` added afterwards is never registered, so checking at that one point is enough. This relies on `debug.setmetatable` staying unpublished, like the hook's reliance on `coroutine`. The cost is that scripts can't use finalizers. Nothing shipped does, and lualinq's one `setmetatable` call passes a metatable without `__gc`.
+
+*Alternatives considered:*
+- Accepting and documenting the gap, as for pattern matching. Rejected: that gap costs bounded CPU per call, while this one never returns.
+- Keeping enforcement and a hook active through `Dispose`. That doesn't help: hooks are off inside a finalizer whatever is installed, so nothing could interrupt a spinning one.
+- Stripping `__gc` silently instead of raising. Rejected: a script relying on its finalizer would misbehave with no indication why.
+
 ### Limit values come from a measurement
 
 Task 1 measures the shipped `default.lua` against a fully populated environment: the instructions it executes, and the peak state memory during its run. The constants are set to at least 100× those figures, rounded up to round numbers.
@@ -99,7 +110,3 @@ The hang-dump arguments go on the CI command line rather than in project configu
 - **A legitimate heavy script hits a limit** → The 100× margin, plus an error that names the limit, so the user knows what happened. Configurable limits are the follow-up if this happens in practice.
 - **`step = 1` after exhaustion is slow for scripts unwinding deep `pcall` nests** → Each level costs a few instructions once the budget is gone. Hook calls per level are bounded by nesting depth, which Lua's C stack limit (about 200 levels) bounds in turn.
 - **Hang dumps are large** → Uploaded only on failure, with a short artifact retention (7 days).
-
-## Open Questions
-
-- **Finalizers escape the instruction budget.** Lua 5.4 runs `__gc` metamethods with hooks disabled (`GCTM` in lgc.c sets `L->allowhook = 0`), and `setmetatable` is published. So `setmetatable({}, { __gc = function() while true do end end })` spins with no hook firing. That happens during the run, if a GC step finalizes the object, or at `Dispose`, when `lua_close` runs every pending finalizer. Either way the relocation thread hangs. A finalizer run at `lua_close` is also outside memory enforcement. Both cases were confirmed with temporary timed-out tests. A candidate fix is to publish a `setmetatable` that refuses a metatable with a raw `__gc` field. Lua marks an object for finalization only if `__gc` is present when the metatable is set, and `debug.setmetatable` is unpublished, so that closes the route. It changes a published function's identity and removes finalizers from scripts, which is beyond this design, so it awaits a decision.

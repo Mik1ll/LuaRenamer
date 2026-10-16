@@ -20,7 +20,7 @@
 - [x] 2.3 Verify the stay-armed behavior bites: temporarily make the hook error only once and confirm the `while true do pcall(spin) end` test fails at its timeout without hanging the run, then restore it
   - With the hook removing itself on exhaustion (`debug.sethook()` in place of re-arming at step 1), the full suite still finished and reported in 30.6 s. Three cases failed at their 10 s timeout: `pcall` retried forever, `pcall(pcall, spin)` retried forever, and nested pcalls. A fourth, a loop inside `pcall`, failed at once because the script then completed without error. The other 321 tests passed. After restoring it, all 325 passed.
 - [x] 2.4 Comment the hook's installation with its reliance on `coroutine` being unpublished, and verify `EnvSurfaceTests.TopLevelNamesAreExactly` still lists no `coroutine`
-  - **Gap found (open, needs a decision):** finalizers escape the hook. Lua 5.4 runs `__gc` metamethods with hooks disabled (`GCTM` sets `L->allowhook = 0`), and `setmetatable` is published, so `setmetatable({}, { __gc = function() while true do end end })` spins unbounded. It happens either during the run, when a GC step finalizes it, or at `Dispose`, when `lua_close` runs pending finalizers. Temporary tests (removed) confirmed both cases by timing out. A finalizer run at `lua_close` also runs with memory enforcement off. See design.md, Open Questions.
+  - **Gap found:** finalizers escape the hook. Lua 5.4 runs `__gc` metamethods with hooks disabled (`GCTM` sets `L->allowhook = 0`), and `setmetatable` is published, so `setmetatable({}, { __gc = function() while true do end end })` spins unbounded. It happens either during the run, when a GC step finalizes it, or at `Dispose`, when `lua_close` runs pending finalizers. Temporary tests (removed) confirmed both cases by timing out. A finalizer run at `lua_close` also runs with memory enforcement off. Resolved by 3.5.
 
 ## 3. Memory bound
 
@@ -32,6 +32,8 @@
   - `TheMemoryBoundAppliesOnlyToTheUntrustedRun`: a 64 KiB bound, with lualinq, utils and the populated env translated (peak well above 64 KiB), then `Run("x = 1")` reports the memory bound. This is also the case that would have aborted the process had enforcement been switched on before NLua pushed the arguments.
 - [x] 3.4 Add a test that documents the residual gap: a CPU-heavy pattern match on a moderate subject completes (not interrupted) under a small instruction budget. Name it after the limitation so the gap is visible in the suite
   - `APatternMatchIsNotInterruptedByTheInstructionBudget`: `('a'):rep(150):find(('.-'):rep(3) .. 'b')` completes under a 1,000-instruction budget. The subject was cut from 400, which took 4 s, to 150, which takes about 0.2 s.
+- [x] 3.5 Publish a `setmetatable` that raises when the metatable has a raw `__gc` field, per design.md "Finalizers are unavailable to scripts". Test that a finalizer-registering script gets the error, that a `__gc` added after `setmetatable` never runs (mid-run or at `Dispose`), and that ordinary metatables (`__index`, `__tostring`, `__call`, `__close`, clearing with `nil`) still work. Verify it bites by temporarily publishing the raw `setmetatable`
+  - With the raw `setmetatable` published, `RegisteringAFinalizerIsRefused` failed at its 10 s timeout and the run still finished and reported (339 of 340 passed). After restoring, 340 of 340 passed, with `EnvSurfaceTests`, `TrustedChunkTests` (lualinq, utils) and `DefaultScriptTests` among them.
 
 ## 4. End to end
 
