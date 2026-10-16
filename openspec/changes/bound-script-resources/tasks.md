@@ -37,8 +37,10 @@
 
 ## 4. End to end
 
-- [ ] 4.1 In `Tests/Renaming`, add tests that `GetPath` with a spinning script, and with a memory-exhausting script, returns a `RelocationResult.Error` naming the limit under the default limits, and that a following `GetPath` with a normal script succeeds. Verify they pass within their timeouts
-- [ ] 4.2 Add a test that the shipped default script completes against the fully populated graph under limits one hundredth of the defaults, and verify it passes
+- [x] 4.1 In `Tests/Renaming`, add tests that `GetPath` with a spinning script, and with a memory-exhausting script, returns a `RelocationResult.Error` naming the limit under the default limits, and that a following `GetPath` with a normal script succeeds. Verify they pass within their timeouts
+  - `Tests/Renaming/ScriptLimitTests.cs`: `while true do end` and an endlessly appended table each fail their relocation with an error naming the instruction budget or the memory bound, and a following `GetPath` on the same `LuaRenamer` renames normally. Under the shipped limits (10M instructions, 32 MiB), both cases together take about 0.3 s beyond host start-up.
+- [x] 4.2 Add a test that the shipped default script completes against the fully populated graph under limits one hundredth of the defaults, and verify it passes
+  - `DefaultScriptTests.ItRunsWithinAHundredthOfTheShippedLimits`: 100,000 instructions and 335,544 B, against the measured 2,562 and 199,753 B. It builds the sandbox as `GetPath` does, since `GetPath` takes no limits.
 
 ## 5. Cost check
 
