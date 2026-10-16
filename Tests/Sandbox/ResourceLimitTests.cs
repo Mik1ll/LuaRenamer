@@ -105,6 +105,24 @@ public sealed class ResourceLimitTests
     }
 
     /// <summary>
+    /// <c>episode_numbers</c> is C#, and NLua pushes its long result string from inside the managed callback, so
+    /// the refusal raises the memory error through .NET frames. This checks each CI platform survives that.
+    /// </summary>
+    [Fact(Timeout = Timeout)]
+    public async Task AnAllocationRefusedInsideAHostCallbackStopsTheScript()
+    {
+        var limits = new ScriptLimits(Instructions: 100_000_000, MemoryBytes: 8 * 1024 * 1024);
+
+        (await Task.Run(() =>
+        {
+            using var sandbox = new LuaSandbox(limits, LuaScripts.LuaLinq, LuaScripts.Utils);
+            new ModelTranslator(sandbox).Translate(
+                ModelProducers.EnvToModel(RelocationGraph.Populated().Context("x = 1"), new FakeLogger<LuaRenamer>()), sandbox.Env);
+            return sandbox.Run("local t = {} while true do t[#t + 1] = episode_numbers(5000) end");
+        }, TestContext.Current.CancellationToken)).Should().Contain("memory bound");
+    }
+
+    /// <summary>
     /// A finalizer would run with the hook off, mid-run or at <c>Dispose</c>, so this one would hang the test
     /// rather than fail it if it were ever registered.
     /// </summary>
