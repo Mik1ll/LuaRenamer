@@ -12,5 +12,6 @@ namespace LuaRenamer.LuaEnv;
 public sealed record ScriptLimits(long Instructions, long MemoryBytes)
 {
     /// <summary>Set from the shipped default script's measured use against a fully populated environment, with a wide margin.</summary>
-    public static ScriptLimits Default { get; } = new(10_000_000, 32 * 1024 * 1024);
+    // Built per access rather than in a static initializer, which runs once per test host, before mutation testing can switch a mutant in.
+    public static ScriptLimits Default => new(10_000_000, 32 * 1024 * 1024);
 }

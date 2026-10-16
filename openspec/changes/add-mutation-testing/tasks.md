@@ -95,6 +95,8 @@
   - **Annotated:** `_enforcing = false` → `true`. A mutant that leaves enforcement on fails the next host-side push outside any pcall, which panics the state, so no test can assert on it.
   - **Annotation scope:** `disable once <Mutator>` silences every mutation of that kind in the whole statement, including an `if`'s body. The first attempt annotated the allocator's `if` and so also hid `newSize < held`, the inverted bound check, and the body's `State.Hook is not { }`. 4.2's `close < 0` annotation likewise hid `close > 0`, so it became `close == -1`, whose mutants are both killed. The workflow header now states this.
   - Scoped run after the triage: 79 killed, 2 timeouts, 0 survived, 0 without coverage (100%). The one annotated mutant is reported as `Ignored`.
+  - `LuaEnv/ScriptLimits.cs`, also new, had 2 survivors: the shipped memory bound computed as 32 bytes and as 0. `ScriptLimitTests` would fail under either. They survived because `Default` was a static property initializer, which runs once per test host before Stryker switches a mutant in. As an expression-bodied property it is built per access, and a scoped run kills both.
+  - Full run after the triage, on this change stacked on `bound-script-resources`: **68.72%** (287 killed, 109 survived, 3 timeouts, 23 with no coverage). No survivors are in `LuaSandbox.cs`, `ModelTranslator.cs` or `ScriptLimits.cs`. It took 2 min 14 s locally, up from 66 s, mostly from the hostile-script tests that mutants run out to their timeouts.
 
 ## 5. Documentation
 
