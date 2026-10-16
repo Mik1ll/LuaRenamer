@@ -1,8 +1,8 @@
 ## 1. Host-configuration canary
 
-- [ ] 1.1 Add `Tests/Pure/HostConfigurationTests.cs`: read the expected culture name and timezone id from environment variables (e.g. `LUARENAMER_EXPECT_CULTURE`, `LUARENAMER_EXPECT_TZ`), assert them against `CultureInfo.CurrentCulture.Name` and `TimeZoneInfo.Local`, and `Assert.Skip` when unset. Verify that a plain local `dotnet test` reports both as skipped, not passed
-- [ ] 1.2 Verify the canary passes locally when the variables are set to the machine's actual culture and timezone
-- [ ] 1.3 Verify the canary bites: set `LUARENAMER_EXPECT_CULTURE=tr-TR` without changing the process culture and confirm the test fails naming both cultures
+- [x] 1.1 Add `Tests/Pure/HostConfigurationTests.cs`: read the expected culture name and timezone id from environment variables (e.g. `LUARENAMER_EXPECT_CULTURE`, `LUARENAMER_EXPECT_TZ`), assert them against `CultureInfo.CurrentCulture.Name` and `TimeZoneInfo.Local`, and `Assert.Skip` when unset. Verify that a plain local `dotnet test` reports both as skipped, not passed
+- [x] 1.2 Verify the canary passes locally when the variables are set to the machine's actual culture and timezone
+- [x] 1.3 Verify the canary bites: set `LUARENAMER_EXPECT_CULTURE=tr-TR` without changing the process culture and confirm the test fails naming both cultures
 
 ## 2. Matrix
 
