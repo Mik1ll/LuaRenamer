@@ -1,0 +1,311 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using NSubstitute;
+using Shoko.Abstractions.Metadata;
+using Shoko.Abstractions.Metadata.Anidb;
+using Shoko.Abstractions.Metadata.CrossReferences;
+using Shoko.Abstractions.Metadata.Enums;
+using Shoko.Abstractions.Metadata.Shoko;
+using Shoko.Abstractions.Video;
+using Shoko.Abstractions.Video.Enums;
+using Shoko.Abstractions.Video.Hashing;
+using Shoko.Abstractions.Video.Media;
+using Shoko.Abstractions.Video.Release;
+using Shoko.Abstractions.Video.Relocation;
+
+namespace LuaRenamer.Tests.Fakes;
+
+/// <summary>
+/// A complete, wired relocation graph: one import folder, one series and its anime, one episode, one file.
+/// Enough to drive <see cref="LuaRenamer.GetPath"/> to completion, and every piece is reachable and mutable,
+/// so a test varies exactly what it cares about.
+/// </summary>
+/// <remarks>
+/// The pieces are substitutes, so a single-value change is <c>graph.Anime.Type.Returns(AnimeType.Movie)</c>
+/// rather than a rebuilt graph. The collections are mutable lists for the same reason — appending a second
+/// import folder or a second series restates nothing.
+/// </remarks>
+public sealed class RelocationGraph
+{
+    private RelocationGraph(IManagedFolder folder, IShokoSeries series, IShokoEpisode episode, IVideo video, IVideoFile file)
+    {
+        Folder = folder;
+        Series = series;
+        Episode = episode;
+        Video = video;
+        File = file;
+        Folders = [folder];
+        SeriesList = [series];
+        Episodes = [episode];
+        Groups = [];
+    }
+
+    public static RelocationGraph Default()
+    {
+        IManagedFolder folder = HostFakes.Folder();
+        IShokoSeries series = HostFakes.Series();
+        IShokoEpisode episode = HostFakes.Episode();
+        IVideo video = HostFakes.Video();
+        return new RelocationGraph(folder, series, episode, video, HostFakes.File(folder, video));
+    }
+
+    /// <summary>
+    /// The default graph with every optional slice filled in — media with a video and audio stream, an AniDB
+    /// release with a group, titles on the anime and the episode, a season, a TMDB show and a group. What the
+    /// shipped default script needs, and the arrangement an end-to-end test would otherwise assemble by hand.
+    /// </summary>
+    public static RelocationGraph Populated()
+    {
+        IMediaInfo media = HostFakes.Media();
+        IReleaseGroup releaseGroup = HostFakes.ReleaseGroup();
+        IReleaseInfo release = HostFakes.Release(group: releaseGroup);
+        IHashDigest[] hashes = [HostFakes.Hash("CRC32", "ABCD1234")];
+
+        IManagedFolder folder = HostFakes.Folder();
+        IShokoSeries series = HostFakes.Series();
+        IVideo video = HostFakes.Video(release: release, media: media);
+        video.Hashes.Returns(hashes);
+        IShokoEpisode episode = HostFakes.Episode();
+
+        ITitle[] animeTitles = [HostFakes.Title("Populated Anime"), HostFakes.Title("Populated Anime JP", TitleLanguage.Japanese, "ja")];
+        series.AnidbAnime.Titles.Returns(animeTitles);
+        series.AnidbAnime.YearlySeasons.Returns([(2024, YearlySeason.Winter)]);
+        IStudio[] studios = [HostFakes.Studio("Studio A")];
+        series.AnidbAnime.Studios.Returns(studios);
+
+        ITitle[] episodeTitles = [HostFakes.Title("Populated Episode")];
+        episode.AnidbEpisode.Titles.Returns(episodeTitles);
+
+        ISeries[] linked = [series.AnidbAnime, HostFakes.TmdbShow()];
+        series.LinkedSeries.Returns(linked);
+
+        var graph = new RelocationGraph(folder, series, episode, video, HostFakes.File(folder, video));
+        graph.Groups.Add(HostFakes.Group(Ids.ShokoGroup, "Populated Group", series));
+        return graph;
+    }
+
+    public IManagedFolder Folder { get; }
+
+    public IShokoSeries Series { get; }
+
+    /// <summary>The series' AniDB anime — the same instance the series points at, cycle already wired.</summary>
+    public IAnidbAnime Anime => Series.AnidbAnime;
+
+    public IShokoEpisode Episode { get; }
+
+    public IAnidbEpisode AnidbEpisode => Episode.AnidbEpisode;
+
+    public IVideo Video { get; }
+
+    public IVideoFile File { get; }
+
+    public List<IManagedFolder> Folders { get; }
+
+    public List<IShokoSeries> SeriesList { get; }
+
+    public List<IShokoEpisode> Episodes { get; }
+
+    public List<IShokoGroup> Groups { get; }
+
+    public bool MoveEnabled { get; set; } = true;
+
+    public bool RenameEnabled { get; set; } = true;
+
+    public LuaRenamerSettings Settings { get; } = new();
+
+    public RelocationContext<LuaRenamerSettings> Context(string script)
+    {
+        Settings.Script = script;
+        return new RelocationContext<LuaRenamerSettings>(new RelocationContext
+        {
+            CancellationToken = CancellationToken.None,
+            AvailableFolders = Folders,
+            File = File,
+            Episodes = Episodes,
+            Series = SeriesList,
+            Groups = Groups,
+            MoveEnabled = MoveEnabled,
+            RenameEnabled = RenameEnabled,
+        }, Settings);
+    }
+
+    // ---- focused arrangements -------------------------------------------------------------------
+
+    /// <summary>
+    /// <paramref name="order"/>.Count series whose source ids ascend, added to the context in the given order —
+    /// so index 0 is always the primary and never necessarily first in the list. Their Shoko ids, and their
+    /// episodes', descend instead, so an ordering taken from the wrong identifier space picks the wrong series.
+    /// </summary>
+    /// <returns>The graph, plus each series' source id and Shoko title indexed by rank, not by arrival order.</returns>
+    public static (RelocationGraph Graph, IReadOnlyList<int> SourceIds, IReadOnlyList<string> Titles) MultiSeries(
+        IReadOnlyList<int> order, bool withGroups = false)
+    {
+        RelocationGraph graph = Default();
+        var last = order.Count - 1;
+        List<IShokoSeries> series =
+        [
+            .. Enumerable.Range(0, order.Count)
+                .Select(i => HostFakes.Series(Ids.ShokoSeries + last - i, Ids.AnidbAnime + i, $"shoko{i}", $"anidb{i}")),
+        ];
+
+        graph.SeriesList.Clear();
+        graph.SeriesList.AddRange(order.Select(i => series[i]));
+        graph.Episodes.Clear();
+        graph.Episodes.AddRange(order.Select(i =>
+            HostFakes.Episode(Ids.ShokoEpisode + last - i, series[i].LocalID,
+                HostFakes.AnidbEpisode(Ids.AnidbEpisode + i, series[i].AnidbAnimeID))));
+        if (withGroups)
+            graph.Groups.AddRange(order.Select(i => HostFakes.Group(Ids.ShokoGroup + i, $"group{i}", series[i])));
+
+        return (graph, [.. series.Select(s => s.AnidbAnimeID)], [.. series.Select(s => s.Title)]);
+    }
+
+    /// <summary>
+    /// Two series where only the primary one is linked to a TMDB show, listed primary-last. The primary has the
+    /// lower source id but the higher Shoko id, so picking it by Shoko id picks the other one.
+    /// </summary>
+    public static RelocationGraph TwoSeriesWithTmdbOnThePrimaryOne()
+    {
+        IShokoSeries primary = HostFakes.Series(Ids.OtherShokoSeries, Ids.AnidbAnime);
+        ISeries[] linked = [primary.AnidbAnime, HostFakes.TmdbShow()];
+        primary.LinkedSeries.Returns(linked);
+        IShokoSeries other = HostFakes.Series(Ids.ShokoSeries, Ids.OtherAnidbAnime);
+
+        RelocationGraph graph = Default();
+        graph.SeriesList.Clear();
+        graph.SeriesList.AddRange([other, primary]);
+        graph.Episodes.Clear();
+        graph.Episodes.Add(HostFakes.Episode(Ids.ShokoEpisode, primary.LocalID,
+            HostFakes.AnidbEpisode(Ids.AnidbEpisode, primary.AnidbAnimeID)));
+        return graph;
+    }
+
+    /// <summary>
+    /// Links the primary series to a TMDB movie and the episode to a TMDB episode, each through a cross
+    /// reference naming the graph's AniDB episode. The references carry their own id instances, so matching
+    /// them to the entries has to go by value.
+    /// </summary>
+    public void LinkToTmdb()
+    {
+        IMovie[] movies = [HostFakes.TmdbMovie()];
+        IMetadataMovieCrossReference[] movieLinks = [HostFakes.MovieCrossReference(Ids.TmdbMovie, Ids.AnidbEpisode)];
+        IEpisode[] episodes = [AnidbEpisode, HostFakes.TmdbEpisode()];
+        IMetadataEpisodeCrossReference[] episodeLinks = [HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode)];
+        Series.LinkedMovies.Returns(movies);
+        Series.MetadataMovieCrossReferences.Returns(movieLinks);
+        Series.MetadataEpisodeCrossReferences.Returns(episodeLinks);
+        Episode.LinkedEpisodes.Returns(episodes);
+    }
+
+    /// <summary>
+    /// Two episodes of the primary series that TMDB folds into one of its own, as when AniDB splits a double-length
+    /// episode TMDB lists once. Each Shoko episode reaches the TMDB episode through its own instance, and a third
+    /// cross reference records an AniDB episode as deliberately linked to nothing.
+    /// </summary>
+    public void LinkTwoEpisodesToOneTmdbEpisode()
+    {
+        SetEpisodes([(1, EpisodeType.Episode), (2, EpisodeType.Episode)]);
+        foreach (IShokoEpisode episode in Episodes)
+        {
+            IEpisode[] linked = [episode.AnidbEpisode, HostFakes.TmdbEpisode()];
+            episode.LinkedEpisodes.Returns(linked);
+        }
+
+        IMetadataEpisodeCrossReference[] episodeLinks =
+        [
+            HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode),
+            HostFakes.EpisodeCrossReference(Ids.TmdbEpisode, Ids.AnidbEpisode + 1),
+            HostFakes.UnlinkedEpisodeCrossReference(Ids.AnidbEpisode + 2),
+        ];
+        Series.MetadataEpisodeCrossReferences.Returns(episodeLinks);
+    }
+
+    /// <summary>
+    /// Re-roots the graph's folder at <paramref name="folderPath"/> and puts the file at
+    /// <paramref name="relativePath"/> under it; <paramref name="copies"/> are further files of the same video.
+    /// </summary>
+    public void PlaceFile(string folderPath, string relativePath, params string[] copies)
+    {
+        var hostFolderPath = HostFakes.HostFolderPath(folderPath);
+        var fullPath = Path.Join(hostFolderPath, relativePath);
+        var fileName = Path.GetFileName(relativePath);
+        Folder.Path.Returns(hostFolderPath);
+        File.Path.Returns(fullPath);
+        File.RelativePath.Returns(HostFakes.HostRelativePath(relativePath));
+        File.FileName.Returns(fileName);
+        IVideoFile[] files = [.. copies.Select(c => HostFakes.File(Folder, Video, Path.GetFileName(c), c))];
+        Video.Files.Returns(files);
+    }
+
+    /// <summary>Replaces the graph's episodes, all belonging to the primary series.</summary>
+    public void SetEpisodes(IReadOnlyList<(int Number, EpisodeType Type)> episodes)
+    {
+        Episodes.Clear();
+        Episodes.AddRange(episodes.Select((e, i) =>
+            HostFakes.Episode(Ids.ShokoEpisode + i, Series.LocalID,
+                HostFakes.AnidbEpisode(Ids.AnidbEpisode + i, Series.AnidbAnimeID, e.Number, e.Type))));
+    }
+
+    /// <summary>
+    /// Replaces the graph's series and episodes, where <c>Series</c> indexes 1..n into a set of series whose
+    /// ids ascend — series 1 being the primary. Episodes of the others exist only to be filtered out.
+    /// </summary>
+    public void SetSeriesAndEpisodes(int seriesCount, IReadOnlyList<(int Series, int Number, EpisodeType Type)> episodes)
+    {
+        List<IShokoSeries> series =
+        [
+            Series,
+            .. Enumerable.Range(1, seriesCount - 1)
+                .Select(i => HostFakes.Series(Ids.OtherShokoSeries + i, Ids.OtherAnidbAnime + i)),
+        ];
+        SeriesList.Clear();
+        SeriesList.AddRange(series);
+
+        Episodes.Clear();
+        Episodes.AddRange(episodes.Select((e, i) =>
+            HostFakes.Episode(Ids.ShokoEpisode + i, series[e.Series - 1].LocalID,
+                HostFakes.AnidbEpisode(Ids.AnidbEpisode + i, series[e.Series - 1].AnidbAnimeID, e.Number, e.Type))));
+    }
+
+    /// <summary>Adds a second import folder and returns its id.</summary>
+    public int AddFolder(string name, string path, DropFolderType type = DropFolderType.Destination)
+    {
+        IManagedFolder folder = HostFakes.Folder(Ids.Folder + Folders.Count, name, path, type);
+        Folders.Add(folder);
+        return folder.ID;
+    }
+
+    /// <summary>The path of the import folder with the given id, as the host reports it.</summary>
+    public string FolderPath(int id) => Folders.Single(f => f.ID == id).Path;
+
+    /// <summary>
+    /// Gives the primary series files that already live somewhere, each described by its own hash, the
+    /// import folder it sits in, and the subfolder within it (empty meaning the folder root).
+    /// </summary>
+    public void GiveSeriesExistingFiles(params (string Ed2K, int FolderID, string Subfolder)[] existing)
+    {
+        IVideo[] videos =
+        [
+            .. existing.Select(e =>
+            {
+                IManagedFolder folder = Folders.Single(f => f.ID == e.FolderID);
+                IVideo video = HostFakes.Video(e.Ed2K);
+                IVideoFile[] files = [HostFakes.File(folder, video, "existing.mkv", Path.Combine(e.Subfolder, "existing.mkv"))];
+                video.Files.Returns(files);
+                return video;
+            }),
+        ];
+        Series.Videos.Returns(videos);
+    }
+
+    /// <summary>The hash of the file being relocated — the one an existing location must not be taken from.</summary>
+    public string FileHash => Video.ED2K;
+
+    /// <summary>
+    /// Leaves the Shoko-side series title blank, so anything reading it has to fall back to the source
+    /// metadata title rather than pass the blank along.
+    /// </summary>
+    public void BlankOutTheSeriesTitle() => Series.Title.Returns("   ");
+}

@@ -89,8 +89,11 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
         var fallbackFilename = GetNewFilename(collisionFilename, context, filePathCleaner);
         if (IsTakenByOtherVideo(Path.Combine(targetDirectory, fallbackFilename), context.File))
             throw new LuaRenamerException($"filename \"{result.FileName}\" and collision_filename \"{fallbackFilename}\" are both taken in \"{targetDirectory}\"");
-        _logger.LogInformation("\"{FileName}\" is taken by another file in \"{Directory}\", using collision_filename \"{CollisionFileName}\"",
-            result.FileName, targetDirectory, fallbackFilename);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("\"{FileName}\" is taken by another file in \"{Directory}\", using collision_filename \"{CollisionFileName}\"",
+                result.FileName, targetDirectory, fallbackFilename);
+        }
         return fallbackFilename;
     }
 
