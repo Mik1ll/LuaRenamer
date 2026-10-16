@@ -3,7 +3,8 @@
 - [x] 1.1 Restate `NormPathTests.UsesOnlyThePlatformSeparator` as "the result is a prefix of the input with alternate separators rewritten" per design.md, and verify it passes on Windows, including for inputs ending in one or more separators
 - [x] 1.2 Verify the new form is satisfiable where the separator constants coincide, by evaluating the assertion's condition against a Unix-semantics stand-in (both separators `/`) and confirming it holds for inputs containing `/`
 - [x] 1.3 Confirm no other assertion in the suite compares against `Path.AltDirectorySeparatorChar` or otherwise assumes the two separators differ — grep `Tests/` and check each hit
-- [ ] 1.4 Push and verify `Build and Test` on PR #175 passes on `ubuntu-latest`, where it currently fails on `UsesOnlyThePlatformSeparator`
+- [x] 1.4 Push and verify `Build and Test` on PR #175 passes on `ubuntu-latest`, where it currently fails on `UsesOnlyThePlatformSeparator`
+  - Run 38851427760 (`242e6db`) passed 291/291 on `ubuntu-latest`. That also settles 9.6's "Running on the continuous-integration platform" scenario.
 
 ## 2. Close the sandbox leak
 
