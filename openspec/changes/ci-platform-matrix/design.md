@@ -61,5 +61,6 @@ It costs a few seconds, and it also checks that defs generation is platform-inde
 
 - **The new legs expose real failures** → That's the purpose. Each one goes through task 3.1's triage: decide whether the production code or the assertion is the platform- or locale-dependent one, fix that, and record it. None is fixed by narrowing the leg.
 - **The C runtime never sees the locale** → The leg would then cover the .NET layer only. Task 3.2 settles this and records the answer, so the coverage claim matches what is actually exercised.
+  - *Settled (task 3.2):* nothing in the process calls `setlocale`, so the leg's culture reaches the .NET layer only. Lua's `tostring` and `os.date` keep the `C` locale even with `tr_TR.UTF-8` generated and `LC_ALL` set. The timezone reaches both layers, because glibc's `localtime` reads `TZ` without any `setlocale` call. The leg therefore checks the .NET layer for culture-sensitive behavior, and both layers for timezone arithmetic.
 - **Windows runners are slower** → The suite is small; the Windows leg sets the wall-clock time, but it should stay within a few minutes. If not, it's recorded and revisited, but the leg isn't dropped.
 - **arm64 runner availability changes** → Hosted arm64 runners are free for public repositories. If that changes, the leg becomes a cost decision, not a correctness one.
