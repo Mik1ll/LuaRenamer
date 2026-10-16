@@ -105,6 +105,7 @@ public sealed class LuaSandbox : Lua
     /// <returns>
     /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
     /// </returns>
+    // Stryker disable once NullCoalescing,String : the run function returns load's message or tostring's result, so error is always a string
     public string? Run(string script) =>
         _runSandboxed.Call(script, Env) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
 
@@ -180,6 +181,7 @@ public sealed class LuaSandbox : Lua
             while (i < path.Length && path[i] == '[')
             {
                 var close = path.IndexOf(']', i);
+                // Stryker disable once Equality : a non-empty name precedes every '[', so i, and with it close, is at least 1
                 if (close < 0)
                     throw new ArgumentException($"unclosed '[' at index {i} in path \"{path}\"", nameof(path));
                 if (!int.TryParse(path.AsSpan(i + 1, close - i - 1), out var index))
