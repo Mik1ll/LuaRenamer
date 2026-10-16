@@ -50,8 +50,10 @@
 
 ## 6. Hang protection
 
-- [ ] 6.1 Add `Microsoft.Testing.Extensions.HangDump` to `Tests.csproj`, regenerate `packages.lock.json`, and verify locked-mode restore succeeds
-- [ ] 6.2 Verify the extension works locally: add a temporary test that blocks forever, run `dotnet test --hangdump --hangdump-timeout 30s`, and confirm the run fails, a dump is written under `TestResults`, and the hang report names the blocked test. Then delete the temporary test
+- [x] 6.1 Add `Microsoft.Testing.Extensions.HangDump` to `Tests.csproj`, regenerate `packages.lock.json`, and verify locked-mode restore succeeds
+  - Version 2.3.3, matching the Microsoft.Testing.Platform 2.3.3 that xunit.v3 4.0.0 brings in. The lock file gained HangDump and its `Microsoft.Diagnostics.NETCore.Client` 0.2.607501 dependency. `dotnet restore --locked-mode --force` exits 0.
+- [x] 6.2 Verify the extension works locally: add a temporary test that blocks forever, run `dotnet test --hangdump --hangdump-timeout 30s`, and confirm the run fails, a dump is written under `TestResults`, and the hang report names the blocked test. Then delete the temporary test
+  - `dotnet test --project Tests --no-build --hangdump --hangdump-timeout 30s`, with a temporary `[Fact]` blocked on `ManualResetEventSlim.Wait()`. The run failed with exit code 7 after 32 s. It wrote `TestResults/LuaRenamer.Tests_<pid>_hang.dmp` (211 MB, full dump) and `..._hang.log`, which reads `[00:00:30] LuaRenamer.Tests.Sandbox.TmpHangTests.BlocksForever`. The other 343 tests passed. `TestResults` lands at the working directory, which is the repository root in CI, and `.gitignore` already covers it. The temporary test was deleted.
 - [ ] 6.3 In `build-and-test.yml`, add `--hangdump --hangdump-timeout <T>` to the test step and `timeout-minutes` to the job, sized per design.md from the measured suite time, plus an `if: failure()` upload of `TestResults/**` with 7-day retention. Verify with a PR run that passes and uploads nothing
 
 ## 7. Documentation
