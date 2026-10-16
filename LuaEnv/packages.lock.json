@@ -19,9 +19,9 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.104, )",
-        "resolved": "6.0.0-alpha.104",
-        "contentHash": "vUI7C/13WFeX8preZbmbWsJjqjiuckQ0ceRb5iI/W7r2Fo3XXYkLgDLMlxmTFbgEi9ddeWM2lDzNd+QF7HHQAA==",
+        "requested": "[6.0.0-alpha.107, )",
+        "resolved": "6.0.0-alpha.107",
+        "contentHash": "nUAPEgA5DUbpgDBcaA5Yng6lfmpw8f4OQwdfitr+aR3coazlMJQZ8ZF3pVMVnXrdBnLx4xfrHxldZ+6755ZqxA==",
         "dependencies": {
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
