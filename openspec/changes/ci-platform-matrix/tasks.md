@@ -34,4 +34,5 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Verify a PR run passes all four legs, and record the run id here
+- [x] 4.1 Verify a PR run passes all four legs, and record the run id here
+  - Run 38882528103 (head `4026e8f`, probe removed) passed all four legs. windows, linux-x64 and linux-arm64: 317 total, 315 passed, 2 skipped (the canary tests). linux-x64-host-config: 317 total, 317 passed, 0 skipped.
