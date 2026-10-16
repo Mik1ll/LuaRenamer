@@ -37,12 +37,49 @@
 
 ## 4. Baseline and sandbox-boundary triage
 
-- [ ] 4.1 Record the baseline mutation score and the survivor counts for each file here
-- [ ] 4.2 Triage every survivor in `LuaEnv/LuaSandbox.cs`. For each one, either add a test (in the existing `Tests/Sandbox` file for that behavior) that kills it and names the behavior, or add a `// Stryker disable once <mutator> : <reason>` at the site. List each survivor and how it was resolved here
-- [ ] 4.3 Triage every survivor in `LuaEnv/ModelTranslator.cs` the same way, with tests in `Tests/Env`, and list them here
-- [ ] 4.4 For any survivor that appears in some runs but not others, identify the property whose generator reaches it unreliably and either strengthen that generator or add an example test. Verify by two consecutive scoped runs (`--mutate` on that file) that both report it killed
-- [ ] 4.5 Verify a scoped run over the two boundary files reports no survivors without either a killing test or a site annotation
+- [x] 4.1 Record the baseline mutation score and the survivor counts for each file here
+  - Baseline, a full `dotnet stryker` run on `4054967` + this change's tooling, before any triage. Score **63.20%**: 246 killed, 117 survived, 3 timeouts, 2 runtime errors and 28 with no coverage. A further 89 compile errors and 35 ignored mutants in `LuaEnv`/`LuaRenamer` don't count toward the score. Other full runs on the same code scored 63.71% (115 survivors). See 4.4 for that spread.
+  - Survivors per file (no-coverage mutants in parentheses):
+
+    | File | Survived | No coverage |
+    |---|---|---|
+    | `LuaRenamer/ModelProducers.cs` | 44 | 1 |
+    | `LuaRenamer/LuaRenamer.cs` | 23 | 14 |
+    | `LuaRenamer/FilePathCleaner.cs` | 18 | 0 |
+    | `LuaRenamer/LuaScripts.cs` | 12 | 0 |
+    | `LuaEnv/LuaSandbox.cs` | 10 | 5 |
+    | `LuaRenamer/Utils.cs` | 4 | 0 |
+    | `LuaEnv/ILuaModel.cs` | 3 | 0 |
+    | `LuaRenamer/LuaRenamerSettings.cs` | 1 | 0 |
+    | `LuaEnv/LuaFieldAttribute.cs` | 1 | 0 |
+    | `LuaEnv/Names/NamesNode.cs` | 1 | 8 |
+    | `LuaEnv/ModelTranslator.cs` | 0 | 0 |
+
+  - After the triage below, a full run scores **66.92%** (258 killed, 106 survived, 23 with no coverage). Every remaining survivor is outside the sandbox boundary.
+- [x] 4.2 Triage every survivor in `LuaEnv/LuaSandbox.cs`. For each one, either add a test (in the existing `Tests/Sandbox` file for that behavior) that kills it and names the behavior, or add a `// Stryker disable once <mutator> : <reason>` at the site. List each survivor and how it was resolved here
+  - No-coverage mutants were triaged too. Each is a change no test notices, which is what the spec means by a survivor. Line numbers are from before the change.
+  - `Run` (109), `?? "unknown error"` dropped (NullCoalescing) and `"unknown error"` → `""` (String), both without coverage: **annotated**. The run function returns either `load`'s message or `tostring`'s result, so `error` is always a string and the fallbacks can't run.
+  - `CompileFunction` (123), `[not true, …]` → `[not false, …]` (Boolean). This swaps which failure message a bad source gets: **killed** by `TrustedChunkTests.ACallableSourceThatDoesNotCompileReportsTheLuaError` and `ACallableSourceThatReturnsANonFunctionIsRejected`.
+  - `CompileFunction` (123), the "chunk did not compile" message emptied, no coverage: **killed** by `ACallableSourceThatDoesNotCompileReportsTheLuaError`. That test also requires the Lua error to be in the message.
+  - `CompileFunction` (124), the "chunk did not return a function" message emptied, no coverage: **killed** by `ACallableSourceThatReturnsANonFunctionIsRejected`.
+  - `GetValue` (150), `table.Dispose()` removed (Statement): **killed** by `PathResolutionTests.ResolvingAPathReleasesTheTablesItWalksThrough`. It resolves a four-table-deep path 100 times and requires the Lua registry not to grow.
+  - `ParseKeys` (174, 177, 184, 186, 193), each of the five path-validation messages emptied (String). Also 186, the offending index text sliced from `i - 1` instead of `i + 1` (Arithmetic). All **killed** by `RecordedMalformedPaths`, which now takes the expected report for each malformed path and requires the message to name the problem and quote the path.
+  - `ParseKeys` (176), `IndexOfAny(…) >= 0` → `> 0` (Equality). This only matters when the bad character starts a segment: **killed** by the new `RecordedMalformedPaths` case `":getname()"` (a call with no receiver).
+  - `ParseKeys` (183), `close < 0` → `close <= 0` (Equality): **annotated**. A non-empty name precedes every `[`, so `i`, and with it `close`, is at least 1, and the two comparisons agree.
+  - `ParseKeys` (193), the "expected '.' after an index" `throw` removed (Statement). With the existing `anime[1]x` case the walk still threw, only for an empty segment: **killed** by the new case `anime[1]name`, which the mutant would accept.
+  - `LoadChunk` (210), the `throw` for a failing trusted chunk removed, no coverage: **killed** by `TrustedChunkTests.ATrustedChunkThatFailsFailsConstruction` (a chunk that fails to load, and one that throws).
+  - Two scoped runs (`--mutate "**/LuaEnv/LuaSandbox.cs"`) after the triage: 49 killed, 2 timeouts, 0 survived, 0 without coverage, both times.
+- [x] 4.3 Triage every survivor in `LuaEnv/ModelTranslator.cs` the same way, with tests in `Tests/Env`, and list them here
+  - None: every full and scoped run reported 0 survivors and 0 without coverage. Two scoped runs (`--mutate "**/LuaEnv/ModelTranslator.cs"`): 4 killed, 0 survived.
+  - Limit of the measurement: Stryker places only 13 mutants in this file. 7 of them fail to compile (the `is { } v` / `is not Enum e` pattern variables can't be duplicated into Stryker's mutant switch), and it makes no mutation of `WriteValue`'s switch arms. The marshaling rules in this file are therefore barely measured by mutation, and the properties in `Tests/Env/MarshalingTests.cs` remain their real check. `LuaSandbox.cs` has the same compile-error pattern in `Run`, `CompileFunction`'s conditional and `LoadChunk` (9 mutants).
+- [x] 4.4 For any survivor that appears in some runs but not others, identify the property whose generator reaches it unreliably and either strengthen that generator or add an example test. Verify by two consecutive scoped runs (`--mutate` on that file) that both report it killed
+  - Two boundary mutants flickered across full runs: `CompileFunction`'s `[not false, …]` (123) and `IndexOfAny(…) > 0` (176). No FsCheck generator was involved. Scoped runs reported both as survivors 3 out of 3 times, and no test could detect either. The full runs that "killed" them blamed tests that can't observe them: `SubfolderTests.SubfolderForms` for the first, `EnumTableTests` for the second. Those kills were spurious, so the real state was "survived". The likely cause is a covering test failing for an unrelated reason in that session, such as load from the other concurrent jobs on this machine. Stryker 4.14.2+ reports timed-out or errored MTP tests as failures.
+  - Both now have example tests (4.2), and two consecutive scoped runs on `LuaSandbox.cs` report both killed.
+  - The same spread shows outside the boundary between full runs (`FilePathCleaner.cs`, `ILuaModel.cs`, `LuaRenamer.cs`, `ModelProducers.cs`, `Utils.cs`, ±1–2 each). That is why scores vary by about half a point. It's left for the later triage of those files.
+- [x] 4.5 Verify a scoped run over the two boundary files reports no survivors without either a killing test or a site annotation
+  - `dotnet stryker --mutate "**/LuaEnv/LuaSandbox.cs" --mutate "**/LuaEnv/ModelTranslator.cs"`: 53 killed, 2 timeouts, 0 survived, 0 without coverage. The 5 annotated mutants appear as `Ignored` with their reasons.
 
 ## 5. Documentation
 
-- [ ] 5.1 Add a short "Mutation testing" note for contributors covering a full run, a file-scoped run (`--mutate`), where the report lands, and the annotation convention for equivalent mutants. Put it in the workflow file's header comment, since the repo has no contributor doc. Verify the commands in it run as written
+- [x] 5.1 Add a short "Mutation testing" note for contributors covering a full run, a file-scoped run (`--mutate`), where the report lands, and the annotation convention for equivalent mutants. Put it in the workflow file's header comment, since the repo has no contributor doc. Verify the commands in it run as written
+  - The header comment of `.github/workflows/mutation.yml`. Each command was run as written from the repo root. `dotnet tool restore` succeeds. `dotnet stryker` exits 0 in 69 s. `dotnet stryker --mutate "**/LuaEnv/LuaSandbox.cs"` exits 0 with 0 survivors. Both write `StrykerOutput/<timestamp>/reports/mutation-report.html`. The annotation form is the one used in `LuaSandbox.cs`, and Stryker reports annotated mutants as `Ignored` with the stated reason.
