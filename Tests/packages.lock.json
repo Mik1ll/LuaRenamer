@@ -74,9 +74,9 @@
       },
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.107, )",
-        "resolved": "6.0.0-alpha.107",
-        "contentHash": "nUAPEgA5DUbpgDBcaA5Yng6lfmpw8f4OQwdfitr+aR3coazlMJQZ8ZF3pVMVnXrdBnLx4xfrHxldZ+6755ZqxA==",
+        "requested": "[6.0.0-alpha.108, )",
+        "resolved": "6.0.0-alpha.108",
+        "contentHash": "/Lt4ZT4S/0bp1g6ew5/p5a/TC1ZcnCc7Ad0fXzHtB19PcbhWxsETUYWMDKd1Vp0umuqAGSN8IeOoGXIYZjZNGQ==",
         "dependencies": {
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
@@ -359,14 +359,14 @@
           "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.12, 11.0.0)",
           "NLua": "[1.7.9, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.107, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.108, )"
         }
       },
       "LuaRenamer.DefsGenerator": {
         "type": "Project",
         "dependencies": {
           "LuaRenamer.LuaEnv": "[1.0.0, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.107, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.108, )"
         }
       },
       "LuaRenamer.LuaEnv": {
@@ -374,7 +374,7 @@
         "dependencies": {
           "KeraLua": "[1.4.10, )",
           "NLua": "[1.7.9, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.107, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.108, )"
         }
       }
     },
