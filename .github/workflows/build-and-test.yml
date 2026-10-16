@@ -25,6 +25,8 @@ jobs:
             culture: tr-TR
             timezone: America/St_Johns
     runs-on: ${{ matrix.runner }}
+    # A backstop for hangs outside the test host (restore, build). The slowest green leg (windows) takes under two minutes.
+    timeout-minutes: 15
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
@@ -55,5 +57,15 @@ jobs:
     # tree here means the committed defs.lua/enums.lua/env.lua are stale.
     - name: Verify generated Lua defs are current
       run: git diff --exit-code -- LuaRenamer/lua/
+    # The suite runs in seconds, so a test host still running after 5 minutes is hung. HangDump then writes a
+    # process dump and the tests in flight to TestResults and fails the run.
     - name: Test
-      run: dotnet test --no-restore --no-build --verbosity normal
+      run: dotnet test --no-restore --no-build --verbosity normal --hangdump --hangdump-timeout 5m
+    - name: Upload hang dumps and test results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        # Artifact names are unique per run, so legs that fail together would collide on a shared one.
+        name: test-results-${{ matrix.leg }}
+        path: TestResults/**
+        retention-days: 7

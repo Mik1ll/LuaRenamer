@@ -64,7 +64,8 @@ Check out [This short guide](https://learnxinyminutes.com/docs/lua/) if you are 
 
 ## The Environment
 
-The lua environment is sandboxed, removing operations from standard libraries such as `io`, and `os`. See BaseEnv in [LuaContext](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/LuaContext.cs).  
+The lua environment is sandboxed, removing operations from standard libraries such as `io`, and `os`. See BaseEnv in [LuaSandbox](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaEnv/LuaSandbox.cs).  
+Scripts run under fixed limits: 10 million Lua instructions, and 32 MiB of memory for the whole environment. A script that exceeds either fails the rename with an error naming the limit, and catching that error with `pcall` does not let it continue. `__gc` finalizers are not available: `setmetatable` refuses a metatable with a `__gc` field. A long CPU-bound pattern match (e.g. `string.find` with many `.-` against a long string) runs inside a single library call, so the instruction limit does not interrupt it.  
 The script is run in a fresh environment for every file.  
 Only the values of output variables defined in [env.lua](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/lua/env.lua) will affect renaming/moving behaviour.
 
