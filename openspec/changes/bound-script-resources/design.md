@@ -40,6 +40,13 @@ while true do pcall(function() while true do end end) end
 
 The inner `pcall` catches the error and the outer loop carries on. So when the budget is exhausted, the hook re-installs itself with `step = 1` and errors on *every* instruction from then on. When the inner `pcall` returns, the very next instruction in the enclosing Lua function raises, and the error escapes one level for each enclosing function until it reaches `SandboxFunction`'s own `pcall`. Nesting only adds levels to unwind; it doesn't give the script any more work.
 
+Two consequences of staying armed, found while implementing:
+
+- Once spent, the hook lets `SandboxFunction`'s own frame through, checked with `debug.getinfo(2, 'f').func`. Otherwise the first instruction after its `pcall` returns would raise outside any `pcall`, and the hook could never be removed.
+- The error object's `tostring` runs before the hook is removed, inside a `pcall`, because a `__tostring` metamethod is script code. `error(setmetatable({}, { __tostring = spin }))` would otherwise spin unbudgeted.
+
+`LoadChunk` calls the run function without a budget, as `CompileFunction` already does, so the budget applies to `Run` alone.
+
 *Alternative considered:* wrapping the published `pcall` so it re-raises a limit sentinel. Rejected. It changes a published function's identity and behavior, and the sentinel is a value a script can inspect or forge.
 
 The hook is per Lua thread. That is safe only because `coroutine` is unpublished, so a script can't create a thread the hook doesn't cover. The existing exact surface pin already guards this. A comment at the hook installation records the dependency, so anyone publishing `coroutine` later sees what it breaks.
@@ -85,3 +92,7 @@ The hang-dump arguments go on the CI command line rather than in project configu
 - **A legitimate heavy script hits a limit** → The 100× margin, plus an error that names the limit, so the user knows what happened. Configurable limits are the follow-up if this happens in practice.
 - **`step = 1` after exhaustion is slow for scripts unwinding deep `pcall` nests** → Each level costs a few instructions once the budget is gone. Hook calls per level are bounded by nesting depth, which Lua's C stack limit (about 200 levels) bounds in turn.
 - **Hang dumps are large** → Uploaded only on failure, with a short artifact retention (7 days).
+
+## Open Questions
+
+- **Finalizers escape the instruction budget.** Lua 5.4 runs `__gc` metamethods with hooks disabled (`GCTM` in lgc.c sets `L->allowhook = 0`), and `setmetatable` is published. So `setmetatable({}, { __gc = function() while true do end end })` spins with no hook firing. That happens during the run, if a GC step finalizes the object, or at `Dispose`, when `lua_close` runs every pending finalizer. Either way the relocation thread hangs. A finalizer run at `lua_close` is also outside memory enforcement. Both cases were confirmed with temporary timed-out tests. A candidate fix is to publish a `setmetatable` that refuses a metatable with a raw `__gc` field. Lua marks an object for finalization only if `__gc` is present when the metatable is set, and `debug.setmetatable` is unpublished, so that closes the route. It changes a published function's identity and removes finalizers from scripts, which is beyond this design, so it awaits a decision.

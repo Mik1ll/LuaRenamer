@@ -63,15 +63,45 @@ public sealed class LuaSandbox : Lua
 
     // Loads a chunk against `env` and pcalls it. Returns [false, error] if the chunk failed to load or threw,
     // otherwise pcall's results. `tostring` on the error keeps a non-string error object (`error({})`) reportable.
+    //
+    // With a `budget`, a count hook bounds the run. It is Lua, not a managed hook, because raising from managed
+    // code would longjmp across .NET frames. Once spent it fires on every instruction outside this function, so
+    // a script that pcalls the error raises again at its next instruction.
+    // The hook is per coroutine, so it only bounds the script while `coroutine` stays out of env.
+    // `tostring` stays under the hook because a `__tostring` metamethod is script code.
     private const string SandboxFunction =
         """
-        return function (untrusted_code, env)
+        local run
+        run = function (untrusted_code, env, budget)
           local untrusted_function, message = load(untrusted_code, nil, 't', env)
           if not untrusted_function then return false, message end
-          local result = {pcall(untrusted_function)}
-          if not result[1] then return false, tostring(result[2]) end
-          return table.unpack(result)
+          if not budget then
+            local result = {pcall(untrusted_function)}
+            if not result[1] then return false, tostring(result[2]) end
+            return table.unpack(result)
+          end
+
+          local exceeded = string.format('instruction budget of %d exceeded', budget)
+          local remaining = budget
+          local function hook()
+            if remaining > 0 then
+              remaining = remaining - 1000
+              if remaining > 0 then return end
+              debug.sethook(hook, '', 1)
+            end
+            if debug.getinfo(2, 'f').func ~= run then error(exceeded, 2) end
+          end
+
+          debug.sethook(hook, '', 1000)
+          local ok, err = pcall(untrusted_function)
+          if not ok then
+            local converted, text = pcall(tostring, err)
+            err = (converted or type(text) == 'string') and text or 'error object could not be converted to a string'
+          end
+          debug.sethook()
+          return ok, err
         end
+        return run
         """;
 
     private const string TableConstructor = "return function () return {} end";
@@ -81,13 +111,21 @@ public sealed class LuaSandbox : Lua
     private readonly LuaFunction _runSandboxed;
     private readonly LuaFunction _newTable;
     private readonly Dictionary<string, LuaFunction> _compiled = [];
+    private readonly ScriptLimits _limits;
 
+    /// <inheritdoc cref="LuaSandbox(ScriptLimits, string[])"/>
+    public LuaSandbox(params string[] trustedChunks) : this(ScriptLimits.Default, trustedChunks)
+    {
+    }
+
+    /// <param name="limits">What each <see cref="Run"/> may use. Trusted chunks and translation are not limited.</param>
     /// <param name="trustedChunks">
     /// Shipped Lua sources (lualinq, utils) layered into <see cref="Env"/> in order, so their definitions are
     /// in scope for everything loaded afterwards.
     /// </param>
-    public LuaSandbox(params string[] trustedChunks)
+    public LuaSandbox(ScriptLimits limits, params string[] trustedChunks)
     {
+        _limits = limits;
         State.Encoding = Encoding.UTF8;
         _runSandboxed = (LuaFunction)DoString(SandboxFunction)[0];
         _newTable = (LuaFunction)DoString(TableConstructor)[0];
@@ -100,13 +138,16 @@ public sealed class LuaSandbox : Lua
     public LuaTable Env { get; }
 
     /// <summary>
-    /// Runs an untrusted user script against <see cref="Env"/>.
+    /// Runs an untrusted user script against <see cref="Env"/>, within the sandbox's <see cref="ScriptLimits"/>.
     /// </summary>
     /// <returns>
     /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
+    /// Exceeding a limit is an error, and its message names the limit.
     /// </returns>
-    public string? Run(string script) =>
-        _runSandboxed.Call(script, Env) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
+    public string? Run(string script) => ErrorOf(_runSandboxed.Call(script, Env, _limits.Instructions));
+
+    private static string? ErrorOf(object[] result) =>
+        result is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
 
     /// <summary>
     /// Compiles a <c>return function ... end</c> chunk against <see cref="Env"/>. Memoized by source — the
@@ -206,7 +247,7 @@ public sealed class LuaSandbox : Lua
     /// </summary>
     private void LoadChunk(string source)
     {
-        if (Run(source) is { } error)
+        if (ErrorOf(_runSandboxed.Call(source, Env)) is { } error)
             throw new ArgumentException($"trusted chunk failed to load: {error}", nameof(source));
     }
 }
