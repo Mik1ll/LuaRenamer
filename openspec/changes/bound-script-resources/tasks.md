@@ -44,7 +44,9 @@
 
 ## 5. Cost check
 
-- [ ] 5.1 Re-measure the timings from 1.2 and record them here. If the allocator wrapper adds materially to `DefaultScriptTests` or the suite, apply design.md's fallback and record that decision here
+- [x] 5.1 Re-measure the timings from 1.2 and record them here. If the allocator wrapper adds materially to `DefaultScriptTests` or the suite, apply design.md's fallback and record that decision here
+  - Same machine and method as 1.2. Suite (now 343 tests): test-host duration 1.63 s / 1.75 s / 2.39 s. `DefaultScriptTests`: 0.63 s / 0.63 s / 0.66 s.
+  - `GetPath` with the default script on the populated graph, A/B in one session by temporarily skipping `SetAllocFunction`. Without the wrapper: 1.76 / 1.87 / 1.87 / 1.90 / 1.91 ms. With it: 1.96 / 1.96 / 1.97 / 1.99 / 2.00 / 2.02 ms, with outliers of 2.3 to 6.0 ms from machine load. That is about 0.1 ms (~5%) per relocation, inside the 1.73 to 2.15 ms spread of the 1.2 baseline. **Not material, so the fallback was not taken.**
 
 ## 6. Hang protection
 
