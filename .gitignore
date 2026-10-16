@@ -344,3 +344,6 @@ healthchecksdb
 
 # Patched library assemblies/PDBs for debugging (scripts/patch-sourcelink.cs)
 .lib-src/
+
+# Stryker.NET mutation run output (reports, logs)
+StrykerOutput/

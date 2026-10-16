@@ -142,7 +142,6 @@ public sealed class LuaSandbox : Lua
     private readonly KeraLua.LuaFunction _memoryRefused;
 
     private readonly LuaAlloc _nativeAllocate;
-    private long _allocated;
     private bool _enforcing;
     private bool _refused;
 
@@ -165,7 +164,7 @@ public sealed class LuaSandbox : Lua
         // only its own allocator may free them.
         var userData = IntPtr.Zero;
         _nativeAllocate = State.GetAllocFunction(ref userData);
-        _allocated = (State.GarbageCollector(LuaGC.Count, 0) * 1024L) + State.GarbageCollector(LuaGC.Countb, 0);
+        AllocatedBytes = (State.GarbageCollector(LuaGC.Count, 0) * 1024L) + State.GarbageCollector(LuaGC.Countb, 0);
         _allocate = Allocate;
         State.SetAllocFunction(_allocate, ref userData);
         _enforceMemoryBound = _ =>
@@ -188,8 +187,14 @@ public sealed class LuaSandbox : Lua
             LoadChunk(chunk);
     }
 
-    /// <summary>The most bytes the state has held at once since it was constructed.</summary>
+    /// <summary>
+    /// The most bytes the state has held at once since the latest <see cref="Run"/> began, or since
+    /// construction before the first.
+    /// </summary>
     public long PeakAllocatedBytes { get; private set; }
+
+    /// <summary>The bytes the state holds now, as its allocator has counted them.</summary>
+    public long AllocatedBytes { get; private set; }
 
     /// <summary>The restricted environment table every chunk and translated model is loaded against.</summary>
     public LuaTable Env { get; }
@@ -204,6 +209,7 @@ public sealed class LuaSandbox : Lua
     public string? Run(string script)
     {
         _refused = false;
+        PeakAllocatedBytes = AllocatedBytes;
         string? error;
         try
         {
@@ -213,15 +219,18 @@ public sealed class LuaSandbox : Lua
         {
             // Refused outside the script's own pcall, which can be after the hook was installed.
             State.SetHook(null, LuaHookMask.Disabled, 0);
-            error = "";
+            return MemoryBoundExceeded;
         }
         finally
         {
+            // Stryker disable once Boolean : left on, the next host-side push outside any pcall panics the state, which no test can assert on
             _enforcing = false;
         }
 
-        return _refused && error is not null ? $"memory bound of {_limits.MemoryBytes} bytes exceeded" : error;
+        return _refused && error is not null ? MemoryBoundExceeded : error;
     }
+
+    private string MemoryBoundExceeded => $"memory bound of {_limits.MemoryBytes} bytes exceeded";
 
     /// <summary>
     /// Every allocation, resize and free of the state passes through here. Growth past the bound is refused
@@ -230,8 +239,9 @@ public sealed class LuaSandbox : Lua
     private IntPtr Allocate(IntPtr userData, IntPtr block, nuint oldSize, nuint newSize)
     {
         // Without a block, oldSize is the type of object being created, not a size.
-        var held = block == IntPtr.Zero ? 0 : oldSize;
-        if (_enforcing && newSize > held && newSize - held > (nuint)Math.Max(0, _limits.MemoryBytes - _allocated))
+        var growth = (long)newSize - (long)(block == IntPtr.Zero ? 0 : oldSize);
+        // The room is floored at zero so that a shrink is never refused, even with the state already over the bound.
+        if (_enforcing && growth > Math.Max(0, _limits.MemoryBytes - AllocatedBytes))
         {
             _refused = true;
             // Brings the hook in at the script's next instruction instead of up to a thousand later.
@@ -244,15 +254,15 @@ public sealed class LuaSandbox : Lua
         var result = _nativeAllocate(userData, block, oldSize, newSize);
         if (result != IntPtr.Zero || newSize == 0)
         {
-            _allocated += (long)newSize - (long)held;
-            PeakAllocatedBytes = Math.Max(PeakAllocatedBytes, _allocated);
+            AllocatedBytes += growth;
+            PeakAllocatedBytes = Math.Max(PeakAllocatedBytes, AllocatedBytes);
         }
 
         return result;
     }
 
-    private static string? ErrorOf(object[] result) =>
-        result is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
+    // The run function's error is load's message or tostring's result, so it is always a string.
+    private static string? ErrorOf(object[] result) => result is [not true, var error, ..] ? (string)error : null;
 
     /// <summary>
     /// Compiles a <c>return function ... end</c> chunk against <see cref="Env"/>. Memoized by source — the
@@ -326,7 +336,7 @@ public sealed class LuaSandbox : Lua
             while (i < path.Length && path[i] == '[')
             {
                 var close = path.IndexOf(']', i);
-                if (close < 0)
+                if (close == -1)
                     throw new ArgumentException($"unclosed '[' at index {i} in path \"{path}\"", nameof(path));
                 if (!int.TryParse(path.AsSpan(i + 1, close - i - 1), out var index))
                     throw new ArgumentException($"non-numeric index \"{path[(i + 1)..close]}\" in path \"{path}\"", nameof(path));

@@ -9,7 +9,8 @@ namespace LuaRenamer.Tests.Sandbox;
 /// <summary>
 /// The shipped chunks (<c>utils.lua</c>, <c>lualinq.lua</c>) reach a user script through <see cref="LuaSandbox.Env"/>.
 /// lualinq is vendored and unmodified, so its coverage is deliberately "it loaded and its entry points resolve",
-/// not an enumeration of what its operators do.
+/// not an enumeration of what its operators do. Trusted Lua that fails, whether a chunk or a callable's source,
+/// fails the host call that loads it.
 /// </summary>
 public sealed class TrustedChunkTests : IDisposable
 {
@@ -47,4 +48,21 @@ public sealed class TrustedChunkTests : IDisposable
         foreach (var entry in new[] { "fromArray", "fromDictionary", "fromIterator", "fromNothing", "fromSet", "linqSetLogLevel" })
             _sandbox.GetValue(entry).Should().BeOfType<LuaFunction>(entry);
     }
+
+    [Theory]
+    [InlineData("return (", "fails to load")]
+    [InlineData("error('boom')", "throws")]
+    public void ATrustedChunkThatFailsFailsConstruction(string chunk, string why) =>
+        FluentActions.Invoking(() => new LuaSandbox(chunk))
+            .Should().Throw<ArgumentException>(why).WithMessage("trusted chunk failed to load: ?*");
+
+    [Fact]
+    public void ACallableSourceThatDoesNotCompileReportsTheLuaError() =>
+        _sandbox.Invoking(s => s.CompileFunction("return function ("))
+            .Should().Throw<ArgumentException>().WithMessage("chunk did not compile: *return function (*");
+
+    [Fact]
+    public void ACallableSourceThatReturnsANonFunctionIsRejected() =>
+        _sandbox.Invoking(s => s.CompileFunction("return 42"))
+            .Should().Throw<ArgumentException>().WithMessage("chunk did not return a function*");
 }
