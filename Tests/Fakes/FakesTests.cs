@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using NSubstitute;
+using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
 using Shoko.Abstractions.Video.Relocation;
@@ -30,8 +31,8 @@ public class FakesTests
     {
         var graph = RelocationGraph.Default();
 
-        int[] shoko = [graph.Series.ID, graph.Episode.ID, graph.Folder.ID];
-        int[] anidb = [graph.Anime.ID, graph.AnidbEpisode.ID, graph.AnidbEpisode.SeriesID];
+        int[] shoko = [graph.Series.LocalID, graph.Episode.LocalID, graph.Folder.ID];
+        int[] anidb = [graph.Anime.AnidbID, graph.AnidbEpisode.AnidbID, graph.AnidbEpisode.AnidbAnimeID];
 
         shoko.Should().OnlyContain(id => id != 0);
         anidb.Should().OnlyContain(id => id != 0);
@@ -71,14 +72,16 @@ public class FakesTests
         var graph = RelocationGraph.Default();
 
         graph.File.ManagedFolderID.Should().Be(graph.Folder.ID);
-        graph.File.VideoID.Should().Be(graph.Video.ID);
+        graph.File.VideoID.Should().Be(graph.Video.LocalID);
         graph.File.Path.Should().Be(Path.Combine(graph.Folder.Path, graph.File.RelativePath));
         graph.Folder.Path.Should().NotBe(graph.File.Path, "a folder's path is not its file's path");
 
-        graph.Episode.AnidbEpisodeID.Should().Be(graph.AnidbEpisode.ID);
+        graph.Episode.AnidbEpisodeID.Should().Be(graph.AnidbEpisode.AnidbID);
         graph.Episode.Type.Should().Be(graph.AnidbEpisode.Type);
         graph.Episode.EpisodeNumber.Should().Be(graph.AnidbEpisode.EpisodeNumber);
-        graph.Series.AnidbAnimeID.Should().Be(graph.Anime.ID);
+        graph.Series.AnidbAnimeID.Should().Be(graph.Anime.AnidbID);
+        // The anime model's id comes from AnidbID but relations are matched by ID, so the two must agree.
+        graph.Anime.ID.Should().Be(HostFakes.MetadataId(MetadataSource.AniDB, MetadataEntityType.Series, graph.Anime.AnidbID));
         graph.Anime.ShokoSeries.Should().ContainSingle().Which.Should().BeSameAs(graph.Series);
     }
 
@@ -88,7 +91,7 @@ public class FakesTests
         var graph = RelocationGraph.Default();
         IShokoGroup group = HostFakes.Group(Ids.ShokoGroup, "group", graph.Series);
 
-        group.MainSeriesID.Should().Be(graph.Series.ID);
+        group.MainSeriesID.Should().Be(graph.Series.LocalID);
         group.MainSeries.Should().BeSameAs(graph.Series);
         group.AllSeries.Should().ContainSingle().Which.Should().BeSameAs(graph.Series);
     }

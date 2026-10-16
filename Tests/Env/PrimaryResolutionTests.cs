@@ -7,6 +7,7 @@ using FsCheck.Xunit;
 using LuaRenamer.LuaEnv.Models;
 using LuaRenamer.Tests.Fakes;
 using Microsoft.Extensions.Logging.Testing;
+using NSubstitute;
 using Shoko.Abstractions.Metadata.Enums;
 using Xunit;
 
@@ -77,6 +78,20 @@ public class PrimaryResolutionTests
         graph.SetEpisodes([(5, EpisodeType.Episode), (2, EpisodeType.Episode), (1, EpisodeType.Special)]);
 
         Env(graph).episode.number.Should().Be(2, "an Episode outranks a Special, and within a type the lower number wins");
+    }
+
+    [Fact]
+    public void ThePrimaryEpisodeIsRankedByItsAnidbTypeAndNumberNotShokos()
+    {
+        var graph = RelocationGraph.Default();
+        graph.SetEpisodes([(1, EpisodeType.Special), (2, EpisodeType.Episode)]);
+        graph.Episodes[0].Type.Returns(EpisodeType.Episode);
+        graph.Episodes[1].Type.Returns(EpisodeType.Special);
+
+        EpisodeModel episode = Env(graph).episode;
+
+        episode.type.Should().Be(EpisodeType.Episode);
+        episode.number.Should().Be(2);
     }
 
     [Fact]

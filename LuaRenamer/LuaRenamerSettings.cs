@@ -2,8 +2,8 @@
 using System.IO;
 using LuaRenamer.LuaEnv.Models;
 using Shoko.Abstractions.Config;
-using Shoko.Abstractions.Config.Attributes;
-using Shoko.Abstractions.Config.Enums;
+using Shoko.Abstractions.UI.Attributes;
+using Shoko.Abstractions.UI.Enums;
 using Shoko.Abstractions.Config.Services;
 using Shoko.Abstractions.Plugin;
 

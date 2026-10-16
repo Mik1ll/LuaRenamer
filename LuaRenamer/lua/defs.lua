@@ -21,7 +21,7 @@ local AniDbMedia = {}
 ---@field enddate DateTime|nil # Last air date of the anime
 ---@field rating number # Average rating of the anime
 ---@field restricted boolean # Whether the anime is age-restricted
----@field type AnimeType # Type of the anime (Movie, TVSeries, etc.)
+---@field type AnimeType # Type of the anime (Movie, TV, etc.)
 ---@field preferredname string # The preferred title for the anime
 ---@field defaultname string # The default title for the anime
 ---@field id integer # AniDB anime ID
@@ -41,7 +41,7 @@ local Anime = {}
 function Anime:getname(lang, include_unofficial) end
 
 ---@class (exact) Audio
----@field compressionmode string # Audio compression mode
+---@field compressionmode string|nil # Audio compression mode
 ---@field channels number # Number of audio channels, may have decimal part '.1'
 ---@field samplingrate integer # Audio sampling rate in Hz
 ---@field codec string # Audio codec name
@@ -204,7 +204,7 @@ function TmdbShow:getname(lang) end
 ---@field height integer # Video height in pixels
 ---@field width integer # Video width in pixels
 ---@field codec string # Video codec name
----@field res string # Resolution string e.g. '1080p', '720p', etc.
+---@field res string|nil # Resolution string e.g. '1080p', '720p', etc.
 ---@field bitrate integer # Video bitrate in bits per second
 ---@field bitdepth integer # Color depth in bits per channel
 ---@field framerate number # Frame rate in frames per second

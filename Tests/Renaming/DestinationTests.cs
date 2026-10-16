@@ -29,12 +29,15 @@ public class DestinationTests
         Run(graph, "destination = 'secondimport'").ManagedFolder!.ID.Should().Be(second);
     }
 
-    [Fact]
-    public void ByPath()
+    [Theory]
+    [InlineData("")]
+    [InlineData("/")]
+    [InlineData("//")]
+    public void ByPath(string trailing)
     {
         (RelocationGraph graph, var second) = TwoFolders();
 
-        Run(graph, $"destination = [[{graph.FolderPath(second)}]]").ManagedFolder!.ID.Should().Be(second);
+        Run(graph, $"destination = [[{graph.FolderPath(second)}{trailing}]]").ManagedFolder!.ID.Should().Be(second);
     }
 
     [Fact]

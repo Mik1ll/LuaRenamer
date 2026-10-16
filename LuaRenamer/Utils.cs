@@ -16,6 +16,12 @@ public static class Utils
         { EpisodeType.Trailer, "T" },
     };
 
-    public static string NormPath(this string path) =>
-        Path.TrimEndingDirectorySeparator(path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar));
+    public static string NormPath(this string path)
+    {
+        path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        // TrimEndingDirectorySeparator removes only one separator per call, but still won't trim into the root
+        for (var trimmed = Path.TrimEndingDirectorySeparator(path); trimmed != path; trimmed = Path.TrimEndingDirectorySeparator(path))
+            path = trimmed;
+        return path;
+    }
 }

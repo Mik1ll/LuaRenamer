@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using NSubstitute;
 using Shoko.Abstractions.Metadata;
 using Shoko.Abstractions.Metadata.Anidb;
+using Shoko.Abstractions.Metadata.CrossReferences;
 using Shoko.Abstractions.Metadata.Enums;
 using Shoko.Abstractions.Metadata.Shoko;
-using Shoko.Abstractions.Metadata.Tmdb;
-using Shoko.Abstractions.Metadata.Tmdb.CrossReferences;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Hashing;
@@ -30,8 +30,9 @@ namespace LuaRenamer.Tests.Fakes;
 public static class HostFakes
 {
     public static ITitle Title(string value, TitleLanguage language = TitleLanguage.English, string code = "en",
-        TitleType type = TitleType.Main, DataSource source = DataSource.AniDB)
+        TitleType type = TitleType.Main, MetadataSource? source = null)
     {
+        source ??= MetadataSource.AniDB;
         ITitle title = Substitute.For<ITitle>();
         title.Value.Returns(value);
         title.Language.Returns(language);
@@ -39,6 +40,21 @@ public static class HostFakes
         title.Type.Returns(type);
         title.Source.Returns(source);
         return title;
+    }
+
+    public static MetadataGuid MetadataId(MetadataSource source, MetadataEntityType type, int id) =>
+        new(source, type, id.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Gives a metadata entity one identity across <c>ID</c>, <c>Source</c> and <c>EntityType</c>, so the
+    /// host's per-source filters keep or drop it the same way whichever of the three they read.
+    /// </summary>
+    private static void Identify(IMetadata entity, MetadataSource source, MetadataEntityType type, int id)
+    {
+        MetadataGuid guid = MetadataId(source, type, id);
+        entity.ID.Returns(guid);
+        entity.Source.Returns(source);
+        entity.EntityType.Returns(type);
     }
 
     public static IManagedFolder Folder(int id = Ids.Folder, string name = "testimport", string? path = null,
@@ -69,7 +85,8 @@ public static class HostFakes
         // configures *it* instead, leaving NSubstitute with no pending call to attach the return value to.
         ITitle defaultTitle = Title(title);
         IAnidbAnime anime = Substitute.For<IAnidbAnime>();
-        anime.ID.Returns(id);
+        Identify(anime, MetadataSource.AniDB, MetadataEntityType.Series, id);
+        anime.AnidbID.Returns(id);
         anime.Title.Returns(title);
         anime.DefaultTitle.Returns(defaultTitle);
         anime.Titles.Returns([]);
@@ -103,17 +120,18 @@ public static class HostFakes
         anime ??= Anime(anidbId, anidbTitle);
         ITitle defaultTitle = Title(shokoTitle);
         IShokoSeries series = Substitute.For<IShokoSeries>();
-        series.ID.Returns(shokoId);
+        series.LocalID.Returns(shokoId);
         series.AnidbAnimeID.Returns(anidbId);
         series.AnidbAnime.Returns(anime);
         series.Title.Returns(shokoTitle);
         series.DefaultTitle.Returns(defaultTitle);
         series.Tags.Returns([]);
         series.Videos.Returns([]);
-        series.TmdbMovies.Returns([]);
-        series.TmdbShows.Returns([]);
-        series.TmdbMovieCrossReferences.Returns([]);
-        series.TmdbEpisodeCrossReferences.Returns([]);
+        series.LinkedMovies.Returns([]);
+        // The anime is listed too, as the host does, so a per-source lookup has something to filter out.
+        series.LinkedSeries.Returns([anime]);
+        series.MetadataMovieCrossReferences.Returns([]);
+        series.MetadataEpisodeCrossReferences.Returns([]);
         anime.ShokoSeries.Returns([series]);
         return series;
     }
@@ -122,8 +140,9 @@ public static class HostFakes
         int number = 1, EpisodeType type = EpisodeType.Episode)
     {
         IAnidbEpisode episode = Substitute.For<IAnidbEpisode>();
-        episode.ID.Returns(id);
-        episode.SeriesID.Returns(anidbAnimeId);
+        Identify(episode, MetadataSource.AniDB, MetadataEntityType.Episode, id);
+        episode.AnidbID.Returns(id);
+        episode.AnidbAnimeID.Returns(anidbAnimeId);
         episode.EpisodeNumber.Returns(number);
         episode.Type.Returns(type);
         episode.Titles.Returns([]);
@@ -138,24 +157,25 @@ public static class HostFakes
         anidbEpisode ??= AnidbEpisode();
         // Read across before configuring, not inside the Returns() argument: arguments are evaluated after
         // the receiver, so a substitute read there becomes the call NSubstitute attaches the value to.
-        (var anidbEpisodeId, EpisodeType type, var number) = (anidbEpisode.ID, anidbEpisode.Type, anidbEpisode.EpisodeNumber);
+        (var anidbEpisodeId, EpisodeType type, var number) = (anidbEpisode.AnidbID, anidbEpisode.Type, anidbEpisode.EpisodeNumber);
         IShokoEpisode episode = Substitute.For<IShokoEpisode>();
-        episode.ID.Returns(shokoId);
-        episode.SeriesID.Returns(shokoSeriesId);
+        episode.LocalID.Returns(shokoId);
+        episode.ShokoSeriesID.Returns(shokoSeriesId);
         episode.AnidbEpisode.Returns(anidbEpisode);
         episode.AnidbEpisodeID.Returns(anidbEpisodeId);
         episode.Type.Returns(type);
         episode.EpisodeNumber.Returns(number);
-        episode.TmdbEpisodes.Returns([]);
+        episode.LinkedEpisodes.Returns([]);
+        episode.LinkedMovies.Returns([]);
         return episode;
     }
 
     public static IShokoGroup Group(int id, string name, IShokoSeries mainSeries, IReadOnlyList<IShokoSeries>? allSeries = null)
     {
         ITitle preferredTitle = Title(name);
-        var mainSeriesId = mainSeries.ID;
+        var mainSeriesId = mainSeries.LocalID;
         IShokoGroup group = Substitute.For<IShokoGroup>();
-        group.ID.Returns(id);
+        group.LocalID.Returns(id);
         group.PreferredTitle.Returns(preferredTitle);
         group.MainSeriesID.Returns(mainSeriesId);
         group.MainSeries.Returns(mainSeries);
@@ -174,7 +194,7 @@ public static class HostFakes
     public static IVideo Video(string ed2K = "ed2khash", IReleaseInfo? release = null, IMediaInfo? media = null)
     {
         IVideo video = Substitute.For<IVideo>();
-        video.ID.Returns(Ids.Video);
+        video.LocalID.Returns(Ids.Video);
         video.ED2K.Returns(ed2K);
         video.EarliestKnownName.Returns("earliest.mkv");
         video.Hashes.Returns([]);
@@ -189,7 +209,7 @@ public static class HostFakes
     {
         relativePath ??= Path.Combine("testsubfolder", fileName);
         var fullPath = Path.Combine(folder.Path, relativePath);
-        (var folderId, var videoId) = (folder.ID, video.ID);
+        (var folderId, var videoId) = (folder.ID, video.LocalID);
         IVideoFile file = Substitute.For<IVideoFile>();
         file.FileName.Returns(fileName);
         file.RelativePath.Returns(relativePath);
@@ -286,10 +306,10 @@ public static class HostFakes
         return media;
     }
 
-    public static ITmdbShow TmdbShow(int id = Ids.TmdbShow)
+    public static ISeries TmdbShow(int id = Ids.TmdbShow)
     {
-        ITmdbShow show = Substitute.For<ITmdbShow>();
-        show.ID.Returns(id);
+        ISeries show = Substitute.For<ISeries>();
+        Identify(show, MetadataSource.TMDB, MetadataEntityType.Series, id);
         show.Titles.Returns([]);
         show.Studios.Returns([]);
         show.EpisodeCounts.Returns(new EpisodeCounts());
@@ -297,10 +317,41 @@ public static class HostFakes
         return show;
     }
 
-    public static ITmdbMovieCrossReference MovieCrossReference(int tmdbMovieId, int anidbEpisodeId)
+    public static IMovie TmdbMovie(int id = Ids.TmdbMovie)
     {
-        ITmdbMovieCrossReference xref = Substitute.For<ITmdbMovieCrossReference>();
-        xref.TmdbMovieID.Returns(tmdbMovieId);
+        IMovie movie = Substitute.For<IMovie>();
+        Identify(movie, MetadataSource.TMDB, MetadataEntityType.Movie, id);
+        movie.Titles.Returns([]);
+        movie.Studios.Returns([]);
+        return movie;
+    }
+
+    public static IEpisode TmdbEpisode(int id = Ids.TmdbEpisode, int showId = Ids.TmdbShow)
+    {
+        MetadataGuid seriesId = MetadataId(MetadataSource.TMDB, MetadataEntityType.Series, showId);
+        IEpisode episode = Substitute.For<IEpisode>();
+        Identify(episode, MetadataSource.TMDB, MetadataEntityType.Episode, id);
+        episode.SeriesID.Returns(seriesId);
+        episode.Titles.Returns([]);
+        return episode;
+    }
+
+    public static IMetadataEpisodeCrossReference EpisodeCrossReference(int tmdbEpisodeId, int anidbEpisodeId)
+    {
+        MetadataGuid episodeId = MetadataId(MetadataSource.TMDB, MetadataEntityType.Episode, tmdbEpisodeId);
+        IMetadataEpisodeCrossReference xref = Substitute.For<IMetadataEpisodeCrossReference>();
+        xref.Source.Returns(MetadataSource.TMDB);
+        xref.ProviderID.Returns(episodeId);
+        xref.AnidbEpisodeID.Returns(anidbEpisodeId);
+        return xref;
+    }
+
+    public static IMetadataMovieCrossReference MovieCrossReference(int tmdbMovieId, int anidbEpisodeId)
+    {
+        MetadataGuid movieId = MetadataId(MetadataSource.TMDB, MetadataEntityType.Movie, tmdbMovieId);
+        IMetadataMovieCrossReference xref = Substitute.For<IMetadataMovieCrossReference>();
+        xref.Source.Returns(MetadataSource.TMDB);
+        xref.ProviderID.Returns(movieId);
         xref.AnidbEpisodeID.Returns(anidbEpisodeId);
         return xref;
     }

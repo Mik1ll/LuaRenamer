@@ -65,6 +65,10 @@ tmdb = nil
 ---@type string|nil
 filename = nil
 
+---Output: Alternative filename used only when the primary target filename is already occupied
+---@type string|nil
+collision_filename = nil
+
 ---Output: Import folder name / full directory path / ImportFolder that specifies the destination
 ---@type string|ImportFolder|nil
 destination = nil
