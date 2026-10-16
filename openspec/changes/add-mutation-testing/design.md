@@ -4,6 +4,8 @@ See proposal.md for the motivation. The current state that shapes the approach:
 
 - `Tests` is an xUnit v3 4.0 project running as a self-hosted Microsoft Testing Platform executable (`OutputType=Exe`, `global.json` `test.runner = Microsoft.Testing.Platform`). xUnit v3 4.0 targets MTP v2. There is no VSTest adapter.
 - Stryker.NET added an MTP runner in 4.13, in preview (announced 2026-03-13). Its coverage analysis is partial: it can skip mutants no test covers, but it cannot narrow a covered mutant down to the tests that cover it. **Every covered mutant runs the full suite.**
+  - *Implementation note:* 5.0.0 (2026-09-11) added `perTest` coverage to the MTP runner, and the spike confirmed it captures per-test coverage for all 315 tests. A covered mutant now runs only the tests that cover it.
+- `LuaRenamer`'s design-time build also runs `GenerateLuaNames`, and Stryker's project analysis is a design-time `Clean;Build` of each project. *Implementation note:* that `Clean` deleted `DefsGenerator`'s real assembly before `LuaRenamer` was analyzed. `Directory.Build.props` now gives design-time builds their own clean list.
 - `LuaRenamer`'s build runs `GenerateLuaDefs` and `GenerateLuaNames`. Stryker compiles mutants in memory with Roslyn after a single initial MSBuild build, so those targets run once against unmutated models. The tracked defs don't change, and no mutant reaches the generated `*Names` DSL.
 - Several of the strongest checks are FsCheck properties with random seeds. A mutant that only some generated inputs expose can be killed in one run and survive the next.
 
@@ -34,6 +36,8 @@ If that fails, the fallback is adding `xunit.runner.visualstudio` and `Microsoft
 Stryker runs in solution mode over `LuaEnv` and `LuaRenamer`, with a `mutate` exclusion for `**/*.g.cs` (which covers the `LuaNames.g.cs` that `GenerateLuaNames` writes to `obj/`) and no reference to `DefsGenerator`.
 
 `DefsGenerator` is excluded deliberately. Its output is already checked by CI's `git diff --exit-code` on the tracked defs, which is a stronger check than any test of the generator would be, and mutating it would measure the wrong thing.
+
+*Implementation note:* Stryker 5.0.0 can't run solution mode over a subset of a solution. Its `project` filter is one substring of a project's full path, it rejects `.slnf`, and a two-project `.slnx` in a subfolder trips an unnormalized `../` lookup (tasks.md 2.1 has the details). So the run is over `LuaRenamer.slnx`, and `DefsGenerator` is excluded by file with `!**/DefsGenerator/**/*.cs`. Its files still appear in the report, but every mutant in them is `Ignored` or `CompileError`, so they don't count toward the score.
 
 ### The sandbox boundary is the triage scope
 
