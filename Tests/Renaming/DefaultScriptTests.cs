@@ -1,5 +1,6 @@
 using System.IO;
 using AwesomeAssertions;
+using LuaRenamer.LuaEnv;
 using LuaRenamer.Tests.Fakes;
 using Microsoft.Extensions.Logging.Testing;
 using NSubstitute;
@@ -38,6 +39,18 @@ public class DefaultScriptTests
         result.FileName.Should().NotBeNullOrWhiteSpace().And.EndWith(".mp4");
         result.Path.Should().NotBeNullOrWhiteSpace();
         result.ManagedFolder.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ItRunsWithinAHundredthOfTheShippedLimits()
+    {
+        var limits = new ScriptLimits(ScriptLimits.Default.Instructions / 100, ScriptLimits.Default.MemoryBytes / 100);
+        using var sandbox = new LuaSandbox(limits, LuaScripts.LuaLinq, LuaScripts.Utils);
+        new ModelTranslator(sandbox).Translate(
+            ModelProducers.EnvToModel(RelocationGraph.Populated().Context(DefaultScript), new FakeLogger<LuaRenamer>()), sandbox.Env);
+
+        sandbox.Run(DefaultScript).Should().BeNull();
+        sandbox.GetValue("filename").Should().BeOfType<string>();
     }
 
     [Fact]

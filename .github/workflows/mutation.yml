@@ -19,9 +19,15 @@ on:
   schedule:
     - cron: '0 6 * * 1'
 
+permissions:
+  contents: read
+
 jobs:
   mutation-testing:
     runs-on: ubuntu-latest
+    # A mutant that breaks a script limit can run a hostile-script test out to its timeout, so allow well
+    # beyond the ~15 minutes a hosted run is estimated to take.
+    timeout-minutes: 60
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
