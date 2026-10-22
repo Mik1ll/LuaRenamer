@@ -30,9 +30,9 @@
       },
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.10, )",
-        "resolved": "1.4.10",
-        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
+        "requested": "[1.4.11, )",
+        "resolved": "1.4.11",
+        "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
       },
       "Microsoft.Extensions.Diagnostics.Testing": {
         "type": "Direct",
@@ -355,7 +355,7 @@
       "luarenamer": {
         "type": "Project",
         "dependencies": {
-          "KeraLua": "[1.4.10, )",
+          "KeraLua": "[1.4.11, )",
           "LuaRenamer.LuaEnv": "[1.0.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.12, 11.0.0)",
           "NLua": "[1.7.9, )",
@@ -372,7 +372,7 @@
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
-          "KeraLua": "[1.4.10, )",
+          "KeraLua": "[1.4.11, )",
           "NLua": "[1.7.9, )",
           "Shoko.Abstractions": "[6.0.0-alpha.108, )"
         }
@@ -381,9 +381,9 @@
     "net10.0/linux-arm64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.10, )",
-        "resolved": "1.4.10",
-        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
+        "requested": "[1.4.11, )",
+        "resolved": "1.4.11",
+        "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
       },
       "Microsoft.Win32.Registry": {
         "type": "Transitive",
@@ -404,9 +404,9 @@
     "net10.0/linux-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.10, )",
-        "resolved": "1.4.10",
-        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
+        "requested": "[1.4.11, )",
+        "resolved": "1.4.11",
+        "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
       },
       "Microsoft.Win32.Registry": {
         "type": "Transitive",
@@ -427,9 +427,9 @@
     "net10.0/win-x64": {
       "KeraLua": {
         "type": "Direct",
-        "requested": "[1.4.10, )",
-        "resolved": "1.4.10",
-        "contentHash": "YS85X5ayUrJe2Xci56J95DFK50pzlKlq8iWocz8JRxhZQdrPmHhCc+8q+BKct6XC1DgyL35pnGGymlc711/LEA=="
+        "requested": "[1.4.11, )",
+        "resolved": "1.4.11",
+        "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
       },
       "Microsoft.Win32.Registry": {
         "type": "Transitive",
