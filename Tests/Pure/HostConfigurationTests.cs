@@ -25,7 +25,10 @@ public class HostConfigurationTests
     public void TheProcessRunsUnderTheExpectedTimeZone()
     {
         var expected = Expectation(TimeZoneVariable);
-        TimeZoneInfo.Local.Id.Should().Be(expected);
+        // Windows reports its own zone ids; compare in IANA terms, which is what the variable names.
+        TimeZoneInfo local = TimeZoneInfo.Local;
+        var id = !local.HasIanaId && TimeZoneInfo.TryConvertWindowsIdToIanaId(local.Id, out var iana) ? iana : local.Id;
+        id.Should().Be(expected);
     }
 
     private static string Expectation(string variable)

@@ -27,21 +27,26 @@ jobs:
     runs-on: ${{ matrix.runner }}
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      # Set from the matrix rather than by the configure step, so a leg whose configuration is lost or skipped
+      # fails the canary instead of skipping it. Empty on the default legs, where the canary skips.
+      LUARENAMER_EXPECT_CULTURE: ${{ matrix.culture }}
+      LUARENAMER_EXPECT_TZ: ${{ matrix.timezone }}
     steps:
     - uses: actions/checkout@v4
     # Written to GITHUB_ENV rather than the job's env: an expression that is empty on the other legs would
     # still set LANG/TZ to the empty string there instead of leaving the runner defaults alone.
     - name: Configure host locale and timezone
-      if: matrix.locale
+      if: matrix.locale || matrix.timezone
+      shell: bash
       run: |
-        sudo locale-gen ${{ matrix.locale }}
-        {
-          echo "LANG=${{ matrix.locale }}"
-          echo "LC_ALL=${{ matrix.locale }}"
-          echo "TZ=${{ matrix.timezone }}"
-          echo "LUARENAMER_EXPECT_CULTURE=${{ matrix.culture }}"
-          echo "LUARENAMER_EXPECT_TZ=${{ matrix.timezone }}"
-        } >> "$GITHUB_ENV"
+        if [ -n "${{ matrix.locale }}" ]; then
+          sudo locale-gen ${{ matrix.locale }}
+          echo "LANG=${{ matrix.locale }}" >> "$GITHUB_ENV"
+          echo "LC_ALL=${{ matrix.locale }}" >> "$GITHUB_ENV"
+        fi
+        if [ -n "${{ matrix.timezone }}" ]; then
+          echo "TZ=${{ matrix.timezone }}" >> "$GITHUB_ENV"
+        fi
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
