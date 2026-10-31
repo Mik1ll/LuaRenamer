@@ -63,15 +63,40 @@ public sealed class LuaSandbox : Lua
 
     // Loads a chunk against `env` and pcalls it. Returns [false, error] if the chunk failed to load or threw,
     // otherwise pcall's results. `tostring` on the error keeps a non-string error object (`error({})`) reportable.
+    //
+    // With a `timeout` in seconds, a count hook stops the chunk once it runs past the deadline. From then on the
+    // hook errors on every instruction outside this function, so a script can't pcall the error and carry on.
+    // `tostring` stays under the hook because a `__tostring` metamethod is script code. A single library call
+    // (a long pattern match) runs no instructions, so the hook only stops it once it returns.
     private const string SandboxFunction =
         """
-        return function (untrusted_code, env)
+        local run
+        run = function (untrusted_code, env, timeout)
           local untrusted_function, message = load(untrusted_code, nil, 't', env)
           if not untrusted_function then return false, message end
+          local stop
+          if timeout then
+            local deadline = os.time() + timeout
+            local function hook()
+              if not stop then
+                if os.time() <= deadline then return end
+                stop = string.format('script timed out after %d seconds', timeout)
+                debug.sethook(hook, '', 1)
+              end
+              if debug.getinfo(2, 'f').func ~= run then error(stop, 2) end
+            end
+            debug.sethook(hook, '', 1000)
+          end
           local result = {pcall(untrusted_function)}
-          if not result[1] then return false, tostring(result[2]) end
+          if not result[1] then
+            local converted, text = pcall(tostring, result[2])
+            result[2] = converted and text or stop or 'error object could not be converted to a string'
+          end
+          debug.sethook()
+          if not result[1] then return false, result[2] end
           return table.unpack(result)
         end
+        return run
         """;
 
     private const string TableConstructor = "return function () return {} end";
@@ -100,13 +125,19 @@ public sealed class LuaSandbox : Lua
     public LuaTable Env { get; }
 
     /// <summary>
-    /// Runs an untrusted user script against <see cref="Env"/>.
+    /// How long <see cref="Run"/> lets a script run before stopping it, in whole seconds of wall-clock time. The
+    /// clock has one-second resolution, so a script is stopped up to a second after that.
+    /// </summary>
+    public int TimeoutSeconds { get; init; } = 15;
+
+    /// <summary>
+    /// Runs an untrusted user script against <see cref="Env"/>, stopping it after <see cref="TimeoutSeconds"/>.
     /// </summary>
     /// <returns>
     /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
     /// </returns>
     public string? Run(string script) =>
-        _runSandboxed.Call(script, Env) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
+        _runSandboxed.Call(script, Env, TimeoutSeconds) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
 
     /// <summary>
     /// Compiles a <c>return function ... end</c> chunk against <see cref="Env"/>. Memoized by source — the
