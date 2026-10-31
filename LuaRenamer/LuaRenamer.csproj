@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KeraLua" Version="1.4.10" />
+        <PackageReference Include="KeraLua" Version="1.4.11" />
         <!-- A version range, not a pin: the host supplies ILogger by DI and the plugin API does not itself
              constrain the version, so a major bump must fail at restore (naming the package and the range)
              rather than at runtime. Dependabot still moves the floor within 10.x. -->
