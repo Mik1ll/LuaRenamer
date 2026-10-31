@@ -65,6 +65,7 @@ Check out [This short guide](https://learnxinyminutes.com/docs/lua/) if you are 
 ## The Environment
 
 The lua environment is sandboxed, removing operations from standard libraries such as `io`, and `os`. See BaseEnv in [LuaContext](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/LuaContext.cs).  
+A script that runs for more than 15 seconds is stopped and fails the rename with a timeout error, and catching that error with `pcall` does not let it continue. A single long library call, such as a pathological pattern match, is only stopped once it returns.  
 The script is run in a fresh environment for every file.  
 Only the values of output variables defined in [env.lua](https://github.com/Mik1ll/LuaRenamer/blob/master/LuaRenamer/lua/env.lua) will affect renaming/moving behaviour.
 
