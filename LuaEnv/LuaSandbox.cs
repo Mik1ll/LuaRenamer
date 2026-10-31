@@ -136,8 +136,9 @@ public sealed class LuaSandbox : Lua
     /// <returns>
     /// <c>null</c> if the script loaded and ran to completion, otherwise the load or runtime error message.
     /// </returns>
+    // The run function's error is load's message or tostring's result, so it is always a string.
     public string? Run(string script) =>
-        _runSandboxed.Call(script, Env, TimeoutSeconds) is [not true, var error, ..] ? error as string ?? error?.ToString() ?? "unknown error" : null;
+        _runSandboxed.Call(script, Env, TimeoutSeconds) is [not true, var error, ..] ? (string)error : null;
 
     /// <summary>
     /// Compiles a <c>return function ... end</c> chunk against <see cref="Env"/>. Memoized by source — the
@@ -211,7 +212,7 @@ public sealed class LuaSandbox : Lua
             while (i < path.Length && path[i] == '[')
             {
                 var close = path.IndexOf(']', i);
-                if (close < 0)
+                if (close == -1)
                     throw new ArgumentException($"unclosed '[' at index {i} in path \"{path}\"", nameof(path));
                 if (!int.TryParse(path.AsSpan(i + 1, close - i - 1), out var index))
                     throw new ArgumentException($"non-numeric index \"{path[(i + 1)..close]}\" in path \"{path}\"", nameof(path));
