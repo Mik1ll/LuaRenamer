@@ -25,6 +25,8 @@ jobs:
             culture: tr-TR
             timezone: America/St_Johns
     runs-on: ${{ matrix.runner }}
+    # A backstop for a hung run. The slowest green leg (windows) takes under two minutes.
+    timeout-minutes: 15
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       # Set from the matrix rather than by the configure step, so a leg whose configuration is lost or skipped
