@@ -11,24 +11,11 @@ using Microsoft.Extensions.Logging;
 using NLua;
 using NLua.Exceptions;
 using Shoko.Abstractions.Metadata.Shoko;
-using Shoko.Abstractions.Plugin;
 using Shoko.Abstractions.Video;
 using Shoko.Abstractions.Video.Enums;
 using Shoko.Abstractions.Video.Relocation;
 
 namespace LuaRenamer;
-
-public class Plugin : IPlugin
-{
-    public Guid ID => Guid.Parse("0c1d69de-a937-59d3-835a-1a0db6aacafc");
-
-
-    public string Name => nameof(LuaRenamer);
-
-    public string Description => """
-        Lua scripting environment for renaming and moving video files. Provides a powerful Lua 5.4 interface for custom file organization.
-    """;
-}
 
 public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRenamerSettings>
 {

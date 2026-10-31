@@ -36,10 +36,44 @@
           "Newtonsoft.Json": "13.0.4"
         }
       },
+      "Shoko.BuildTools.Targets": {
+        "type": "Direct",
+        "requested": "[0.7.2, )",
+        "resolved": "0.7.2",
+        "contentHash": "TgpFH6nHoHM/eHGIKVclYCyFg/Dm83A+/I3gqGvZ3JgabTm6hpuw59zG/KTD6hvSP/GHQ5P8VFJLnUrAvsM2bg==",
+        "dependencies": {
+          "Microsoft.Build.Framework": "18.9.6",
+          "Microsoft.Build.Utilities.Core": "18.9.6"
+        }
+      },
+      "Microsoft.Build.Framework": {
+        "type": "Transitive",
+        "resolved": "18.9.6",
+        "contentHash": "P5y8IAhu6UyN6FtzfN4sCNZEQGyV6S4kSTBYldtzB9bzvgdCBBKjsS6epH5aJVFM0q1yJqa8RaTzr1iEJBwIMA==",
+        "dependencies": {
+          "Microsoft.NET.StringTools": "18.9.6"
+        }
+      },
+      "Microsoft.Build.Utilities.Core": {
+        "type": "Transitive",
+        "resolved": "18.9.6",
+        "contentHash": "BkU2irGHBdkULHzLmEObQCjOz7x+3unHkcmGa+BlTXyEFyj4wupcSAG3E0SlzpeF9s3ViSLbhjNDMHwMxC/Ugg==",
+        "dependencies": {
+          "Microsoft.Build.Framework": "18.9.6",
+          "System.Configuration.ConfigurationManager": "10.0.8",
+          "System.Diagnostics.EventLog": "10.0.8",
+          "System.Security.Cryptography.ProtectedData": "10.0.8"
+        }
+      },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.14",
         "contentHash": "QtpQzuSZVyTPCuHW058yCs9Nj0394uUkNyFHS813nOmK9UgUdBdaprJ5PPsBgsQIpxADTsTkbaMMonykem6qdw=="
+      },
+      "Microsoft.NET.StringTools": {
+        "type": "Transitive",
+        "resolved": "18.9.6",
+        "contentHash": "CNZfh4P65tHm1Wh/uuIbYfvHlPnb0dJ9SCaIZbXRzOMn+8JEorSqSdXdGRsrDbKBDJfNG6nmgleYhnfL2pd1oQ=="
       },
       "Namotion.Reflection": {
         "type": "Transitive",
@@ -66,6 +100,25 @@
         "resolved": "11.6.1",
         "contentHash": "WA4z8iK+0SOh2/qoo7rtEanj/LjJZ8oWWoXI8u1xcYMk6VzHONqpabJBYGrzqDO41ld+VQHOFL+B8MXncIVSSA=="
       },
+      "System.Configuration.ConfigurationManager": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "QG+HHwJjLyUiRuA9axr5pDqHAxboo7FXCTRakxMABE9CUAUij/tsd/MsgQPJUEppkf+YBLT+F/P/wKIVCAIcNg==",
+        "dependencies": {
+          "System.Diagnostics.EventLog": "10.0.8",
+          "System.Security.Cryptography.ProtectedData": "10.0.8"
+        }
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "+Ro7WgIom+BDNH+YhTuZKL6QJ0ctfOpTyfUG/h3aU5KwXt3OaNf0wYWrTvoBUj+34Dy5V8dN9yCco1hAJQ4txw=="
+      },
+      "System.Security.Cryptography.ProtectedData": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "/ldVgSfImIBp6fLWS7sLH0BnmtFj0ZwGlZo4Xx2q0K3ZhJNDbW45kj2f6zPoC+L+BTINuHdMzTsopuwmkbgcNA=="
+      },
       "LuaRenamer.LuaEnv": {
         "type": "Project",
         "dependencies": {
@@ -81,6 +134,11 @@
         "requested": "[1.4.11, )",
         "resolved": "1.4.11",
         "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "+Ro7WgIom+BDNH+YhTuZKL6QJ0ctfOpTyfUG/h3aU5KwXt3OaNf0wYWrTvoBUj+34Dy5V8dN9yCco1hAJQ4txw=="
       }
     },
     "net10.0/linux-x64": {
@@ -89,6 +147,11 @@
         "requested": "[1.4.11, )",
         "resolved": "1.4.11",
         "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "+Ro7WgIom+BDNH+YhTuZKL6QJ0ctfOpTyfUG/h3aU5KwXt3OaNf0wYWrTvoBUj+34Dy5V8dN9yCco1hAJQ4txw=="
       }
     },
     "net10.0/win-x64": {
@@ -97,6 +160,11 @@
         "requested": "[1.4.11, )",
         "resolved": "1.4.11",
         "contentHash": "HwfvB3yUIzgx128Wf0Cs1ILmsUPzGdJslcvk6bZjSsLAQazAjTCWWcd6wb2OAlqtiNMcVteeRkTTiSXTfAhMeQ=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "+Ro7WgIom+BDNH+YhTuZKL6QJ0ctfOpTyfUG/h3aU5KwXt3OaNf0wYWrTvoBUj+34Dy5V8dN9yCco1hAJQ4txw=="
       }
     }
   }

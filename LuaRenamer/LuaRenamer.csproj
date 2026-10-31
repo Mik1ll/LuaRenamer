@@ -10,12 +10,21 @@
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <Authors>Mik1ll</Authors>
         <RepositoryUrl>https://github.com/Mik1ll/LuaRenamer</RepositoryUrl>
-        <PackageTags>relocation-provider, lua, scripting</PackageTags>
         <Nullable>enable</Nullable>
         <!--<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>-->
         <Deterministic>true</Deterministic>
         <DeterministicSourcePaths>true</DeterministicSourcePaths>
         <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    </PropertyGroup>
+
+    <!-- The plugin's identity, stamped into the assembly by Shoko.BuildTools.Targets, which also generates the Plugin class from it. -->
+    <PropertyGroup Label="Plugin">
+        <PluginGenerateClass>true</PluginGenerateClass>
+        <PluginID>0c1d69de-a937-59d3-835a-1a0db6aacafc</PluginID>
+        <PluginName>LuaRenamer</PluginName>
+        <PluginOverview>Lua scripting environment for renaming and moving video files. Provides a powerful Lua 5.4 interface for custom file organization.</PluginOverview>
+        <PluginTags>relocation-provider,lua,scripting</PluginTags>
+        <PluginThumbnail>../banner16x9.svg</PluginThumbnail>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,6 +35,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.14, 11.0.0)" ExcludeAssets="runtime" />
         <PackageReference Include="NLua" Version="1.7.9" />
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.108" ExcludeAssets="runtime" />
+        <PackageReference Include="Shoko.BuildTools.Targets" Version="0.7.2" PrivateAssets="All" ExcludeAssets="runtime" />
     </ItemGroup>
 
     <ItemGroup>
@@ -67,43 +77,6 @@
             <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+'))</Version>
             <InformationalVersion>$(GitInfo)</InformationalVersion>
         </PropertyGroup>
-    </Target>
-
-    <Target Name="PluginAssemblyVersion" BeforeTargets="GetAssemblyVersion;GenerateAssemblyInfo" Condition="Exists('../.git')">
-        <PropertyGroup Condition="$(OS) == 'Windows_NT'">
-            <GitDateFormat>%%aI</GitDateFormat>
-            <NullStdErr>NUL</NullStdErr>
-        </PropertyGroup>
-
-        <PropertyGroup Condition="$(OS) != 'Windows_NT'">
-            <GitDateFormat>%aI</GitDateFormat>
-            <NullStdErr>/dev/null</NullStdErr>
-        </PropertyGroup>
-
-        <Exec Command="git log -1 --format=$(GitDateFormat)" ConsoleToMsBuild="true" StandardOutputImportance="low">
-            <Output TaskParameter="ConsoleOutput" PropertyName="_GitAuthorDateRaw" />
-        </Exec>
-
-        <Exec Command="git rev-parse HEAD" ConsoleToMsBuild="true" StandardOutputImportance="low">
-            <Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitRaw" />
-        </Exec>
-
-        <Exec Command="git describe --exact-match --tags --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; 2&gt;$(NullStdErr)" ConsoleToMsBuild="true" StandardOutputImportance="low" IgnoreExitCode="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="_GitTagRaw" />
-        </Exec>
-
-        <PropertyGroup>
-            <ReleaseDate>$([System.String]::Copy('$(_GitAuthorDateRaw)').Trim())</ReleaseDate>
-            <SourceRevision>$([System.String]::Copy('$(_GitCommitRaw)').Trim())</SourceRevision>
-            <ReleaseTag>$([System.String]::Copy('$(_GitTagRaw)').Trim())</ReleaseTag>
-        </PropertyGroup>
-
-        <ItemGroup>
-            <AssemblyMetadata Include="RuntimeIdentifier" Value="$(RuntimeIdentifier)" Condition="'$(RuntimeIdentifier)' != ''" />
-            <AssemblyMetadata Include="ReleaseDate" Value="$(ReleaseDate)" Condition="'$(ReleaseDate)' != ''" />
-            <AssemblyMetadata Include="ReleaseTag" Value="$(ReleaseTag)" Condition="'$(ReleaseTag)' != ''" />
-            <AssemblyMetadata Include="SourceRevision" Value="$(SourceRevision)" Condition="'$(SourceRevision)' != ''" />
-        </ItemGroup>
     </Target>
 
     <Target Name="GenerateLuaDefs" AfterTargets="Build" DependsOnTargets="ResolveDefsGenerator">
