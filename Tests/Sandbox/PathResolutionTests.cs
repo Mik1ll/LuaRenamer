@@ -101,19 +101,36 @@ public sealed class PathResolutionTests : IDisposable
     }
 
     [Theory]
-    [InlineData("", "empty path")]
-    [InlineData("anime..type", "empty segment")]
-    [InlineData(".anime", "leading dot")]
-    [InlineData("anime.", "trailing dot")]
-    [InlineData("anime[1", "unclosed bracket")]
-    [InlineData("anime[x]", "non-numeric index")]
-    [InlineData("anime[]", "empty index")]
-    [InlineData("anime[1]x", "trailing junk after an index")]
-    [InlineData("anime:getname(Language.English)", "method call")]
-    [InlineData("episode_numbers(2)", "function call")]
-    public void RecordedMalformedPaths(string path, string why) =>
+    [InlineData("", "empty path", "empty name segment")]
+    [InlineData("anime..type", "empty segment", "empty name segment")]
+    [InlineData(".anime", "leading dot", "empty name segment")]
+    [InlineData("anime.", "trailing dot", "empty name segment")]
+    [InlineData("anime[1", "unclosed bracket", "unclosed '['")]
+    [InlineData("anime[x]", "non-numeric index", "non-numeric index \"x\"")]
+    [InlineData("anime[]", "empty index", "non-numeric index \"\"")]
+    [InlineData("anime[1]x", "trailing junk after an index", "expected '.' after an index")]
+    [InlineData("anime[1]name", "a name run onto an index", "expected '.' after an index")]
+    [InlineData("anime:getname(Language.English)", "method call", "\"anime:getname(Language\" is not a plain name segment")]
+    [InlineData("episode_numbers(2)", "function call", "\"episode_numbers(2)\" is not a plain name segment")]
+    [InlineData(":getname()", "a call with no receiver", "\":getname()\" is not a plain name segment")]
+    public void RecordedMalformedPaths(string path, string why, string reported) =>
         FluentActions.Invoking(() => _sandbox.GetValue(path))
-            .Should().Throw<ArgumentException>(why);
+            .Should().Throw<ArgumentException>(why).WithMessage($"{reported}* in path \"{path}\"*");
+
+    [Fact]
+    public void ResolvingAPathReleasesTheTablesItWalksThrough()
+    {
+        // Every LuaTable handle holds a registry slot until it is disposed, so an intermediate table left for
+        // the finalizer shows up here as registry growth.
+        const string path = "alpha.inner.items[2].name";
+        _sandbox.GetValue(path);
+        var before = _sandbox.State.RawLen((int)KeraLua.LuaRegistry.Index);
+
+        for (var i = 0; i < 100; i++)
+            _sandbox.GetValue(path);
+
+        _sandbox.State.RawLen((int)KeraLua.LuaRegistry.Index).Should().Be(before);
+    }
 
     [Fact]
     public void ResolvesInteriorNodesAndScalarsWithoutCoercion()
