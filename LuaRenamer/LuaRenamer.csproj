@@ -75,7 +75,7 @@
         </Exec>
 
         <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(GitInfo)', '\d+\.\d+\.\d+'))">
-            <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+'))</Version>
+            <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+(\.\d+)?'))</Version>
             <InformationalVersion>$(GitInfo)</InformationalVersion>
         </PropertyGroup>
     </Target>

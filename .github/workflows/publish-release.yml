@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag (e.g. v1.2.3); created at the released commit if it does not exist
+        description: Release tag (v1.2.3 for Stable, v1.2.3.4 for a prerelease); created at the released commit if it does not exist
         required: true
         type: string
       commit-ish:
@@ -38,6 +38,19 @@ jobs:
       with:
         ref: ${{ inputs.commit-ish }}
         fetch-depth: 1
+    - uses: actions/checkout@v4
+      with:
+        ref: manifest
+        path: manifest-branch
+    - name: Check version
+      # shoko-build matches releases by version alone, so reusing a version would overwrite that release.
+      # The server reads a revision as Dev, so the revision has to agree with the channel.
+      run: |
+        VERSION="${TAG#v}"; VERSION="${VERSION%%-*}"
+        [[ "$CHANNEL" == Dev ]] && PATTERN='^[0-9]+(\.[0-9]+){2}\.[1-9][0-9]*$' || PATTERN='^[0-9]+(\.[0-9]+){2}$'
+        [[ "$VERSION" =~ $PATTERN ]] || { echo "::error::$VERSION does not fit $CHANNEL: prerelease tags need a revision (v1.2.3.4), Stable tags must not have one (v1.2.3)"; exit 1; }
+        jq -e --arg version "$VERSION" 'any(.releases[]; .version == $version) | not' manifest-branch/manifest.json > /dev/null \
+          || { echo "::error::$VERSION is already in the manifest"; exit 1; }
     - name: Tag HEAD
       # shoko-build reads the release tag from `git describe --exact-match` and silently falls back to the
       # project version when HEAD is untagged, so an existing tag has to be checked against HEAD here.
@@ -57,10 +70,6 @@ jobs:
       run: dotnet test --no-restore --no-build --verbosity normal
     - name: Restore tools
       run: dotnet tool restore
-    - uses: actions/checkout@v4
-      with:
-        ref: manifest
-        path: manifest-branch
     - name: Generate release notes
       env:
         GH_TOKEN: ${{ github.token }}
@@ -98,10 +107,10 @@ jobs:
         --notes-file "$RUNNER_TEMP/release-notes.md"
         --prerelease="$PRERELEASE"
     - name: Push manifest
-      # shoko-build records no source revision, and leaves the date alone when a new tag reuses a version.
+      # shoko-build records no source revision.
       run: |
-        jq --arg tag "$TAG" --arg revision "$(git rev-parse HEAD)" --arg released_at "$(git log -1 --format=%cI)" '
-          (.releases[] | select(.tag == $tag)) += {source_revision: $revision, released_at: $released_at}
+        jq --arg tag "$TAG" --arg revision "$(git rev-parse HEAD)" '
+          (.releases[] | select(.tag == $tag)).source_revision = $revision
         ' manifest-branch/manifest.json > manifest.json.tmp
         mv manifest.json.tmp manifest-branch/manifest.json
 
