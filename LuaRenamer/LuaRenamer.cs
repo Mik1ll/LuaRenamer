@@ -25,9 +25,7 @@ public class LuaRenamer(ILogger<LuaRenamer> logger) : IRelocationProvider<LuaRen
 
     public string Name => nameof(LuaRenamer);
 
-    public string Description => """
-        Lua scripting environment for renaming and moving video files. Provides a powerful Lua 5.4 interface for custom file organization.
-    """;
+    public string Description => "Renames and moves video files with a Lua script.";
 
     private static string GetNewFilename(object? filename, RelocationContext<LuaRenamerSettings> args, FilePathCleaner filePathCleaner)
     {

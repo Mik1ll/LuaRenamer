@@ -43,20 +43,15 @@ jobs:
         ref: manifest
         path: manifest-branch
     - name: Check version
-      # shoko-build matches releases by version alone, so reusing a version would overwrite that release.
-      # The server reads a revision as Dev, so the revision has to agree with the channel.
-      run: |
-        VERSION="${TAG#v}"; VERSION="${VERSION%%-*}"
-        [[ "$CHANNEL" == Dev ]] && PATTERN='^[0-9]+(\.[0-9]+){2}\.[1-9][0-9]*$' || PATTERN='^[0-9]+(\.[0-9]+){2}$'
-        [[ "$VERSION" =~ $PATTERN ]] || { echo "::error::$VERSION does not fit $CHANNEL: prerelease tags need a revision (v1.2.3.4), Stable tags must not have one (v1.2.3)"; exit 1; }
-        jq -e --arg version "$VERSION" 'any(.releases[]; .version == $version) | not' manifest-branch/manifest.json > /dev/null \
-          || { echo "::error::$VERSION is already in the manifest"; exit 1; }
+      run: bash scripts/check-release-version.sh "$TAG" "$CHANNEL" manifest-branch/manifest.json
     - name: Tag HEAD
-      # shoko-build reads the release tag from `git describe --exact-match` and silently falls back to the
-      # project version when HEAD is untagged, so an existing tag has to be checked against HEAD here.
+      # The build takes its version from `git describe` and silently falls back to the project version when
+      # HEAD is untagged, so an existing tag has to be checked against HEAD here. A commit-ish that is itself
+      # a tag leaves a second tag on HEAD, which describe could pick instead.
       run: |
         git fetch --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG" || git tag "$TAG"
         [[ "$(git rev-parse "$TAG^{commit}")" == "$(git rev-parse HEAD)" ]] || { echo "::error::$TAG is not on HEAD"; exit 1; }
+        git tag --points-at HEAD | grep -vxF "$TAG" | xargs -r git tag -d
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
@@ -86,6 +81,7 @@ jobs:
         dotnet shoko-build ./LuaRenamer/LuaRenamer.csproj
         -c Release
         --no-restore
+        --tag "$TAG"
         -p:ReleaseChannel="$CHANNEL"
         --manifest ./manifest-branch/manifest.json
         --release-notes-path "$RUNNER_TEMP/release-notes.md"
@@ -101,11 +97,17 @@ jobs:
         # The v* tag ruleset only lets admins and the release app create tags; GITHUB_TOKEN cannot bypass it.
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
         PRERELEASE: ${{ inputs.prerelease }}
-      run: >-
-        gh release create "$TAG" ./publish/*.zip
-        --target "$(git rev-parse HEAD)"
-        --notes-file "$RUNNER_TEMP/release-notes.md"
-        --prerelease="$PRERELEASE"
+      # A rerun after a failed manifest push finds the release already there, and the archives it rebuilt are
+      # the ones the manifest now describes. Check version has confirmed the manifest doesn't list this release.
+      run: |
+        if gh release view "$TAG" > /dev/null 2>&1; then
+          gh release upload "$TAG" ./publish/*.zip --clobber
+        else
+          gh release create "$TAG" ./publish/*.zip \
+            --target "$(git rev-parse HEAD)" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --prerelease="$PRERELEASE"
+        fi
     - name: Push manifest
       # shoko-build records no source revision.
       run: |

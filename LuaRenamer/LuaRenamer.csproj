@@ -7,7 +7,6 @@
         <AssemblyName>LuaRenamer</AssemblyName>
         <DisableImplicitNuGetFallbackFolder Condition="'$(CI)' == 'true'">true</DisableImplicitNuGetFallbackFolder>
         <!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->
-        <EnableDynamicLoading>true</EnableDynamicLoading>
         <Authors>Mik1ll</Authors>
         <RepositoryUrl>https://github.com/Mik1ll/LuaRenamer</RepositoryUrl>
         <Nullable>enable</Nullable>
