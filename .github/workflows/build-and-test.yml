@@ -64,3 +64,6 @@ jobs:
       run: git diff --exit-code -- LuaRenamer/lua/
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal
+    - name: Test release version check
+      if: matrix.leg == 'linux-x64'
+      run: bash scripts/check-release-version.test.sh
