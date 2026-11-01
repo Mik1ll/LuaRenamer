@@ -11,6 +11,8 @@
     "scripting"
   ],
   "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
+  "thumbnail_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
+  "icon_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/icon1x1.svg",
   "releases": [
     {
       "version": "6.4.0",
