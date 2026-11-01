@@ -25,6 +25,7 @@
         <PluginOverview>Lua scripting environment for renaming and moving video files. Provides a powerful Lua 5.4 interface for custom file organization.</PluginOverview>
         <PluginTags>relocation-provider,lua,scripting</PluginTags>
         <PluginThumbnail>../banner16x9.svg</PluginThumbnail>
+        <PluginIcon>../icon1x1.svg</PluginIcon>
     </PropertyGroup>
 
     <ItemGroup>
