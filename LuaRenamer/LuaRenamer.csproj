@@ -68,17 +68,6 @@
         <Exec Command="dotnet &quot;$(DefsGenerator)&quot; --names &quot;$(IntermediateOutputPath)LuaNames.g.cs&quot;" />
     </Target>
 
-    <Target Name="GetGitAssemblyVersion" BeforeTargets="GetAssemblyVersion">
-        <Exec Command="git describe --match &quot;v[0-9]*.[0-9]*.[0-9]*&quot; --tags --abbrev=7 --long --dirty --always" ConsoleToMsBuild="true" StandardOutputImportance="low">
-            <Output TaskParameter="ConsoleOutput" PropertyName="GitInfo" />
-        </Exec>
-
-        <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(GitInfo)', '\d+\.\d+\.\d+'))">
-            <Version>$([System.Text.RegularExpressions.Regex]::Match('$(GitInfo)', '\d+\.\d+\.\d+(\.\d+)?'))</Version>
-            <InformationalVersion>$(GitInfo)</InformationalVersion>
-        </PropertyGroup>
-    </Target>
-
     <Target Name="GenerateLuaDefs" AfterTargets="Build" DependsOnTargets="ResolveDefsGenerator">
         <Exec Command="dotnet &quot;$(DefsGenerator)&quot; &quot;$(MSBuildThisFileDirectory)lua/&quot;" />
     </Target>

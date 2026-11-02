@@ -45,7 +45,7 @@ Packaging compiles no native code: the native binaries come from the KeraLua pac
 
 ### Overlay the archive onto the test output
 
-Each leg builds Tests in Release with the same `-p:Version`, then expands its zip over `Tests/bin/Release/net10.0` and moves the native library into `runtimes/<rid>/native/`, the path `deps.json` names. The move fails the step if the archive has no native library. On win-x64 this ran the full suite, 327 passed with the 2 expected skips, with the DLL's hash matching the archive's.
+Each leg builds Tests in Release with the same `-p:Version`, then expands its zip over `Tests/bin/Release/net10.0` and moves the native library into `runtimes/<rid>/native/`, the path `deps.json` names. The step checks for the library first, because `Move-Item` silently does nothing when its wildcard matches nothing. On win-x64 this ran the full suite, 327 passed with the 2 expected skips, with the DLL's hash matching the archive's.
 
 *Alternatives considered:*
 - `dotnet build Tests -r <rid>` would place the native library at the root, but fails with NETSDK1047. `DefsGenerator` is an Exe reached through a ProjectReference, so the RID flows to it, and it declares no RIDs.
@@ -75,6 +75,14 @@ Delete `GetGitAssemblyVersion` and pass `-p:Version` from `resolve`. This remove
 
 `scripts/resolve-release-version.sh` replaces `check-release-version.sh`. It takes the requested version, the channel, the manifest, the lock file, and the remote tags, then prints version, tag, and channel. Revisions come from the manifest and the tags together, so a release whose manifest push failed can't have its revision reused.
 
+Tags become valid semver after the `v`: `v6.5.0-dev.1+abstr.6.0.0.alpha.108`, and `v6.5.0+abstr.6.0.0` for Stable. The Abstractions version moves into build metadata, where it doesn't affect precedence, with `-` written as `.`. Existing tags stay as they are, and the resolver reads both forms.
+
+The version stays four-part (`6.5.0.1`) in the assembly and manifest, because an assembly version can only hold numbers and `shoko-build` writes the manifest from it. So `-dev.N` appears only in the tag.
+
+Shoko treats tags as opaque, and its schema leaves them unconstrained. Download URLs work with `+` as it stands: both `+` and `%2B` returned the file for a release of `k3s-io/k3s`. Asset names don't, because GitHub renames assets with special characters, while workflow artifacts keep their names, so CI wouldn't see the break. Archives are therefore named `LuaRenamer_{version}_{runtime}.zip`, not by tag. Pull requests use a tag with build metadata too, so they exercise the `+`.
+
+*Alternative considered:* the tag with its build metadata removed, as in `LuaRenamer_v6.5.0-dev.1_linux-x64.zip`. It reads closer to the tag, but needs one more output from `resolve`, because workflow expressions can't cut a string at a character. `{version}` is `shoko-build`'s own template and matches the manifest.
+
 The Dev-or-Stable rule exists because of a gap in Shoko. `SemverVersionComparer`'s summary says a revision sorts below its base version, but a three-part `Version` has `Revision == -1`, not 0, so the comparison falls through and `6.5.0` sorts below `6.5.0.3` (run against a copy of that logic). The rule is safe under either reading.
 
 ### `commit-ish` is kept and fixed once
@@ -91,9 +99,11 @@ The Dev-or-Stable rule exists because of a gap in Shoko. `SemverVersionComparer`
 
 Workflow-level concurrency uses a fixed group for dispatches, and `github.run_id` otherwise, so pull requests never queue. Publishing keeps `gh release upload --clobber` for the case where the release exists. Because the archives come from the run's artifact, a job re-run re-uploads the same bytes that the manifest describes.
 
+`package` records the commit its manifest came from, and `publish` commits on top of that one. If anything else moved the branch in between, the push fails rather than overwriting it.
+
 ### Throwaway versions on pull requests
 
-Pull requests use `0.0.1.<run_number>` and a matching tag. It's non-zero because Shoko skips 0.0.0, so a pull request's archive can be installed by hand.
+Pull requests use `0.0.1.<run_number>` and the tag `v0.0.1-dev.<run_number>+abstr.ci`. The version is non-zero because Shoko skips 0.0.0, so a pull request's archive can be installed by hand.
 
 ## Risks / Trade-offs
 
@@ -111,4 +121,4 @@ Pull requests use `0.0.1.<run_number>` and a matching tag. It's non-zero because
 3. Add `ci-ok` as a required check in the master ruleset.
 4. Dispatch a dry run on master, then the next real release, which must be 6.4.1 or higher.
 
-Rollback is a revert of step 2. The manifest format and tag scheme are unchanged, so earlier releases are unaffected.
+Rollback is a revert of step 2. The manifest format is unchanged and existing tags stay as they are, so earlier releases are unaffected.

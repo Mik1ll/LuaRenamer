@@ -7,6 +7,7 @@ CI tests a Debug build, while releases ship a Release build compiled separately 
 - Build each runtime's archive once, on one runner, and test those exact bytes on every platform and host-configuration leg.
 - Prove in the suite that a leg ran against the packaged build, and load each archive through a strict plugin-style load context that fails if anything resolves from outside the archive and the host.
 - **BREAKING** (maintainer workflow only): replace the dispatch `tag` input with `version` (`major.minor.patch`). The revision, Abstractions version, and tag are derived. `commit-ish` and `prerelease` stay, and a new `dry-run` input runs everything but publishing.
+- Make tags valid semver after the `v`: `v{major}.{minor}.{patch}[-dev.x]+abstr.a.b.c[.alpha.y]`. Archive names move from the tag to the version, because GitHub renames release assets containing a `+`.
 - Treat each `major.minor.patch` as Dev-only or Stable-only, and refuse a version that would break that.
 - Make the plugin's version an explicit build input rather than something read from `git describe`, removing the local "Tag HEAD" step.
 - Merge `build-and-test.yml` and `publish-release.yml` into one workflow with four jobs: resolve, package, test, publish. Publish runs only on a real dispatch and uploads the tested archives unchanged.
@@ -36,4 +37,5 @@ Out of scope:
 - **Tests**: new packaged-build and plugin-load tests, which skip unless a leg supplies their expectations.
 - **Scripts**: `scripts/check-release-version.sh` and its test script become a resolver that derives and validates the version.
 - **Release process**: the next Dev has to be 6.4.1 or higher. A `commit-ish` from before this change is refused, because it cannot take an explicit version.
-- **Unaffected**: the archive format, manifest schema, release app and its secrets, mutation testing, and the four test legs' platforms and host configurations.
+- **Release assets**: new archives are named `LuaRenamer_{version}_{runtime}.zip`, so the filename no longer shows the Abstractions version. The tag and manifest still do.
+- **Unaffected**: existing tags, the archive format, manifest schema, release app and its secrets, mutation testing, and the four test legs' platforms and host configurations.

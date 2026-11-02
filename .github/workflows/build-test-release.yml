@@ -1,0 +1,323 @@
+# Build, test and release
+#
+# Every run builds each runtime's archive once, then every test leg runs the suite against those exact bytes.
+# A dispatched run also publishes them unchanged, so what ships is what was tested.
+#
+# To release, dispatch this workflow with a major.minor.patch version. The revision, Abstractions version and tag are
+# derived. A Dev release of 6.5.0 is tagged v6.5.0-dev.1+abstr.6.0.0.alpha.108, then -dev.2; a Stable release is
+# v6.5.0+abstr.6.0.0. A version can't be used for both, see scripts/resolve-release-version.sh. Use dry-run to do
+# everything but publish.
+#
+# If publishing fails, use "Re-run failed jobs". Re-running all jobs derives the next revision instead, leaving the
+# partly published release behind.
+
+name: Build, Test and Release
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Release {0}{1}', inputs.version, inputs.dry-run && ' (dry run)' || '') || github.event.pull_request.title }}
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release as major.minor.patch; the revision and Abstractions version are derived
+        required: true
+        type: string
+      commit-ish:
+        description: Branch, tag or full SHA to release; defaults to the workflow ref
+        required: false
+        type: string
+      prerelease:
+        description: Release on the Dev channel, marked as a prerelease
+        required: false
+        type: boolean
+        default: true
+      dry-run:
+        description: Do everything but publish
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# A dispatched run reads the manifest early and pushes it late, so those must not overlap. Pull requests never queue.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'release' || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+      channel: ${{ steps.release.outputs.channel }}
+    steps:
+    # The workflow's own ref, so a release of an older commit-ish still applies the current version rules.
+    - uses: actions/checkout@v7
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ inputs.commit-ish || github.sha }}
+        path: source
+    - uses: actions/checkout@v7
+      if: github.event_name == 'workflow_dispatch'
+      with:
+        ref: manifest
+        path: manifest-branch
+    - name: Test the version resolver
+      run: bash scripts/resolve-release-version.test.sh
+    - name: Fix the commit
+      id: commit
+      run: echo "sha=$(git -C source rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+    - name: Resolve the version
+      id: release
+      env:
+        VERSION: ${{ inputs.version }}
+        CHANNEL: ${{ inputs.prerelease && 'Dev' || 'Stable' }}
+      # Non-zero on a pull request because Shoko skips a plugin at 0.0.0, so its archive can be installed by hand.
+      # The tag has build metadata like a real one, so a pull request exercises the + in it.
+      run: |
+        if [[ "$GITHUB_EVENT_NAME" != workflow_dispatch ]]; then
+          printf 'version=0.0.1.%s\ntag=v0.0.1-dev.%s+abstr.ci\nchannel=Dev\n' "$GITHUB_RUN_NUMBER" "$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          exit
+        fi
+        git ls-remote --tags --refs origin 'v*' | sed 's|.*refs/tags/||' > "$RUNNER_TEMP/tags"
+        bash scripts/resolve-release-version.sh "$VERSION" "$CHANNEL" manifest-branch/manifest.json \
+          source/LuaRenamer/packages.lock.json "$RUNNER_TEMP/tags" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      manifest-sha: ${{ steps.manifest.outputs.sha }}
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      VERSION: ${{ needs.resolve.outputs.version }}
+      TAG: ${{ needs.resolve.outputs.tag }}
+      CHANNEL: ${{ needs.resolve.outputs.channel }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.resolve.outputs.sha }}
+    - uses: actions/checkout@v7
+      with:
+        ref: manifest
+        path: manifest-branch
+    - name: Record the manifest's commit
+      id: manifest
+      run: echo "sha=$(git -C manifest-branch rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+    - name: Restore
+      run: dotnet restore --locked-mode
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Package
+      # Reuses the locked restore above; RuntimeIdentifiers in LuaRenamer.csproj puts every RID in it.
+      # A per-RID restore would push the RID onto LuaEnv and DefsGenerator, whose lock files have none.
+      # Archives are named by version, not tag: GitHub renames release assets with a + in them, which would
+      # leave the manifest's URLs pointing at nothing.
+      run: >-
+        dotnet shoko-build ./LuaRenamer/LuaRenamer.csproj
+        -c Release
+        --no-restore
+        --tag "$TAG"
+        -p:Version="$VERSION"
+        -p:ReleaseChannel="$CHANNEL"
+        --manifest ./manifest-branch/manifest.json
+        --output './publish/LuaRenamer_{version}_{runtime}.zip'
+        --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{version}_{runtime}.zip'
+    # The build's GenerateLuaDefs target rewrites the tracked lua defs from the LuaEnv models, so a dirty
+    # tree here means the committed defs.lua/enums.lua/env.lua are stale.
+    - name: Verify generated Lua defs are current
+      run: git diff --exit-code -- LuaRenamer/lua/
+    # shoko-build takes the version from the built assembly, so a commit that ignores -p:Version shows up here
+    # as a different entry, one that may have overwritten an existing release.
+    - name: Verify the manifest has the resolved version
+      run: |
+        jq -e --arg version "$VERSION" --arg tag "$TAG" '
+          any(.releases[]; .version == $version and .tag == $tag)
+        ' manifest-branch/manifest.json > /dev/null || { echo "::error::The manifest has no $VERSION at $TAG"; exit 1; }
+    - uses: actions/upload-artifact@v7
+      with:
+        name: release
+        path: |
+          publish/*.zip
+          manifest-branch/manifest.json
+        if-no-files-found: error
+
+  test:
+    name: Test (${{ matrix.leg }})
+    needs: [resolve, package]
+    strategy:
+      # The matrix exists to say whether a failure is specific to one platform or configuration; cancelling
+      # the other legs on the first failure would throw that answer away.
+      fail-fast: false
+      matrix:
+        include:
+          - leg: windows
+            runner: windows-latest
+            rid: win-x64
+          - leg: linux-x64
+            runner: ubuntu-latest
+            rid: linux-x64
+          - leg: linux-arm64
+            runner: ubuntu-24.04-arm
+            rid: linux-arm64
+          # tr-TR breaks culture-sensitive case mapping (i -> İ) and uses a decimal comma; St. John's is a
+          # half-hour offset with DST. Each targets a claim the suite makes about not depending on the host.
+          - leg: linux-x64-host-config
+            runner: ubuntu-latest
+            rid: linux-x64
+            locale: tr_TR.UTF-8
+            culture: tr-TR
+            timezone: America/St_Johns
+    runs-on: ${{ matrix.runner }}
+    # A backstop for a hung run. The slowest green leg (windows) takes under two minutes.
+    timeout-minutes: 15
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      # Set from the matrix rather than by the configure step, so a leg whose configuration is lost or skipped
+      # fails the canary instead of skipping it. Empty on the default legs, where the canary skips.
+      LUARENAMER_EXPECT_CULTURE: ${{ matrix.culture }}
+      LUARENAMER_EXPECT_TZ: ${{ matrix.timezone }}
+      LUARENAMER_EXPECT_RID: ${{ matrix.rid }}
+      LUARENAMER_EXPECT_VERSION: ${{ needs.resolve.outputs.version }}
+      LUARENAMER_ARCHIVE: ${{ github.workspace }}/release/publish/LuaRenamer_${{ needs.resolve.outputs.version }}_${{ matrix.rid }}.zip
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.resolve.outputs.sha }}
+    # Written to GITHUB_ENV rather than the job's env: an expression that is empty on the other legs would
+    # still set LANG/TZ to the empty string there instead of leaving the runner defaults alone.
+    - name: Configure host locale and timezone
+      if: matrix.locale || matrix.timezone
+      shell: bash
+      run: |
+        if [ -n "${{ matrix.locale }}" ]; then
+          sudo locale-gen ${{ matrix.locale }}
+          echo "LANG=${{ matrix.locale }}" >> "$GITHUB_ENV"
+          echo "LC_ALL=${{ matrix.locale }}" >> "$GITHUB_ENV"
+        fi
+        if [ -n "${{ matrix.timezone }}" ]; then
+          echo "TZ=${{ matrix.timezone }}" >> "$GITHUB_ENV"
+        fi
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+    - uses: actions/download-artifact@v7.0.0
+      with:
+        name: release
+        path: release
+    - name: Restore
+      run: dotnet restore --locked-mode
+    - name: Build
+      shell: bash
+      run: dotnet build Tests/Tests.csproj -c Release --no-restore -p:Version="$LUARENAMER_EXPECT_VERSION"
+    # The archive keeps its native library at the root, where the test output's deps.json would not look.
+    # Test-Path because Move-Item silently does nothing when its wildcard matches nothing.
+    - name: Overlay the packaged archive
+      shell: pwsh
+      run: |
+        $out = 'Tests/bin/Release/net10.0'
+        Expand-Archive -Force $env:LUARENAMER_ARCHIVE $out
+        if (-not (Test-Path "$out/*lua54.*")) { throw 'The archive has no native Lua library' }
+        Move-Item -Force "$out/*lua54.*" "$out/runtimes/$env:LUARENAMER_EXPECT_RID/native/"
+    - name: Test
+      run: dotnet test --no-restore --no-build -c Release --verbosity normal
+
+  # The one check master requires, since a matrix's names change with its legs.
+  ci-ok:
+    needs: [resolve, package, test]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Require every job to have passed
+      env:
+        RESULTS: ${{ join(needs.*.result, ' ') }}
+      run: |
+        for result in $RESULTS; do
+          [[ "$result" == success ]] || { echo "::error::A required job finished with $result"; exit 1; }
+        done
+
+  publish:
+    needs: [resolve, package, test]
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry-run
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      SHA: ${{ needs.resolve.outputs.sha }}
+      TAG: ${{ needs.resolve.outputs.tag }}
+      CHANNEL: ${{ needs.resolve.outputs.channel }}
+    steps:
+    - uses: actions/download-artifact@v7.0.0
+      with:
+        name: release
+        path: release
+    # At the commit the manifest was built from, so the push fails if anything else moved the branch since.
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.package.outputs.manifest-sha }}
+        path: manifest-branch
+    - name: Verify the archives match the manifest
+      run: |
+        jq -r --arg tag "$TAG" '
+          .releases[] | select(.tag == $tag) | .archives[]
+          | "\(.checksum | ltrimstr("sha256:"))  \(.url | split("/") | last)"
+        ' release/manifest-branch/manifest.json > "$RUNNER_TEMP/checksums"
+        cd release/publish
+        sha256sum --check --strict "$RUNNER_TEMP/checksums"
+    - name: Generate release notes
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: >-
+        gh api --method POST "repos/$GITHUB_REPOSITORY/releases/generate-notes"
+        -f tag_name="$TAG"
+        -f target_commitish="$SHA"
+        --jq .body
+        > "$RUNNER_TEMP/release-notes.md"
+    - uses: actions/create-github-app-token@v3.3.0
+      id: app-token
+      with:
+        app-id: ${{ vars.RELEASE_APP_ID }}
+        private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+    - name: Release
+      env:
+        # The v* tag ruleset only lets admins and the release app create tags; GITHUB_TOKEN cannot bypass it.
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        PRERELEASE: ${{ inputs.prerelease }}
+      # A re-run after a failed manifest push finds the release already there.
+      run: |
+        if gh release view "$TAG" > /dev/null 2>&1; then
+          gh release upload "$TAG" release/publish/*.zip --clobber
+        else
+          gh release create "$TAG" release/publish/*.zip \
+            --target "$SHA" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --prerelease="$PRERELEASE"
+        fi
+    - name: Push manifest
+      # shoko-build records no source revision, and packaging has no access to generate the notes.
+      run: |
+        jq --arg tag "$TAG" --arg revision "$SHA" --rawfile notes "$RUNNER_TEMP/release-notes.md" '
+          (.releases[] | select(.tag == $tag)) |= (.source_revision = $revision | .release_notes = ($notes | rtrimstr("\n")))
+        ' release/manifest-branch/manifest.json > manifest-branch/manifest.json
+
+        cd manifest-branch
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add manifest.json
+        git commit -m "ci: update manifest for ${TAG} (${CHANNEL})"
+        git push origin HEAD:manifest

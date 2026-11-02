@@ -6,29 +6,35 @@ Defines how a release version is derived and validated, how plugin archives are 
 
 ### Requirement: A release is requested by major, minor, and patch
 
-A release SHALL be requested with a `major.minor.patch` version and a channel. The revision, the Abstractions version, and the tag SHALL be derived and SHALL NOT be supplied by the maintainer. The Abstractions version SHALL be the one resolved in the plugin's lock file at the commit being released.
+A release SHALL be requested with a `major.minor.patch` version and a channel. The revision, the Abstractions version, and the tag SHALL be derived and SHALL NOT be supplied by the maintainer. The Abstractions version SHALL be the one resolved in the plugin's lock file at the commit being released. After its leading `v`, the tag SHALL be a valid semantic version of the form `major.minor.patch[-dev.revision]+abstr.<abstractions>`, with any `-` in the Abstractions version written as `.`. The manifest and assembly version SHALL keep a revision as a fourth part.
 
 #### Scenario: First Dev release of a version
 
 - **WHEN** a Dev release of `6.5.0` is requested, no release exists for `6.5.0`, and the plugin resolves Abstractions `6.0.0-alpha.108`
 - **THEN** the release version is `6.5.0.1`
-- **AND** its tag is `v6.5.0.1-abstr-6.0.0-alpha.108`
+- **AND** its tag is `v6.5.0-dev.1+abstr.6.0.0.alpha.108`
 
 #### Scenario: Next Dev release of a version
 
 - **WHEN** a Dev release of `6.5.0` is requested and the highest existing revision of `6.5.0` is 3
 - **THEN** the release version is `6.5.0.4`
+- **AND** its tag contains `-dev.4`
 
 #### Scenario: A revision known only from a tag
 
 - **WHEN** a revision of the requested version exists as a tag but not in the manifest
 - **THEN** that revision counts towards the next revision
 
+#### Scenario: A revision in a tag of the older format
+
+- **WHEN** a tag in the older form `v6.7.0.2-abstr-6.0.0-alpha.108` exists
+- **THEN** it counts as revision 2 of `6.7.0`
+
 #### Scenario: Stable release
 
 - **WHEN** a Stable release of `6.5.0` is requested and the plugin resolves Abstractions `6.0.0`
 - **THEN** the release version is `6.5.0` with no revision
-- **AND** its tag is `v6.5.0-abstr-6.0.0`
+- **AND** its tag is `v6.5.0+abstr.6.0.0`
 
 #### Scenario: A malformed version
 
@@ -91,6 +97,12 @@ Each runtime's archive SHALL be built once per run. The archives tested SHALL be
 - **WHEN** a run packages the plugin
 - **THEN** it produces one archive each for `win-x64`, `linux-x64`, and `linux-arm64`
 - **AND** a failure to produce any of them fails the run
+
+#### Scenario: Archive names
+
+- **WHEN** a release's tag contains a `+`
+- **THEN** its archive names do not, so the host does not rename them on upload
+- **AND** the manifest's download URLs name the archives as uploaded
 
 #### Scenario: Publishing
 
