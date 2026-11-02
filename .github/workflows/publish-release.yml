@@ -34,11 +34,11 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         ref: ${{ inputs.commit-ish }}
         fetch-depth: 1
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         ref: manifest
         path: manifest-branch
@@ -52,7 +52,7 @@ jobs:
         git fetch --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG" || git tag "$TAG"
         [[ "$(git rev-parse "$TAG^{commit}")" == "$(git rev-parse HEAD)" ]] || { echo "::error::$TAG is not on HEAD"; exit 1; }
         git tag --points-at HEAD | grep -vxF "$TAG" | xargs -r git tag -d
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
         cache: true
@@ -87,7 +87,7 @@ jobs:
         --release-notes-path "$RUNNER_TEMP/release-notes.md"
         --output './publish/LuaRenamer_{tag}_{runtime}.zip'
         --url 'https://github.com/${{ github.repository }}/releases/download/{tag}/LuaRenamer_{tag}_{runtime}.zip'
-    - uses: actions/create-github-app-token@v2
+    - uses: actions/create-github-app-token@v3
       id: app-token
       with:
         app-id: ${{ vars.RELEASE_APP_ID }}
