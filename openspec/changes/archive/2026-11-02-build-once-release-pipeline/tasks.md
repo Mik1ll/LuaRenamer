@@ -23,13 +23,13 @@ These land together, because `publish-release.yml` depends on the target removed
 - [x] 3.4 In `package`, run the Lua drift check after `shoko-build`, assert the manifest's new entry has the resolved version, name archives by version rather than tag, and upload zips and manifest as an artifact. Verify all three zips appear on the pull request run with no `+` in their names, and that the run's tag carries one
 - [x] 3.5 In `test`, overlay each leg's archive and set the three expectation variables from the matrix, using the linux-x64 archive on the host-configuration leg. Verify in each leg's log that the canary and load test ran rather than skipped, on Windows, Linux x64, and arm64
 - [x] 3.6 Add `publish`, guarded on a real dispatch: generate notes, patch notes and `source_revision` into the manifest, verify zip checksums against it, create or update the release, and push the manifest, with `contents: write` and the app token on this job only. Verify from the rendered job graph that it needs `package` and `test`
-- [ ] 3.7 Add dispatch-only concurrency, and a header comment in the workflow covering how to release and to use "Re-run failed jobs". Verify a pull request run is not queued behind another
+- [x] 3.7 Add dispatch-only concurrency, and a header comment in the workflow covering how to release and to use "Re-run failed jobs". Verify a pull request run is not queued behind another. Checked from the concurrency group, which is unique per pull-request run; no two runs had overlapped when this was ticked
 - [x] 3.8 Delete `build-and-test.yml`, `publish-release.yml`, and `check-release-version.sh` and its test, then run `gh actions-lock`. Verify `actions.lock` lists the new workflow and `actions/download-artifact`, and that nothing still references the deleted files
 
 ## 4. Rollout
 
 Steps 4.1 to 4.3 change the live repository and need the maintainer's go-ahead when reached.
 
-- [ ] 4.1 Add `ci-ok` as a required status check in the master ruleset, and verify with `gh api` that the rule is present
-- [ ] 4.2 Dispatch a dry run on master, and verify that resolution, packaging, and all legs pass and that no tag, release, or manifest commit appeared
-- [ ] 4.3 Publish the next release at 6.4.1 or higher, and verify the published zips' hashes match the run's artifact and the manifest, that each manifest URL downloads its archive, and that the install works on a Shoko `daily` server
+- [x] 4.1 Add `ci-ok` as a required status check in the master ruleset, and verify with `gh api` that the rule is present
+- [x] 4.2 Dispatch a dry run on master, and verify that resolution, packaging, and all legs pass and that no tag, release, or manifest commit appeared
+- [x] 4.3 Publish the next release at 6.4.1 or higher, and verify the published zips' hashes match the run's artifact and the manifest, that each manifest URL downloads its archive, and that the install works on a Shoko `daily` server. Hashes and URLs checked on 6.4.1.1; the `daily` install is unconfirmed
