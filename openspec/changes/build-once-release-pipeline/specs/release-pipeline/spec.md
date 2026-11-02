@@ -132,7 +132,7 @@ The packaged Lua definitions SHALL match the ones committed at the released comm
 
 ### Requirement: Publishing requires a passing run
 
-A release SHALL be published only by a dispatched run that is not a dry run, and only after packaging and every test leg have passed. Publishing SHALL create the GitHub release at the released commit, then update the manifest with the release notes and the source revision.
+A release SHALL be published only by a dispatched run that is not a dry run, and only after packaging and every test leg have passed. Publishing SHALL create the GitHub release at the released commit, titled with its tag, then update the manifest with the release notes and the source revision.
 
 #### Scenario: A failing leg
 
