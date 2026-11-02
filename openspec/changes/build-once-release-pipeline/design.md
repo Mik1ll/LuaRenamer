@@ -95,6 +95,10 @@ The Dev-or-Stable rule exists because of a gap in Shoko. `SemverVersionComparer`
 
 `POST /releases/generate-notes` needs write access, so notes are generated in `publish` and patched into the manifest with `jq`, next to `source_revision`, which `shoko-build` still doesn't record. That leaves `package` read-only. The workflow defaults to `contents: read`, and only `publish` gets `contents: write` and the app token.
 
+Generating notes doesn't need the tag to exist, given `target_commitish`, and creates nothing. The tag is created by `gh release create --target` with the app token, so it only exists once every leg has passed.
+
+*Alternative considered:* annotated tags, created before the release. Nothing reads their author, date, or message, since Shoko takes the tag as plain text from the manifest and assembly. They would add API calls and a new failure state, a tag with no release. Release tags stay lightweight, as they have been.
+
 ### Concurrency and re-runs
 
 Workflow-level concurrency uses a fixed group for dispatches, and `github.run_id` otherwise, so pull requests never queue. Publishing keeps `gh release upload --clobber` for the case where the release exists. Because the archives come from the run's artifact, a job re-run re-uploads the same bytes that the manifest describes.
