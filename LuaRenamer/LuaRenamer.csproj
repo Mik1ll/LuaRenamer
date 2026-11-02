@@ -34,7 +34,7 @@
              rather than at runtime. Dependabot still moves the floor within 10.x. -->
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[10.0.14, 11.0.0)" ExcludeAssets="runtime" />
         <PackageReference Include="NLua" Version="1.7.9" />
-        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.108" ExcludeAssets="runtime" />
+        <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.124" ExcludeAssets="runtime" />
         <PackageReference Include="Shoko.BuildTools.Targets" Version="0.7.2" PrivateAssets="All" ExcludeAssets="runtime" />
     </ItemGroup>
 

@@ -4,9 +4,9 @@
     "net10.0": {
       "Shoko.Abstractions": {
         "type": "Direct",
-        "requested": "[6.0.0-alpha.108, )",
-        "resolved": "6.0.0-alpha.108",
-        "contentHash": "/Lt4ZT4S/0bp1g6ew5/p5a/TC1ZcnCc7Ad0fXzHtB19PcbhWxsETUYWMDKd1Vp0umuqAGSN8IeOoGXIYZjZNGQ==",
+        "requested": "[6.0.0-alpha.124, )",
+        "resolved": "6.0.0-alpha.124",
+        "contentHash": "3PtWD9pPuLKvl7oJsskTIXNz3tTprpf46OYl4r5e7OX0JUt1YkV+v1znjDb9uR342rLC4A5LWWX6C0QwUEVw5w==",
         "dependencies": {
           "NJsonSchema": "11.6.1",
           "Newtonsoft.Json": "13.0.4"
@@ -55,7 +55,7 @@
         "dependencies": {
           "KeraLua": "[1.4.11, )",
           "NLua": "[1.7.9, )",
-          "Shoko.Abstractions": "[6.0.0-alpha.108, )"
+          "Shoko.Abstractions": "[6.0.0-alpha.124, )"
         }
       }
     }
