@@ -34,7 +34,7 @@ jobs:
       LUARENAMER_EXPECT_CULTURE: ${{ matrix.culture }}
       LUARENAMER_EXPECT_TZ: ${{ matrix.timezone }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     # Written to GITHUB_ENV rather than the job's env: an expression that is empty on the other legs would
     # still set LANG/TZ to the empty string there instead of leaving the runner defaults alone.
     - name: Configure host locale and timezone
@@ -49,7 +49,7 @@ jobs:
         if [ -n "${{ matrix.timezone }}" ]; then
           echo "TZ=${{ matrix.timezone }}" >> "$GITHUB_ENV"
         fi
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
         cache: true
