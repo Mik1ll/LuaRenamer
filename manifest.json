@@ -4,8 +4,8 @@
   "overview": "Lua scripting environment for renaming and moving video files. Provides a powerful Lua 5.4 interface for custom file organization.",
   "authors": "Mik1ll",
   "repository_url": "https://github.com/Mik1ll/LuaRenamer",
-  "homepage_url": null,
   "tags": [
+    "relocator",
     "relocation-provider",
     "lua",
     "scripting"
@@ -13,12 +13,43 @@
   "image_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "thumbnail_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/banner16x9.svg",
   "icon_url": "https://raw.githubusercontent.com/Mik1ll/LuaRenamer/refs/heads/master/icon1x1.svg",
+  "is_meta": false,
   "releases": [
+    {
+      "version": "6.4.1.1",
+      "tag": "v6.4.1-dev.1+abstr.6.0.0.alpha.108",
+      "released_at": "2026-11-02T08:37:45.3596131Z",
+      "channel": "Dev",
+      "is_meta": false,
+      "dependencies": [],
+      "archives": [
+        {
+          "runtime": "win-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.1-dev.1+abstr.6.0.0.alpha.108/LuaRenamer_6.4.1.1_win-x64.zip",
+          "checksum": "sha256:232a4ed0bafd054f5b685b374261747e4558c387a1b7cf9726a25f9f2c82f3d2"
+        },
+        {
+          "runtime": "linux-x64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.1-dev.1+abstr.6.0.0.alpha.108/LuaRenamer_6.4.1.1_linux-x64.zip",
+          "checksum": "sha256:9d1d92172b3683a5f521f95759bece427345e4c06fd1c00794fae570d0461f07"
+        },
+        {
+          "runtime": "linux-arm64",
+          "abstraction": "6.0.0",
+          "url": "https://github.com/Mik1ll/LuaRenamer/releases/download/v6.4.1-dev.1+abstr.6.0.0.alpha.108/LuaRenamer_6.4.1.1_linux-arm64.zip",
+          "checksum": "sha256:2c47f68080b11890129a1b33bac0fcacef9e11863d0b4f9bc860809114478350"
+        }
+      ],
+      "source_revision": "376888ac83a930b059083c47d24b2b2c59576198",
+      "release_notes": "## What's Changed\n* Propose ci-platform-matrix by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/215\n* Add a 15-second script timeout by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/217\n* Measure the suite with mutation testing by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/216\n* Bump Microsoft.Extensions.Logging.Abstractions from 10.0.12 to 10.0.14 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/223\n* Bump KeraLua from 1.4.10 to 1.4.11 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/221\n* Bump FsCheck and FsCheck.Xunit.v3 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/220\n* Bump Microsoft.Extensions.Diagnostics.Testing from 10.9.0 to 10.11.0 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/222\n* Build with Shoko.BuildTools.Targets and generate the plugin class by @revam in https://github.com/Mik1ll/LuaRenamer/pull/224\n* Update workflow actions and add an Actions lockfile by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/225\n* Build archives once and release what was tested by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/228\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.4.0-abstr-6.0.0-alpha.108...v6.4.1-dev.1+abstr.6.0.0.alpha.108"
+    },
     {
       "version": "6.4.0",
       "tag": "v6.4.0-abstr-6.0.0-alpha.108",
       "source_revision": "4054967a686c29ae54d6db6f28dbee5af3d8cb31",
-      "released_at": "2026-10-16T00:44:53-07:00",
+      "released_at": "2026-10-16T07:44:53+00:00",
       "channel": "Dev",
       "release_notes": "## What's Changed\n* Rebuild the test suite: xUnit v3, NSubstitute, property-based invariants by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/175\n* Update to Shoko.Abstractions 6.0.0-alpha.108 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/218\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.4.0-abstr-6.0.0-alpha.107...v6.4.0-abstr-6.0.0-alpha.108",
       "archives": [
@@ -46,7 +77,7 @@
       "version": "6.3.0",
       "tag": "v6.3.0-abstr-6.0.0-alpha.93",
       "source_revision": "8a91063e8f98dbfe834d793563451c7e29b2b90e",
-      "released_at": "2026-09-21T03:27:20-07:00",
+      "released_at": "2026-09-21T10:27:20+00:00",
       "channel": "Dev",
       "release_notes": "Update Abstractions, a bunch of refactoring, dependencies, and CI bullshit\r\n\r\n## What's Changed\r\n* Change release event types to 'released' only by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/139\r\n* Add Claude Code GitHub Workflow by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/145\r\n* Rework the Lua env into a plain-C# model + serializer, extract LuaEnv, and unify the generators by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/143\r\n* Relock all NuGet lock files on Dependabot PRs by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/150\r\n* Gate the lock file refresh on drift instead of on Dependabot by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/152\r\n* Stop patch-sourcelink from emitting a lock file by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/153\r\n* Bump MSTest from 4.1.0 to 4.3.3 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/154\r\n* Temporarily downgrade Moq to 4.20.70 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/155\r\n* Bump Moq from 4.20.70 to 4.20.72 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/156\r\n* Clean up LuaEnv: drop dead metadata, de-hack enum tables, fix sandbox bugs by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/157\r\n* Add anidb ep ids to tmdb objects by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/158\r\n* Editorconfig by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/160\r\n* No central management again by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/161\r\n* dependabot doesn't like bracket notation by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/162\r\n* Dep fix redux final version for sure this time bro by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/163\r\n* haha by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/165\r\n* Bump Microsoft.Extensions.Logging.Abstractions from 10.0.10 to 10.0.11 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/166\r\n* Add openspec by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/169\r\n* Bump Shoko.Abstractions from 6.0.0-alpha.43 to 6.0.0-alpha.93 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/181\r\n* Update api for alpha.93 by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/182\r\n* Bump Microsoft.Extensions.Logging.Abstractions from 10.0.11 to 10.0.12 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/176\r\n* Bump MSTest from 4.3.3 to 4.4.1 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/178\r\n* Bump KeraLua from 1.4.9 to 1.4.10 by @dependabot[bot] in https://github.com/Mik1ll/LuaRenamer/pull/186\r\n* Fix DefsGenerator blocking publish by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/187\r\n\r\n## New Contributors\r\n* @dependabot[bot] made their first contribution in https://github.com/Mik1ll/LuaRenamer/pull/156\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.2.0-abstr-6.0.0-alpha.43...v6.3.0-abstr-6.0.0-alpha.93",
       "archives": [
@@ -74,7 +105,7 @@
       "version": "6.2.0",
       "tag": "v6.2.0-abstr-6.0.0-alpha.43",
       "source_revision": "2288a52327055b151c8623f1166740361511bc5a",
-      "released_at": "2026-06-04T23:35:16-07:00",
+      "released_at": "2026-06-05T06:35:16+00:00",
       "channel": "Dev",
       "release_notes": "## What's Changed\n* Change release types in update-manifest workflow by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/133\n* Change GH_TOKEN to use MY_GITHUB_RELEASE_PAT by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/134\n* Upload plugin manifest banner by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/135\n* Add compile-time type safety for Lua table bindings via source generator by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/137\n* Update Shoko.Abstractions package to version 6.0.0-alpha.43 across all projects by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/138\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.1.0-abstr-6.0.0-alpha.33...v6.2.0-abstr-6.0.0-alpha.43",
       "archives": [
@@ -102,7 +133,7 @@
       "version": "6.1.0",
       "tag": "v6.1.0-abstr-6.0.0-alpha.33",
       "source_revision": "7600babb9285df258a1e9e2b5b488bee6156e031",
-      "released_at": "2026-05-30T23:17:06-07:00",
+      "released_at": "2026-05-31T06:17:06+00:00",
       "channel": "Dev",
       "release_notes": "## What's Changed\r\n* Add plugin manifest and package metadata by @revam in https://github.com/Mik1ll/LuaRenamer/pull/128\r\n* Fix action by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/130\r\n* Add seasons by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/131\r\n* Refactor LuaContext by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/132\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.0.5-abstr-6.0.0-alpha.21...v6.1.0-abstr-6.0.0-alpha.33",
       "archives": [
@@ -130,7 +161,7 @@
       "version": "5.10.3",
       "tag": "v5.10.3-stable-5.3.1",
       "source_revision": "4f8f6bb4a2d4178b7a9208430e59a3b1258a38e6",
-      "released_at": "2026-02-19T21:14:42-08:00",
+      "released_at": "2026-02-20T05:14:42+00:00",
       "channel": "Stable",
       "release_notes": "## What's Changed\r\n* Fix episode_numbers and add test (compat) by @Mik1ll in https://github.com/Mik1ll/LuaRenamer/pull/121\r\n\r\n\r\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v5.10.2-stable-5.3.1...v5.10.3-stable-5.3.1",
       "archives": [
@@ -158,7 +189,7 @@
       "version": "6.0.5",
       "tag": "v6.0.5-abstr-6.0.0-alpha.21",
       "source_revision": "f54e18942357b5ec9d0c29a5c3c011b6dcc1f55f",
-      "released_at": "2026-05-19T07:08:21-07:00",
+      "released_at": "2026-05-19T14:08:21+00:00",
       "channel": "Dev",
       "release_notes": "## What's Changed\n* Update to Shoko.Abstractions 6.0.0-alpha.21 by @revam in https://github.com/Mik1ll/LuaRenamer/pull/126\n\n\n**Full Changelog**: https://github.com/Mik1ll/LuaRenamer/compare/v6.0.4-abstr-6.0.0-alpha.13...v6.0.5-abstr-6.0.0-alpha.21",
       "archives": [
