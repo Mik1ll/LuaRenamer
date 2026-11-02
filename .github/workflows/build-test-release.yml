@@ -305,6 +305,7 @@ jobs:
         else
           gh release create "$TAG" release/publish/*.zip \
             --target "$SHA" \
+            --title "$TAG" \
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --prerelease="$PRERELEASE"
         fi
