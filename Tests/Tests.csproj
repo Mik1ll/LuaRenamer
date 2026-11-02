@@ -23,7 +23,7 @@
         <PackageReference Include="NLua" Version="1.7.9" />
         <PackageReference Include="Shoko.Abstractions" Version="6.0.0-alpha.108" />
         <PackageReference Include="NSubstitute" Version="6.2.0" />
-        <PackageReference Include="xunit.v3" Version="4.0.0" />
+        <PackageReference Include="xunit.v3" Version="4.0.2" />
     </ItemGroup>
 
     <ItemGroup>
