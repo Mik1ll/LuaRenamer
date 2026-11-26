@@ -38,9 +38,9 @@
       },
       "Shoko.BuildTools.Targets": {
         "type": "Direct",
-        "requested": "[0.7.2, )",
-        "resolved": "0.7.2",
-        "contentHash": "TgpFH6nHoHM/eHGIKVclYCyFg/Dm83A+/I3gqGvZ3JgabTm6hpuw59zG/KTD6hvSP/GHQ5P8VFJLnUrAvsM2bg==",
+        "requested": "[0.8.1, )",
+        "resolved": "0.8.1",
+        "contentHash": "ZnfD6CpU7IZUr4pZaqHx/8Q1SHfusfcjK9lSWyNyUXJ0XpZQvSBMLTGgMyB5aeHkj/VdXtG5yp3QX1G1LwYQBQ==",
         "dependencies": {
           "Microsoft.Build.Framework": "18.9.6",
           "Microsoft.Build.Utilities.Core": "18.9.6"
